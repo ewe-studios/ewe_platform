@@ -12,11 +12,14 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::paymentsresellersubscription::{
+    paymentsresellersubscription_partners_products_list_builder, paymentsresellersubscription_partners_products_list_task,
     paymentsresellersubscription_partners_promotions_find_eligible_builder, paymentsresellersubscription_partners_promotions_find_eligible_task,
+    paymentsresellersubscription_partners_promotions_list_builder, paymentsresellersubscription_partners_promotions_list_task,
     paymentsresellersubscription_partners_subscriptions_cancel_builder, paymentsresellersubscription_partners_subscriptions_cancel_task,
     paymentsresellersubscription_partners_subscriptions_create_builder, paymentsresellersubscription_partners_subscriptions_create_task,
     paymentsresellersubscription_partners_subscriptions_entitle_builder, paymentsresellersubscription_partners_subscriptions_entitle_task,
     paymentsresellersubscription_partners_subscriptions_extend_builder, paymentsresellersubscription_partners_subscriptions_extend_task,
+    paymentsresellersubscription_partners_subscriptions_get_builder, paymentsresellersubscription_partners_subscriptions_get_task,
     paymentsresellersubscription_partners_subscriptions_provision_builder, paymentsresellersubscription_partners_subscriptions_provision_task,
     paymentsresellersubscription_partners_subscriptions_resume_builder, paymentsresellersubscription_partners_subscriptions_resume_task,
     paymentsresellersubscription_partners_subscriptions_suspend_builder, paymentsresellersubscription_partners_subscriptions_suspend_task,
@@ -30,16 +33,21 @@ use crate::providers::gcp::clients::paymentsresellersubscription::EntitleSubscri
 use crate::providers::gcp::clients::paymentsresellersubscription::ExtendSubscriptionResponse;
 use crate::providers::gcp::clients::paymentsresellersubscription::FindEligiblePromotionsResponse;
 use crate::providers::gcp::clients::paymentsresellersubscription::GenerateUserSessionResponse;
+use crate::providers::gcp::clients::paymentsresellersubscription::ListProductsResponse;
+use crate::providers::gcp::clients::paymentsresellersubscription::ListPromotionsResponse;
 use crate::providers::gcp::clients::paymentsresellersubscription::ResumeSubscriptionResponse;
 use crate::providers::gcp::clients::paymentsresellersubscription::Subscription;
 use crate::providers::gcp::clients::paymentsresellersubscription::SubscriptionLineItem;
 use crate::providers::gcp::clients::paymentsresellersubscription::SuspendSubscriptionResponse;
 use crate::providers::gcp::clients::paymentsresellersubscription::UndoCancelSubscriptionResponse;
+use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersProductsListArgs;
 use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersPromotionsFindEligibleArgs;
+use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersPromotionsListArgs;
 use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersSubscriptionsCancelArgs;
 use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersSubscriptionsCreateArgs;
 use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersSubscriptionsEntitleArgs;
 use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersSubscriptionsExtendArgs;
+use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersSubscriptionsGetArgs;
 use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersSubscriptionsLineItemsPatchArgs;
 use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersSubscriptionsProvisionArgs;
 use crate::providers::gcp::clients::paymentsresellersubscription::PaymentsresellersubscriptionPartnersSubscriptionsResumeArgs;
@@ -87,6 +95,47 @@ where
         }
     }
 
+    /// Paymentsresellersubscription partners products list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListProductsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn paymentsresellersubscription_partners_products_list(
+        &self,
+        args: &PaymentsresellersubscriptionPartnersProductsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListProductsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = paymentsresellersubscription_partners_products_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = paymentsresellersubscription_partners_products_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Paymentsresellersubscription partners promotions find eligible.
     ///
     /// Automatically stores the result in the state store on success.
@@ -128,6 +177,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Paymentsresellersubscription partners promotions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListPromotionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn paymentsresellersubscription_partners_promotions_list(
+        &self,
+        args: &PaymentsresellersubscriptionPartnersPromotionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListPromotionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = paymentsresellersubscription_partners_promotions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = paymentsresellersubscription_partners_promotions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Paymentsresellersubscription partners subscriptions cancel.
@@ -301,6 +391,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Paymentsresellersubscription partners subscriptions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Subscription result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn paymentsresellersubscription_partners_subscriptions_get(
+        &self,
+        args: &PaymentsresellersubscriptionPartnersSubscriptionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Subscription, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = paymentsresellersubscription_partners_subscriptions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = paymentsresellersubscription_partners_subscriptions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Paymentsresellersubscription partners subscriptions provision.

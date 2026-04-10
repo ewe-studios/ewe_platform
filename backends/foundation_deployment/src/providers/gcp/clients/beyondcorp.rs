@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,858 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// POST v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_organizations_locations_operations_cancel_execute()` to send, or `beyondcorp_organizations_locations_operations_cancel` for simplest API.
+
+pub fn beyondcorp_organizations_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_organizations_locations_operations_cancel_execute()` or `beyondcorp_organizations_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_organizations_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_organizations_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_organizations_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_organizations_locations_operations_cancel_task()`.
+/// For the simplest API, use `beyondcorp_organizations_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_organizations_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_organizations_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_organizations_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_organizations_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpOrganizationsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_organizations_locations_operations_cancel_builder()` + `beyondcorp_organizations_locations_operations_cancel_execute()`.
+/// For task-level control, use `beyondcorp_organizations_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_organizations_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpOrganizationsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_organizations_locations_operations_cancel_builder(client, &args.name)?;
+    beyondcorp_organizations_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_organizations_locations_operations_delete_execute()` to send, or `beyondcorp_organizations_locations_operations_delete` for simplest API.
+
+pub fn beyondcorp_organizations_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_organizations_locations_operations_delete_execute()` or `beyondcorp_organizations_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_organizations_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_organizations_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_organizations_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_organizations_locations_operations_delete_task()`.
+/// For the simplest API, use `beyondcorp_organizations_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_organizations_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_organizations_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_organizations_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_organizations_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpOrganizationsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_organizations_locations_operations_delete_builder()` + `beyondcorp_organizations_locations_operations_delete_execute()`.
+/// For task-level control, use `beyondcorp_organizations_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_organizations_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpOrganizationsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_organizations_locations_operations_delete_builder(client, &args.name)?;
+    beyondcorp_organizations_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_organizations_locations_operations_get_execute()` to send, or `beyondcorp_organizations_locations_operations_get` for simplest API.
+
+pub fn beyondcorp_organizations_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_organizations_locations_operations_get_execute()` or `beyondcorp_organizations_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_organizations_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_organizations_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_organizations_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_organizations_locations_operations_get_task()`.
+/// For the simplest API, use `beyondcorp_organizations_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_organizations_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_organizations_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_organizations_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_organizations_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpOrganizationsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_organizations_locations_operations_get_builder()` + `beyondcorp_organizations_locations_operations_get_execute()`.
+/// For task-level control, use `beyondcorp_organizations_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_organizations_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpOrganizationsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_organizations_locations_operations_get_builder(client, &args.name)?;
+    beyondcorp_organizations_locations_operations_get_execute(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_organizations_locations_operations_list_execute()` to send, or `beyondcorp_organizations_locations_operations_list` for simplest API.
+
+pub fn beyondcorp_organizations_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/organizations/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_organizations_locations_operations_list_execute()` or `beyondcorp_organizations_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_organizations_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_organizations_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningListOperationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_organizations_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_organizations_locations_operations_list_task()`.
+/// For the simplest API, use `beyondcorp_organizations_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_organizations_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_organizations_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_organizations_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_organizations_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpOrganizationsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_organizations_locations_operations_list_builder()` + `beyondcorp_organizations_locations_operations_list_execute()`.
+/// For task-level control, use `beyondcorp_organizations_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_organizations_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpOrganizationsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_organizations_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    beyondcorp_organizations_locations_operations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_get_execute()` to send, or `beyondcorp_projects_locations_get` for simplest API.
+
+pub fn beyondcorp_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_get_execute()` or `beyondcorp_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudLocationLocation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_get_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_get_builder()` + `beyondcorp_projects_locations_get_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_get_builder(client, &args.name)?;
+    beyondcorp_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
@@ -29,13 +878,16 @@ use serde::Serialize;
 pub fn beyondcorp_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://beyondcorp.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -179,13 +1031,13 @@ pub struct BeyondcorpProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -219,4 +1071,9906 @@ pub fn beyondcorp_projects_locations_list(
         &args.pageToken,
     )?;
     beyondcorp_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections
+/// Creates a new AppConnection in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connections_create_execute()` to send, or `beyondcorp_projects_locations_app_connections_create` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connections_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    appConnectionId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = appConnectionId.as_ref() {
+        query_parts.push(format!("appConnectionId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections
+/// Creates a new AppConnection in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connections_create_execute()` or `beyondcorp_projects_locations_app_connections_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections
+/// Creates a new AppConnection in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connections_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_create_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connections_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connections_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connections_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appConnectionId
+    pub appConnectionId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections
+/// Creates a new AppConnection in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connections_create_builder()` + `beyondcorp_projects_locations_app_connections_create_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_create(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectionsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connections_create_builder(
+        client,
+        &args.parent,
+        &args.appConnectionId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    beyondcorp_projects_locations_app_connections_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Deletes a single AppConnection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connections_delete_execute()` to send, or `beyondcorp_projects_locations_app_connections_delete` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connections_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Deletes a single AppConnection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connections_delete_execute()` or `beyondcorp_projects_locations_app_connections_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Deletes a single AppConnection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connections_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_delete_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connections_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connections_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connections_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Deletes a single AppConnection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connections_delete_builder()` + `beyondcorp_projects_locations_app_connections_delete_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_delete(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connections_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    beyondcorp_projects_locations_app_connections_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Gets details of a single AppConnection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connections_get_execute()` to send, or `beyondcorp_projects_locations_app_connections_get` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connections_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Gets details of a single AppConnection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connections_get_execute()` or `beyondcorp_projects_locations_app_connections_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectionsV1AppConnection>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudBeyondcorpAppconnectionsV1AppConnection =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Gets details of a single AppConnection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connections_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_get_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connections_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connections_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudBeyondcorpAppconnectionsV1AppConnection>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connections_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Gets details of a single AppConnection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connections_get_builder()` + `beyondcorp_projects_locations_app_connections_get_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_get(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectionsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudBeyondcorpAppconnectionsV1AppConnection>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connections_get_builder(client, &args.name)?;
+    beyondcorp_projects_locations_app_connections_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connections_get_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_connections_get_iam_policy` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connections_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connections_get_iam_policy_execute()` or `beyondcorp_projects_locations_app_connections_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connections_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_get_iam_policy_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connections_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connections_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connections_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connections_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connections_get_iam_policy_builder()` + `beyondcorp_projects_locations_app_connections_get_iam_policy_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectionsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connections_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    beyondcorp_projects_locations_app_connections_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections
+/// Lists AppConnections in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connections_list_execute()` to send, or `beyondcorp_projects_locations_app_connections_list` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connections_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections
+/// Lists AppConnections in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connections_list_execute()` or `beyondcorp_projects_locations_app_connections_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections
+/// Lists AppConnections in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connections_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_list_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connections_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connections_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connections_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections
+/// Lists AppConnections in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connections_list_builder()` + `beyondcorp_projects_locations_app_connections_list_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_list(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connections_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    beyondcorp_projects_locations_app_connections_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Updates the parameters of a single AppConnection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connections_patch_execute()` to send, or `beyondcorp_projects_locations_app_connections_patch` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connections_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    allowMissing: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = allowMissing.as_ref() {
+        query_parts.push(format!("allowMissing={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Updates the parameters of a single AppConnection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connections_patch_execute()` or `beyondcorp_projects_locations_app_connections_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Updates the parameters of a single AppConnection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connections_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_patch_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connections_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connections_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connections_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
+/// Updates the parameters of a single AppConnection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connections_patch_builder()` + `beyondcorp_projects_locations_app_connections_patch_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_patch(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectionsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connections_patch_builder(
+        client,
+        &args.name,
+        &args.allowMissing,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    beyondcorp_projects_locations_app_connections_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections:resolve
+/// Resolves AppConnections details for a given AppConnector. An internal method called by a connector to find AppConnections to connect to.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connections_resolve_execute()` to send, or `beyondcorp_projects_locations_app_connections_resolve` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connections_resolve_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    appConnectorId: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections:resolve",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = appConnectorId.as_ref() {
+        query_parts.push(format!("appConnectorId={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections:resolve
+/// Resolves AppConnections details for a given AppConnector. An internal method called by a connector to find AppConnections to connect to.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connections_resolve_execute()` or `beyondcorp_projects_locations_app_connections_resolve`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_resolve_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_resolve_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections:resolve
+/// Resolves AppConnections details for a given AppConnector. An internal method called by a connector to find AppConnections to connect to.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connections_resolve_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_resolve_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connections_resolve()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_resolve_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connections_resolve_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connections_resolve_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connections_resolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsResolveArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appConnectorId
+    pub appConnectorId: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections:resolve
+/// Resolves AppConnections details for a given AppConnector. An internal method called by a connector to find AppConnections to connect to.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connections_resolve_builder()` + `beyondcorp_projects_locations_app_connections_resolve_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_resolve_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_resolve(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectionsResolveArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connections_resolve_builder(
+        client,
+        &args.parent,
+        &args.appConnectorId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    beyondcorp_projects_locations_app_connections_resolve_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connections_set_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_connections_set_iam_policy` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connections_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connections_set_iam_policy_execute()` or `beyondcorp_projects_locations_app_connections_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connections_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_set_iam_policy_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connections_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connections_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connections_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connections_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connections_set_iam_policy_builder()` + `beyondcorp_projects_locations_app_connections_set_iam_policy_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectionsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connections_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    beyondcorp_projects_locations_app_connections_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connections_test_iam_permissions_execute()` to send, or `beyondcorp_projects_locations_app_connections_test_iam_permissions` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnections/{appConnectionsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connections_test_iam_permissions_execute()` or `beyondcorp_projects_locations_app_connections_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connections_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_test_iam_permissions_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connections_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connections_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connections_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connections_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connections_test_iam_permissions_builder()` + `beyondcorp_projects_locations_app_connections_test_iam_permissions_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connections_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectionsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connections_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    beyondcorp_projects_locations_app_connections_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors
+/// Creates a new AppConnector in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connectors_create_execute()` to send, or `beyondcorp_projects_locations_app_connectors_create` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connectors_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    appConnectorId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = appConnectorId.as_ref() {
+        query_parts.push(format!("appConnectorId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors
+/// Creates a new AppConnector in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connectors_create_execute()` or `beyondcorp_projects_locations_app_connectors_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors
+/// Creates a new AppConnector in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connectors_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_create_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connectors_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connectors_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connectors_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appConnectorId
+    pub appConnectorId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors
+/// Creates a new AppConnector in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connectors_create_builder()` + `beyondcorp_projects_locations_app_connectors_create_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_create(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectorsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connectors_create_builder(
+        client,
+        &args.parent,
+        &args.appConnectorId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    beyondcorp_projects_locations_app_connectors_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Deletes a single AppConnector.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connectors_delete_execute()` to send, or `beyondcorp_projects_locations_app_connectors_delete` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connectors_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Deletes a single AppConnector.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connectors_delete_execute()` or `beyondcorp_projects_locations_app_connectors_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Deletes a single AppConnector.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connectors_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_delete_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connectors_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connectors_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connectors_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Deletes a single AppConnector.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connectors_delete_builder()` + `beyondcorp_projects_locations_app_connectors_delete_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_delete(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectorsDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connectors_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    beyondcorp_projects_locations_app_connectors_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Gets details of a single AppConnector.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connectors_get_execute()` to send, or `beyondcorp_projects_locations_app_connectors_get` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connectors_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Gets details of a single AppConnector.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connectors_get_execute()` or `beyondcorp_projects_locations_app_connectors_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudBeyondcorpAppconnectorsV1AppConnector>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudBeyondcorpAppconnectorsV1AppConnector =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Gets details of a single AppConnector.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connectors_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_get_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connectors_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connectors_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudBeyondcorpAppconnectorsV1AppConnector>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connectors_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Gets details of a single AppConnector.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connectors_get_builder()` + `beyondcorp_projects_locations_app_connectors_get_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_get(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectorsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudBeyondcorpAppconnectorsV1AppConnector>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connectors_get_builder(client, &args.name)?;
+    beyondcorp_projects_locations_app_connectors_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connectors_get_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_connectors_get_iam_policy` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connectors_get_iam_policy_execute()` or `beyondcorp_projects_locations_app_connectors_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connectors_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_get_iam_policy_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connectors_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connectors_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connectors_get_iam_policy_builder()` + `beyondcorp_projects_locations_app_connectors_get_iam_policy_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectorsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connectors_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    beyondcorp_projects_locations_app_connectors_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors
+/// Lists AppConnectors in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connectors_list_execute()` to send, or `beyondcorp_projects_locations_app_connectors_list` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connectors_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors
+/// Lists AppConnectors in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connectors_list_execute()` or `beyondcorp_projects_locations_app_connectors_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors
+/// Lists AppConnectors in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connectors_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_list_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connectors_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connectors_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connectors_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors
+/// Lists AppConnectors in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connectors_list_builder()` + `beyondcorp_projects_locations_app_connectors_list_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_list(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectorsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connectors_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    beyondcorp_projects_locations_app_connectors_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Updates the parameters of a single AppConnector.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connectors_patch_execute()` to send, or `beyondcorp_projects_locations_app_connectors_patch` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connectors_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Updates the parameters of a single AppConnector.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connectors_patch_execute()` or `beyondcorp_projects_locations_app_connectors_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Updates the parameters of a single AppConnector.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connectors_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_patch_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connectors_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connectors_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connectors_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
+/// Updates the parameters of a single AppConnector.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connectors_patch_builder()` + `beyondcorp_projects_locations_app_connectors_patch_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_patch(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectorsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connectors_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    beyondcorp_projects_locations_app_connectors_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:reportStatus
+/// Report status for a given connector.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connectors_report_status_execute()` to send, or `beyondcorp_projects_locations_app_connectors_report_status` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connectors_report_status_builder(
+    client: &SimpleHttpClient,
+    appConnector: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}:reportStatus",
+        appConnector,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:reportStatus
+/// Report status for a given connector.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connectors_report_status_execute()` or `beyondcorp_projects_locations_app_connectors_report_status`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_report_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_report_status_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:reportStatus
+/// Report status for a given connector.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connectors_report_status_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_report_status_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connectors_report_status()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_report_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connectors_report_status_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connectors_report_status_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_report_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsReportStatusArgs {
+    /// Path parameter: appConnector
+    pub appConnector: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:reportStatus
+/// Report status for a given connector.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connectors_report_status_builder()` + `beyondcorp_projects_locations_app_connectors_report_status_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_report_status_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_report_status(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectorsReportStatusArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connectors_report_status_builder(
+        client,
+        &args.appConnector,
+    )?;
+    beyondcorp_projects_locations_app_connectors_report_status_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:resolveInstanceConfig
+/// Gets instance configuration for a given AppConnector. An internal method called by a AppConnector to get its container config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connectors_resolve_instance_config_execute()` to send, or `beyondcorp_projects_locations_app_connectors_resolve_instance_config` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config_builder(
+    client: &SimpleHttpClient,
+    appConnector: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}:resolveInstanceConfig",
+        appConnector,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:resolveInstanceConfig
+/// Gets instance configuration for a given AppConnector. An internal method called by a AppConnector to get its container config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connectors_resolve_instance_config_execute()` or `beyondcorp_projects_locations_app_connectors_resolve_instance_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_resolve_instance_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:resolveInstanceConfig
+/// Gets instance configuration for a given AppConnector. An internal method called by a AppConnector to get its container config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connectors_resolve_instance_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_resolve_instance_config_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connectors_resolve_instance_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_resolve_instance_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connectors_resolve_instance_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_resolve_instance_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsResolveInstanceConfigArgs {
+    /// Path parameter: appConnector
+    pub appConnector: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:resolveInstanceConfig
+/// Gets instance configuration for a given AppConnector. An internal method called by a AppConnector to get its container config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connectors_resolve_instance_config_builder()` + `beyondcorp_projects_locations_app_connectors_resolve_instance_config_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_resolve_instance_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectorsResolveInstanceConfigArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connectors_resolve_instance_config_builder(
+        client,
+        &args.appConnector,
+    )?;
+    beyondcorp_projects_locations_app_connectors_resolve_instance_config_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connectors_set_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_connectors_set_iam_policy` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connectors_set_iam_policy_execute()` or `beyondcorp_projects_locations_app_connectors_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connectors_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_set_iam_policy_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connectors_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connectors_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connectors_set_iam_policy_builder()` + `beyondcorp_projects_locations_app_connectors_set_iam_policy_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectorsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connectors_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    beyondcorp_projects_locations_app_connectors_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_connectors_test_iam_permissions_execute()` to send, or `beyondcorp_projects_locations_app_connectors_test_iam_permissions` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appConnectors/{appConnectorsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_connectors_test_iam_permissions_execute()` or `beyondcorp_projects_locations_app_connectors_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_connectors_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_test_iam_permissions_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_connectors_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_connectors_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_connectors_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_connectors_test_iam_permissions_builder()` + `beyondcorp_projects_locations_app_connectors_test_iam_permissions_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_connectors_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppConnectorsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_connectors_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    beyondcorp_projects_locations_app_connectors_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways
+/// Creates a new AppGateway in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_gateways_create_execute()` to send, or `beyondcorp_projects_locations_app_gateways_create` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_gateways_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    appGatewayId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = appGatewayId.as_ref() {
+        query_parts.push(format!("appGatewayId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways
+/// Creates a new AppGateway in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_gateways_create_execute()` or `beyondcorp_projects_locations_app_gateways_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways
+/// Creates a new AppGateway in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_gateways_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_create_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_gateways_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_gateways_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_gateways_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appGatewayId
+    pub appGatewayId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways
+/// Creates a new AppGateway in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_gateways_create_builder()` + `beyondcorp_projects_locations_app_gateways_create_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_create(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppGatewaysCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_gateways_create_builder(
+        client,
+        &args.parent,
+        &args.appGatewayId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    beyondcorp_projects_locations_app_gateways_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
+/// Deletes a single AppGateway.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_gateways_delete_execute()` to send, or `beyondcorp_projects_locations_app_gateways_delete` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_gateways_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways/{appGatewaysId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
+/// Deletes a single AppGateway.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_gateways_delete_execute()` or `beyondcorp_projects_locations_app_gateways_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
+/// Deletes a single AppGateway.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_gateways_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_delete_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_gateways_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_gateways_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_gateways_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
+/// Deletes a single AppGateway.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_gateways_delete_builder()` + `beyondcorp_projects_locations_app_gateways_delete_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_delete(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppGatewaysDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_gateways_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    beyondcorp_projects_locations_app_gateways_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
+/// Gets details of a single AppGateway.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_gateways_get_execute()` to send, or `beyondcorp_projects_locations_app_gateways_get` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_gateways_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways/{appGatewaysId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
+/// Gets details of a single AppGateway.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_gateways_get_execute()` or `beyondcorp_projects_locations_app_gateways_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppGateway>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AppGateway = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
+/// Gets details of a single AppGateway.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_gateways_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_get_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_gateways_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_gateways_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppGateway>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_gateways_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
+/// Gets details of a single AppGateway.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_gateways_get_builder()` + `beyondcorp_projects_locations_app_gateways_get_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_get(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppGatewaysGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppGateway>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_gateways_get_builder(client, &args.name)?;
+    beyondcorp_projects_locations_app_gateways_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_gateways_get_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_gateways_get_iam_policy` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways/{appGatewaysId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_gateways_get_iam_policy_execute()` or `beyondcorp_projects_locations_app_gateways_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_gateways_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_get_iam_policy_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_gateways_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_gateways_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_gateways_get_iam_policy_builder()` + `beyondcorp_projects_locations_app_gateways_get_iam_policy_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppGatewaysGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_gateways_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    beyondcorp_projects_locations_app_gateways_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways
+/// Lists AppGateways in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_gateways_list_execute()` to send, or `beyondcorp_projects_locations_app_gateways_list` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_gateways_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways
+/// Lists AppGateways in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_gateways_list_execute()` or `beyondcorp_projects_locations_app_gateways_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAppGatewaysResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAppGatewaysResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways
+/// Lists AppGateways in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_gateways_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_list_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_gateways_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_gateways_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppGatewaysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_gateways_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways
+/// Lists AppGateways in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_gateways_list_builder()` + `beyondcorp_projects_locations_app_gateways_list_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_list(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppGatewaysListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppGatewaysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_gateways_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    beyondcorp_projects_locations_app_gateways_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_gateways_set_iam_policy_execute()` to send, or `beyondcorp_projects_locations_app_gateways_set_iam_policy` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_gateways_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways/{appGatewaysId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_gateways_set_iam_policy_execute()` or `beyondcorp_projects_locations_app_gateways_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_gateways_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_set_iam_policy_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_gateways_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_gateways_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_gateways_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_gateways_set_iam_policy_builder()` + `beyondcorp_projects_locations_app_gateways_set_iam_policy_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppGatewaysSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        beyondcorp_projects_locations_app_gateways_set_iam_policy_builder(client, &args.resource)?;
+    beyondcorp_projects_locations_app_gateways_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_app_gateways_test_iam_permissions_execute()` to send, or `beyondcorp_projects_locations_app_gateways_test_iam_permissions` for simplest API.
+
+pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/appGateways/{appGatewaysId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_app_gateways_test_iam_permissions_execute()` or `beyondcorp_projects_locations_app_gateways_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_app_gateways_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_test_iam_permissions_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_app_gateways_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_app_gateways_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_app_gateways_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_app_gateways_test_iam_permissions_builder()` + `beyondcorp_projects_locations_app_gateways_test_iam_permissions_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_app_gateways_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsAppGatewaysTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_app_gateways_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    beyondcorp_projects_locations_app_gateways_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_operations_cancel_execute()` to send, or `beyondcorp_projects_locations_operations_cancel` for simplest API.
+
+pub fn beyondcorp_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_operations_cancel_execute()` or `beyondcorp_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_operations_cancel_builder()` + `beyondcorp_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_operations_cancel_builder(client, &args.name)?;
+    beyondcorp_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_operations_delete_execute()` to send, or `beyondcorp_projects_locations_operations_delete` for simplest API.
+
+pub fn beyondcorp_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_operations_delete_execute()` or `beyondcorp_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_operations_delete_builder()` + `beyondcorp_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_operations_delete_builder(client, &args.name)?;
+    beyondcorp_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_operations_get_execute()` to send, or `beyondcorp_projects_locations_operations_get` for simplest API.
+
+pub fn beyondcorp_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_operations_get_execute()` or `beyondcorp_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_operations_get_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_operations_get_builder()` + `beyondcorp_projects_locations_operations_get_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_operations_get_builder(client, &args.name)?;
+    beyondcorp_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_operations_list_execute()` to send, or `beyondcorp_projects_locations_operations_list` for simplest API.
+
+pub fn beyondcorp_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_operations_list_execute()` or `beyondcorp_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningListOperationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_operations_list_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_operations_list_builder()` + `beyondcorp_projects_locations_operations_list_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    beyondcorp_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways
+/// Creates a new Security Gateway in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_create_execute()` to send, or `beyondcorp_projects_locations_security_gateways_create` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    requestId: &Option<Option<String>>,
+    securityGatewayId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = securityGatewayId.as_ref() {
+        query_parts.push(format!("securityGatewayId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways
+/// Creates a new Security Gateway in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_create_execute()` or `beyondcorp_projects_locations_security_gateways_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways
+/// Creates a new Security Gateway in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_create_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: securityGatewayId
+    pub securityGatewayId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways
+/// Creates a new Security Gateway in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_create_builder()` + `beyondcorp_projects_locations_security_gateways_create_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_create(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_create_builder(
+        client,
+        &args.parent,
+        &args.requestId,
+        &args.securityGatewayId,
+    )?;
+    beyondcorp_projects_locations_security_gateways_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Deletes a single SecurityGateway.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_delete_execute()` to send, or `beyondcorp_projects_locations_security_gateways_delete` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Deletes a single SecurityGateway.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_delete_execute()` or `beyondcorp_projects_locations_security_gateways_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Deletes a single SecurityGateway.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_delete_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Deletes a single SecurityGateway.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_delete_builder()` + `beyondcorp_projects_locations_security_gateways_delete_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_delete(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    beyondcorp_projects_locations_security_gateways_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Gets details of a single SecurityGateway.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_get_execute()` to send, or `beyondcorp_projects_locations_security_gateways_get` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Gets details of a single SecurityGateway.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_get_execute()` or `beyondcorp_projects_locations_security_gateways_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Gets details of a single SecurityGateway.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_get_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Gets details of a single SecurityGateway.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_get_builder()` + `beyondcorp_projects_locations_security_gateways_get_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_get(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_get_builder(client, &args.name)?;
+    beyondcorp_projects_locations_security_gateways_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_get_iam_policy_execute()` to send, or `beyondcorp_projects_locations_security_gateways_get_iam_policy` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_get_iam_policy_execute()` or `beyondcorp_projects_locations_security_gateways_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_get_iam_policy_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_get_iam_policy_builder()` + `beyondcorp_projects_locations_security_gateways_get_iam_policy_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    beyondcorp_projects_locations_security_gateways_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways
+/// Lists SecurityGateways in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_list_execute()` to send, or `beyondcorp_projects_locations_security_gateways_list` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways
+/// Lists SecurityGateways in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_list_execute()` or `beyondcorp_projects_locations_security_gateways_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways
+/// Lists SecurityGateways in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_list_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways
+/// Lists SecurityGateways in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_list_builder()` + `beyondcorp_projects_locations_security_gateways_list_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_list(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    beyondcorp_projects_locations_security_gateways_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Updates the parameters of a single SecurityGateway.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_patch_execute()` to send, or `beyondcorp_projects_locations_security_gateways_patch` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Updates the parameters of a single SecurityGateway.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_patch_execute()` or `beyondcorp_projects_locations_security_gateways_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Updates the parameters of a single SecurityGateway.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_patch_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
+/// Updates the parameters of a single SecurityGateway.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_patch_builder()` + `beyondcorp_projects_locations_security_gateways_patch_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_patch(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    beyondcorp_projects_locations_security_gateways_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_set_iam_policy_execute()` to send, or `beyondcorp_projects_locations_security_gateways_set_iam_policy` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_set_iam_policy_execute()` or `beyondcorp_projects_locations_security_gateways_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_set_iam_policy_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_set_iam_policy_builder()` + `beyondcorp_projects_locations_security_gateways_set_iam_policy_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    beyondcorp_projects_locations_security_gateways_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_test_iam_permissions_execute()` to send, or `beyondcorp_projects_locations_security_gateways_test_iam_permissions` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_test_iam_permissions_execute()` or `beyondcorp_projects_locations_security_gateways_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_test_iam_permissions_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_test_iam_permissions_builder()` + `beyondcorp_projects_locations_security_gateways_test_iam_permissions_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    beyondcorp_projects_locations_security_gateways_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
+/// Creates a new Application in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_applications_create_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_create` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    applicationId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = applicationId.as_ref() {
+        query_parts.push(format!("applicationId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
+/// Creates a new Application in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_applications_create_execute()` or `beyondcorp_projects_locations_security_gateways_applications_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
+/// Creates a new Application in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_applications_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_create_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_applications_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_applications_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: applicationId
+    pub applicationId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
+/// Creates a new Application in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_applications_create_builder()` + `beyondcorp_projects_locations_security_gateways_applications_create_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_create(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_applications_create_builder(
+        client,
+        &args.parent,
+        &args.applicationId,
+        &args.requestId,
+    )?;
+    beyondcorp_projects_locations_security_gateways_applications_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Deletes a single application.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_applications_delete_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_delete` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Deletes a single application.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_applications_delete_execute()` or `beyondcorp_projects_locations_security_gateways_applications_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Deletes a single application.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_applications_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_delete_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_applications_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_applications_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Deletes a single application.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_applications_delete_builder()` + `beyondcorp_projects_locations_security_gateways_applications_delete_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_delete(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_applications_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    beyondcorp_projects_locations_security_gateways_applications_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Gets details of a single Application.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_applications_get_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_get` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Gets details of a single Application.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_applications_get_execute()` or `beyondcorp_projects_locations_security_gateways_applications_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1Application>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudBeyondcorpSecuritygatewaysV1Application =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Gets details of a single Application.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_applications_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_get_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_applications_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1Application>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_applications_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Gets details of a single Application.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_applications_get_builder()` + `beyondcorp_projects_locations_security_gateways_applications_get_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_get(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1Application>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_applications_get_builder(
+        client, &args.name,
+    )?;
+    beyondcorp_projects_locations_security_gateways_applications_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_execute()` or `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_builder()` + `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_builder(
+            client,
+            &args.resource,
+            &args.options_requestedPolicyVersion,
+        )?;
+    beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
+/// Lists Applications in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_applications_list_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_list` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
+/// Lists Applications in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_applications_list_execute()` or `beyondcorp_projects_locations_security_gateways_applications_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
+/// Lists Applications in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_applications_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_list_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_applications_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_applications_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
+/// Lists Applications in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_applications_list_builder()` + `beyondcorp_projects_locations_security_gateways_applications_list_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_list(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_applications_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    beyondcorp_projects_locations_security_gateways_applications_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Updates the parameters of a single Application.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_applications_patch_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_patch` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Updates the parameters of a single Application.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_applications_patch_execute()` or `beyondcorp_projects_locations_security_gateways_applications_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Updates the parameters of a single Application.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_applications_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_patch_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_applications_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = beyondcorp_projects_locations_security_gateways_applications_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
+/// Updates the parameters of a single Application.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_applications_patch_builder()` + `beyondcorp_projects_locations_security_gateways_applications_patch_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_patch(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = beyondcorp_projects_locations_security_gateways_applications_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    beyondcorp_projects_locations_security_gateways_applications_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_execute()` or `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_builder()` + `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_builder(
+            client,
+            &args.resource,
+        )?;
+    beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_execute()` to send, or `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions` for simplest API.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://beyondcorp.googleapis.com/v1/projects/{}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_execute()` or `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_task()`.
+/// For the simplest API, use `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_builder()` + `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_execute()`.
+/// For task-level control, use `beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_execute(
+        builder,
+    )
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BeyondcorpOrganizationsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpOrganizationsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpOrganizationsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BeyondcorpOrganizationsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpOrganizationsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpOrganizationsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpOrganizationsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpOrganizationsLocationsOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpOrganizationsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse with BeyondcorpOrganizationsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpOrganizationsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpOrganizationsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudLocationLocation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudLocationLocation with BeyondcorpProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsGetArgs> for GoogleCloudLocationLocation {
+    fn generate_resource_id(&self, input: &BeyondcorpProjectsLocationsGetArgs) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleCloudLocationLocation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudLocationLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudLocationListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudLocationListLocationsResponse with BeyondcorpProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsListArgs>
+    for GoogleCloudLocationListLocationsResponse
+{
+    fn generate_resource_id(&self, input: &BeyondcorpProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleCloudLocationListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudLocationListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsAppConnectionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsAppConnectionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsDeleteArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectionsV1AppConnection
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectionsV1AppConnection with BeyondcorpProjectsLocationsAppConnectionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsGetArgs>
+    for GoogleCloudBeyondcorpAppconnectionsV1AppConnection
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectionsV1AppConnection/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectionsV1AppConnection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with BeyondcorpProjectsLocationsAppConnectionsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsGetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse with BeyondcorpProjectsLocationsAppConnectionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsListArgs>
+    for GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsAppConnectionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsPatchArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse with BeyondcorpProjectsLocationsAppConnectionsResolveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsResolveArgs>
+    for GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsResolveArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with BeyondcorpProjectsLocationsAppConnectionsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsSetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse with BeyondcorpProjectsLocationsAppConnectionsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsTestIamPermissionsArgs>
+    for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsAppConnectorsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsAppConnectorsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsDeleteArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectorsV1AppConnector
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectorsV1AppConnector with BeyondcorpProjectsLocationsAppConnectorsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsGetArgs>
+    for GoogleCloudBeyondcorpAppconnectorsV1AppConnector
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectorsV1AppConnector/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectorsV1AppConnector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with BeyondcorpProjectsLocationsAppConnectorsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsGetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse with BeyondcorpProjectsLocationsAppConnectorsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsListArgs>
+    for GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsAppConnectorsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsPatchArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsAppConnectorsReportStatusArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsReportStatusArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsReportStatusArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleLongrunningOperation/{}",
+            input.appConnector
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse with BeyondcorpProjectsLocationsAppConnectorsResolveInstanceConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsResolveInstanceConfigArgs>
+    for GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsResolveInstanceConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse/{}",
+            input.appConnector
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with BeyondcorpProjectsLocationsAppConnectorsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsSetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse with BeyondcorpProjectsLocationsAppConnectorsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsTestIamPermissionsArgs>
+    for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsAppGatewaysCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppGatewaysCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppGatewaysCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsAppGatewaysDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppGatewaysDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppGatewaysDeleteArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppGateway
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppGateway with BeyondcorpProjectsLocationsAppGatewaysGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppGatewaysGetArgs> for AppGateway {
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppGatewaysGetArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::AppGateway/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::AppGateway"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with BeyondcorpProjectsLocationsAppGatewaysGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppGatewaysGetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppGatewaysGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAppGatewaysResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAppGatewaysResponse with BeyondcorpProjectsLocationsAppGatewaysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppGatewaysListArgs>
+    for ListAppGatewaysResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppGatewaysListArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::ListAppGatewaysResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::ListAppGatewaysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with BeyondcorpProjectsLocationsAppGatewaysSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppGatewaysSetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppGatewaysSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse with BeyondcorpProjectsLocationsAppGatewaysTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppGatewaysTestIamPermissionsArgs>
+    for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppGatewaysTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BeyondcorpProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with BeyondcorpProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(&self, input: &BeyondcorpProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse with BeyondcorpProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsSecurityGatewaysCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsSecurityGatewaysDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysDeleteArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway with BeyondcorpProjectsLocationsSecurityGatewaysGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysGetArgs>
+    for GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysGetArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with BeyondcorpProjectsLocationsSecurityGatewaysGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysGetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse with BeyondcorpProjectsLocationsSecurityGatewaysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysListArgs>
+    for GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysListArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsSecurityGatewaysPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysPatchArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with BeyondcorpProjectsLocationsSecurityGatewaysSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysSetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse with BeyondcorpProjectsLocationsSecurityGatewaysTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysTestIamPermissionsArgs>
+    for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsSecurityGatewaysApplicationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysApplicationsCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsSecurityGatewaysApplicationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysApplicationsDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsDeleteArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1Application
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1Application with BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetArgs>
+    for GoogleCloudBeyondcorpSecuritygatewaysV1Application
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleCloudBeyondcorpSecuritygatewaysV1Application/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudBeyondcorpSecuritygatewaysV1Application"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse with BeyondcorpProjectsLocationsSecurityGatewaysApplicationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysApplicationsListArgs>
+    for GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with BeyondcorpProjectsLocationsSecurityGatewaysApplicationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysApplicationsPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsPatchArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with BeyondcorpProjectsLocationsSecurityGatewaysApplicationsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysApplicationsSetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::beyondcorp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse with BeyondcorpProjectsLocationsSecurityGatewaysApplicationsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        BeyondcorpProjectsLocationsSecurityGatewaysApplicationsTestIamPermissionsArgs,
+    > for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::beyondcorp::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::beyondcorp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -12,47 +12,73 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::datalineage::{
+    datalineage_folders_locations_config_get_builder, datalineage_folders_locations_config_get_task,
     datalineage_folders_locations_config_patch_builder, datalineage_folders_locations_config_patch_task,
+    datalineage_organizations_locations_config_get_builder, datalineage_organizations_locations_config_get_task,
     datalineage_organizations_locations_config_patch_builder, datalineage_organizations_locations_config_patch_task,
     datalineage_projects_locations_batch_search_link_processes_builder, datalineage_projects_locations_batch_search_link_processes_task,
     datalineage_projects_locations_process_open_lineage_run_event_builder, datalineage_projects_locations_process_open_lineage_run_event_task,
     datalineage_projects_locations_search_links_builder, datalineage_projects_locations_search_links_task,
+    datalineage_projects_locations_config_get_builder, datalineage_projects_locations_config_get_task,
     datalineage_projects_locations_config_patch_builder, datalineage_projects_locations_config_patch_task,
     datalineage_projects_locations_operations_cancel_builder, datalineage_projects_locations_operations_cancel_task,
     datalineage_projects_locations_operations_delete_builder, datalineage_projects_locations_operations_delete_task,
+    datalineage_projects_locations_operations_get_builder, datalineage_projects_locations_operations_get_task,
+    datalineage_projects_locations_operations_list_builder, datalineage_projects_locations_operations_list_task,
     datalineage_projects_locations_processes_create_builder, datalineage_projects_locations_processes_create_task,
     datalineage_projects_locations_processes_delete_builder, datalineage_projects_locations_processes_delete_task,
+    datalineage_projects_locations_processes_get_builder, datalineage_projects_locations_processes_get_task,
+    datalineage_projects_locations_processes_list_builder, datalineage_projects_locations_processes_list_task,
     datalineage_projects_locations_processes_patch_builder, datalineage_projects_locations_processes_patch_task,
     datalineage_projects_locations_processes_runs_create_builder, datalineage_projects_locations_processes_runs_create_task,
     datalineage_projects_locations_processes_runs_delete_builder, datalineage_projects_locations_processes_runs_delete_task,
+    datalineage_projects_locations_processes_runs_get_builder, datalineage_projects_locations_processes_runs_get_task,
+    datalineage_projects_locations_processes_runs_list_builder, datalineage_projects_locations_processes_runs_list_task,
     datalineage_projects_locations_processes_runs_patch_builder, datalineage_projects_locations_processes_runs_patch_task,
     datalineage_projects_locations_processes_runs_lineage_events_create_builder, datalineage_projects_locations_processes_runs_lineage_events_create_task,
     datalineage_projects_locations_processes_runs_lineage_events_delete_builder, datalineage_projects_locations_processes_runs_lineage_events_delete_task,
+    datalineage_projects_locations_processes_runs_lineage_events_get_builder, datalineage_projects_locations_processes_runs_lineage_events_get_task,
+    datalineage_projects_locations_processes_runs_lineage_events_list_builder, datalineage_projects_locations_processes_runs_lineage_events_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::datalineage::GoogleCloudDatacatalogLineageConfigmanagementV1Config;
 use crate::providers::gcp::clients::datalineage::GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse;
 use crate::providers::gcp::clients::datalineage::GoogleCloudDatacatalogLineageV1LineageEvent;
+use crate::providers::gcp::clients::datalineage::GoogleCloudDatacatalogLineageV1ListLineageEventsResponse;
+use crate::providers::gcp::clients::datalineage::GoogleCloudDatacatalogLineageV1ListProcessesResponse;
+use crate::providers::gcp::clients::datalineage::GoogleCloudDatacatalogLineageV1ListRunsResponse;
 use crate::providers::gcp::clients::datalineage::GoogleCloudDatacatalogLineageV1Process;
 use crate::providers::gcp::clients::datalineage::GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse;
 use crate::providers::gcp::clients::datalineage::GoogleCloudDatacatalogLineageV1Run;
 use crate::providers::gcp::clients::datalineage::GoogleCloudDatacatalogLineageV1SearchLinksResponse;
+use crate::providers::gcp::clients::datalineage::GoogleLongrunningListOperationsResponse;
 use crate::providers::gcp::clients::datalineage::GoogleLongrunningOperation;
 use crate::providers::gcp::clients::datalineage::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::datalineage::DatalineageFoldersLocationsConfigGetArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageFoldersLocationsConfigPatchArgs;
+use crate::providers::gcp::clients::datalineage::DatalineageOrganizationsLocationsConfigGetArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageOrganizationsLocationsConfigPatchArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsBatchSearchLinkProcessesArgs;
+use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsConfigGetArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsConfigPatchArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsOperationsListArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessOpenLineageRunEventArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesCreateArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesDeleteArgs;
+use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesGetArgs;
+use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesListArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesPatchArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesRunsCreateArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesRunsDeleteArgs;
+use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesRunsGetArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesRunsLineageEventsCreateArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesRunsLineageEventsDeleteArgs;
+use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesRunsLineageEventsGetArgs;
+use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesRunsLineageEventsListArgs;
+use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesRunsListArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsProcessesRunsPatchArgs;
 use crate::providers::gcp::clients::datalineage::DatalineageProjectsLocationsSearchLinksArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -96,6 +122,44 @@ where
         }
     }
 
+    /// Datalineage folders locations config get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDatacatalogLineageConfigmanagementV1Config result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_folders_locations_config_get(
+        &self,
+        args: &DatalineageFoldersLocationsConfigGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDatacatalogLineageConfigmanagementV1Config, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_folders_locations_config_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datalineage_folders_locations_config_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Datalineage folders locations config patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -137,6 +201,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Datalineage organizations locations config get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDatacatalogLineageConfigmanagementV1Config result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_organizations_locations_config_get(
+        &self,
+        args: &DatalineageOrganizationsLocationsConfigGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDatacatalogLineageConfigmanagementV1Config, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_organizations_locations_config_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datalineage_organizations_locations_config_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Datalineage organizations locations config patch.
@@ -184,7 +286,7 @@ where
 
     /// Datalineage projects locations batch search link processes.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -196,7 +298,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn datalineage_projects_locations_batch_search_link_processes(
         &self,
         args: &DatalineageProjectsLocationsBatchSearchLinkProcessesArgs,
@@ -217,12 +319,7 @@ where
         let task = datalineage_projects_locations_batch_search_link_processes_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Datalineage projects locations process open lineage run event.
@@ -271,7 +368,7 @@ where
 
     /// Datalineage projects locations search links.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -283,7 +380,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn datalineage_projects_locations_search_links(
         &self,
         args: &DatalineageProjectsLocationsSearchLinksArgs,
@@ -304,12 +401,45 @@ where
         let task = datalineage_projects_locations_search_links_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Datalineage projects locations config get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDatacatalogLineageConfigmanagementV1Config result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_projects_locations_config_get(
+        &self,
+        args: &DatalineageProjectsLocationsConfigGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDatacatalogLineageConfigmanagementV1Config, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_projects_locations_config_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = datalineage_projects_locations_config_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Datalineage projects locations config patch.
@@ -441,6 +571,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Datalineage projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_projects_locations_operations_get(
+        &self,
+        args: &DatalineageProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datalineage_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Datalineage projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_projects_locations_operations_list(
+        &self,
+        args: &DatalineageProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datalineage_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Datalineage projects locations processes create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -527,6 +737,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Datalineage projects locations processes get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDatacatalogLineageV1Process result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_projects_locations_processes_get(
+        &self,
+        args: &DatalineageProjectsLocationsProcessesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDatacatalogLineageV1Process, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_projects_locations_processes_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datalineage_projects_locations_processes_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Datalineage projects locations processes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDatacatalogLineageV1ListProcessesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_projects_locations_processes_list(
+        &self,
+        args: &DatalineageProjectsLocationsProcessesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDatacatalogLineageV1ListProcessesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_projects_locations_processes_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datalineage_projects_locations_processes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Datalineage projects locations processes patch.
@@ -663,6 +951,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Datalineage projects locations processes runs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDatacatalogLineageV1Run result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_projects_locations_processes_runs_get(
+        &self,
+        args: &DatalineageProjectsLocationsProcessesRunsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDatacatalogLineageV1Run, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_projects_locations_processes_runs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datalineage_projects_locations_processes_runs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Datalineage projects locations processes runs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDatacatalogLineageV1ListRunsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_projects_locations_processes_runs_list(
+        &self,
+        args: &DatalineageProjectsLocationsProcessesRunsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDatacatalogLineageV1ListRunsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_projects_locations_processes_runs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datalineage_projects_locations_processes_runs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Datalineage projects locations processes runs patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -794,6 +1160,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Datalineage projects locations processes runs lineage events get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDatacatalogLineageV1LineageEvent result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_projects_locations_processes_runs_lineage_events_get(
+        &self,
+        args: &DatalineageProjectsLocationsProcessesRunsLineageEventsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDatacatalogLineageV1LineageEvent, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_projects_locations_processes_runs_lineage_events_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datalineage_projects_locations_processes_runs_lineage_events_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Datalineage projects locations processes runs lineage events list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDatacatalogLineageV1ListLineageEventsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn datalineage_projects_locations_processes_runs_lineage_events_list(
+        &self,
+        args: &DatalineageProjectsLocationsProcessesRunsLineageEventsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDatacatalogLineageV1ListLineageEventsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = datalineage_projects_locations_processes_runs_lineage_events_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = datalineage_projects_locations_processes_runs_lineage_events_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

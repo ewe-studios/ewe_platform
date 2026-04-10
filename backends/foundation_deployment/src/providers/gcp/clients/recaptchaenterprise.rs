@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,186 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/projects/{projectsId}/assessments
+/// POST v1/projects/{projectsId}/assessments/{assessmentsId}:annotate
+/// Annotates a previously created Assessment to provide additional information on whether the event turned out to be authentic or fraudulent.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_assessments_annotate_execute()` to send, or `recaptchaenterprise_projects_assessments_annotate` for simplest API.
+
+pub fn recaptchaenterprise_projects_assessments_annotate_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/assessments/{assessmentsId}:annotate",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/assessments/{assessmentsId}:annotate
+/// Annotates a previously created Assessment to provide additional information on whether the event turned out to be authentic or fraudulent.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_assessments_annotate_execute()` or `recaptchaenterprise_projects_assessments_annotate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_assessments_annotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_assessments_annotate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/assessments/{assessmentsId}:annotate
+/// Annotates a previously created Assessment to provide additional information on whether the event turned out to be authentic or fraudulent.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_assessments_annotate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_assessments_annotate_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_assessments_annotate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_assessments_annotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_assessments_annotate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_assessments_annotate_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_assessments_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsAssessmentsAnnotateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/assessments/{assessmentsId}:annotate
+/// Annotates a previously created Assessment to provide additional information on whether the event turned out to be authentic or fraudulent.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_assessments_annotate_builder()` + `recaptchaenterprise_projects_assessments_annotate_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_assessments_annotate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_assessments_annotate(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsAssessmentsAnnotateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_assessments_annotate_builder(client, &args.name)?;
+    recaptchaenterprise_projects_assessments_annotate_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/assessments
 /// Creates an Assessment of the likelihood an event is legitimate.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,23 +204,22 @@ use serde::Serialize;
 pub fn recaptchaenterprise_projects_assessments_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudRecaptchaenterpriseV1Assessment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://recaptchaenterprise.googleapis.com/v1/projects/{}/assessments",);
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/assessments",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/assessments
+/// POST v1/projects/{projectsId}/assessments
 /// Creates an Assessment of the likelihood an event is legitimate.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -120,7 +294,7 @@ pub fn recaptchaenterprise_projects_assessments_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/assessments
+/// POST v1/projects/{projectsId}/assessments
 /// Creates an Assessment of the likelihood an event is legitimate.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -159,11 +333,9 @@ pub fn recaptchaenterprise_projects_assessments_create_execute(
 pub struct RecaptchaenterpriseProjectsAssessmentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudRecaptchaenterpriseV1Assessment,
 }
 
-/// GET v1/projects/{projectsId}/assessments
+/// POST v1/projects/{projectsId}/assessments
 /// Creates an Assessment of the likelihood an event is legitimate.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -185,12 +357,11 @@ pub fn recaptchaenterprise_projects_assessments_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recaptchaenterprise_projects_assessments_create_builder(client, &args.parent, &args.body)?;
+    let builder = recaptchaenterprise_projects_assessments_create_builder(client, &args.parent)?;
     recaptchaenterprise_projects_assessments_create_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/firewallpolicies
+/// POST v1/projects/{projectsId}/firewallpolicies
 /// Creates a new FirewallPolicy, specifying conditions at which `reCAPTCHA` Enterprise actions can be executed. A project may have a maximum of 1000 policies.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -199,23 +370,22 @@ pub fn recaptchaenterprise_projects_assessments_create(
 pub fn recaptchaenterprise_projects_firewallpolicies_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudRecaptchaenterpriseV1FirewallPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies",);
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/firewallpolicies
+/// POST v1/projects/{projectsId}/firewallpolicies
 /// Creates a new FirewallPolicy, specifying conditions at which `reCAPTCHA` Enterprise actions can be executed. A project may have a maximum of 1000 policies.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -290,7 +460,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/firewallpolicies
+/// POST v1/projects/{projectsId}/firewallpolicies
 /// Creates a new FirewallPolicy, specifying conditions at which `reCAPTCHA` Enterprise actions can be executed. A project may have a maximum of 1000 policies.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -329,11 +499,9 @@ pub fn recaptchaenterprise_projects_firewallpolicies_create_execute(
 pub struct RecaptchaenterpriseProjectsFirewallpoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudRecaptchaenterpriseV1FirewallPolicy,
 }
 
-/// GET v1/projects/{projectsId}/firewallpolicies
+/// POST v1/projects/{projectsId}/firewallpolicies
 /// Creates a new FirewallPolicy, specifying conditions at which `reCAPTCHA` Enterprise actions can be executed. A project may have a maximum of 1000 policies.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -355,15 +523,723 @@ pub fn recaptchaenterprise_projects_firewallpolicies_create(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_firewallpolicies_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder =
+        recaptchaenterprise_projects_firewallpolicies_create_builder(client, &args.parent)?;
     recaptchaenterprise_projects_firewallpolicies_create_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/firewallpolicies:reorder
+/// DELETE v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Deletes the specified firewall policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_firewallpolicies_delete_execute()` to send, or `recaptchaenterprise_projects_firewallpolicies_delete` for simplest API.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies/{firewallpoliciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Deletes the specified firewall policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_firewallpolicies_delete_execute()` or `recaptchaenterprise_projects_firewallpolicies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_firewallpolicies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Deletes the specified firewall policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_firewallpolicies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_firewallpolicies_delete_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_firewallpolicies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_firewallpolicies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_firewallpolicies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_firewallpolicies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsFirewallpoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Deletes the specified firewall policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_firewallpolicies_delete_builder()` + `recaptchaenterprise_projects_firewallpolicies_delete_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_firewallpolicies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_delete(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsFirewallpoliciesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_firewallpolicies_delete_builder(client, &args.name)?;
+    recaptchaenterprise_projects_firewallpolicies_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Returns the specified firewall policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_firewallpolicies_get_execute()` to send, or `recaptchaenterprise_projects_firewallpolicies_get` for simplest API.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies/{firewallpoliciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Returns the specified firewall policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_firewallpolicies_get_execute()` or `recaptchaenterprise_projects_firewallpolicies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_firewallpolicies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1FirewallPolicy =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Returns the specified firewall policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_firewallpolicies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_firewallpolicies_get_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_firewallpolicies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_firewallpolicies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_firewallpolicies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_firewallpolicies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsFirewallpoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Returns the specified firewall policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_firewallpolicies_get_builder()` + `recaptchaenterprise_projects_firewallpolicies_get_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_firewallpolicies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_get(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsFirewallpoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_firewallpolicies_get_builder(client, &args.name)?;
+    recaptchaenterprise_projects_firewallpolicies_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/firewallpolicies
+/// Returns the list of all firewall policies that belong to a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_firewallpolicies_list_execute()` to send, or `recaptchaenterprise_projects_firewallpolicies_list` for simplest API.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/firewallpolicies
+/// Returns the list of all firewall policies that belong to a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_firewallpolicies_list_execute()` or `recaptchaenterprise_projects_firewallpolicies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_firewallpolicies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/firewallpolicies
+/// Returns the list of all firewall policies that belong to a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_firewallpolicies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_firewallpolicies_list_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_firewallpolicies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_firewallpolicies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_firewallpolicies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_firewallpolicies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsFirewallpoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/firewallpolicies
+/// Returns the list of all firewall policies that belong to a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_firewallpolicies_list_builder()` + `recaptchaenterprise_projects_firewallpolicies_list_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_firewallpolicies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_list(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsFirewallpoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_firewallpolicies_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    recaptchaenterprise_projects_firewallpolicies_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Updates the specified firewall policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_firewallpolicies_patch_execute()` to send, or `recaptchaenterprise_projects_firewallpolicies_patch` for simplest API.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies/{firewallpoliciesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Updates the specified firewall policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_firewallpolicies_patch_execute()` or `recaptchaenterprise_projects_firewallpolicies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_firewallpolicies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1FirewallPolicy =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Updates the specified firewall policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_firewallpolicies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_firewallpolicies_patch_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_firewallpolicies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_firewallpolicies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_firewallpolicies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_firewallpolicies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsFirewallpoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
+/// Updates the specified firewall policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_firewallpolicies_patch_builder()` + `recaptchaenterprise_projects_firewallpolicies_patch_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_firewallpolicies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_firewallpolicies_patch(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsFirewallpoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_firewallpolicies_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    recaptchaenterprise_projects_firewallpolicies_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/firewallpolicies:reorder
 /// Reorders all firewall policies.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -372,24 +1248,22 @@ pub fn recaptchaenterprise_projects_firewallpolicies_create(
 pub fn recaptchaenterprise_projects_firewallpolicies_reorder_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/firewallpolicies:reorder",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/firewallpolicies:reorder
+/// POST v1/projects/{projectsId}/firewallpolicies:reorder
 /// Reorders all firewall policies.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -467,7 +1341,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_reorder_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/firewallpolicies:reorder
+/// POST v1/projects/{projectsId}/firewallpolicies:reorder
 /// Reorders all firewall policies.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -509,11 +1383,9 @@ pub fn recaptchaenterprise_projects_firewallpolicies_reorder_execute(
 pub struct RecaptchaenterpriseProjectsFirewallpoliciesReorderArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest,
 }
 
-/// GET v1/projects/{projectsId}/firewallpolicies:reorder
+/// POST v1/projects/{projectsId}/firewallpolicies:reorder
 /// Reorders all firewall policies.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -538,15 +1410,187 @@ pub fn recaptchaenterprise_projects_firewallpolicies_reorder(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_firewallpolicies_reorder_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder =
+        recaptchaenterprise_projects_firewallpolicies_reorder_builder(client, &args.parent)?;
     recaptchaenterprise_projects_firewallpolicies_reorder_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/keys
+/// POST v1/projects/{projectsId}/keys/{keysId}:addIpOverride
+/// Adds an IP override to a key. The following restrictions hold: * The maximum number of IP overrides per key is 1000. * For any conflict (such as IP already exists or IP part of an existing IP range), an error is returned.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_keys_add_ip_override_execute()` to send, or `recaptchaenterprise_projects_keys_add_ip_override` for simplest API.
+
+pub fn recaptchaenterprise_projects_keys_add_ip_override_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}:addIpOverride",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:addIpOverride
+/// Adds an IP override to a key. The following restrictions hold: * The maximum number of IP overrides per key is 1000. * For any conflict (such as IP already exists or IP part of an existing IP range), an error is returned.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_keys_add_ip_override_execute()` or `recaptchaenterprise_projects_keys_add_ip_override`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_add_ip_override_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_add_ip_override_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:addIpOverride
+/// Adds an IP override to a key. The following restrictions hold: * The maximum number of IP overrides per key is 1000. * For any conflict (such as IP already exists or IP part of an existing IP range), an error is returned.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_keys_add_ip_override_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_keys_add_ip_override_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_keys_add_ip_override()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_add_ip_override_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_keys_add_ip_override_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_keys_add_ip_override_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_keys_add_ip_override`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysAddIpOverrideArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:addIpOverride
+/// Adds an IP override to a key. The following restrictions hold: * The maximum number of IP overrides per key is 1000. * For any conflict (such as IP already exists or IP part of an existing IP range), an error is returned.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_keys_add_ip_override_builder()` + `recaptchaenterprise_projects_keys_add_ip_override_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_keys_add_ip_override_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_add_ip_override(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsKeysAddIpOverrideArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_keys_add_ip_override_builder(client, &args.name)?;
+    recaptchaenterprise_projects_keys_add_ip_override_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/keys
 /// Creates a new `reCAPTCHA` Enterprise key.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -555,22 +1599,22 @@ pub fn recaptchaenterprise_projects_firewallpolicies_reorder(
 pub fn recaptchaenterprise_projects_keys_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudRecaptchaenterpriseV1Key,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys",);
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/keys
+/// POST v1/projects/{projectsId}/keys
 /// Creates a new `reCAPTCHA` Enterprise key.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -644,7 +1688,7 @@ pub fn recaptchaenterprise_projects_keys_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/keys
+/// POST v1/projects/{projectsId}/keys
 /// Creates a new `reCAPTCHA` Enterprise key.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -683,11 +1727,9 @@ pub fn recaptchaenterprise_projects_keys_create_execute(
 pub struct RecaptchaenterpriseProjectsKeysCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudRecaptchaenterpriseV1Key,
 }
 
-/// GET v1/projects/{projectsId}/keys
+/// POST v1/projects/{projectsId}/keys
 /// Creates a new `reCAPTCHA` Enterprise key.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -709,12 +1751,1590 @@ pub fn recaptchaenterprise_projects_keys_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recaptchaenterprise_projects_keys_create_builder(client, &args.parent, &args.body)?;
+    let builder = recaptchaenterprise_projects_keys_create_builder(client, &args.parent)?;
     recaptchaenterprise_projects_keys_create_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/relatedaccountgroupmemberships:search
+/// DELETE v1/projects/{projectsId}/keys/{keysId}
+/// Deletes the specified key.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_keys_delete_execute()` to send, or `recaptchaenterprise_projects_keys_delete` for simplest API.
+
+pub fn recaptchaenterprise_projects_keys_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/keys/{keysId}
+/// Deletes the specified key.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_keys_delete_execute()` or `recaptchaenterprise_projects_keys_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/keys/{keysId}
+/// Deletes the specified key.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_keys_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_keys_delete_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_keys_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_keys_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_keys_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/keys/{keysId}
+/// Deletes the specified key.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_keys_delete_builder()` + `recaptchaenterprise_projects_keys_delete_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_keys_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_delete(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsKeysDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_keys_delete_builder(client, &args.name)?;
+    recaptchaenterprise_projects_keys_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}
+/// Returns the specified key.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_keys_get_execute()` to send, or `recaptchaenterprise_projects_keys_get` for simplest API.
+
+pub fn recaptchaenterprise_projects_keys_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}
+/// Returns the specified key.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_keys_get_execute()` or `recaptchaenterprise_projects_keys_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1Key = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}
+/// Returns the specified key.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_keys_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_keys_get_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_keys_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_keys_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_keys_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}
+/// Returns the specified key.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_keys_get_builder()` + `recaptchaenterprise_projects_keys_get_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_keys_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_get(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsKeysGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_keys_get_builder(client, &args.name)?;
+    recaptchaenterprise_projects_keys_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}/metrics
+/// Get some aggregated metrics for a Key. This data can be used to build dashboards.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_keys_get_metrics_execute()` to send, or `recaptchaenterprise_projects_keys_get_metrics` for simplest API.
+
+pub fn recaptchaenterprise_projects_keys_get_metrics_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}/metrics",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}/metrics
+/// Get some aggregated metrics for a Key. This data can be used to build dashboards.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_keys_get_metrics_execute()` or `recaptchaenterprise_projects_keys_get_metrics`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_get_metrics_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_get_metrics_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Metrics>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1Metrics =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}/metrics
+/// Get some aggregated metrics for a Key. This data can be used to build dashboards.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_keys_get_metrics_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_keys_get_metrics_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_keys_get_metrics()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_get_metrics_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_keys_get_metrics_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Metrics>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_keys_get_metrics_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_keys_get_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysGetMetricsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}/metrics
+/// Get some aggregated metrics for a Key. This data can be used to build dashboards.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_keys_get_metrics_builder()` + `recaptchaenterprise_projects_keys_get_metrics_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_keys_get_metrics_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_get_metrics(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsKeysGetMetricsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Metrics>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_keys_get_metrics_builder(client, &args.name)?;
+    recaptchaenterprise_projects_keys_get_metrics_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/keys
+/// Returns the list of all keys that belong to a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_keys_list_execute()` to send, or `recaptchaenterprise_projects_keys_list` for simplest API.
+
+pub fn recaptchaenterprise_projects_keys_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/keys
+/// Returns the list of all keys that belong to a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_keys_list_execute()` or `recaptchaenterprise_projects_keys_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1ListKeysResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1ListKeysResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/keys
+/// Returns the list of all keys that belong to a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_keys_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_keys_list_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_keys_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_keys_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1ListKeysResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_keys_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/keys
+/// Returns the list of all keys that belong to a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_keys_list_builder()` + `recaptchaenterprise_projects_keys_list_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_keys_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_list(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsKeysListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1ListKeysResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_keys_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    recaptchaenterprise_projects_keys_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}:listIpOverrides
+/// Lists all IP overrides for a key.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_keys_list_ip_overrides_execute()` to send, or `recaptchaenterprise_projects_keys_list_ip_overrides` for simplest API.
+
+pub fn recaptchaenterprise_projects_keys_list_ip_overrides_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}:listIpOverrides",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}:listIpOverrides
+/// Lists all IP overrides for a key.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_keys_list_ip_overrides_execute()` or `recaptchaenterprise_projects_keys_list_ip_overrides`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_list_ip_overrides_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_list_ip_overrides_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}:listIpOverrides
+/// Lists all IP overrides for a key.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_keys_list_ip_overrides_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_keys_list_ip_overrides_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_keys_list_ip_overrides()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_list_ip_overrides_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_keys_list_ip_overrides_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_keys_list_ip_overrides_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_keys_list_ip_overrides`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysListIpOverridesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}:listIpOverrides
+/// Lists all IP overrides for a key.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_keys_list_ip_overrides_builder()` + `recaptchaenterprise_projects_keys_list_ip_overrides_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_keys_list_ip_overrides_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_list_ip_overrides(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsKeysListIpOverridesArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_keys_list_ip_overrides_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    recaptchaenterprise_projects_keys_list_ip_overrides_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:migrate
+/// Migrates an existing key from `reCAPTCHA` to `reCAPTCHA` Enterprise. Once a key is migrated, it can be used from either product. SiteVerify requests are billed as CreateAssessment calls. You must be authenticated as one of the current owners of the `reCAPTCHA` Key, and your user must have the `reCAPTCHA` Enterprise Admin IAM role in the destination project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_keys_migrate_execute()` to send, or `recaptchaenterprise_projects_keys_migrate` for simplest API.
+
+pub fn recaptchaenterprise_projects_keys_migrate_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}:migrate",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:migrate
+/// Migrates an existing key from `reCAPTCHA` to `reCAPTCHA` Enterprise. Once a key is migrated, it can be used from either product. SiteVerify requests are billed as CreateAssessment calls. You must be authenticated as one of the current owners of the `reCAPTCHA` Key, and your user must have the `reCAPTCHA` Enterprise Admin IAM role in the destination project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_keys_migrate_execute()` or `recaptchaenterprise_projects_keys_migrate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_migrate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_migrate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1Key = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:migrate
+/// Migrates an existing key from `reCAPTCHA` to `reCAPTCHA` Enterprise. Once a key is migrated, it can be used from either product. SiteVerify requests are billed as CreateAssessment calls. You must be authenticated as one of the current owners of the `reCAPTCHA` Key, and your user must have the `reCAPTCHA` Enterprise Admin IAM role in the destination project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_keys_migrate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_keys_migrate_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_keys_migrate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_migrate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_keys_migrate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_keys_migrate_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_keys_migrate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysMigrateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:migrate
+/// Migrates an existing key from `reCAPTCHA` to `reCAPTCHA` Enterprise. Once a key is migrated, it can be used from either product. SiteVerify requests are billed as CreateAssessment calls. You must be authenticated as one of the current owners of the `reCAPTCHA` Key, and your user must have the `reCAPTCHA` Enterprise Admin IAM role in the destination project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_keys_migrate_builder()` + `recaptchaenterprise_projects_keys_migrate_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_keys_migrate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_migrate(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsKeysMigrateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_keys_migrate_builder(client, &args.name)?;
+    recaptchaenterprise_projects_keys_migrate_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/keys/{keysId}
+/// Updates the specified key.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_keys_patch_execute()` to send, or `recaptchaenterprise_projects_keys_patch` for simplest API.
+
+pub fn recaptchaenterprise_projects_keys_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/keys/{keysId}
+/// Updates the specified key.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_keys_patch_execute()` or `recaptchaenterprise_projects_keys_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1Key = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/keys/{keysId}
+/// Updates the specified key.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_keys_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_keys_patch_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_keys_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_keys_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_keys_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_keys_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/keys/{keysId}
+/// Updates the specified key.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_keys_patch_builder()` + `recaptchaenterprise_projects_keys_patch_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_keys_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_patch(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsKeysPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        recaptchaenterprise_projects_keys_patch_builder(client, &args.name, &args.updateMask)?;
+    recaptchaenterprise_projects_keys_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:removeIpOverride
+/// Removes an IP override from a key. The following restrictions hold: * If the IP isn't found in an existing IP override, a NOT_FOUND error is returned. * If the IP is found in an existing IP override, but the override type does not match, a NOT_FOUND error is returned.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_keys_remove_ip_override_execute()` to send, or `recaptchaenterprise_projects_keys_remove_ip_override` for simplest API.
+
+pub fn recaptchaenterprise_projects_keys_remove_ip_override_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}:removeIpOverride",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:removeIpOverride
+/// Removes an IP override from a key. The following restrictions hold: * If the IP isn't found in an existing IP override, a NOT_FOUND error is returned. * If the IP is found in an existing IP override, but the override type does not match, a NOT_FOUND error is returned.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_keys_remove_ip_override_execute()` or `recaptchaenterprise_projects_keys_remove_ip_override`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_remove_ip_override_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_remove_ip_override_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:removeIpOverride
+/// Removes an IP override from a key. The following restrictions hold: * If the IP isn't found in an existing IP override, a NOT_FOUND error is returned. * If the IP is found in an existing IP override, but the override type does not match, a NOT_FOUND error is returned.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_keys_remove_ip_override_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_keys_remove_ip_override_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_keys_remove_ip_override()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_remove_ip_override_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_keys_remove_ip_override_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_keys_remove_ip_override_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_keys_remove_ip_override`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysRemoveIpOverrideArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/keys/{keysId}:removeIpOverride
+/// Removes an IP override from a key. The following restrictions hold: * If the IP isn't found in an existing IP override, a NOT_FOUND error is returned. * If the IP is found in an existing IP override, but the override type does not match, a NOT_FOUND error is returned.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_keys_remove_ip_override_builder()` + `recaptchaenterprise_projects_keys_remove_ip_override_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_keys_remove_ip_override_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_remove_ip_override(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsKeysRemoveIpOverrideArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_keys_remove_ip_override_builder(client, &args.name)?;
+    recaptchaenterprise_projects_keys_remove_ip_override_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}:retrieveLegacySecretKey
+/// Returns the secret key related to the specified public key. You must use the legacy secret key only in a 3rd party integration with legacy `reCAPTCHA`.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_execute()` to send, or `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key` for simplest API.
+
+pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder(
+    client: &SimpleHttpClient,
+    key: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/keys/{keysId}:retrieveLegacySecretKey",
+        key,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}:retrieveLegacySecretKey
+/// Returns the secret key related to the specified public key. You must use the legacy secret key only in a 3rd party integration with legacy `reCAPTCHA`.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_execute()` or `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}:retrieveLegacySecretKey
+/// Returns the secret key related to the specified public key. You must use the legacy secret key only in a 3rd party integration with legacy `reCAPTCHA`.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_keys_retrieve_legacy_secret_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs {
+    /// Path parameter: key
+    pub key: String,
+}
+
+/// GET v1/projects/{projectsId}/keys/{keysId}:retrieveLegacySecretKey
+/// Returns the secret key related to the specified public key. You must use the legacy secret key only in a 3rd party integration with legacy `reCAPTCHA`.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder()` + `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder(client, &args.key)?;
+    recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/relatedaccountgroupmemberships:search
 /// Search group memberships related to a given account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -723,24 +3343,22 @@ pub fn recaptchaenterprise_projects_keys_create(
 pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search_builder(
     client: &SimpleHttpClient,
     project: &String,
-    body: &GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://recaptchaenterprise.googleapis.com/v1/projects/{}/relatedaccountgroupmemberships:search",
+        project,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/relatedaccountgroupmemberships:search
+/// POST v1/projects/{projectsId}/relatedaccountgroupmemberships:search
 /// Search group memberships related to a given account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -814,7 +3432,7 @@ pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/relatedaccountgroupmemberships:search
+/// POST v1/projects/{projectsId}/relatedaccountgroupmemberships:search
 /// Search group memberships related to a given account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -858,11 +3476,9 @@ pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search_execut
 pub struct RecaptchaenterpriseProjectsRelatedaccountgroupmembershipsSearchArgs {
     /// Path parameter: project
     pub project: String,
-    /// Request body.
-    pub body: GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsRequest,
 }
 
-/// GET v1/projects/{projectsId}/relatedaccountgroupmemberships:search
+/// POST v1/projects/{projectsId}/relatedaccountgroupmemberships:search
 /// Search group memberships related to a given account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -892,7 +3508,6 @@ pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search(
     let builder = recaptchaenterprise_projects_relatedaccountgroupmemberships_search_builder(
         client,
         &args.project,
-        &args.body,
     )?;
     recaptchaenterprise_projects_relatedaccountgroupmemberships_search_execute(builder)
 }
@@ -906,12 +3521,14 @@ pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search(
 pub fn recaptchaenterprise_projects_relatedaccountgroups_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://recaptchaenterprise.googleapis.com/v1/projects/{}/relatedaccountgroups",);
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/relatedaccountgroups",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1056,9 +3673,9 @@ pub struct RecaptchaenterpriseProjectsRelatedaccountgroupsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/relatedaccountgroups
@@ -1093,4 +3710,845 @@ pub fn recaptchaenterprise_projects_relatedaccountgroups_list(
         &args.pageToken,
     )?;
     recaptchaenterprise_projects_relatedaccountgroups_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/relatedaccountgroups/{relatedaccountgroupsId}/memberships
+/// Get memberships in a group of related accounts.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `recaptchaenterprise_projects_relatedaccountgroups_memberships_list_execute()` to send, or `recaptchaenterprise_projects_relatedaccountgroups_memberships_list` for simplest API.
+
+pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://recaptchaenterprise.googleapis.com/v1/projects/{}/relatedaccountgroups/{relatedaccountgroupsId}/memberships",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/relatedaccountgroups/{relatedaccountgroupsId}/memberships
+/// Get memberships in a group of related accounts.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `recaptchaenterprise_projects_relatedaccountgroups_memberships_list_execute()` or `recaptchaenterprise_projects_relatedaccountgroups_memberships_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<
+                    GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse,
+                >,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success { stream, intro, headers, .. } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/relatedaccountgroups/{relatedaccountgroupsId}/memberships
+/// Get memberships in a group of related accounts.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `recaptchaenterprise_projects_relatedaccountgroups_memberships_list_task()`.
+/// For the simplest API, use `recaptchaenterprise_projects_relatedaccountgroups_memberships_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<
+                    GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse,
+                >,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = recaptchaenterprise_projects_relatedaccountgroups_memberships_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`recaptchaenterprise_projects_relatedaccountgroups_memberships_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/relatedaccountgroups/{relatedaccountgroupsId}/memberships
+/// Get memberships in a group of related accounts.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder()` + `recaptchaenterprise_projects_relatedaccountgroups_memberships_list_execute()`.
+/// For task-level control, use `recaptchaenterprise_projects_relatedaccountgroups_memberships_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list(
+    client: &SimpleHttpClient,
+    args: &RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<
+                    GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse,
+                >,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    recaptchaenterprise_projects_relatedaccountgroups_memberships_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse with RecaptchaenterpriseProjectsAssessmentsAnnotateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsAssessmentsAnnotateArgs>
+    for GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsAssessmentsAnnotateArgs,
+    ) -> String {
+        format!("gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Assessment
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Assessment with RecaptchaenterpriseProjectsAssessmentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsAssessmentsCreateArgs>
+    for GoogleCloudRecaptchaenterpriseV1Assessment
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsAssessmentsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Assessment/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Assessment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1FirewallPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1FirewallPolicy with RecaptchaenterpriseProjectsFirewallpoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsFirewallpoliciesCreateArgs>
+    for GoogleCloudRecaptchaenterpriseV1FirewallPolicy
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsFirewallpoliciesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1FirewallPolicy/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1FirewallPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with RecaptchaenterpriseProjectsFirewallpoliciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsFirewallpoliciesDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsFirewallpoliciesDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleProtobufEmpty/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1FirewallPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1FirewallPolicy with RecaptchaenterpriseProjectsFirewallpoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsFirewallpoliciesGetArgs>
+    for GoogleCloudRecaptchaenterpriseV1FirewallPolicy
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsFirewallpoliciesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1FirewallPolicy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1FirewallPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse with RecaptchaenterpriseProjectsFirewallpoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsFirewallpoliciesListArgs>
+    for GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsFirewallpoliciesListArgs,
+    ) -> String {
+        format!("gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1FirewallPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1FirewallPolicy with RecaptchaenterpriseProjectsFirewallpoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsFirewallpoliciesPatchArgs>
+    for GoogleCloudRecaptchaenterpriseV1FirewallPolicy
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsFirewallpoliciesPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1FirewallPolicy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1FirewallPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse with RecaptchaenterpriseProjectsFirewallpoliciesReorderArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsFirewallpoliciesReorderArgs>
+    for GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsFirewallpoliciesReorderArgs,
+    ) -> String {
+        format!("gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse with RecaptchaenterpriseProjectsKeysAddIpOverrideArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysAddIpOverrideArgs>
+    for GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsKeysAddIpOverrideArgs,
+    ) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Key
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Key with RecaptchaenterpriseProjectsKeysCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysCreateArgs>
+    for GoogleCloudRecaptchaenterpriseV1Key
+{
+    fn generate_resource_id(&self, input: &RecaptchaenterpriseProjectsKeysCreateArgs) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Key/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Key"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with RecaptchaenterpriseProjectsKeysDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &RecaptchaenterpriseProjectsKeysDeleteArgs) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleProtobufEmpty/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Key
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Key with RecaptchaenterpriseProjectsKeysGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysGetArgs>
+    for GoogleCloudRecaptchaenterpriseV1Key
+{
+    fn generate_resource_id(&self, input: &RecaptchaenterpriseProjectsKeysGetArgs) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Key/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Key"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Metrics
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Metrics with RecaptchaenterpriseProjectsKeysGetMetricsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysGetMetricsArgs>
+    for GoogleCloudRecaptchaenterpriseV1Metrics
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsKeysGetMetricsArgs,
+    ) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Metrics/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Metrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListKeysResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListKeysResponse with RecaptchaenterpriseProjectsKeysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysListArgs>
+    for GoogleCloudRecaptchaenterpriseV1ListKeysResponse
+{
+    fn generate_resource_id(&self, input: &RecaptchaenterpriseProjectsKeysListArgs) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListKeysResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse with RecaptchaenterpriseProjectsKeysListIpOverridesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysListIpOverridesArgs>
+    for GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsKeysListIpOverridesArgs,
+    ) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Key
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Key with RecaptchaenterpriseProjectsKeysMigrateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysMigrateArgs>
+    for GoogleCloudRecaptchaenterpriseV1Key
+{
+    fn generate_resource_id(&self, input: &RecaptchaenterpriseProjectsKeysMigrateArgs) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Key/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Key"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Key
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Key with RecaptchaenterpriseProjectsKeysPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysPatchArgs>
+    for GoogleCloudRecaptchaenterpriseV1Key
+{
+    fn generate_resource_id(&self, input: &RecaptchaenterpriseProjectsKeysPatchArgs) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Key/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Key"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse with RecaptchaenterpriseProjectsKeysRemoveIpOverrideArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysRemoveIpOverrideArgs>
+    for GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsKeysRemoveIpOverrideArgs,
+    ) -> String {
+        format!(
+            "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse with RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs>
+    for GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs,
+    ) -> String {
+        format!("gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse/{}", input.key)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse with RecaptchaenterpriseProjectsRelatedaccountgroupmembershipsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsRelatedaccountgroupmembershipsSearchArgs>
+    for GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsRelatedaccountgroupmembershipsSearchArgs,
+    ) -> String {
+        format!("gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse with RecaptchaenterpriseProjectsRelatedaccountgroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsRelatedaccountgroupsListArgs>
+    for GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsRelatedaccountgroupsListArgs,
+    ) -> String {
+        format!("gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse with RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs>
+    for GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs,
+    ) -> String {
+        format!("gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -338,8 +338,8 @@ pub fn drive_accessproposals_get(
 pub fn drive_accessproposals_list_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -483,9 +483,9 @@ pub struct DriveAccessproposalsListArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET files/{fileId}/accessproposals
@@ -515,7 +515,7 @@ pub fn drive_accessproposals_list(
     drive_accessproposals_list_execute(builder)
 }
 
-/// GET files/{fileId}/accessproposals/{proposalId}:resolve
+/// POST files/{fileId}/accessproposals/{proposalId}:resolve
 /// Approves or denies an access proposal. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -525,7 +525,6 @@ pub fn drive_accessproposals_resolve_builder(
     client: &SimpleHttpClient,
     fileId: &String,
     proposalId: &String,
-    body: &ResolveAccessProposalRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -535,15 +534,13 @@ pub fn drive_accessproposals_resolve_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET files/{fileId}/accessproposals/{proposalId}:resolve
+/// POST files/{fileId}/accessproposals/{proposalId}:resolve
 /// Approves or denies an access proposal. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -614,7 +611,7 @@ pub fn drive_accessproposals_resolve_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/accessproposals/{proposalId}:resolve
+/// POST files/{fileId}/accessproposals/{proposalId}:resolve
 /// Approves or denies an access proposal. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -651,11 +648,9 @@ pub struct DriveAccessproposalsResolveArgs {
     pub fileId: String,
     /// Path parameter: proposalId
     pub proposalId: String,
-    /// Request body.
-    pub body: ResolveAccessProposalRequest,
 }
 
-/// GET files/{fileId}/accessproposals/{proposalId}:resolve
+/// POST files/{fileId}/accessproposals/{proposalId}:resolve
 /// Approves or denies an access proposal. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -673,8 +668,7 @@ pub fn drive_accessproposals_resolve(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        drive_accessproposals_resolve_builder(client, &args.fileId, &args.proposalId, &args.body)?;
+    let builder = drive_accessproposals_resolve_builder(client, &args.fileId, &args.proposalId)?;
     drive_accessproposals_resolve_execute(builder)
 }
 
@@ -847,8 +841,8 @@ pub fn drive_approvals_get(
 pub fn drive_approvals_list_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -990,9 +984,9 @@ pub struct DriveApprovalsListArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET files/{fileId}/approvals
@@ -1182,9 +1176,9 @@ pub fn drive_apps_get(
 
 pub fn drive_apps_list_builder(
     client: &SimpleHttpClient,
-    appFilterExtensions: &Option<String>,
-    appFilterMimeTypes: &Option<String>,
-    languageCode: &Option<String>,
+    appFilterExtensions: &Option<Option<String>>,
+    appFilterMimeTypes: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/apps",);
@@ -1322,11 +1316,11 @@ pub fn drive_apps_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveAppsListArgs {
     /// Query parameter: appFilterExtensions
-    pub appFilterExtensions: Option<String>,
+    pub appFilterExtensions: Option<Option<String>>,
     /// Query parameter: appFilterMimeTypes
-    pub appFilterMimeTypes: Option<String>,
+    pub appFilterMimeTypes: Option<Option<String>>,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
 }
 
 /// GET apps
@@ -1364,10 +1358,10 @@ pub fn drive_apps_list(
 
 pub fn drive_changes_get_start_page_token_builder(
     client: &SimpleHttpClient,
-    driveId: &Option<String>,
-    supportsAllDrives: &Option<bool>,
-    supportsTeamDrives: &Option<bool>,
-    teamDriveId: &Option<String>,
+    driveId: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    teamDriveId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/changes/startPageToken",);
@@ -1510,13 +1504,13 @@ pub fn drive_changes_get_start_page_token_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveChangesGetStartPageTokenArgs {
     /// Query parameter: driveId
-    pub driveId: Option<String>,
+    pub driveId: Option<Option<String>>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<bool>,
+    pub supportsAllDrives: Option<Option<String>>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<bool>,
+    pub supportsTeamDrives: Option<Option<String>>,
     /// Query parameter: teamDriveId
-    pub teamDriveId: Option<String>,
+    pub teamDriveId: Option<Option<String>>,
 }
 
 /// GET changes/startPageToken
@@ -1549,7 +1543,525 @@ pub fn drive_changes_get_start_page_token(
     drive_changes_get_start_page_token_execute(builder)
 }
 
-/// GET channels/stop
+/// GET changes
+/// Lists the changes for a user or shared drive. For more information, see [Retrieve changes](<https://developers.google.`com/workspace/drive/api/guides/manage-changes`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_changes_list_execute()` to send, or `drive_changes_list` for simplest API.
+
+pub fn drive_changes_list_builder(
+    client: &SimpleHttpClient,
+    driveId: &Option<Option<String>>,
+    includeCorpusRemovals: &Option<Option<String>>,
+    includeItemsFromAllDrives: &Option<Option<String>>,
+    includeLabels: &Option<Option<String>>,
+    includePermissionsForView: &Option<Option<String>>,
+    includeRemoved: &Option<Option<String>>,
+    includeTeamDriveItems: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    restrictToMyDrive: &Option<Option<String>>,
+    spaces: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    teamDriveId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/changes",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = driveId.as_ref() {
+        query_parts.push(format!("driveId={}", val));
+    }
+    if let Some(val) = includeCorpusRemovals.as_ref() {
+        query_parts.push(format!("includeCorpusRemovals={}", val));
+    }
+    if let Some(val) = includeItemsFromAllDrives.as_ref() {
+        query_parts.push(format!("includeItemsFromAllDrives={}", val));
+    }
+    if let Some(val) = includeLabels.as_ref() {
+        query_parts.push(format!("includeLabels={}", val));
+    }
+    if let Some(val) = includePermissionsForView.as_ref() {
+        query_parts.push(format!("includePermissionsForView={}", val));
+    }
+    if let Some(val) = includeRemoved.as_ref() {
+        query_parts.push(format!("includeRemoved={}", val));
+    }
+    if let Some(val) = includeTeamDriveItems.as_ref() {
+        query_parts.push(format!("includeTeamDriveItems={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = restrictToMyDrive.as_ref() {
+        query_parts.push(format!("restrictToMyDrive={}", val));
+    }
+    if let Some(val) = spaces.as_ref() {
+        query_parts.push(format!("spaces={}", val));
+    }
+    if let Some(val) = supportsAllDrives.as_ref() {
+        query_parts.push(format!("supportsAllDrives={}", val));
+    }
+    if let Some(val) = supportsTeamDrives.as_ref() {
+        query_parts.push(format!("supportsTeamDrives={}", val));
+    }
+    if let Some(val) = teamDriveId.as_ref() {
+        query_parts.push(format!("teamDriveId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET changes
+/// Lists the changes for a user or shared drive. For more information, see [Retrieve changes](<https://developers.google.`com/workspace/drive/api/guides/manage-changes`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_changes_list_execute()` or `drive_changes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_changes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_changes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ChangeList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ChangeList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET changes
+/// Lists the changes for a user or shared drive. For more information, see [Retrieve changes](<https://developers.google.`com/workspace/drive/api/guides/manage-changes`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_changes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_changes_list_task()`.
+/// For the simplest API, use `drive_changes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_changes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_changes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ChangeList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_changes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_changes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveChangesListArgs {
+    /// Query parameter: driveId
+    pub driveId: Option<Option<String>>,
+    /// Query parameter: includeCorpusRemovals
+    pub includeCorpusRemovals: Option<Option<String>>,
+    /// Query parameter: includeItemsFromAllDrives
+    pub includeItemsFromAllDrives: Option<Option<String>>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<Option<String>>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<Option<String>>,
+    /// Query parameter: includeRemoved
+    pub includeRemoved: Option<Option<String>>,
+    /// Query parameter: includeTeamDriveItems
+    pub includeTeamDriveItems: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: restrictToMyDrive
+    pub restrictToMyDrive: Option<Option<String>>,
+    /// Query parameter: spaces
+    pub spaces: Option<Option<String>>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<Option<String>>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<Option<String>>,
+    /// Query parameter: teamDriveId
+    pub teamDriveId: Option<Option<String>>,
+}
+
+/// GET changes
+/// Lists the changes for a user or shared drive. For more information, see [Retrieve changes](<https://developers.google.`com/workspace/drive/api/guides/manage-changes`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_changes_list_builder()` + `drive_changes_list_execute()`.
+/// For task-level control, use `drive_changes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_changes_list(
+    client: &SimpleHttpClient,
+    args: &DriveChangesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ChangeList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_changes_list_builder(
+        client,
+        &args.driveId,
+        &args.includeCorpusRemovals,
+        &args.includeItemsFromAllDrives,
+        &args.includeLabels,
+        &args.includePermissionsForView,
+        &args.includeRemoved,
+        &args.includeTeamDriveItems,
+        &args.pageSize,
+        &args.pageToken,
+        &args.restrictToMyDrive,
+        &args.spaces,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.teamDriveId,
+    )?;
+    drive_changes_list_execute(builder)
+}
+
+/// POST changes/watch
+/// Subscribes to changes for a user. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_changes_watch_execute()` to send, or `drive_changes_watch` for simplest API.
+
+pub fn drive_changes_watch_builder(
+    client: &SimpleHttpClient,
+    driveId: &Option<Option<String>>,
+    includeCorpusRemovals: &Option<Option<String>>,
+    includeItemsFromAllDrives: &Option<Option<String>>,
+    includeLabels: &Option<Option<String>>,
+    includePermissionsForView: &Option<Option<String>>,
+    includeRemoved: &Option<Option<String>>,
+    includeTeamDriveItems: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    restrictToMyDrive: &Option<Option<String>>,
+    spaces: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    teamDriveId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/changes/watch",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = driveId.as_ref() {
+        query_parts.push(format!("driveId={}", val));
+    }
+    if let Some(val) = includeCorpusRemovals.as_ref() {
+        query_parts.push(format!("includeCorpusRemovals={}", val));
+    }
+    if let Some(val) = includeItemsFromAllDrives.as_ref() {
+        query_parts.push(format!("includeItemsFromAllDrives={}", val));
+    }
+    if let Some(val) = includeLabels.as_ref() {
+        query_parts.push(format!("includeLabels={}", val));
+    }
+    if let Some(val) = includePermissionsForView.as_ref() {
+        query_parts.push(format!("includePermissionsForView={}", val));
+    }
+    if let Some(val) = includeRemoved.as_ref() {
+        query_parts.push(format!("includeRemoved={}", val));
+    }
+    if let Some(val) = includeTeamDriveItems.as_ref() {
+        query_parts.push(format!("includeTeamDriveItems={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = restrictToMyDrive.as_ref() {
+        query_parts.push(format!("restrictToMyDrive={}", val));
+    }
+    if let Some(val) = spaces.as_ref() {
+        query_parts.push(format!("spaces={}", val));
+    }
+    if let Some(val) = supportsAllDrives.as_ref() {
+        query_parts.push(format!("supportsAllDrives={}", val));
+    }
+    if let Some(val) = supportsTeamDrives.as_ref() {
+        query_parts.push(format!("supportsTeamDrives={}", val));
+    }
+    if let Some(val) = teamDriveId.as_ref() {
+        query_parts.push(format!("teamDriveId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST changes/watch
+/// Subscribes to changes for a user. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_changes_watch_execute()` or `drive_changes_watch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_changes_watch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_changes_watch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Channel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Channel = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST changes/watch
+/// Subscribes to changes for a user. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_changes_watch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_changes_watch_task()`.
+/// For the simplest API, use `drive_changes_watch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_changes_watch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_changes_watch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_changes_watch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_changes_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveChangesWatchArgs {
+    /// Query parameter: driveId
+    pub driveId: Option<Option<String>>,
+    /// Query parameter: includeCorpusRemovals
+    pub includeCorpusRemovals: Option<Option<String>>,
+    /// Query parameter: includeItemsFromAllDrives
+    pub includeItemsFromAllDrives: Option<Option<String>>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<Option<String>>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<Option<String>>,
+    /// Query parameter: includeRemoved
+    pub includeRemoved: Option<Option<String>>,
+    /// Query parameter: includeTeamDriveItems
+    pub includeTeamDriveItems: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: restrictToMyDrive
+    pub restrictToMyDrive: Option<Option<String>>,
+    /// Query parameter: spaces
+    pub spaces: Option<Option<String>>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<Option<String>>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<Option<String>>,
+    /// Query parameter: teamDriveId
+    pub teamDriveId: Option<Option<String>>,
+}
+
+/// POST changes/watch
+/// Subscribes to changes for a user. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_changes_watch_builder()` + `drive_changes_watch_execute()`.
+/// For task-level control, use `drive_changes_watch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_changes_watch(
+    client: &SimpleHttpClient,
+    args: &DriveChangesWatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_changes_watch_builder(
+        client,
+        &args.driveId,
+        &args.includeCorpusRemovals,
+        &args.includeItemsFromAllDrives,
+        &args.includeLabels,
+        &args.includePermissionsForView,
+        &args.includeRemoved,
+        &args.includeTeamDriveItems,
+        &args.pageSize,
+        &args.pageToken,
+        &args.restrictToMyDrive,
+        &args.spaces,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.teamDriveId,
+    )?;
+    drive_changes_watch_execute(builder)
+}
+
+/// POST channels/stop
 /// Stops watching resources through this channel. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1557,22 +2069,19 @@ pub fn drive_changes_get_start_page_token(
 
 pub fn drive_channels_stop_builder(
     client: &SimpleHttpClient,
-    body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/channels/stop",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET channels/stop
+/// POST channels/stop
 /// Stops watching resources through this channel. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1643,7 +2152,7 @@ pub fn drive_channels_stop_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET channels/stop
+/// POST channels/stop
 /// Stops watching resources through this channel. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1673,14 +2182,7 @@ pub fn drive_channels_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`drive_channels_stop`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DriveChannelsStopArgs {
-    /// Request body.
-    pub body: Channel,
-}
-
-/// GET channels/stop
+/// POST channels/stop
 /// Stops watching resources through this channel. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1693,16 +2195,15 @@ pub struct DriveChannelsStopArgs {
 
 pub fn drive_channels_stop(
     client: &SimpleHttpClient,
-    args: &DriveChannelsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_channels_stop_builder(client, &args.body)?;
+    let builder = drive_channels_stop_builder(client)?;
     drive_channels_stop_execute(builder)
 }
 
-/// GET files/{fileId}/comments
+/// POST files/{fileId}/comments
 /// Creates a comment on a file. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1711,7 +2212,6 @@ pub fn drive_channels_stop(
 pub fn drive_comments_create_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    body: &Comment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1721,15 +2221,13 @@ pub fn drive_comments_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET files/{fileId}/comments
+/// POST files/{fileId}/comments
 /// Creates a comment on a file. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1803,7 +2301,7 @@ pub fn drive_comments_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/comments
+/// POST files/{fileId}/comments
 /// Creates a comment on a file. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1838,11 +2336,9 @@ pub fn drive_comments_create_execute(
 pub struct DriveCommentsCreateArgs {
     /// Path parameter: fileId
     pub fileId: String,
-    /// Request body.
-    pub body: Comment,
 }
 
-/// GET files/{fileId}/comments
+/// POST files/{fileId}/comments
 /// Creates a comment on a file. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1860,11 +2356,11 @@ pub fn drive_comments_create(
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_comments_create_builder(client, &args.fileId, &args.body)?;
+    let builder = drive_comments_create_builder(client, &args.fileId)?;
     drive_comments_create_execute(builder)
 }
 
-/// GET files/{fileId}/comments/{commentId}
+/// DELETE files/{fileId}/comments/{commentId}
 /// Deletes a comment. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1883,13 +2379,13 @@ pub fn drive_comments_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET files/{fileId}/comments/{commentId}
+/// DELETE files/{fileId}/comments/{commentId}
 /// Deletes a comment. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1960,7 +2456,7 @@ pub fn drive_comments_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/comments/{commentId}
+/// DELETE files/{fileId}/comments/{commentId}
 /// Deletes a comment. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1999,7 +2495,7 @@ pub struct DriveCommentsDeleteArgs {
     pub commentId: String,
 }
 
-/// GET files/{fileId}/comments/{commentId}
+/// DELETE files/{fileId}/comments/{commentId}
 /// Deletes a comment. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2021,7 +2517,703 @@ pub fn drive_comments_delete(
     drive_comments_delete_execute(builder)
 }
 
-/// GET drives/{driveId}
+/// GET files/{fileId}/comments/{commentId}
+/// Gets a comment by ID. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_comments_get_execute()` to send, or `drive_comments_get` for simplest API.
+
+pub fn drive_comments_get_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    commentId: &String,
+    includeDeleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/comments/{}",
+        fileId, commentId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = includeDeleted.as_ref() {
+        query_parts.push(format!("includeDeleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files/{fileId}/comments/{commentId}
+/// Gets a comment by ID. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_comments_get_execute()` or `drive_comments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_comments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_comments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Comment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Comment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files/{fileId}/comments/{commentId}
+/// Gets a comment by ID. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_comments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_comments_get_task()`.
+/// For the simplest API, use `drive_comments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_comments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_comments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_comments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_comments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveCommentsGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Query parameter: includeDeleted
+    pub includeDeleted: Option<Option<String>>,
+}
+
+/// GET files/{fileId}/comments/{commentId}
+/// Gets a comment by ID. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_comments_get_builder()` + `drive_comments_get_execute()`.
+/// For task-level control, use `drive_comments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_comments_get(
+    client: &SimpleHttpClient,
+    args: &DriveCommentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        drive_comments_get_builder(client, &args.fileId, &args.commentId, &args.includeDeleted)?;
+    drive_comments_get_execute(builder)
+}
+
+/// GET files/{fileId}/comments
+/// Lists a file's comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_comments_list_execute()` to send, or `drive_comments_list` for simplest API.
+
+pub fn drive_comments_list_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    includeDeleted: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    startModifiedTime: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/comments",
+        fileId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = includeDeleted.as_ref() {
+        query_parts.push(format!("includeDeleted={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = startModifiedTime.as_ref() {
+        query_parts.push(format!("startModifiedTime={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files/{fileId}/comments
+/// Lists a file's comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_comments_list_execute()` or `drive_comments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_comments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_comments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CommentList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CommentList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files/{fileId}/comments
+/// Lists a file's comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_comments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_comments_list_task()`.
+/// For the simplest API, use `drive_comments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_comments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_comments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CommentList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_comments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_comments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveCommentsListArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: includeDeleted
+    pub includeDeleted: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: startModifiedTime
+    pub startModifiedTime: Option<Option<String>>,
+}
+
+/// GET files/{fileId}/comments
+/// Lists a file's comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_comments_list_builder()` + `drive_comments_list_execute()`.
+/// For task-level control, use `drive_comments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_comments_list(
+    client: &SimpleHttpClient,
+    args: &DriveCommentsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CommentList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_comments_list_builder(
+        client,
+        &args.fileId,
+        &args.includeDeleted,
+        &args.pageSize,
+        &args.pageToken,
+        &args.startModifiedTime,
+    )?;
+    drive_comments_list_execute(builder)
+}
+
+/// PATCH files/{fileId}/comments/{commentId}
+/// Updates a comment with patch semantics. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_comments_update_execute()` to send, or `drive_comments_update` for simplest API.
+
+pub fn drive_comments_update_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    commentId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/comments/{}",
+        fileId, commentId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH files/{fileId}/comments/{commentId}
+/// Updates a comment with patch semantics. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_comments_update_execute()` or `drive_comments_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_comments_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_comments_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Comment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Comment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH files/{fileId}/comments/{commentId}
+/// Updates a comment with patch semantics. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_comments_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_comments_update_task()`.
+/// For the simplest API, use `drive_comments_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_comments_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_comments_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_comments_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_comments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveCommentsUpdateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+}
+
+/// PATCH files/{fileId}/comments/{commentId}
+/// Updates a comment with patch semantics. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_comments_update_builder()` + `drive_comments_update_execute()`.
+/// For task-level control, use `drive_comments_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_comments_update(
+    client: &SimpleHttpClient,
+    args: &DriveCommentsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_comments_update_builder(client, &args.fileId, &args.commentId)?;
+    drive_comments_update_execute(builder)
+}
+
+/// POST drives
+/// Creates a shared drive. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_drives_create_execute()` to send, or `drive_drives_create` for simplest API.
+
+pub fn drive_drives_create_builder(
+    client: &SimpleHttpClient,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST drives
+/// Creates a shared drive. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_drives_create_execute()` or `drive_drives_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_drives_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_drives_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Drive>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Drive = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST drives
+/// Creates a shared drive. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_drives_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_drives_create_task()`.
+/// For the simplest API, use `drive_drives_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_drives_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_drives_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_drives_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_drives_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveDrivesCreateArgs {
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST drives
+/// Creates a shared drive. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_drives_create_builder()` + `drive_drives_create_execute()`.
+/// For task-level control, use `drive_drives_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_drives_create(
+    client: &SimpleHttpClient,
+    args: &DriveDrivesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_drives_create_builder(client, &args.requestId)?;
+    drive_drives_create_execute(builder)
+}
+
+/// DELETE drives/{driveId}
 /// Permanently deletes a shared drive for which the user is an organizer. The shared drive cannot contain any untrashed items. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2030,8 +3222,8 @@ pub fn drive_comments_delete(
 pub fn drive_drives_delete_builder(
     client: &SimpleHttpClient,
     driveId: &String,
-    allowItemDeletion: &Option<bool>,
-    useDomainAdminAccess: &Option<bool>,
+    allowItemDeletion: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives/{}", driveId,);
@@ -2052,13 +3244,13 @@ pub fn drive_drives_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET drives/{driveId}
+/// DELETE drives/{driveId}
 /// Permanently deletes a shared drive for which the user is an organizer. The shared drive cannot contain any untrashed items. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2129,7 +3321,7 @@ pub fn drive_drives_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET drives/{driveId}
+/// DELETE drives/{driveId}
 /// Permanently deletes a shared drive for which the user is an organizer. The shared drive cannot contain any untrashed items. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2165,12 +3357,12 @@ pub struct DriveDrivesDeleteArgs {
     /// Path parameter: driveId
     pub driveId: String,
     /// Query parameter: allowItemDeletion
-    pub allowItemDeletion: Option<bool>,
+    pub allowItemDeletion: Option<Option<String>>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<bool>,
+    pub useDomainAdminAccess: Option<Option<String>>,
 }
 
-/// GET drives/{driveId}
+/// DELETE drives/{driveId}
 /// Permanently deletes a shared drive for which the user is an organizer. The shared drive cannot contain any untrashed items. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2197,7 +3389,175 @@ pub fn drive_drives_delete(
     drive_drives_delete_execute(builder)
 }
 
-/// GET drives/{driveId}/hide
+/// GET drives/{driveId}
+/// Gets a shared drive's metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_drives_get_execute()` to send, or `drive_drives_get` for simplest API.
+
+pub fn drive_drives_get_builder(
+    client: &SimpleHttpClient,
+    driveId: &String,
+    useDomainAdminAccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives/{}", driveId,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = useDomainAdminAccess.as_ref() {
+        query_parts.push(format!("useDomainAdminAccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET drives/{driveId}
+/// Gets a shared drive's metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_drives_get_execute()` or `drive_drives_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_drives_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_drives_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Drive>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Drive = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET drives/{driveId}
+/// Gets a shared drive's metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_drives_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_drives_get_task()`.
+/// For the simplest API, use `drive_drives_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_drives_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_drives_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_drives_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_drives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveDrivesGetArgs {
+    /// Path parameter: driveId
+    pub driveId: String,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<Option<String>>,
+}
+
+/// GET drives/{driveId}
+/// Gets a shared drive's metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_drives_get_builder()` + `drive_drives_get_execute()`.
+/// For task-level control, use `drive_drives_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_drives_get(
+    client: &SimpleHttpClient,
+    args: &DriveDrivesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_drives_get_builder(client, &args.driveId, &args.useDomainAdminAccess)?;
+    drive_drives_get_execute(builder)
+}
+
+/// POST drives/{driveId}/hide
 /// Hides a shared drive from the default view. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2215,13 +3575,13 @@ pub fn drive_drives_hide_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET drives/{driveId}/hide
+/// POST drives/{driveId}/hide
 /// Hides a shared drive from the default view. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2295,7 +3655,7 @@ pub fn drive_drives_hide_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET drives/{driveId}/hide
+/// POST drives/{driveId}/hide
 /// Hides a shared drive from the default view. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2332,7 +3692,7 @@ pub struct DriveDrivesHideArgs {
     pub driveId: String,
 }
 
-/// GET drives/{driveId}/hide
+/// POST drives/{driveId}/hide
 /// Hides a shared drive from the default view. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2362,10 +3722,10 @@ pub fn drive_drives_hide(
 
 pub fn drive_drives_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    q: &Option<String>,
-    useDomainAdminAccess: &Option<bool>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    q: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives",);
@@ -2506,13 +3866,13 @@ pub fn drive_drives_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveDrivesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: q
-    pub q: Option<String>,
+    pub q: Option<Option<String>>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<bool>,
+    pub useDomainAdminAccess: Option<Option<String>>,
 }
 
 /// GET drives
@@ -2543,7 +3903,7 @@ pub fn drive_drives_list(
     drive_drives_list_execute(builder)
 }
 
-/// GET drives/{driveId}/unhide
+/// POST drives/{driveId}/unhide
 /// Restores a shared drive to the default view. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2561,13 +3921,13 @@ pub fn drive_drives_unhide_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET drives/{driveId}/unhide
+/// POST drives/{driveId}/unhide
 /// Restores a shared drive to the default view. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2641,7 +4001,7 @@ pub fn drive_drives_unhide_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET drives/{driveId}/unhide
+/// POST drives/{driveId}/unhide
 /// Restores a shared drive to the default view. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2678,7 +4038,7 @@ pub struct DriveDrivesUnhideArgs {
     pub driveId: String,
 }
 
-/// GET drives/{driveId}/unhide
+/// POST drives/{driveId}/unhide
 /// Restores a shared drive to the default view. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2700,7 +4060,175 @@ pub fn drive_drives_unhide(
     drive_drives_unhide_execute(builder)
 }
 
-/// GET files/{fileId}/copy
+/// PATCH drives/{driveId}
+/// Updates the metadata for a shared drive. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_drives_update_execute()` to send, or `drive_drives_update` for simplest API.
+
+pub fn drive_drives_update_builder(
+    client: &SimpleHttpClient,
+    driveId: &String,
+    useDomainAdminAccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/drives/{}", driveId,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = useDomainAdminAccess.as_ref() {
+        query_parts.push(format!("useDomainAdminAccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH drives/{driveId}
+/// Updates the metadata for a shared drive. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_drives_update_execute()` or `drive_drives_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_drives_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_drives_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Drive>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Drive = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH drives/{driveId}
+/// Updates the metadata for a shared drive. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_drives_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_drives_update_task()`.
+/// For the simplest API, use `drive_drives_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_drives_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_drives_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_drives_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_drives_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveDrivesUpdateArgs {
+    /// Path parameter: driveId
+    pub driveId: String,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<Option<String>>,
+}
+
+/// PATCH drives/{driveId}
+/// Updates the metadata for a shared drive. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_drives_update_builder()` + `drive_drives_update_execute()`.
+/// For task-level control, use `drive_drives_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_drives_update(
+    client: &SimpleHttpClient,
+    args: &DriveDrivesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_drives_update_builder(client, &args.driveId, &args.useDomainAdminAccess)?;
+    drive_drives_update_execute(builder)
+}
+
+/// POST files/{fileId}/copy
 /// Creates a copy of a file and applies any requested updates with patch semantics. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2709,15 +4237,14 @@ pub fn drive_drives_unhide(
 pub fn drive_files_copy_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    enforceSingleParent: &Option<bool>,
-    ignoreDefaultVisibility: &Option<bool>,
-    includeLabels: &Option<String>,
-    includePermissionsForView: &Option<String>,
-    keepRevisionForever: &Option<bool>,
-    ocrLanguage: &Option<String>,
-    supportsAllDrives: &Option<bool>,
-    supportsTeamDrives: &Option<bool>,
-    body: &File,
+    enforceSingleParent: &Option<Option<String>>,
+    ignoreDefaultVisibility: &Option<Option<String>>,
+    includeLabels: &Option<Option<String>>,
+    includePermissionsForView: &Option<Option<String>>,
+    keepRevisionForever: &Option<Option<String>>,
+    ocrLanguage: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}/copy", fileId,);
@@ -2756,15 +4283,13 @@ pub fn drive_files_copy_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET files/{fileId}/copy
+/// POST files/{fileId}/copy
 /// Creates a copy of a file and applies any requested updates with patch semantics. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2838,7 +4363,7 @@ pub fn drive_files_copy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/copy
+/// POST files/{fileId}/copy
 /// Creates a copy of a file and applies any requested updates with patch semantics. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2874,26 +4399,24 @@ pub struct DriveFilesCopyArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<bool>,
+    pub enforceSingleParent: Option<Option<String>>,
     /// Query parameter: ignoreDefaultVisibility
-    pub ignoreDefaultVisibility: Option<bool>,
+    pub ignoreDefaultVisibility: Option<Option<String>>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<String>,
+    pub includeLabels: Option<Option<String>>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<String>,
+    pub includePermissionsForView: Option<Option<String>>,
     /// Query parameter: keepRevisionForever
-    pub keepRevisionForever: Option<bool>,
+    pub keepRevisionForever: Option<Option<String>>,
     /// Query parameter: ocrLanguage
-    pub ocrLanguage: Option<String>,
+    pub ocrLanguage: Option<Option<String>>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<bool>,
+    pub supportsAllDrives: Option<Option<String>>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<bool>,
-    /// Request body.
-    pub body: File,
+    pub supportsTeamDrives: Option<Option<String>>,
 }
 
-/// GET files/{fileId}/copy
+/// POST files/{fileId}/copy
 /// Creates a copy of a file and applies any requested updates with patch semantics. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2922,12 +4445,11 @@ pub fn drive_files_copy(
         &args.ocrLanguage,
         &args.supportsAllDrives,
         &args.supportsTeamDrives,
-        &args.body,
     )?;
     drive_files_copy_execute(builder)
 }
 
-/// GET files
+/// POST files
 /// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file's MIME type.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2935,16 +4457,15 @@ pub fn drive_files_copy(
 
 pub fn drive_files_create_builder(
     client: &SimpleHttpClient,
-    enforceSingleParent: &Option<bool>,
-    ignoreDefaultVisibility: &Option<bool>,
-    includeLabels: &Option<String>,
-    includePermissionsForView: &Option<String>,
-    keepRevisionForever: &Option<bool>,
-    ocrLanguage: &Option<String>,
-    supportsAllDrives: &Option<bool>,
-    supportsTeamDrives: &Option<bool>,
-    useContentAsIndexableText: &Option<bool>,
-    body: &File,
+    enforceSingleParent: &Option<Option<String>>,
+    ignoreDefaultVisibility: &Option<Option<String>>,
+    includeLabels: &Option<Option<String>>,
+    includePermissionsForView: &Option<Option<String>>,
+    keepRevisionForever: &Option<Option<String>>,
+    ocrLanguage: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    useContentAsIndexableText: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files",);
@@ -2986,15 +4507,13 @@ pub fn drive_files_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET files
+/// POST files
 /// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file's MIME type.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3068,7 +4587,7 @@ pub fn drive_files_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files
+/// POST files
 /// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file's MIME type.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3102,28 +4621,26 @@ pub fn drive_files_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveFilesCreateArgs {
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<bool>,
+    pub enforceSingleParent: Option<Option<String>>,
     /// Query parameter: ignoreDefaultVisibility
-    pub ignoreDefaultVisibility: Option<bool>,
+    pub ignoreDefaultVisibility: Option<Option<String>>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<String>,
+    pub includeLabels: Option<Option<String>>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<String>,
+    pub includePermissionsForView: Option<Option<String>>,
     /// Query parameter: keepRevisionForever
-    pub keepRevisionForever: Option<bool>,
+    pub keepRevisionForever: Option<Option<String>>,
     /// Query parameter: ocrLanguage
-    pub ocrLanguage: Option<String>,
+    pub ocrLanguage: Option<Option<String>>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<bool>,
+    pub supportsAllDrives: Option<Option<String>>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<bool>,
+    pub supportsTeamDrives: Option<Option<String>>,
     /// Query parameter: useContentAsIndexableText
-    pub useContentAsIndexableText: Option<bool>,
-    /// Request body.
-    pub body: File,
+    pub useContentAsIndexableText: Option<Option<String>>,
 }
 
-/// GET files
+/// POST files
 /// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file's MIME type.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3152,12 +4669,11 @@ pub fn drive_files_create(
         &args.supportsAllDrives,
         &args.supportsTeamDrives,
         &args.useContentAsIndexableText,
-        &args.body,
     )?;
     drive_files_create_execute(builder)
 }
 
-/// GET files/{fileId}
+/// DELETE files/{fileId}
 /// Permanently deletes a file owned by the user without moving it to the trash. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>). If the file belongs to a shared drive, the user must be an organizer on the parent folder. If the target is a folder, all descendants owned by the user are also deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3166,9 +4682,9 @@ pub fn drive_files_create(
 pub fn drive_files_delete_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    enforceSingleParent: &Option<bool>,
-    supportsAllDrives: &Option<bool>,
-    supportsTeamDrives: &Option<bool>,
+    enforceSingleParent: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}", fileId,);
@@ -3192,13 +4708,13 @@ pub fn drive_files_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET files/{fileId}
+/// DELETE files/{fileId}
 /// Permanently deletes a file owned by the user without moving it to the trash. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>). If the file belongs to a shared drive, the user must be an organizer on the parent folder. If the target is a folder, all descendants owned by the user are also deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3269,7 +4785,7 @@ pub fn drive_files_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}
+/// DELETE files/{fileId}
 /// Permanently deletes a file owned by the user without moving it to the trash. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>). If the file belongs to a shared drive, the user must be an organizer on the parent folder. If the target is a folder, all descendants owned by the user are also deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3305,14 +4821,14 @@ pub struct DriveFilesDeleteArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<bool>,
+    pub enforceSingleParent: Option<Option<String>>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<bool>,
+    pub supportsAllDrives: Option<Option<String>>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<bool>,
+    pub supportsTeamDrives: Option<Option<String>>,
 }
 
-/// GET files/{fileId}
+/// DELETE files/{fileId}
 /// Permanently deletes a file owned by the user without moving it to the trash. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>). If the file belongs to a shared drive, the user must be an organizer on the parent folder. If the target is a folder, all descendants owned by the user are also deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3340,7 +4856,7 @@ pub fn drive_files_delete(
     drive_files_delete_execute(builder)
 }
 
-/// GET files/{fileId}/download
+/// POST files/{fileId}/download
 /// Downloads the content of a file. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>). Operations are valid for 24 hours from the time of creation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3349,8 +4865,8 @@ pub fn drive_files_delete(
 pub fn drive_files_download_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    mimeType: &Option<String>,
-    revisionId: &Option<String>,
+    mimeType: &Option<Option<String>>,
+    revisionId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3374,13 +4890,13 @@ pub fn drive_files_download_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET files/{fileId}/download
+/// POST files/{fileId}/download
 /// Downloads the content of a file. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>). Operations are valid for 24 hours from the time of creation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3454,7 +4970,7 @@ pub fn drive_files_download_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/download
+/// POST files/{fileId}/download
 /// Downloads the content of a file. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>). Operations are valid for 24 hours from the time of creation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3490,12 +5006,12 @@ pub struct DriveFilesDownloadArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: mimeType
-    pub mimeType: Option<String>,
+    pub mimeType: Option<Option<String>>,
     /// Query parameter: revisionId
-    pub revisionId: Option<String>,
+    pub revisionId: Option<Option<String>>,
 }
 
-/// GET files/{fileId}/download
+/// POST files/{fileId}/download
 /// Downloads the content of a file. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>). Operations are valid for 24 hours from the time of creation.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3518,7 +5034,7 @@ pub fn drive_files_download(
     drive_files_download_execute(builder)
 }
 
-/// GET files/trash
+/// DELETE files/trash
 /// Permanently deletes all of the user's trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3526,8 +5042,8 @@ pub fn drive_files_download(
 
 pub fn drive_files_empty_trash_builder(
     client: &SimpleHttpClient,
-    driveId: &Option<String>,
-    enforceSingleParent: &Option<bool>,
+    driveId: &Option<Option<String>>,
+    enforceSingleParent: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/trash",);
@@ -3548,13 +5064,13 @@ pub fn drive_files_empty_trash_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET files/trash
+/// DELETE files/trash
 /// Permanently deletes all of the user's trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3625,7 +5141,7 @@ pub fn drive_files_empty_trash_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/trash
+/// DELETE files/trash
 /// Permanently deletes all of the user's trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3659,12 +5175,12 @@ pub fn drive_files_empty_trash_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveFilesEmptyTrashArgs {
     /// Query parameter: driveId
-    pub driveId: Option<String>,
+    pub driveId: Option<Option<String>>,
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<bool>,
+    pub enforceSingleParent: Option<Option<String>>,
 }
 
-/// GET files/trash
+/// DELETE files/trash
 /// Permanently deletes all of the user's trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3687,6 +5203,349 @@ pub fn drive_files_empty_trash(
     drive_files_empty_trash_execute(builder)
 }
 
+/// GET files/{fileId}/export
+/// Exports a Google Workspace document to the requested MIME type and returns exported byte content. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>). Note that the exported content is limited to 10 MB.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_files_export_execute()` to send, or `drive_files_export` for simplest API.
+
+pub fn drive_files_export_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    mimeType: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/export",
+        fileId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = mimeType.as_ref() {
+        query_parts.push(format!("mimeType={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files/{fileId}/export
+/// Exports a Google Workspace document to the requested MIME type and returns exported byte content. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>). Note that the exported content is limited to 10 MB.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_files_export_execute()` or `drive_files_export`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_files_export_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_files_export_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files/{fileId}/export
+/// Exports a Google Workspace document to the requested MIME type and returns exported byte content. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>). Note that the exported content is limited to 10 MB.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_files_export_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_files_export_task()`.
+/// For the simplest API, use `drive_files_export()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_files_export_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_files_export_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_files_export_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_files_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesExportArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: mimeType
+    pub mimeType: Option<Option<String>>,
+}
+
+/// GET files/{fileId}/export
+/// Exports a Google Workspace document to the requested MIME type and returns exported byte content. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>). Note that the exported content is limited to 10 MB.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_files_export_builder()` + `drive_files_export_execute()`.
+/// For task-level control, use `drive_files_export_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_files_export(
+    client: &SimpleHttpClient,
+    args: &DriveFilesExportArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_files_export_builder(client, &args.fileId, &args.mimeType)?;
+    drive_files_export_execute(builder)
+}
+
+/// GET files/generateCseToken
+/// Generates a CSE token which can be used to create or update CSE files.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_files_generate_cse_token_execute()` to send, or `drive_files_generate_cse_token` for simplest API.
+
+pub fn drive_files_generate_cse_token_builder(
+    client: &SimpleHttpClient,
+    fileId: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/generateCseToken",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fileId.as_ref() {
+        query_parts.push(format!("fileId={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files/generateCseToken
+/// Generates a CSE token which can be used to create or update CSE files.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_files_generate_cse_token_execute()` or `drive_files_generate_cse_token`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_files_generate_cse_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_files_generate_cse_token_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenerateCseTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenerateCseTokenResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files/generateCseToken
+/// Generates a CSE token which can be used to create or update CSE files.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_files_generate_cse_token_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_files_generate_cse_token_task()`.
+/// For the simplest API, use `drive_files_generate_cse_token()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_files_generate_cse_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_files_generate_cse_token_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenerateCseTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = drive_files_generate_cse_token_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_files_generate_cse_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesGenerateCseTokenArgs {
+    /// Query parameter: fileId
+    pub fileId: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+}
+
+/// GET files/generateCseToken
+/// Generates a CSE token which can be used to create or update CSE files.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_files_generate_cse_token_builder()` + `drive_files_generate_cse_token_execute()`.
+/// For task-level control, use `drive_files_generate_cse_token_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_files_generate_cse_token(
+    client: &SimpleHttpClient,
+    args: &DriveFilesGenerateCseTokenArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenerateCseTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = drive_files_generate_cse_token_builder(client, &args.fileId, &args.parent)?;
+    drive_files_generate_cse_token_execute(builder)
+}
+
 /// GET files/generateIds
 /// Generates a set of file IDs which can be provided in create or copy requests. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>).
 ///
@@ -3695,9 +5554,9 @@ pub fn drive_files_empty_trash(
 
 pub fn drive_files_generate_ids_builder(
     client: &SimpleHttpClient,
-    count: &Option<i32>,
-    space: &Option<String>,
-    type_rs: &Option<String>,
+    count: &Option<Option<String>>,
+    space: &Option<Option<String>>,
+    type_rs: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/generateIds",);
@@ -3837,11 +5696,11 @@ pub fn drive_files_generate_ids_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveFilesGenerateIdsArgs {
     /// Query parameter: count
-    pub count: Option<i32>,
+    pub count: Option<Option<String>>,
     /// Query parameter: space
-    pub space: Option<String>,
+    pub space: Option<Option<String>>,
     /// Query parameter: type
-    pub type_rs: Option<String>,
+    pub type_rs: Option<Option<String>>,
 }
 
 /// GET files/generateIds
@@ -3869,6 +5728,472 @@ pub fn drive_files_generate_ids(
     drive_files_generate_ids_execute(builder)
 }
 
+/// GET files/{fileId}
+/// Gets a file's metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_files_get_execute()` to send, or `drive_files_get` for simplest API.
+
+pub fn drive_files_get_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    acknowledgeAbuse: &Option<Option<String>>,
+    includeLabels: &Option<Option<String>>,
+    includePermissionsForView: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}", fileId,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = acknowledgeAbuse.as_ref() {
+        query_parts.push(format!("acknowledgeAbuse={}", val));
+    }
+    if let Some(val) = includeLabels.as_ref() {
+        query_parts.push(format!("includeLabels={}", val));
+    }
+    if let Some(val) = includePermissionsForView.as_ref() {
+        query_parts.push(format!("includePermissionsForView={}", val));
+    }
+    if let Some(val) = supportsAllDrives.as_ref() {
+        query_parts.push(format!("supportsAllDrives={}", val));
+    }
+    if let Some(val) = supportsTeamDrives.as_ref() {
+        query_parts.push(format!("supportsTeamDrives={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files/{fileId}
+/// Gets a file's metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_files_get_execute()` or `drive_files_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_files_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_files_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<File>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: File = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files/{fileId}
+/// Gets a file's metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_files_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_files_get_task()`.
+/// For the simplest API, use `drive_files_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_files_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_files_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_files_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_files_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: acknowledgeAbuse
+    pub acknowledgeAbuse: Option<Option<String>>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<Option<String>>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<Option<String>>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<Option<String>>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<Option<String>>,
+}
+
+/// GET files/{fileId}
+/// Gets a file's metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_files_get_builder()` + `drive_files_get_execute()`.
+/// For task-level control, use `drive_files_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_files_get(
+    client: &SimpleHttpClient,
+    args: &DriveFilesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_files_get_builder(
+        client,
+        &args.fileId,
+        &args.acknowledgeAbuse,
+        &args.includeLabels,
+        &args.includePermissionsForView,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+    )?;
+    drive_files_get_execute(builder)
+}
+
+/// GET files
+/// Lists the user's files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don't want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_files_list_execute()` to send, or `drive_files_list` for simplest API.
+
+pub fn drive_files_list_builder(
+    client: &SimpleHttpClient,
+    corpora: &Option<Option<String>>,
+    corpus: &Option<Option<String>>,
+    driveId: &Option<Option<String>>,
+    includeItemsFromAllDrives: &Option<Option<String>>,
+    includeLabels: &Option<Option<String>>,
+    includePermissionsForView: &Option<Option<String>>,
+    includeTeamDriveItems: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    q: &Option<Option<String>>,
+    spaces: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    teamDriveId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/files",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = corpora.as_ref() {
+        query_parts.push(format!("corpora={}", val));
+    }
+    if let Some(val) = corpus.as_ref() {
+        query_parts.push(format!("corpus={}", val));
+    }
+    if let Some(val) = driveId.as_ref() {
+        query_parts.push(format!("driveId={}", val));
+    }
+    if let Some(val) = includeItemsFromAllDrives.as_ref() {
+        query_parts.push(format!("includeItemsFromAllDrives={}", val));
+    }
+    if let Some(val) = includeLabels.as_ref() {
+        query_parts.push(format!("includeLabels={}", val));
+    }
+    if let Some(val) = includePermissionsForView.as_ref() {
+        query_parts.push(format!("includePermissionsForView={}", val));
+    }
+    if let Some(val) = includeTeamDriveItems.as_ref() {
+        query_parts.push(format!("includeTeamDriveItems={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = q.as_ref() {
+        query_parts.push(format!("q={}", val));
+    }
+    if let Some(val) = spaces.as_ref() {
+        query_parts.push(format!("spaces={}", val));
+    }
+    if let Some(val) = supportsAllDrives.as_ref() {
+        query_parts.push(format!("supportsAllDrives={}", val));
+    }
+    if let Some(val) = supportsTeamDrives.as_ref() {
+        query_parts.push(format!("supportsTeamDrives={}", val));
+    }
+    if let Some(val) = teamDriveId.as_ref() {
+        query_parts.push(format!("teamDriveId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files
+/// Lists the user's files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don't want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_files_list_execute()` or `drive_files_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_files_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_files_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FileList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FileList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files
+/// Lists the user's files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don't want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_files_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_files_list_task()`.
+/// For the simplest API, use `drive_files_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_files_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_files_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FileList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_files_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_files_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesListArgs {
+    /// Query parameter: corpora
+    pub corpora: Option<Option<String>>,
+    /// Query parameter: corpus
+    pub corpus: Option<Option<String>>,
+    /// Query parameter: driveId
+    pub driveId: Option<Option<String>>,
+    /// Query parameter: includeItemsFromAllDrives
+    pub includeItemsFromAllDrives: Option<Option<String>>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<Option<String>>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<Option<String>>,
+    /// Query parameter: includeTeamDriveItems
+    pub includeTeamDriveItems: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: q
+    pub q: Option<Option<String>>,
+    /// Query parameter: spaces
+    pub spaces: Option<Option<String>>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<Option<String>>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<Option<String>>,
+    /// Query parameter: teamDriveId
+    pub teamDriveId: Option<Option<String>>,
+}
+
+/// GET files
+/// Lists the user's files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don't want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_files_list_builder()` + `drive_files_list_execute()`.
+/// For task-level control, use `drive_files_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_files_list(
+    client: &SimpleHttpClient,
+    args: &DriveFilesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FileList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_files_list_builder(
+        client,
+        &args.corpora,
+        &args.corpus,
+        &args.driveId,
+        &args.includeItemsFromAllDrives,
+        &args.includeLabels,
+        &args.includePermissionsForView,
+        &args.includeTeamDriveItems,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.q,
+        &args.spaces,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.teamDriveId,
+    )?;
+    drive_files_list_execute(builder)
+}
+
 /// GET files/{fileId}/listLabels
 /// Lists the labels on a file. For more information, see [List labels on a file](<https://developers.google.`com/workspace/drive/api/guides/list-labels`>).
 ///
@@ -3878,8 +6203,8 @@ pub fn drive_files_generate_ids(
 pub fn drive_files_list_labels_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4019,9 +6344,9 @@ pub struct DriveFilesListLabelsArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET files/{fileId}/listLabels
@@ -4047,7 +6372,7 @@ pub fn drive_files_list_labels(
     drive_files_list_labels_execute(builder)
 }
 
-/// GET files/{fileId}/modifyLabels
+/// POST files/{fileId}/modifyLabels
 /// Modifies the set of labels applied to a file. For more information, see [Set a label field on a file](<https://developers.google.`com/workspace/drive/api/guides/set-label`>). Returns a list of the labels that were added or modified.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4056,7 +6381,6 @@ pub fn drive_files_list_labels(
 pub fn drive_files_modify_labels_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    body: &ModifyLabelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4066,15 +6390,13 @@ pub fn drive_files_modify_labels_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET files/{fileId}/modifyLabels
+/// POST files/{fileId}/modifyLabels
 /// Modifies the set of labels applied to a file. For more information, see [Set a label field on a file](<https://developers.google.`com/workspace/drive/api/guides/set-label`>). Returns a list of the labels that were added or modified.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4148,7 +6470,7 @@ pub fn drive_files_modify_labels_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/modifyLabels
+/// POST files/{fileId}/modifyLabels
 /// Modifies the set of labels applied to a file. For more information, see [Set a label field on a file](<https://developers.google.`com/workspace/drive/api/guides/set-label`>). Returns a list of the labels that were added or modified.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4185,11 +6507,9 @@ pub fn drive_files_modify_labels_execute(
 pub struct DriveFilesModifyLabelsArgs {
     /// Path parameter: fileId
     pub fileId: String,
-    /// Request body.
-    pub body: ModifyLabelsRequest,
 }
 
-/// GET files/{fileId}/modifyLabels
+/// POST files/{fileId}/modifyLabels
 /// Modifies the set of labels applied to a file. For more information, see [Set a label field on a file](<https://developers.google.`com/workspace/drive/api/guides/set-label`>). Returns a list of the labels that were added or modified.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4209,11 +6529,246 @@ pub fn drive_files_modify_labels(
         + 'static,
     ApiError,
 > {
-    let builder = drive_files_modify_labels_builder(client, &args.fileId, &args.body)?;
+    let builder = drive_files_modify_labels_builder(client, &args.fileId)?;
     drive_files_modify_labels_execute(builder)
 }
 
-/// GET files/{fileId}/watch
+/// PATCH files/{fileId}
+/// Updates a file's metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_files_update_execute()` to send, or `drive_files_update` for simplest API.
+
+pub fn drive_files_update_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    addParents: &Option<Option<String>>,
+    enforceSingleParent: &Option<Option<String>>,
+    includeLabels: &Option<Option<String>>,
+    includePermissionsForView: &Option<Option<String>>,
+    keepRevisionForever: &Option<Option<String>>,
+    ocrLanguage: &Option<Option<String>>,
+    removeParents: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    useContentAsIndexableText: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}", fileId,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = addParents.as_ref() {
+        query_parts.push(format!("addParents={}", val));
+    }
+    if let Some(val) = enforceSingleParent.as_ref() {
+        query_parts.push(format!("enforceSingleParent={}", val));
+    }
+    if let Some(val) = includeLabels.as_ref() {
+        query_parts.push(format!("includeLabels={}", val));
+    }
+    if let Some(val) = includePermissionsForView.as_ref() {
+        query_parts.push(format!("includePermissionsForView={}", val));
+    }
+    if let Some(val) = keepRevisionForever.as_ref() {
+        query_parts.push(format!("keepRevisionForever={}", val));
+    }
+    if let Some(val) = ocrLanguage.as_ref() {
+        query_parts.push(format!("ocrLanguage={}", val));
+    }
+    if let Some(val) = removeParents.as_ref() {
+        query_parts.push(format!("removeParents={}", val));
+    }
+    if let Some(val) = supportsAllDrives.as_ref() {
+        query_parts.push(format!("supportsAllDrives={}", val));
+    }
+    if let Some(val) = supportsTeamDrives.as_ref() {
+        query_parts.push(format!("supportsTeamDrives={}", val));
+    }
+    if let Some(val) = useContentAsIndexableText.as_ref() {
+        query_parts.push(format!("useContentAsIndexableText={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH files/{fileId}
+/// Updates a file's metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_files_update_execute()` or `drive_files_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_files_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_files_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<File>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: File = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH files/{fileId}
+/// Updates a file's metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_files_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_files_update_task()`.
+/// For the simplest API, use `drive_files_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_files_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_files_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_files_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_files_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesUpdateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: addParents
+    pub addParents: Option<Option<String>>,
+    /// Query parameter: enforceSingleParent
+    pub enforceSingleParent: Option<Option<String>>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<Option<String>>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<Option<String>>,
+    /// Query parameter: keepRevisionForever
+    pub keepRevisionForever: Option<Option<String>>,
+    /// Query parameter: ocrLanguage
+    pub ocrLanguage: Option<Option<String>>,
+    /// Query parameter: removeParents
+    pub removeParents: Option<Option<String>>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<Option<String>>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<Option<String>>,
+    /// Query parameter: useContentAsIndexableText
+    pub useContentAsIndexableText: Option<Option<String>>,
+}
+
+/// PATCH files/{fileId}
+/// Updates a file's metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_files_update_builder()` + `drive_files_update_execute()`.
+/// For task-level control, use `drive_files_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_files_update(
+    client: &SimpleHttpClient,
+    args: &DriveFilesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_files_update_builder(
+        client,
+        &args.fileId,
+        &args.addParents,
+        &args.enforceSingleParent,
+        &args.includeLabels,
+        &args.includePermissionsForView,
+        &args.keepRevisionForever,
+        &args.ocrLanguage,
+        &args.removeParents,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.useContentAsIndexableText,
+    )?;
+    drive_files_update_execute(builder)
+}
+
+/// POST files/{fileId}/watch
 /// Subscribes to changes to a file. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4222,12 +6777,11 @@ pub fn drive_files_modify_labels(
 pub fn drive_files_watch_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    acknowledgeAbuse: &Option<bool>,
-    includeLabels: &Option<String>,
-    includePermissionsForView: &Option<String>,
-    supportsAllDrives: &Option<bool>,
-    supportsTeamDrives: &Option<bool>,
-    body: &Channel,
+    acknowledgeAbuse: &Option<Option<String>>,
+    includeLabels: &Option<Option<String>>,
+    includePermissionsForView: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/files/{}/watch", fileId,);
@@ -4257,15 +6811,13 @@ pub fn drive_files_watch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET files/{fileId}/watch
+/// POST files/{fileId}/watch
 /// Subscribes to changes to a file. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4339,7 +6891,7 @@ pub fn drive_files_watch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/watch
+/// POST files/{fileId}/watch
 /// Subscribes to changes to a file. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4375,20 +6927,18 @@ pub struct DriveFilesWatchArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: acknowledgeAbuse
-    pub acknowledgeAbuse: Option<bool>,
+    pub acknowledgeAbuse: Option<Option<String>>,
     /// Query parameter: includeLabels
-    pub includeLabels: Option<String>,
+    pub includeLabels: Option<Option<String>>,
     /// Query parameter: includePermissionsForView
-    pub includePermissionsForView: Option<String>,
+    pub includePermissionsForView: Option<Option<String>>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<bool>,
+    pub supportsAllDrives: Option<Option<String>>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<bool>,
-    /// Request body.
-    pub body: Channel,
+    pub supportsTeamDrives: Option<Option<String>>,
 }
 
-/// GET files/{fileId}/watch
+/// POST files/{fileId}/watch
 /// Subscribes to changes to a file. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4414,7 +6964,6 @@ pub fn drive_files_watch(
         &args.includePermissionsForView,
         &args.supportsAllDrives,
         &args.supportsTeamDrives,
-        &args.body,
     )?;
     drive_files_watch_execute(builder)
 }
@@ -4573,7 +7122,7 @@ pub fn drive_operations_get(
     drive_operations_get_execute(builder)
 }
 
-/// GET files/{fileId}/permissions
+/// POST files/{fileId}/permissions
 /// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4582,16 +7131,15 @@ pub fn drive_operations_get(
 pub fn drive_permissions_create_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    emailMessage: &Option<String>,
-    enforceExpansiveAccess: &Option<bool>,
-    enforceSingleParent: &Option<bool>,
-    moveToNewOwnersRoot: &Option<bool>,
-    sendNotificationEmail: &Option<bool>,
-    supportsAllDrives: &Option<bool>,
-    supportsTeamDrives: &Option<bool>,
-    transferOwnership: &Option<bool>,
-    useDomainAdminAccess: &Option<bool>,
-    body: &Permission,
+    emailMessage: &Option<Option<String>>,
+    enforceExpansiveAccess: &Option<Option<String>>,
+    enforceSingleParent: &Option<Option<String>>,
+    moveToNewOwnersRoot: &Option<Option<String>>,
+    sendNotificationEmail: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    transferOwnership: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4636,15 +7184,13 @@ pub fn drive_permissions_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET files/{fileId}/permissions
+/// POST files/{fileId}/permissions
 /// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4718,7 +7264,7 @@ pub fn drive_permissions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/permissions
+/// POST files/{fileId}/permissions
 /// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4754,28 +7300,26 @@ pub struct DrivePermissionsCreateArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: emailMessage
-    pub emailMessage: Option<String>,
+    pub emailMessage: Option<Option<String>>,
     /// Query parameter: enforceExpansiveAccess
-    pub enforceExpansiveAccess: Option<bool>,
+    pub enforceExpansiveAccess: Option<Option<String>>,
     /// Query parameter: enforceSingleParent
-    pub enforceSingleParent: Option<bool>,
+    pub enforceSingleParent: Option<Option<String>>,
     /// Query parameter: moveToNewOwnersRoot
-    pub moveToNewOwnersRoot: Option<bool>,
+    pub moveToNewOwnersRoot: Option<Option<String>>,
     /// Query parameter: sendNotificationEmail
-    pub sendNotificationEmail: Option<bool>,
+    pub sendNotificationEmail: Option<Option<String>>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<bool>,
+    pub supportsAllDrives: Option<Option<String>>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<bool>,
+    pub supportsTeamDrives: Option<Option<String>>,
     /// Query parameter: transferOwnership
-    pub transferOwnership: Option<bool>,
+    pub transferOwnership: Option<Option<String>>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<bool>,
-    /// Request body.
-    pub body: Permission,
+    pub useDomainAdminAccess: Option<Option<String>>,
 }
 
-/// GET files/{fileId}/permissions
+/// POST files/{fileId}/permissions
 /// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4805,12 +7349,11 @@ pub fn drive_permissions_create(
         &args.supportsTeamDrives,
         &args.transferOwnership,
         &args.useDomainAdminAccess,
-        &args.body,
     )?;
     drive_permissions_create_execute(builder)
 }
 
-/// GET files/{fileId}/permissions/{permissionId}
+/// DELETE files/{fileId}/permissions/{permissionId}
 /// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4820,10 +7363,10 @@ pub fn drive_permissions_delete_builder(
     client: &SimpleHttpClient,
     fileId: &String,
     permissionId: &String,
-    enforceExpansiveAccess: &Option<bool>,
-    supportsAllDrives: &Option<bool>,
-    supportsTeamDrives: &Option<bool>,
-    useDomainAdminAccess: &Option<bool>,
+    enforceExpansiveAccess: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4853,13 +7396,13 @@ pub fn drive_permissions_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET files/{fileId}/permissions/{permissionId}
+/// DELETE files/{fileId}/permissions/{permissionId}
 /// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4930,7 +7473,7 @@ pub fn drive_permissions_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/permissions/{permissionId}
+/// DELETE files/{fileId}/permissions/{permissionId}
 /// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4968,16 +7511,16 @@ pub struct DrivePermissionsDeleteArgs {
     /// Path parameter: permissionId
     pub permissionId: String,
     /// Query parameter: enforceExpansiveAccess
-    pub enforceExpansiveAccess: Option<bool>,
+    pub enforceExpansiveAccess: Option<Option<String>>,
     /// Query parameter: supportsAllDrives
-    pub supportsAllDrives: Option<bool>,
+    pub supportsAllDrives: Option<Option<String>>,
     /// Query parameter: supportsTeamDrives
-    pub supportsTeamDrives: Option<bool>,
+    pub supportsTeamDrives: Option<Option<String>>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<bool>,
+    pub useDomainAdminAccess: Option<Option<String>>,
 }
 
-/// GET files/{fileId}/permissions/{permissionId}
+/// DELETE files/{fileId}/permissions/{permissionId}
 /// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5007,7 +7550,628 @@ pub fn drive_permissions_delete(
     drive_permissions_delete_execute(builder)
 }
 
-/// GET files/{fileId}/comments/{commentId}/replies
+/// GET files/{fileId}/permissions/{permissionId}
+/// Gets a permission by ID. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_permissions_get_execute()` to send, or `drive_permissions_get` for simplest API.
+
+pub fn drive_permissions_get_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    permissionId: &String,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/permissions/{}",
+        fileId, permissionId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = supportsAllDrives.as_ref() {
+        query_parts.push(format!("supportsAllDrives={}", val));
+    }
+    if let Some(val) = supportsTeamDrives.as_ref() {
+        query_parts.push(format!("supportsTeamDrives={}", val));
+    }
+    if let Some(val) = useDomainAdminAccess.as_ref() {
+        query_parts.push(format!("useDomainAdminAccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files/{fileId}/permissions/{permissionId}
+/// Gets a permission by ID. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_permissions_get_execute()` or `drive_permissions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_permissions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_permissions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Permission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Permission = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files/{fileId}/permissions/{permissionId}
+/// Gets a permission by ID. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_permissions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_permissions_get_task()`.
+/// For the simplest API, use `drive_permissions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_permissions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_permissions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Permission>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_permissions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_permissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivePermissionsGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: permissionId
+    pub permissionId: String,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<Option<String>>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<Option<String>>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<Option<String>>,
+}
+
+/// GET files/{fileId}/permissions/{permissionId}
+/// Gets a permission by ID. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_permissions_get_builder()` + `drive_permissions_get_execute()`.
+/// For task-level control, use `drive_permissions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_permissions_get(
+    client: &SimpleHttpClient,
+    args: &DrivePermissionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Permission>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_permissions_get_builder(
+        client,
+        &args.fileId,
+        &args.permissionId,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.useDomainAdminAccess,
+    )?;
+    drive_permissions_get_execute(builder)
+}
+
+/// GET files/{fileId}/permissions
+/// Lists a file's or shared drive's permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_permissions_list_execute()` to send, or `drive_permissions_list` for simplest API.
+
+pub fn drive_permissions_list_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    includePermissionsForView: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/permissions",
+        fileId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = includePermissionsForView.as_ref() {
+        query_parts.push(format!("includePermissionsForView={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = supportsAllDrives.as_ref() {
+        query_parts.push(format!("supportsAllDrives={}", val));
+    }
+    if let Some(val) = supportsTeamDrives.as_ref() {
+        query_parts.push(format!("supportsTeamDrives={}", val));
+    }
+    if let Some(val) = useDomainAdminAccess.as_ref() {
+        query_parts.push(format!("useDomainAdminAccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files/{fileId}/permissions
+/// Lists a file's or shared drive's permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_permissions_list_execute()` or `drive_permissions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_permissions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_permissions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PermissionList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PermissionList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files/{fileId}/permissions
+/// Lists a file's or shared drive's permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_permissions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_permissions_list_task()`.
+/// For the simplest API, use `drive_permissions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_permissions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_permissions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PermissionList>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = drive_permissions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_permissions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivePermissionsListArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<Option<String>>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<Option<String>>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<Option<String>>,
+}
+
+/// GET files/{fileId}/permissions
+/// Lists a file's or shared drive's permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_permissions_list_builder()` + `drive_permissions_list_execute()`.
+/// For task-level control, use `drive_permissions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_permissions_list(
+    client: &SimpleHttpClient,
+    args: &DrivePermissionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PermissionList>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = drive_permissions_list_builder(
+        client,
+        &args.fileId,
+        &args.includePermissionsForView,
+        &args.pageSize,
+        &args.pageToken,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.useDomainAdminAccess,
+    )?;
+    drive_permissions_list_execute(builder)
+}
+
+/// PATCH files/{fileId}/permissions/{permissionId}
+/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_permissions_update_execute()` to send, or `drive_permissions_update` for simplest API.
+
+pub fn drive_permissions_update_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    permissionId: &String,
+    enforceExpansiveAccess: &Option<Option<String>>,
+    removeExpiration: &Option<Option<String>>,
+    supportsAllDrives: &Option<Option<String>>,
+    supportsTeamDrives: &Option<Option<String>>,
+    transferOwnership: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/permissions/{}",
+        fileId, permissionId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = enforceExpansiveAccess.as_ref() {
+        query_parts.push(format!("enforceExpansiveAccess={}", val));
+    }
+    if let Some(val) = removeExpiration.as_ref() {
+        query_parts.push(format!("removeExpiration={}", val));
+    }
+    if let Some(val) = supportsAllDrives.as_ref() {
+        query_parts.push(format!("supportsAllDrives={}", val));
+    }
+    if let Some(val) = supportsTeamDrives.as_ref() {
+        query_parts.push(format!("supportsTeamDrives={}", val));
+    }
+    if let Some(val) = transferOwnership.as_ref() {
+        query_parts.push(format!("transferOwnership={}", val));
+    }
+    if let Some(val) = useDomainAdminAccess.as_ref() {
+        query_parts.push(format!("useDomainAdminAccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH files/{fileId}/permissions/{permissionId}
+/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_permissions_update_execute()` or `drive_permissions_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_permissions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_permissions_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Permission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Permission = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH files/{fileId}/permissions/{permissionId}
+/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_permissions_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_permissions_update_task()`.
+/// For the simplest API, use `drive_permissions_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_permissions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_permissions_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Permission>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_permissions_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_permissions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivePermissionsUpdateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: permissionId
+    pub permissionId: String,
+    /// Query parameter: enforceExpansiveAccess
+    pub enforceExpansiveAccess: Option<Option<String>>,
+    /// Query parameter: removeExpiration
+    pub removeExpiration: Option<Option<String>>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<Option<String>>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<Option<String>>,
+    /// Query parameter: transferOwnership
+    pub transferOwnership: Option<Option<String>>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<Option<String>>,
+}
+
+/// PATCH files/{fileId}/permissions/{permissionId}
+/// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_permissions_update_builder()` + `drive_permissions_update_execute()`.
+/// For task-level control, use `drive_permissions_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_permissions_update(
+    client: &SimpleHttpClient,
+    args: &DrivePermissionsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Permission>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_permissions_update_builder(
+        client,
+        &args.fileId,
+        &args.permissionId,
+        &args.enforceExpansiveAccess,
+        &args.removeExpiration,
+        &args.supportsAllDrives,
+        &args.supportsTeamDrives,
+        &args.transferOwnership,
+        &args.useDomainAdminAccess,
+    )?;
+    drive_permissions_update_execute(builder)
+}
+
+/// POST files/{fileId}/comments/{commentId}/replies
 /// Creates a reply to a comment. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5017,7 +8181,6 @@ pub fn drive_replies_create_builder(
     client: &SimpleHttpClient,
     fileId: &String,
     commentId: &String,
-    body: &Reply,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5027,15 +8190,13 @@ pub fn drive_replies_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET files/{fileId}/comments/{commentId}/replies
+/// POST files/{fileId}/comments/{commentId}/replies
 /// Creates a reply to a comment. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5109,7 +8270,7 @@ pub fn drive_replies_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/comments/{commentId}/replies
+/// POST files/{fileId}/comments/{commentId}/replies
 /// Creates a reply to a comment. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5146,11 +8307,9 @@ pub struct DriveRepliesCreateArgs {
     pub fileId: String,
     /// Path parameter: commentId
     pub commentId: String,
-    /// Request body.
-    pub body: Reply,
 }
 
-/// GET files/{fileId}/comments/{commentId}/replies
+/// POST files/{fileId}/comments/{commentId}/replies
 /// Creates a reply to a comment. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5168,11 +8327,11 @@ pub fn drive_replies_create(
     impl StreamIterator<D = Result<ApiResponse<Reply>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_replies_create_builder(client, &args.fileId, &args.commentId, &args.body)?;
+    let builder = drive_replies_create_builder(client, &args.fileId, &args.commentId)?;
     drive_replies_create_execute(builder)
 }
 
-/// GET files/{fileId}/comments/{commentId}/replies/{replyId}
+/// DELETE files/{fileId}/comments/{commentId}/replies/{replyId}
 /// Deletes a reply. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5192,13 +8351,13 @@ pub fn drive_replies_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET files/{fileId}/comments/{commentId}/replies/{replyId}
+/// DELETE files/{fileId}/comments/{commentId}/replies/{replyId}
 /// Deletes a reply. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5269,7 +8428,7 @@ pub fn drive_replies_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/comments/{commentId}/replies/{replyId}
+/// DELETE files/{fileId}/comments/{commentId}/replies/{replyId}
 /// Deletes a reply. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5310,7 +8469,7 @@ pub struct DriveRepliesDeleteArgs {
     pub replyId: String,
 }
 
-/// GET files/{fileId}/comments/{commentId}/replies/{replyId}
+/// DELETE files/{fileId}/comments/{commentId}/replies/{replyId}
 /// Deletes a reply. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5333,7 +8492,547 @@ pub fn drive_replies_delete(
     drive_replies_delete_execute(builder)
 }
 
-/// GET files/{fileId}/revisions/{revisionId}
+/// GET files/{fileId}/comments/{commentId}/replies/{replyId}
+/// Gets a reply by ID. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_replies_get_execute()` to send, or `drive_replies_get` for simplest API.
+
+pub fn drive_replies_get_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    commentId: &String,
+    replyId: &String,
+    includeDeleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/comments/{}/replies/{}",
+        fileId, commentId, replyId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = includeDeleted.as_ref() {
+        query_parts.push(format!("includeDeleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files/{fileId}/comments/{commentId}/replies/{replyId}
+/// Gets a reply by ID. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_replies_get_execute()` or `drive_replies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_replies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_replies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Reply>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Reply = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files/{fileId}/comments/{commentId}/replies/{replyId}
+/// Gets a reply by ID. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_replies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_replies_get_task()`.
+/// For the simplest API, use `drive_replies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_replies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_replies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Reply>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_replies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_replies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRepliesGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Path parameter: replyId
+    pub replyId: String,
+    /// Query parameter: includeDeleted
+    pub includeDeleted: Option<Option<String>>,
+}
+
+/// GET files/{fileId}/comments/{commentId}/replies/{replyId}
+/// Gets a reply by ID. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_replies_get_builder()` + `drive_replies_get_execute()`.
+/// For task-level control, use `drive_replies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_replies_get(
+    client: &SimpleHttpClient,
+    args: &DriveRepliesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Reply>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_replies_get_builder(
+        client,
+        &args.fileId,
+        &args.commentId,
+        &args.replyId,
+        &args.includeDeleted,
+    )?;
+    drive_replies_get_execute(builder)
+}
+
+/// GET files/{fileId}/comments/{commentId}/replies
+/// Lists a comment's replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_replies_list_execute()` to send, or `drive_replies_list` for simplest API.
+
+pub fn drive_replies_list_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    commentId: &String,
+    includeDeleted: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/comments/{}/replies",
+        fileId, commentId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = includeDeleted.as_ref() {
+        query_parts.push(format!("includeDeleted={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files/{fileId}/comments/{commentId}/replies
+/// Lists a comment's replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_replies_list_execute()` or `drive_replies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_replies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_replies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReplyList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ReplyList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files/{fileId}/comments/{commentId}/replies
+/// Lists a comment's replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_replies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_replies_list_task()`.
+/// For the simplest API, use `drive_replies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_replies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_replies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReplyList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_replies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_replies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRepliesListArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Query parameter: includeDeleted
+    pub includeDeleted: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET files/{fileId}/comments/{commentId}/replies
+/// Lists a comment's replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_replies_list_builder()` + `drive_replies_list_execute()`.
+/// For task-level control, use `drive_replies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_replies_list(
+    client: &SimpleHttpClient,
+    args: &DriveRepliesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReplyList>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_replies_list_builder(
+        client,
+        &args.fileId,
+        &args.commentId,
+        &args.includeDeleted,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    drive_replies_list_execute(builder)
+}
+
+/// PATCH files/{fileId}/comments/{commentId}/replies/{replyId}
+/// Updates a reply with patch semantics. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_replies_update_execute()` to send, or `drive_replies_update` for simplest API.
+
+pub fn drive_replies_update_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    commentId: &String,
+    replyId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/comments/{}/replies/{}",
+        fileId, commentId, replyId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH files/{fileId}/comments/{commentId}/replies/{replyId}
+/// Updates a reply with patch semantics. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_replies_update_execute()` or `drive_replies_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_replies_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_replies_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Reply>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Reply = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH files/{fileId}/comments/{commentId}/replies/{replyId}
+/// Updates a reply with patch semantics. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_replies_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_replies_update_task()`.
+/// For the simplest API, use `drive_replies_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_replies_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_replies_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Reply>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_replies_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_replies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRepliesUpdateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Path parameter: replyId
+    pub replyId: String,
+}
+
+/// PATCH files/{fileId}/comments/{commentId}/replies/{replyId}
+/// Updates a reply with patch semantics. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_replies_update_builder()` + `drive_replies_update_execute()`.
+/// For task-level control, use `drive_replies_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_replies_update(
+    client: &SimpleHttpClient,
+    args: &DriveRepliesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Reply>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        drive_replies_update_builder(client, &args.fileId, &args.commentId, &args.replyId)?;
+    drive_replies_update_execute(builder)
+}
+
+/// DELETE files/{fileId}/revisions/{revisionId}
 /// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can't be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5352,13 +9051,13 @@ pub fn drive_revisions_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET files/{fileId}/revisions/{revisionId}
+/// DELETE files/{fileId}/revisions/{revisionId}
 /// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can't be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5429,7 +9128,7 @@ pub fn drive_revisions_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET files/{fileId}/revisions/{revisionId}
+/// DELETE files/{fileId}/revisions/{revisionId}
 /// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can't be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5468,7 +9167,7 @@ pub struct DriveRevisionsDeleteArgs {
     pub revisionId: String,
 }
 
-/// GET files/{fileId}/revisions/{revisionId}
+/// DELETE files/{fileId}/revisions/{revisionId}
 /// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can't be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5490,6 +9189,185 @@ pub fn drive_revisions_delete(
     drive_revisions_delete_execute(builder)
 }
 
+/// GET files/{fileId}/revisions/{revisionId}
+/// Gets a revision's metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_revisions_get_execute()` to send, or `drive_revisions_get` for simplest API.
+
+pub fn drive_revisions_get_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    revisionId: &String,
+    acknowledgeAbuse: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/revisions/{}",
+        fileId, revisionId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = acknowledgeAbuse.as_ref() {
+        query_parts.push(format!("acknowledgeAbuse={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET files/{fileId}/revisions/{revisionId}
+/// Gets a revision's metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_revisions_get_execute()` or `drive_revisions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_revisions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_revisions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Revision>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Revision = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET files/{fileId}/revisions/{revisionId}
+/// Gets a revision's metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_revisions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_revisions_get_task()`.
+/// For the simplest API, use `drive_revisions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_revisions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_revisions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Revision>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_revisions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRevisionsGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: revisionId
+    pub revisionId: String,
+    /// Query parameter: acknowledgeAbuse
+    pub acknowledgeAbuse: Option<Option<String>>,
+}
+
+/// GET files/{fileId}/revisions/{revisionId}
+/// Gets a revision's metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_revisions_get_builder()` + `drive_revisions_get_execute()`.
+/// For task-level control, use `drive_revisions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_revisions_get(
+    client: &SimpleHttpClient,
+    args: &DriveRevisionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Revision>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_revisions_get_builder(
+        client,
+        &args.fileId,
+        &args.revisionId,
+        &args.acknowledgeAbuse,
+    )?;
+    drive_revisions_get_execute(builder)
+}
+
 /// GET files/{fileId}/revisions
 /// Lists a file's revisions. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>). **Important:** The list of revisions returned by this method might be incomplete for files with a large revision history, including frequently edited Google Docs, Sheets, and Slides. Older revisions might be omitted from the response, meaning the first revision returned may not be the oldest existing revision. The revision history visible in the Workspace editor user interface might be more complete than the list returned by the API.
 ///
@@ -5499,8 +9377,8 @@ pub fn drive_revisions_delete(
 pub fn drive_revisions_list_builder(
     client: &SimpleHttpClient,
     fileId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5642,9 +9520,9 @@ pub struct DriveRevisionsListArgs {
     /// Path parameter: fileId
     pub fileId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET files/{fileId}/revisions
@@ -5672,7 +9550,332 @@ pub fn drive_revisions_list(
     drive_revisions_list_execute(builder)
 }
 
-/// GET teamdrives/{teamDriveId}
+/// PATCH files/{fileId}/revisions/{revisionId}
+/// Updates a revision with patch semantics. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_revisions_update_execute()` to send, or `drive_revisions_update` for simplest API.
+
+pub fn drive_revisions_update_builder(
+    client: &SimpleHttpClient,
+    fileId: &String,
+    revisionId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/files/{}/revisions/{}",
+        fileId, revisionId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH files/{fileId}/revisions/{revisionId}
+/// Updates a revision with patch semantics. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_revisions_update_execute()` or `drive_revisions_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_revisions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_revisions_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Revision>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Revision = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH files/{fileId}/revisions/{revisionId}
+/// Updates a revision with patch semantics. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_revisions_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_revisions_update_task()`.
+/// For the simplest API, use `drive_revisions_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_revisions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_revisions_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Revision>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_revisions_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_revisions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRevisionsUpdateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: revisionId
+    pub revisionId: String,
+}
+
+/// PATCH files/{fileId}/revisions/{revisionId}
+/// Updates a revision with patch semantics. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_revisions_update_builder()` + `drive_revisions_update_execute()`.
+/// For task-level control, use `drive_revisions_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_revisions_update(
+    client: &SimpleHttpClient,
+    args: &DriveRevisionsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Revision>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_revisions_update_builder(client, &args.fileId, &args.revisionId)?;
+    drive_revisions_update_execute(builder)
+}
+
+/// POST teamdrives
+/// Deprecated: Use drives.create instead.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_teamdrives_create_execute()` to send, or `drive_teamdrives_create` for simplest API.
+
+pub fn drive_teamdrives_create_builder(
+    client: &SimpleHttpClient,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/drive/v3/teamdrives",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST teamdrives
+/// Deprecated: Use drives.create instead.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_teamdrives_create_execute()` or `drive_teamdrives_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_teamdrives_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_teamdrives_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TeamDrive>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TeamDrive = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST teamdrives
+/// Deprecated: Use drives.create instead.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_teamdrives_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_teamdrives_create_task()`.
+/// For the simplest API, use `drive_teamdrives_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_teamdrives_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_teamdrives_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TeamDrive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_teamdrives_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_teamdrives_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveTeamdrivesCreateArgs {
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST teamdrives
+/// Deprecated: Use drives.create instead.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_teamdrives_create_builder()` + `drive_teamdrives_create_execute()`.
+/// For task-level control, use `drive_teamdrives_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_teamdrives_create(
+    client: &SimpleHttpClient,
+    args: &DriveTeamdrivesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TeamDrive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = drive_teamdrives_create_builder(client, &args.requestId)?;
+    drive_teamdrives_create_execute(builder)
+}
+
+/// DELETE teamdrives/{teamDriveId}
 /// Deprecated: Use drives.delete instead.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5690,13 +9893,13 @@ pub fn drive_teamdrives_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET teamdrives/{teamDriveId}
+/// DELETE teamdrives/{teamDriveId}
 /// Deprecated: Use drives.delete instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5767,7 +9970,7 @@ pub fn drive_teamdrives_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET teamdrives/{teamDriveId}
+/// DELETE teamdrives/{teamDriveId}
 /// Deprecated: Use drives.delete instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5804,7 +10007,7 @@ pub struct DriveTeamdrivesDeleteArgs {
     pub teamDriveId: String,
 }
 
-/// GET teamdrives/{teamDriveId}
+/// DELETE teamdrives/{teamDriveId}
 /// Deprecated: Use drives.delete instead.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5826,6 +10029,178 @@ pub fn drive_teamdrives_delete(
     drive_teamdrives_delete_execute(builder)
 }
 
+/// GET teamdrives/{teamDriveId}
+/// Deprecated: Use drives.get instead.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_teamdrives_get_execute()` to send, or `drive_teamdrives_get` for simplest API.
+
+pub fn drive_teamdrives_get_builder(
+    client: &SimpleHttpClient,
+    teamDriveId: &String,
+    useDomainAdminAccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/teamdrives/{}",
+        teamDriveId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = useDomainAdminAccess.as_ref() {
+        query_parts.push(format!("useDomainAdminAccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET teamdrives/{teamDriveId}
+/// Deprecated: Use drives.get instead.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_teamdrives_get_execute()` or `drive_teamdrives_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_teamdrives_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_teamdrives_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TeamDrive>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TeamDrive = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET teamdrives/{teamDriveId}
+/// Deprecated: Use drives.get instead.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_teamdrives_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_teamdrives_get_task()`.
+/// For the simplest API, use `drive_teamdrives_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_teamdrives_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_teamdrives_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TeamDrive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_teamdrives_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_teamdrives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveTeamdrivesGetArgs {
+    /// Path parameter: teamDriveId
+    pub teamDriveId: String,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<Option<String>>,
+}
+
+/// GET teamdrives/{teamDriveId}
+/// Deprecated: Use drives.get instead.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_teamdrives_get_builder()` + `drive_teamdrives_get_execute()`.
+/// For task-level control, use `drive_teamdrives_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_teamdrives_get(
+    client: &SimpleHttpClient,
+    args: &DriveTeamdrivesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TeamDrive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        drive_teamdrives_get_builder(client, &args.teamDriveId, &args.useDomainAdminAccess)?;
+    drive_teamdrives_get_execute(builder)
+}
+
 /// GET teamdrives
 /// Deprecated: Use drives.list instead.
 ///
@@ -5834,10 +10209,10 @@ pub fn drive_teamdrives_delete(
 
 pub fn drive_teamdrives_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    q: &Option<String>,
-    useDomainAdminAccess: &Option<bool>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    q: &Option<Option<String>>,
+    useDomainAdminAccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/drive/v3/teamdrives",);
@@ -5980,13 +10355,13 @@ pub fn drive_teamdrives_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DriveTeamdrivesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: q
-    pub q: Option<String>,
+    pub q: Option<Option<String>>,
     /// Query parameter: useDomainAdminAccess
-    pub useDomainAdminAccess: Option<bool>,
+    pub useDomainAdminAccess: Option<Option<String>>,
 }
 
 /// GET teamdrives
@@ -6017,4 +10392,1272 @@ pub fn drive_teamdrives_list(
         &args.useDomainAdminAccess,
     )?;
     drive_teamdrives_list_execute(builder)
+}
+
+/// PATCH teamdrives/{teamDriveId}
+/// Deprecated: Use drives.update instead.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `drive_teamdrives_update_execute()` to send, or `drive_teamdrives_update` for simplest API.
+
+pub fn drive_teamdrives_update_builder(
+    client: &SimpleHttpClient,
+    teamDriveId: &String,
+    useDomainAdminAccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/drive/v3/teamdrives/{}",
+        teamDriveId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = useDomainAdminAccess.as_ref() {
+        query_parts.push(format!("useDomainAdminAccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH teamdrives/{teamDriveId}
+/// Deprecated: Use drives.update instead.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `drive_teamdrives_update_execute()` or `drive_teamdrives_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_teamdrives_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_teamdrives_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TeamDrive>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TeamDrive = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH teamdrives/{teamDriveId}
+/// Deprecated: Use drives.update instead.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `drive_teamdrives_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `drive_teamdrives_update_task()`.
+/// For the simplest API, use `drive_teamdrives_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `drive_teamdrives_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn drive_teamdrives_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TeamDrive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = drive_teamdrives_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`drive_teamdrives_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveTeamdrivesUpdateArgs {
+    /// Path parameter: teamDriveId
+    pub teamDriveId: String,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<Option<String>>,
+}
+
+/// PATCH teamdrives/{teamDriveId}
+/// Deprecated: Use drives.update instead.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `drive_teamdrives_update_builder()` + `drive_teamdrives_update_execute()`.
+/// For task-level control, use `drive_teamdrives_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn drive_teamdrives_update(
+    client: &SimpleHttpClient,
+    args: &DriveTeamdrivesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TeamDrive>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        drive_teamdrives_update_builder(client, &args.teamDriveId, &args.useDomainAdminAccess)?;
+    drive_teamdrives_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for About
+// =============================================================================
+
+/// ResourceIdentifier implementation for About with DriveAboutGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveAboutGetArgs> for About {
+    fn generate_resource_id(&self, input: &DriveAboutGetArgs) -> String {
+        "gcp::drive::About".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::About"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccessProposal
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccessProposal with DriveAccessproposalsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveAccessproposalsGetArgs> for AccessProposal {
+    fn generate_resource_id(&self, input: &DriveAccessproposalsGetArgs) -> String {
+        format!(
+            "gcp::drive::AccessProposal/{}/{}",
+            input.fileId, input.proposalId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::AccessProposal"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAccessProposalsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAccessProposalsResponse with DriveAccessproposalsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveAccessproposalsListArgs> for ListAccessProposalsResponse {
+    fn generate_resource_id(&self, input: &DriveAccessproposalsListArgs) -> String {
+        format!("gcp::drive::ListAccessProposalsResponse/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::ListAccessProposalsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Approval
+// =============================================================================
+
+/// ResourceIdentifier implementation for Approval with DriveApprovalsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveApprovalsGetArgs> for Approval {
+    fn generate_resource_id(&self, input: &DriveApprovalsGetArgs) -> String {
+        format!("gcp::drive::Approval/{}/{}", input.fileId, input.approvalId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Approval"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ApprovalList
+// =============================================================================
+
+/// ResourceIdentifier implementation for ApprovalList with DriveApprovalsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveApprovalsListArgs> for ApprovalList {
+    fn generate_resource_id(&self, input: &DriveApprovalsListArgs) -> String {
+        format!("gcp::drive::ApprovalList/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::ApprovalList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for App
+// =============================================================================
+
+/// ResourceIdentifier implementation for App with DriveAppsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveAppsGetArgs> for App {
+    fn generate_resource_id(&self, input: &DriveAppsGetArgs) -> String {
+        format!("gcp::drive::App/{}", input.appId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::App"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AppList
+// =============================================================================
+
+/// ResourceIdentifier implementation for AppList with DriveAppsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveAppsListArgs> for AppList {
+    fn generate_resource_id(&self, input: &DriveAppsListArgs) -> String {
+        "gcp::drive::AppList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::AppList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StartPageToken
+// =============================================================================
+
+/// ResourceIdentifier implementation for StartPageToken with DriveChangesGetStartPageTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveChangesGetStartPageTokenArgs> for StartPageToken {
+    fn generate_resource_id(&self, input: &DriveChangesGetStartPageTokenArgs) -> String {
+        "gcp::drive::StartPageToken".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::StartPageToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ChangeList
+// =============================================================================
+
+/// ResourceIdentifier implementation for ChangeList with DriveChangesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveChangesListArgs> for ChangeList {
+    fn generate_resource_id(&self, input: &DriveChangesListArgs) -> String {
+        "gcp::drive::ChangeList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::ChangeList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with DriveChangesWatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveChangesWatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &DriveChangesWatchArgs) -> String {
+        "gcp::drive::Channel".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Comment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Comment with DriveCommentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveCommentsCreateArgs> for Comment {
+    fn generate_resource_id(&self, input: &DriveCommentsCreateArgs) -> String {
+        format!("gcp::drive::Comment/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Comment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Comment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Comment with DriveCommentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveCommentsGetArgs> for Comment {
+    fn generate_resource_id(&self, input: &DriveCommentsGetArgs) -> String {
+        format!("gcp::drive::Comment/{}/{}", input.fileId, input.commentId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Comment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CommentList
+// =============================================================================
+
+/// ResourceIdentifier implementation for CommentList with DriveCommentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveCommentsListArgs> for CommentList {
+    fn generate_resource_id(&self, input: &DriveCommentsListArgs) -> String {
+        format!("gcp::drive::CommentList/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::CommentList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Comment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Comment with DriveCommentsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveCommentsUpdateArgs> for Comment {
+    fn generate_resource_id(&self, input: &DriveCommentsUpdateArgs) -> String {
+        format!("gcp::drive::Comment/{}/{}", input.fileId, input.commentId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Comment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Drive
+// =============================================================================
+
+/// ResourceIdentifier implementation for Drive with DriveDrivesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveDrivesCreateArgs> for Drive {
+    fn generate_resource_id(&self, input: &DriveDrivesCreateArgs) -> String {
+        "gcp::drive::Drive".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Drive"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Drive
+// =============================================================================
+
+/// ResourceIdentifier implementation for Drive with DriveDrivesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveDrivesGetArgs> for Drive {
+    fn generate_resource_id(&self, input: &DriveDrivesGetArgs) -> String {
+        format!("gcp::drive::Drive/{}", input.driveId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Drive"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Drive
+// =============================================================================
+
+/// ResourceIdentifier implementation for Drive with DriveDrivesHideArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveDrivesHideArgs> for Drive {
+    fn generate_resource_id(&self, input: &DriveDrivesHideArgs) -> String {
+        format!("gcp::drive::Drive/{}", input.driveId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Drive"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DriveList
+// =============================================================================
+
+/// ResourceIdentifier implementation for DriveList with DriveDrivesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveDrivesListArgs> for DriveList {
+    fn generate_resource_id(&self, input: &DriveDrivesListArgs) -> String {
+        "gcp::drive::DriveList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::DriveList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Drive
+// =============================================================================
+
+/// ResourceIdentifier implementation for Drive with DriveDrivesUnhideArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveDrivesUnhideArgs> for Drive {
+    fn generate_resource_id(&self, input: &DriveDrivesUnhideArgs) -> String {
+        format!("gcp::drive::Drive/{}", input.driveId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Drive"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Drive
+// =============================================================================
+
+/// ResourceIdentifier implementation for Drive with DriveDrivesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveDrivesUpdateArgs> for Drive {
+    fn generate_resource_id(&self, input: &DriveDrivesUpdateArgs) -> String {
+        format!("gcp::drive::Drive/{}", input.driveId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Drive"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for File
+// =============================================================================
+
+/// ResourceIdentifier implementation for File with DriveFilesCopyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesCopyArgs> for File {
+    fn generate_resource_id(&self, input: &DriveFilesCopyArgs) -> String {
+        format!("gcp::drive::File/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::File"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for File
+// =============================================================================
+
+/// ResourceIdentifier implementation for File with DriveFilesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesCreateArgs> for File {
+    fn generate_resource_id(&self, input: &DriveFilesCreateArgs) -> String {
+        "gcp::drive::File".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::File"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DriveFilesDownloadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesDownloadArgs> for Operation {
+    fn generate_resource_id(&self, input: &DriveFilesDownloadArgs) -> String {
+        format!("gcp::drive::Operation/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateCseTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateCseTokenResponse with DriveFilesGenerateCseTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesGenerateCseTokenArgs> for GenerateCseTokenResponse {
+    fn generate_resource_id(&self, input: &DriveFilesGenerateCseTokenArgs) -> String {
+        "gcp::drive::GenerateCseTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::GenerateCseTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GeneratedIds
+// =============================================================================
+
+/// ResourceIdentifier implementation for GeneratedIds with DriveFilesGenerateIdsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesGenerateIdsArgs> for GeneratedIds {
+    fn generate_resource_id(&self, input: &DriveFilesGenerateIdsArgs) -> String {
+        "gcp::drive::GeneratedIds".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::GeneratedIds"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for File
+// =============================================================================
+
+/// ResourceIdentifier implementation for File with DriveFilesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesGetArgs> for File {
+    fn generate_resource_id(&self, input: &DriveFilesGetArgs) -> String {
+        format!("gcp::drive::File/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::File"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FileList
+// =============================================================================
+
+/// ResourceIdentifier implementation for FileList with DriveFilesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesListArgs> for FileList {
+    fn generate_resource_id(&self, input: &DriveFilesListArgs) -> String {
+        "gcp::drive::FileList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::FileList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LabelList
+// =============================================================================
+
+/// ResourceIdentifier implementation for LabelList with DriveFilesListLabelsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesListLabelsArgs> for LabelList {
+    fn generate_resource_id(&self, input: &DriveFilesListLabelsArgs) -> String {
+        format!("gcp::drive::LabelList/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::LabelList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ModifyLabelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ModifyLabelsResponse with DriveFilesModifyLabelsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesModifyLabelsArgs> for ModifyLabelsResponse {
+    fn generate_resource_id(&self, input: &DriveFilesModifyLabelsArgs) -> String {
+        format!("gcp::drive::ModifyLabelsResponse/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::ModifyLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for File
+// =============================================================================
+
+/// ResourceIdentifier implementation for File with DriveFilesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesUpdateArgs> for File {
+    fn generate_resource_id(&self, input: &DriveFilesUpdateArgs) -> String {
+        format!("gcp::drive::File/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::File"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with DriveFilesWatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesWatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &DriveFilesWatchArgs) -> String {
+        format!("gcp::drive::Channel/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DriveOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &DriveOperationsGetArgs) -> String {
+        format!("gcp::drive::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Permission
+// =============================================================================
+
+/// ResourceIdentifier implementation for Permission with DrivePermissionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivePermissionsCreateArgs> for Permission {
+    fn generate_resource_id(&self, input: &DrivePermissionsCreateArgs) -> String {
+        format!("gcp::drive::Permission/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Permission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Permission
+// =============================================================================
+
+/// ResourceIdentifier implementation for Permission with DrivePermissionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivePermissionsGetArgs> for Permission {
+    fn generate_resource_id(&self, input: &DrivePermissionsGetArgs) -> String {
+        format!(
+            "gcp::drive::Permission/{}/{}",
+            input.fileId, input.permissionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Permission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PermissionList
+// =============================================================================
+
+/// ResourceIdentifier implementation for PermissionList with DrivePermissionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivePermissionsListArgs> for PermissionList {
+    fn generate_resource_id(&self, input: &DrivePermissionsListArgs) -> String {
+        format!("gcp::drive::PermissionList/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::PermissionList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Permission
+// =============================================================================
+
+/// ResourceIdentifier implementation for Permission with DrivePermissionsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivePermissionsUpdateArgs> for Permission {
+    fn generate_resource_id(&self, input: &DrivePermissionsUpdateArgs) -> String {
+        format!(
+            "gcp::drive::Permission/{}/{}",
+            input.fileId, input.permissionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Permission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Reply
+// =============================================================================
+
+/// ResourceIdentifier implementation for Reply with DriveRepliesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRepliesCreateArgs> for Reply {
+    fn generate_resource_id(&self, input: &DriveRepliesCreateArgs) -> String {
+        format!("gcp::drive::Reply/{}/{}", input.fileId, input.commentId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Reply"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Reply
+// =============================================================================
+
+/// ResourceIdentifier implementation for Reply with DriveRepliesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRepliesGetArgs> for Reply {
+    fn generate_resource_id(&self, input: &DriveRepliesGetArgs) -> String {
+        format!(
+            "gcp::drive::Reply/{}/{}/{}",
+            input.fileId, input.commentId, input.replyId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Reply"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReplyList
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReplyList with DriveRepliesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRepliesListArgs> for ReplyList {
+    fn generate_resource_id(&self, input: &DriveRepliesListArgs) -> String {
+        format!("gcp::drive::ReplyList/{}/{}", input.fileId, input.commentId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::ReplyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Reply
+// =============================================================================
+
+/// ResourceIdentifier implementation for Reply with DriveRepliesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRepliesUpdateArgs> for Reply {
+    fn generate_resource_id(&self, input: &DriveRepliesUpdateArgs) -> String {
+        format!(
+            "gcp::drive::Reply/{}/{}/{}",
+            input.fileId, input.commentId, input.replyId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Reply"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Revision
+// =============================================================================
+
+/// ResourceIdentifier implementation for Revision with DriveRevisionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRevisionsGetArgs> for Revision {
+    fn generate_resource_id(&self, input: &DriveRevisionsGetArgs) -> String {
+        format!("gcp::drive::Revision/{}/{}", input.fileId, input.revisionId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Revision"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevisionList
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevisionList with DriveRevisionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRevisionsListArgs> for RevisionList {
+    fn generate_resource_id(&self, input: &DriveRevisionsListArgs) -> String {
+        format!("gcp::drive::RevisionList/{}", input.fileId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::RevisionList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Revision
+// =============================================================================
+
+/// ResourceIdentifier implementation for Revision with DriveRevisionsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRevisionsUpdateArgs> for Revision {
+    fn generate_resource_id(&self, input: &DriveRevisionsUpdateArgs) -> String {
+        format!("gcp::drive::Revision/{}/{}", input.fileId, input.revisionId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::Revision"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TeamDrive
+// =============================================================================
+
+/// ResourceIdentifier implementation for TeamDrive with DriveTeamdrivesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveTeamdrivesCreateArgs> for TeamDrive {
+    fn generate_resource_id(&self, input: &DriveTeamdrivesCreateArgs) -> String {
+        "gcp::drive::TeamDrive".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::TeamDrive"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TeamDrive
+// =============================================================================
+
+/// ResourceIdentifier implementation for TeamDrive with DriveTeamdrivesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveTeamdrivesGetArgs> for TeamDrive {
+    fn generate_resource_id(&self, input: &DriveTeamdrivesGetArgs) -> String {
+        format!("gcp::drive::TeamDrive/{}", input.teamDriveId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::TeamDrive"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TeamDriveList
+// =============================================================================
+
+/// ResourceIdentifier implementation for TeamDriveList with DriveTeamdrivesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveTeamdrivesListArgs> for TeamDriveList {
+    fn generate_resource_id(&self, input: &DriveTeamdrivesListArgs) -> String {
+        "gcp::drive::TeamDriveList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::TeamDriveList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TeamDrive
+// =============================================================================
+
+/// ResourceIdentifier implementation for TeamDrive with DriveTeamdrivesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveTeamdrivesUpdateArgs> for TeamDrive {
+    fn generate_resource_id(&self, input: &DriveTeamdrivesUpdateArgs) -> String {
+        format!("gcp::drive::TeamDrive/{}", input.teamDriveId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::drive::TeamDrive"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

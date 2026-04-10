@@ -14,27 +14,38 @@
 use crate::providers::gcp::clients::serviceconsumermanagement::{
     serviceconsumermanagement_operations_cancel_builder, serviceconsumermanagement_operations_cancel_task,
     serviceconsumermanagement_operations_delete_builder, serviceconsumermanagement_operations_delete_task,
+    serviceconsumermanagement_operations_get_builder, serviceconsumermanagement_operations_get_task,
+    serviceconsumermanagement_operations_list_builder, serviceconsumermanagement_operations_list_task,
+    serviceconsumermanagement_services_search_builder, serviceconsumermanagement_services_search_task,
     serviceconsumermanagement_services_tenancy_units_add_project_builder, serviceconsumermanagement_services_tenancy_units_add_project_task,
     serviceconsumermanagement_services_tenancy_units_apply_project_config_builder, serviceconsumermanagement_services_tenancy_units_apply_project_config_task,
     serviceconsumermanagement_services_tenancy_units_attach_project_builder, serviceconsumermanagement_services_tenancy_units_attach_project_task,
     serviceconsumermanagement_services_tenancy_units_create_builder, serviceconsumermanagement_services_tenancy_units_create_task,
     serviceconsumermanagement_services_tenancy_units_delete_builder, serviceconsumermanagement_services_tenancy_units_delete_task,
     serviceconsumermanagement_services_tenancy_units_delete_project_builder, serviceconsumermanagement_services_tenancy_units_delete_project_task,
+    serviceconsumermanagement_services_tenancy_units_list_builder, serviceconsumermanagement_services_tenancy_units_list_task,
     serviceconsumermanagement_services_tenancy_units_remove_project_builder, serviceconsumermanagement_services_tenancy_units_remove_project_task,
     serviceconsumermanagement_services_tenancy_units_undelete_project_builder, serviceconsumermanagement_services_tenancy_units_undelete_project_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::serviceconsumermanagement::Empty;
+use crate::providers::gcp::clients::serviceconsumermanagement::ListOperationsResponse;
+use crate::providers::gcp::clients::serviceconsumermanagement::ListTenancyUnitsResponse;
 use crate::providers::gcp::clients::serviceconsumermanagement::Operation;
+use crate::providers::gcp::clients::serviceconsumermanagement::SearchTenancyUnitsResponse;
 use crate::providers::gcp::clients::serviceconsumermanagement::TenancyUnit;
 use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementOperationsCancelArgs;
 use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementOperationsDeleteArgs;
+use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementOperationsGetArgs;
+use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementOperationsListArgs;
+use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementServicesSearchArgs;
 use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementServicesTenancyUnitsAddProjectArgs;
 use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementServicesTenancyUnitsApplyProjectConfigArgs;
 use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementServicesTenancyUnitsAttachProjectArgs;
 use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementServicesTenancyUnitsCreateArgs;
 use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementServicesTenancyUnitsDeleteArgs;
 use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementServicesTenancyUnitsDeleteProjectArgs;
+use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementServicesTenancyUnitsListArgs;
 use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementServicesTenancyUnitsRemoveProjectArgs;
 use crate::providers::gcp::clients::serviceconsumermanagement::ServiceconsumermanagementServicesTenancyUnitsUndeleteProjectArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -162,6 +173,126 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Serviceconsumermanagement operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn serviceconsumermanagement_operations_get(
+        &self,
+        args: &ServiceconsumermanagementOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = serviceconsumermanagement_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = serviceconsumermanagement_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Serviceconsumermanagement operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn serviceconsumermanagement_operations_list(
+        &self,
+        args: &ServiceconsumermanagementOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = serviceconsumermanagement_operations_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = serviceconsumermanagement_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Serviceconsumermanagement services search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SearchTenancyUnitsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn serviceconsumermanagement_services_search(
+        &self,
+        args: &ServiceconsumermanagementServicesSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SearchTenancyUnitsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = serviceconsumermanagement_services_search_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = serviceconsumermanagement_services_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Serviceconsumermanagement services tenancy units add project.
@@ -420,6 +551,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Serviceconsumermanagement services tenancy units list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTenancyUnitsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn serviceconsumermanagement_services_tenancy_units_list(
+        &self,
+        args: &ServiceconsumermanagementServicesTenancyUnitsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTenancyUnitsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = serviceconsumermanagement_services_tenancy_units_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = serviceconsumermanagement_services_tenancy_units_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Serviceconsumermanagement services tenancy units remove project.

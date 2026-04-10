@@ -12,59 +12,124 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::developerconnect::{
+    developerconnect_projects_locations_get_builder, developerconnect_projects_locations_get_task,
+    developerconnect_projects_locations_list_builder, developerconnect_projects_locations_list_task,
     developerconnect_projects_locations_account_connectors_create_builder, developerconnect_projects_locations_account_connectors_create_task,
     developerconnect_projects_locations_account_connectors_delete_builder, developerconnect_projects_locations_account_connectors_delete_task,
+    developerconnect_projects_locations_account_connectors_fetch_user_repositories_builder, developerconnect_projects_locations_account_connectors_fetch_user_repositories_task,
+    developerconnect_projects_locations_account_connectors_get_builder, developerconnect_projects_locations_account_connectors_get_task,
+    developerconnect_projects_locations_account_connectors_list_builder, developerconnect_projects_locations_account_connectors_list_task,
     developerconnect_projects_locations_account_connectors_patch_builder, developerconnect_projects_locations_account_connectors_patch_task,
     developerconnect_projects_locations_account_connectors_users_delete_builder, developerconnect_projects_locations_account_connectors_users_delete_task,
     developerconnect_projects_locations_account_connectors_users_delete_self_builder, developerconnect_projects_locations_account_connectors_users_delete_self_task,
     developerconnect_projects_locations_account_connectors_users_fetch_access_token_builder, developerconnect_projects_locations_account_connectors_users_fetch_access_token_task,
+    developerconnect_projects_locations_account_connectors_users_fetch_self_builder, developerconnect_projects_locations_account_connectors_users_fetch_self_task,
+    developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_builder, developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_task,
+    developerconnect_projects_locations_account_connectors_users_list_builder, developerconnect_projects_locations_account_connectors_users_list_task,
+    developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_builder, developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_task,
     developerconnect_projects_locations_connections_create_builder, developerconnect_projects_locations_connections_create_task,
     developerconnect_projects_locations_connections_delete_builder, developerconnect_projects_locations_connections_delete_task,
+    developerconnect_projects_locations_connections_fetch_git_hub_installations_builder, developerconnect_projects_locations_connections_fetch_git_hub_installations_task,
+    developerconnect_projects_locations_connections_fetch_linkable_git_repositories_builder, developerconnect_projects_locations_connections_fetch_linkable_git_repositories_task,
+    developerconnect_projects_locations_connections_get_builder, developerconnect_projects_locations_connections_get_task,
+    developerconnect_projects_locations_connections_list_builder, developerconnect_projects_locations_connections_list_task,
     developerconnect_projects_locations_connections_patch_builder, developerconnect_projects_locations_connections_patch_task,
     developerconnect_projects_locations_connections_process_git_hub_enterprise_webhook_builder, developerconnect_projects_locations_connections_process_git_hub_enterprise_webhook_task,
     developerconnect_projects_locations_connections_git_repository_links_create_builder, developerconnect_projects_locations_connections_git_repository_links_create_task,
     developerconnect_projects_locations_connections_git_repository_links_delete_builder, developerconnect_projects_locations_connections_git_repository_links_delete_task,
+    developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs_builder, developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs_task,
     developerconnect_projects_locations_connections_git_repository_links_fetch_read_token_builder, developerconnect_projects_locations_connections_git_repository_links_fetch_read_token_task,
     developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token_builder, developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token_task,
+    developerconnect_projects_locations_connections_git_repository_links_get_builder, developerconnect_projects_locations_connections_git_repository_links_get_task,
+    developerconnect_projects_locations_connections_git_repository_links_list_builder, developerconnect_projects_locations_connections_git_repository_links_list_task,
     developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook_builder, developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook_task,
     developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook_builder, developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook_task,
     developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook_builder, developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook_task,
     developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook_builder, developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook_task,
     developerconnect_projects_locations_insights_configs_create_builder, developerconnect_projects_locations_insights_configs_create_task,
     developerconnect_projects_locations_insights_configs_delete_builder, developerconnect_projects_locations_insights_configs_delete_task,
+    developerconnect_projects_locations_insights_configs_get_builder, developerconnect_projects_locations_insights_configs_get_task,
+    developerconnect_projects_locations_insights_configs_list_builder, developerconnect_projects_locations_insights_configs_list_task,
     developerconnect_projects_locations_insights_configs_patch_builder, developerconnect_projects_locations_insights_configs_patch_task,
+    developerconnect_projects_locations_insights_configs_deployment_events_get_builder, developerconnect_projects_locations_insights_configs_deployment_events_get_task,
+    developerconnect_projects_locations_insights_configs_deployment_events_list_builder, developerconnect_projects_locations_insights_configs_deployment_events_list_task,
     developerconnect_projects_locations_operations_cancel_builder, developerconnect_projects_locations_operations_cancel_task,
     developerconnect_projects_locations_operations_delete_builder, developerconnect_projects_locations_operations_delete_task,
+    developerconnect_projects_locations_operations_get_builder, developerconnect_projects_locations_operations_get_task,
+    developerconnect_projects_locations_operations_list_builder, developerconnect_projects_locations_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::developerconnect::AccountConnector;
+use crate::providers::gcp::clients::developerconnect::Connection;
+use crate::providers::gcp::clients::developerconnect::DeploymentEvent;
 use crate::providers::gcp::clients::developerconnect::Empty;
 use crate::providers::gcp::clients::developerconnect::FetchAccessTokenResponse;
+use crate::providers::gcp::clients::developerconnect::FetchGitHubInstallationsResponse;
+use crate::providers::gcp::clients::developerconnect::FetchGitRefsResponse;
+use crate::providers::gcp::clients::developerconnect::FetchLinkableGitRepositoriesResponse;
 use crate::providers::gcp::clients::developerconnect::FetchReadTokenResponse;
 use crate::providers::gcp::clients::developerconnect::FetchReadWriteTokenResponse;
+use crate::providers::gcp::clients::developerconnect::FetchUserRepositoriesResponse;
+use crate::providers::gcp::clients::developerconnect::FinishOAuthResponse;
+use crate::providers::gcp::clients::developerconnect::GitRepositoryLink;
+use crate::providers::gcp::clients::developerconnect::InsightsConfig;
+use crate::providers::gcp::clients::developerconnect::ListAccountConnectorsResponse;
+use crate::providers::gcp::clients::developerconnect::ListConnectionsResponse;
+use crate::providers::gcp::clients::developerconnect::ListDeploymentEventsResponse;
+use crate::providers::gcp::clients::developerconnect::ListGitRepositoryLinksResponse;
+use crate::providers::gcp::clients::developerconnect::ListInsightsConfigsResponse;
+use crate::providers::gcp::clients::developerconnect::ListLocationsResponse;
+use crate::providers::gcp::clients::developerconnect::ListOperationsResponse;
+use crate::providers::gcp::clients::developerconnect::ListUsersResponse;
+use crate::providers::gcp::clients::developerconnect::Location;
 use crate::providers::gcp::clients::developerconnect::Operation;
+use crate::providers::gcp::clients::developerconnect::StartOAuthResponse;
+use crate::providers::gcp::clients::developerconnect::User;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsCreateArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsDeleteArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsFetchUserRepositoriesArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsGetArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsListArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsPatchArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsUsersDeleteArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsUsersDeleteSelfArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchAccessTokenArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchSelfArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOAuthFlowArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsUsersListArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOAuthFlowArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsCreateArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsDeleteArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsFetchGitHubInstallationsArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsFetchLinkableGitRepositoriesArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGetArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksCreateArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksDeleteArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchGitRefsArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadTokenArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadWriteTokenArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksGetArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksListArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessBitbucketCloudWebhookArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessBitbucketDataCenterWebhookArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessGitLabEnterpriseWebhookArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessGitLabWebhookArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsListArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsPatchArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsConnectionsProcessGitHubEnterpriseWebhookArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsGetArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsInsightsConfigsCreateArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsInsightsConfigsDeleteArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsGetArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsListArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsInsightsConfigsGetArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsInsightsConfigsListArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsInsightsConfigsPatchArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsListArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::developerconnect::DeveloperconnectProjectsLocationsOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -104,6 +169,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Developerconnect projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_get(
+        &self,
+        args: &DeveloperconnectProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_list(
+        &self,
+        args: &DeveloperconnectProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Developerconnect projects locations account connectors create.
@@ -197,6 +342,127 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations account connectors fetch user repositories.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the FetchUserRepositoriesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_account_connectors_fetch_user_repositories(
+        &self,
+        args: &DeveloperconnectProjectsLocationsAccountConnectorsFetchUserRepositoriesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<FetchUserRepositoriesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_account_connectors_fetch_user_repositories_builder(
+            &self.http_client,
+            &args.accountConnector,
+            &args.pageSize,
+            &args.pageToken,
+            &args.repository,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_account_connectors_fetch_user_repositories_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations account connectors get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AccountConnector result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_account_connectors_get(
+        &self,
+        args: &DeveloperconnectProjectsLocationsAccountConnectorsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AccountConnector, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_account_connectors_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_account_connectors_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations account connectors list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAccountConnectorsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_account_connectors_list(
+        &self,
+        args: &DeveloperconnectProjectsLocationsAccountConnectorsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAccountConnectorsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_account_connectors_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_account_connectors_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Developerconnect projects locations account connectors patch.
@@ -337,7 +603,7 @@ where
 
     /// Developerconnect projects locations account connectors users fetch access token.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -349,7 +615,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn developerconnect_projects_locations_account_connectors_users_fetch_access_token(
         &self,
         args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchAccessTokenArgs,
@@ -368,6 +634,167 @@ where
         .map_err(ProviderError::Api)?;
 
         let task = developerconnect_projects_locations_account_connectors_users_fetch_access_token_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations account connectors users fetch self.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the User result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_account_connectors_users_fetch_self(
+        &self,
+        args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchSelfArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<User, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_account_connectors_users_fetch_self_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_account_connectors_users_fetch_self_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations account connectors users finish o auth flow.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the FinishOAuthResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow(
+        &self,
+        args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOAuthFlowArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<FinishOAuthResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_builder(
+            &self.http_client,
+            &args.accountConnector,
+            &args.googleOauthParams.scopes,
+            &args.googleOauthParams.ticket,
+            &args.googleOauthParams.versionInfo,
+            &args.oauthParams.code,
+            &args.oauthParams.ticket,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_account_connectors_users_finish_o_auth_flow_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations account connectors users list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListUsersResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_account_connectors_users_list(
+        &self,
+        args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListUsersResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_account_connectors_users_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_account_connectors_users_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations account connectors users start o auth flow.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the StartOAuthResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn developerconnect_projects_locations_account_connectors_users_start_o_auth_flow(
+        &self,
+        args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOAuthFlowArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<StartOAuthResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_builder(
+            &self.http_client,
+            &args.accountConnector,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_account_connectors_users_start_o_auth_flow_task(builder)
             .map_err(ProviderError::Api)?;
 
         let state_store = self.client.state_store.clone();
@@ -468,6 +895,164 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations connections fetch git hub installations.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the FetchGitHubInstallationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_connections_fetch_git_hub_installations(
+        &self,
+        args: &DeveloperconnectProjectsLocationsConnectionsFetchGitHubInstallationsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<FetchGitHubInstallationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_connections_fetch_git_hub_installations_builder(
+            &self.http_client,
+            &args.connection,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_connections_fetch_git_hub_installations_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations connections fetch linkable git repositories.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the FetchLinkableGitRepositoriesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_connections_fetch_linkable_git_repositories(
+        &self,
+        args: &DeveloperconnectProjectsLocationsConnectionsFetchLinkableGitRepositoriesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<FetchLinkableGitRepositoriesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_connections_fetch_linkable_git_repositories_builder(
+            &self.http_client,
+            &args.connection,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_connections_fetch_linkable_git_repositories_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations connections get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Connection result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_connections_get(
+        &self,
+        args: &DeveloperconnectProjectsLocationsConnectionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Connection, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_connections_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_connections_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations connections list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListConnectionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_connections_list(
+        &self,
+        args: &DeveloperconnectProjectsLocationsConnectionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListConnectionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_connections_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_connections_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Developerconnect projects locations connections patch.
@@ -652,9 +1237,50 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Developerconnect projects locations connections git repository links fetch git refs.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the FetchGitRefsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs(
+        &self,
+        args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchGitRefsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<FetchGitRefsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs_builder(
+            &self.http_client,
+            &args.gitRepositoryLink,
+            &args.pageSize,
+            &args.pageToken,
+            &args.refType,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Developerconnect projects locations connections git repository links fetch read token.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -666,7 +1292,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_read_token(
         &self,
         args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadTokenArgs,
@@ -687,17 +1313,12 @@ where
         let task = developerconnect_projects_locations_connections_git_repository_links_fetch_read_token_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Developerconnect projects locations connections git repository links fetch read write token.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -709,7 +1330,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token(
         &self,
         args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadWriteTokenArgs,
@@ -730,12 +1351,87 @@ where
         let task = developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Developerconnect projects locations connections git repository links get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GitRepositoryLink result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_connections_git_repository_links_get(
+        &self,
+        args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GitRepositoryLink, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_connections_git_repository_links_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = developerconnect_projects_locations_connections_git_repository_links_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations connections git repository links list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListGitRepositoryLinksResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_connections_git_repository_links_list(
+        &self,
+        args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListGitRepositoryLinksResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_connections_git_repository_links_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_connections_git_repository_links_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Developerconnect projects locations connections git repository links process bitbucket cloud webhook.
@@ -1001,6 +1697,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Developerconnect projects locations insights configs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the InsightsConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_insights_configs_get(
+        &self,
+        args: &DeveloperconnectProjectsLocationsInsightsConfigsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<InsightsConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_insights_configs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_insights_configs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations insights configs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListInsightsConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_insights_configs_list(
+        &self,
+        args: &DeveloperconnectProjectsLocationsInsightsConfigsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListInsightsConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_insights_configs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_insights_configs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Developerconnect projects locations insights configs patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1045,6 +1821,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations insights configs deployment events get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DeploymentEvent result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_insights_configs_deployment_events_get(
+        &self,
+        args: &DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DeploymentEvent, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_insights_configs_deployment_events_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_insights_configs_deployment_events_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations insights configs deployment events list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDeploymentEventsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_insights_configs_deployment_events_list(
+        &self,
+        args: &DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDeploymentEventsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_insights_configs_deployment_events_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_insights_configs_deployment_events_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Developerconnect projects locations operations cancel.
@@ -1131,6 +1986,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_operations_get(
+        &self,
+        args: &DeveloperconnectProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Developerconnect projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn developerconnect_projects_locations_operations_list(
+        &self,
+        args: &DeveloperconnectProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = developerconnect_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = developerconnect_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

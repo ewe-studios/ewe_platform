@@ -12,10 +12,15 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::mybusinesslodging::{
+    mybusinesslodging_locations_get_lodging_builder, mybusinesslodging_locations_get_lodging_task,
     mybusinesslodging_locations_update_lodging_builder, mybusinesslodging_locations_update_lodging_task,
+    mybusinesslodging_locations_lodging_get_google_updated_builder, mybusinesslodging_locations_lodging_get_google_updated_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::mybusinesslodging::GetGoogleUpdatedLodgingResponse;
 use crate::providers::gcp::clients::mybusinesslodging::Lodging;
+use crate::providers::gcp::clients::mybusinesslodging::MybusinesslodgingLocationsGetLodgingArgs;
+use crate::providers::gcp::clients::mybusinesslodging::MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs;
 use crate::providers::gcp::clients::mybusinesslodging::MybusinesslodgingLocationsUpdateLodgingArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -56,6 +61,45 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Mybusinesslodging locations get lodging.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Lodging result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn mybusinesslodging_locations_get_lodging(
+        &self,
+        args: &MybusinesslodgingLocationsGetLodgingArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Lodging, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = mybusinesslodging_locations_get_lodging_builder(
+            &self.http_client,
+            &args.name,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = mybusinesslodging_locations_get_lodging_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Mybusinesslodging locations update lodging.
@@ -100,6 +144,45 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Mybusinesslodging locations lodging get google updated.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GetGoogleUpdatedLodgingResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn mybusinesslodging_locations_lodging_get_google_updated(
+        &self,
+        args: &MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GetGoogleUpdatedLodgingResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = mybusinesslodging_locations_lodging_get_google_updated_builder(
+            &self.http_client,
+            &args.name,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = mybusinesslodging_locations_lodging_get_google_updated_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

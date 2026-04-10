@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -29,11 +29,14 @@ use serde::Serialize;
 pub fn orgpolicy_folders_constraints_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://orgpolicy.googleapis.com/v2/folders/{}/constraints",);
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/folders/{}/constraints",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -172,9 +175,9 @@ pub struct OrgpolicyFoldersConstraintsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/folders/{foldersId}/constraints
@@ -208,7 +211,7 @@ pub fn orgpolicy_folders_constraints_list(
     orgpolicy_folders_constraints_list_execute(builder)
 }
 
-/// GET v2/folders/{foldersId}/policies
+/// POST v2/folders/{foldersId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -217,22 +220,22 @@ pub fn orgpolicy_folders_constraints_list(
 pub fn orgpolicy_folders_policies_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudOrgpolicyV2Policy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://orgpolicy.googleapis.com/v2/folders/{}/policies",);
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/folders/{}/policies",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/folders/{foldersId}/policies
+/// POST v2/folders/{foldersId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -306,7 +309,7 @@ pub fn orgpolicy_folders_policies_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/folders/{foldersId}/policies
+/// POST v2/folders/{foldersId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -345,11 +348,9 @@ pub fn orgpolicy_folders_policies_create_execute(
 pub struct OrgpolicyFoldersPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudOrgpolicyV2Policy,
 }
 
-/// GET v2/folders/{foldersId}/policies
+/// POST v2/folders/{foldersId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -371,8 +372,883 @@ pub fn orgpolicy_folders_policies_create(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_folders_policies_create_builder(client, &args.parent, &args.body)?;
+    let builder = orgpolicy_folders_policies_create_builder(client, &args.parent)?;
     orgpolicy_folders_policies_create_execute(builder)
+}
+
+/// DELETE v2/folders/{foldersId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_folders_policies_delete_execute()` to send, or `orgpolicy_folders_policies_delete` for simplest API.
+
+pub fn orgpolicy_folders_policies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/folders/{}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/folders/{foldersId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_folders_policies_delete_execute()` or `orgpolicy_folders_policies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_folders_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_folders_policies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/folders/{foldersId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_folders_policies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_folders_policies_delete_task()`.
+/// For the simplest API, use `orgpolicy_folders_policies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_folders_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_folders_policies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_folders_policies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_folders_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v2/folders/{foldersId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_folders_policies_delete_builder()` + `orgpolicy_folders_policies_delete_execute()`.
+/// For task-level control, use `orgpolicy_folders_policies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_folders_policies_delete(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyFoldersPoliciesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_folders_policies_delete_builder(client, &args.name, &args.etag)?;
+    orgpolicy_folders_policies_delete_execute(builder)
+}
+
+/// GET v2/folders/{foldersId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_folders_policies_get_execute()` to send, or `orgpolicy_folders_policies_get` for simplest API.
+
+pub fn orgpolicy_folders_policies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/folders/{}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/folders/{foldersId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_folders_policies_get_execute()` or `orgpolicy_folders_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_folders_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_folders_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/folders/{foldersId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_folders_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_folders_policies_get_task()`.
+/// For the simplest API, use `orgpolicy_folders_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_folders_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_folders_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_folders_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_folders_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/folders/{foldersId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_folders_policies_get_builder()` + `orgpolicy_folders_policies_get_execute()`.
+/// For task-level control, use `orgpolicy_folders_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_folders_policies_get(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyFoldersPoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_folders_policies_get_builder(client, &args.name)?;
+    orgpolicy_folders_policies_get_execute(builder)
+}
+
+/// GET v2/folders/{foldersId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_folders_policies_get_effective_policy_execute()` to send, or `orgpolicy_folders_policies_get_effective_policy` for simplest API.
+
+pub fn orgpolicy_folders_policies_get_effective_policy_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/folders/{}/policies/{policiesId}:getEffectivePolicy",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/folders/{foldersId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_folders_policies_get_effective_policy_execute()` or `orgpolicy_folders_policies_get_effective_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_folders_policies_get_effective_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_folders_policies_get_effective_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/folders/{foldersId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_folders_policies_get_effective_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_folders_policies_get_effective_policy_task()`.
+/// For the simplest API, use `orgpolicy_folders_policies_get_effective_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_folders_policies_get_effective_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_folders_policies_get_effective_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_folders_policies_get_effective_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_folders_policies_get_effective_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesGetEffectivePolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/folders/{foldersId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_folders_policies_get_effective_policy_builder()` + `orgpolicy_folders_policies_get_effective_policy_execute()`.
+/// For task-level control, use `orgpolicy_folders_policies_get_effective_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_folders_policies_get_effective_policy(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyFoldersPoliciesGetEffectivePolicyArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_folders_policies_get_effective_policy_builder(client, &args.name)?;
+    orgpolicy_folders_policies_get_effective_policy_execute(builder)
+}
+
+/// GET v2/folders/{foldersId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_folders_policies_list_execute()` to send, or `orgpolicy_folders_policies_list` for simplest API.
+
+pub fn orgpolicy_folders_policies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/folders/{}/policies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/folders/{foldersId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_folders_policies_list_execute()` or `orgpolicy_folders_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_folders_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_folders_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2ListPoliciesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/folders/{foldersId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_folders_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_folders_policies_list_task()`.
+/// For the simplest API, use `orgpolicy_folders_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_folders_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_folders_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_folders_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_folders_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/folders/{foldersId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_folders_policies_list_builder()` + `orgpolicy_folders_policies_list_execute()`.
+/// For task-level control, use `orgpolicy_folders_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_folders_policies_list(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyFoldersPoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_folders_policies_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    orgpolicy_folders_policies_list_execute(builder)
+}
+
+/// PATCH v2/folders/{foldersId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_folders_policies_patch_execute()` to send, or `orgpolicy_folders_policies_patch` for simplest API.
+
+pub fn orgpolicy_folders_policies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/folders/{}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/folders/{foldersId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_folders_policies_patch_execute()` or `orgpolicy_folders_policies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_folders_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_folders_policies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/folders/{foldersId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_folders_policies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_folders_policies_patch_task()`.
+/// For the simplest API, use `orgpolicy_folders_policies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_folders_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_folders_policies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_folders_policies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_folders_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/folders/{foldersId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_folders_policies_patch_builder()` + `orgpolicy_folders_policies_patch_execute()`.
+/// For task-level control, use `orgpolicy_folders_policies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_folders_policies_patch(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyFoldersPoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_folders_policies_patch_builder(client, &args.name, &args.updateMask)?;
+    orgpolicy_folders_policies_patch_execute(builder)
 }
 
 /// GET v2/organizations/{organizationsId}/constraints
@@ -384,11 +1260,14 @@ pub fn orgpolicy_folders_policies_create(
 pub fn orgpolicy_organizations_constraints_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://orgpolicy.googleapis.com/v2/organizations/{}/constraints",);
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/constraints",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -527,9 +1406,9 @@ pub struct OrgpolicyOrganizationsConstraintsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/organizations/{organizationsId}/constraints
@@ -563,7 +1442,7 @@ pub fn orgpolicy_organizations_constraints_list(
     orgpolicy_organizations_constraints_list_execute(builder)
 }
 
-/// GET v2/organizations/{organizationsId}/customConstraints
+/// POST v2/organizations/{organizationsId}/customConstraints
 /// Creates a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the organization does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the constraint already exists on the given organization.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -572,23 +1451,22 @@ pub fn orgpolicy_organizations_constraints_list(
 pub fn orgpolicy_organizations_custom_constraints_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudOrgpolicyV2CustomConstraint,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints",);
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/organizations/{organizationsId}/customConstraints
+/// POST v2/organizations/{organizationsId}/customConstraints
 /// Creates a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the organization does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the constraint already exists on the given organization.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -662,7 +1540,7 @@ pub fn orgpolicy_organizations_custom_constraints_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/organizations/{organizationsId}/customConstraints
+/// POST v2/organizations/{organizationsId}/customConstraints
 /// Creates a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the organization does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the constraint already exists on the given organization.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -701,11 +1579,9 @@ pub fn orgpolicy_organizations_custom_constraints_create_execute(
 pub struct OrgpolicyOrganizationsCustomConstraintsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudOrgpolicyV2CustomConstraint,
 }
 
-/// GET v2/organizations/{organizationsId}/customConstraints
+/// POST v2/organizations/{organizationsId}/customConstraints
 /// Creates a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the organization does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the constraint already exists on the given organization.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -727,15 +1603,696 @@ pub fn orgpolicy_organizations_custom_constraints_create(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_organizations_custom_constraints_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder = orgpolicy_organizations_custom_constraints_create_builder(client, &args.parent)?;
     orgpolicy_organizations_custom_constraints_create_execute(builder)
 }
 
-/// GET v2/organizations/{organizationsId}/policies
+/// DELETE v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Deletes a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_organizations_custom_constraints_delete_execute()` to send, or `orgpolicy_organizations_custom_constraints_delete` for simplest API.
+
+pub fn orgpolicy_organizations_custom_constraints_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints/{customConstraintsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Deletes a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_organizations_custom_constraints_delete_execute()` or `orgpolicy_organizations_custom_constraints_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_custom_constraints_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_custom_constraints_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Deletes a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_organizations_custom_constraints_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_organizations_custom_constraints_delete_task()`.
+/// For the simplest API, use `orgpolicy_organizations_custom_constraints_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_custom_constraints_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_organizations_custom_constraints_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_organizations_custom_constraints_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_organizations_custom_constraints_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsCustomConstraintsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Deletes a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_organizations_custom_constraints_delete_builder()` + `orgpolicy_organizations_custom_constraints_delete_execute()`.
+/// For task-level control, use `orgpolicy_organizations_custom_constraints_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_custom_constraints_delete(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyOrganizationsCustomConstraintsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_organizations_custom_constraints_delete_builder(client, &args.name)?;
+    orgpolicy_organizations_custom_constraints_delete_execute(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Gets a custom or managed constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the custom or managed constraint does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_organizations_custom_constraints_get_execute()` to send, or `orgpolicy_organizations_custom_constraints_get` for simplest API.
+
+pub fn orgpolicy_organizations_custom_constraints_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints/{customConstraintsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Gets a custom or managed constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the custom or managed constraint does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_organizations_custom_constraints_get_execute()` or `orgpolicy_organizations_custom_constraints_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_custom_constraints_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_custom_constraints_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2CustomConstraint>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2CustomConstraint = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Gets a custom or managed constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the custom or managed constraint does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_organizations_custom_constraints_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_organizations_custom_constraints_get_task()`.
+/// For the simplest API, use `orgpolicy_organizations_custom_constraints_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_custom_constraints_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_organizations_custom_constraints_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2CustomConstraint>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_organizations_custom_constraints_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_organizations_custom_constraints_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsCustomConstraintsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Gets a custom or managed constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the custom or managed constraint does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_organizations_custom_constraints_get_builder()` + `orgpolicy_organizations_custom_constraints_get_execute()`.
+/// For task-level control, use `orgpolicy_organizations_custom_constraints_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_custom_constraints_get(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyOrganizationsCustomConstraintsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2CustomConstraint>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_organizations_custom_constraints_get_builder(client, &args.name)?;
+    orgpolicy_organizations_custom_constraints_get_execute(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/customConstraints
+/// Retrieves all of the custom constraints that exist on a particular organization resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_organizations_custom_constraints_list_execute()` to send, or `orgpolicy_organizations_custom_constraints_list` for simplest API.
+
+pub fn orgpolicy_organizations_custom_constraints_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/customConstraints
+/// Retrieves all of the custom constraints that exist on a particular organization resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_organizations_custom_constraints_list_execute()` or `orgpolicy_organizations_custom_constraints_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_custom_constraints_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_custom_constraints_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudOrgpolicyV2ListCustomConstraintsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2ListCustomConstraintsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/organizations/{organizationsId}/customConstraints
+/// Retrieves all of the custom constraints that exist on a particular organization resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_organizations_custom_constraints_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_organizations_custom_constraints_list_task()`.
+/// For the simplest API, use `orgpolicy_organizations_custom_constraints_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_custom_constraints_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_organizations_custom_constraints_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListCustomConstraintsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_organizations_custom_constraints_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_organizations_custom_constraints_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsCustomConstraintsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/organizations/{organizationsId}/customConstraints
+/// Retrieves all of the custom constraints that exist on a particular organization resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_organizations_custom_constraints_list_builder()` + `orgpolicy_organizations_custom_constraints_list_execute()`.
+/// For task-level control, use `orgpolicy_organizations_custom_constraints_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_custom_constraints_list(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyOrganizationsCustomConstraintsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListCustomConstraintsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_organizations_custom_constraints_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    orgpolicy_organizations_custom_constraints_list_execute(builder)
+}
+
+/// PATCH v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Updates a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_organizations_custom_constraints_patch_execute()` to send, or `orgpolicy_organizations_custom_constraints_patch` for simplest API.
+
+pub fn orgpolicy_organizations_custom_constraints_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/customConstraints/{customConstraintsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Updates a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_organizations_custom_constraints_patch_execute()` or `orgpolicy_organizations_custom_constraints_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_custom_constraints_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_custom_constraints_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2CustomConstraint>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2CustomConstraint = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Updates a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_organizations_custom_constraints_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_organizations_custom_constraints_patch_task()`.
+/// For the simplest API, use `orgpolicy_organizations_custom_constraints_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_custom_constraints_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_organizations_custom_constraints_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2CustomConstraint>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_organizations_custom_constraints_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_organizations_custom_constraints_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsCustomConstraintsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
+/// Updates a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_organizations_custom_constraints_patch_builder()` + `orgpolicy_organizations_custom_constraints_patch_execute()`.
+/// For task-level control, use `orgpolicy_organizations_custom_constraints_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_custom_constraints_patch(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyOrganizationsCustomConstraintsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2CustomConstraint>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_organizations_custom_constraints_patch_builder(client, &args.name)?;
+    orgpolicy_organizations_custom_constraints_patch_execute(builder)
+}
+
+/// POST v2/organizations/{organizationsId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -744,22 +2301,22 @@ pub fn orgpolicy_organizations_custom_constraints_create(
 pub fn orgpolicy_organizations_policies_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudOrgpolicyV2Policy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://orgpolicy.googleapis.com/v2/organizations/{}/policies",);
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/policies",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/organizations/{organizationsId}/policies
+/// POST v2/organizations/{organizationsId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -833,7 +2390,7 @@ pub fn orgpolicy_organizations_policies_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/organizations/{organizationsId}/policies
+/// POST v2/organizations/{organizationsId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -872,11 +2429,9 @@ pub fn orgpolicy_organizations_policies_create_execute(
 pub struct OrgpolicyOrganizationsPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudOrgpolicyV2Policy,
 }
 
-/// GET v2/organizations/{organizationsId}/policies
+/// POST v2/organizations/{organizationsId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -898,9 +2453,885 @@ pub fn orgpolicy_organizations_policies_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        orgpolicy_organizations_policies_create_builder(client, &args.parent, &args.body)?;
+    let builder = orgpolicy_organizations_policies_create_builder(client, &args.parent)?;
     orgpolicy_organizations_policies_create_execute(builder)
+}
+
+/// DELETE v2/organizations/{organizationsId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_organizations_policies_delete_execute()` to send, or `orgpolicy_organizations_policies_delete` for simplest API.
+
+pub fn orgpolicy_organizations_policies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/organizations/{organizationsId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_organizations_policies_delete_execute()` or `orgpolicy_organizations_policies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_policies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/organizations/{organizationsId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_organizations_policies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_organizations_policies_delete_task()`.
+/// For the simplest API, use `orgpolicy_organizations_policies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_organizations_policies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_organizations_policies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_organizations_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v2/organizations/{organizationsId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_organizations_policies_delete_builder()` + `orgpolicy_organizations_policies_delete_execute()`.
+/// For task-level control, use `orgpolicy_organizations_policies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_policies_delete(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyOrganizationsPoliciesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_organizations_policies_delete_builder(client, &args.name, &args.etag)?;
+    orgpolicy_organizations_policies_delete_execute(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_organizations_policies_get_execute()` to send, or `orgpolicy_organizations_policies_get` for simplest API.
+
+pub fn orgpolicy_organizations_policies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_organizations_policies_get_execute()` or `orgpolicy_organizations_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/organizations/{organizationsId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_organizations_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_organizations_policies_get_task()`.
+/// For the simplest API, use `orgpolicy_organizations_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_organizations_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_organizations_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_organizations_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/organizations/{organizationsId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_organizations_policies_get_builder()` + `orgpolicy_organizations_policies_get_execute()`.
+/// For task-level control, use `orgpolicy_organizations_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_policies_get(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyOrganizationsPoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_organizations_policies_get_builder(client, &args.name)?;
+    orgpolicy_organizations_policies_get_execute(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_organizations_policies_get_effective_policy_execute()` to send, or `orgpolicy_organizations_policies_get_effective_policy` for simplest API.
+
+pub fn orgpolicy_organizations_policies_get_effective_policy_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/policies/{policiesId}:getEffectivePolicy",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_organizations_policies_get_effective_policy_execute()` or `orgpolicy_organizations_policies_get_effective_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_policies_get_effective_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_policies_get_effective_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/organizations/{organizationsId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_organizations_policies_get_effective_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_organizations_policies_get_effective_policy_task()`.
+/// For the simplest API, use `orgpolicy_organizations_policies_get_effective_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_policies_get_effective_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_organizations_policies_get_effective_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_organizations_policies_get_effective_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_organizations_policies_get_effective_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesGetEffectivePolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/organizations/{organizationsId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_organizations_policies_get_effective_policy_builder()` + `orgpolicy_organizations_policies_get_effective_policy_execute()`.
+/// For task-level control, use `orgpolicy_organizations_policies_get_effective_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_policies_get_effective_policy(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyOrganizationsPoliciesGetEffectivePolicyArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        orgpolicy_organizations_policies_get_effective_policy_builder(client, &args.name)?;
+    orgpolicy_organizations_policies_get_effective_policy_execute(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_organizations_policies_list_execute()` to send, or `orgpolicy_organizations_policies_list` for simplest API.
+
+pub fn orgpolicy_organizations_policies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/policies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_organizations_policies_list_execute()` or `orgpolicy_organizations_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2ListPoliciesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/organizations/{organizationsId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_organizations_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_organizations_policies_list_task()`.
+/// For the simplest API, use `orgpolicy_organizations_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_organizations_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_organizations_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_organizations_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/organizations/{organizationsId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_organizations_policies_list_builder()` + `orgpolicy_organizations_policies_list_execute()`.
+/// For task-level control, use `orgpolicy_organizations_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_policies_list(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyOrganizationsPoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_organizations_policies_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    orgpolicy_organizations_policies_list_execute(builder)
+}
+
+/// PATCH v2/organizations/{organizationsId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_organizations_policies_patch_execute()` to send, or `orgpolicy_organizations_policies_patch` for simplest API.
+
+pub fn orgpolicy_organizations_policies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/organizations/{}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/organizations/{organizationsId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_organizations_policies_patch_execute()` or `orgpolicy_organizations_policies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_policies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/organizations/{organizationsId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_organizations_policies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_organizations_policies_patch_task()`.
+/// For the simplest API, use `orgpolicy_organizations_policies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_organizations_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_organizations_policies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_organizations_policies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_organizations_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/organizations/{organizationsId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_organizations_policies_patch_builder()` + `orgpolicy_organizations_policies_patch_execute()`.
+/// For task-level control, use `orgpolicy_organizations_policies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_organizations_policies_patch(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyOrganizationsPoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        orgpolicy_organizations_policies_patch_builder(client, &args.name, &args.updateMask)?;
+    orgpolicy_organizations_policies_patch_execute(builder)
 }
 
 /// GET v2/projects/{projectsId}/constraints
@@ -912,11 +3343,14 @@ pub fn orgpolicy_organizations_policies_create(
 pub fn orgpolicy_projects_constraints_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://orgpolicy.googleapis.com/v2/projects/{}/constraints",);
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/projects/{}/constraints",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1055,9 +3489,9 @@ pub struct OrgpolicyProjectsConstraintsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/projects/{projectsId}/constraints
@@ -1091,7 +3525,7 @@ pub fn orgpolicy_projects_constraints_list(
     orgpolicy_projects_constraints_list_execute(builder)
 }
 
-/// GET v2/projects/{projectsId}/policies
+/// POST v2/projects/{projectsId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1100,22 +3534,22 @@ pub fn orgpolicy_projects_constraints_list(
 pub fn orgpolicy_projects_policies_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudOrgpolicyV2Policy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://orgpolicy.googleapis.com/v2/projects/{}/policies",);
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/projects/{}/policies",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/projects/{projectsId}/policies
+/// POST v2/projects/{projectsId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1189,7 +3623,7 @@ pub fn orgpolicy_projects_policies_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/projects/{projectsId}/policies
+/// POST v2/projects/{projectsId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1228,11 +3662,9 @@ pub fn orgpolicy_projects_policies_create_execute(
 pub struct OrgpolicyProjectsPoliciesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudOrgpolicyV2Policy,
 }
 
-/// GET v2/projects/{projectsId}/policies
+/// POST v2/projects/{projectsId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1254,6 +3686,1595 @@ pub fn orgpolicy_projects_policies_create(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_projects_policies_create_builder(client, &args.parent, &args.body)?;
+    let builder = orgpolicy_projects_policies_create_builder(client, &args.parent)?;
     orgpolicy_projects_policies_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_projects_policies_delete_execute()` to send, or `orgpolicy_projects_policies_delete` for simplest API.
+
+pub fn orgpolicy_projects_policies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/projects/{}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_projects_policies_delete_execute()` or `orgpolicy_projects_policies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_projects_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_projects_policies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_projects_policies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_projects_policies_delete_task()`.
+/// For the simplest API, use `orgpolicy_projects_policies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_projects_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_projects_policies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_projects_policies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_projects_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v2/projects/{projectsId}/policies/{policiesId}
+/// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_projects_policies_delete_builder()` + `orgpolicy_projects_policies_delete_execute()`.
+/// For task-level control, use `orgpolicy_projects_policies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_projects_policies_delete(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyProjectsPoliciesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_projects_policies_delete_builder(client, &args.name, &args.etag)?;
+    orgpolicy_projects_policies_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_projects_policies_get_execute()` to send, or `orgpolicy_projects_policies_get` for simplest API.
+
+pub fn orgpolicy_projects_policies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/projects/{}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_projects_policies_get_execute()` or `orgpolicy_projects_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_projects_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_projects_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_projects_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_projects_policies_get_task()`.
+/// For the simplest API, use `orgpolicy_projects_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_projects_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_projects_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_projects_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_projects_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/policies/{policiesId}
+/// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_projects_policies_get_builder()` + `orgpolicy_projects_policies_get_execute()`.
+/// For task-level control, use `orgpolicy_projects_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_projects_policies_get(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyProjectsPoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_projects_policies_get_builder(client, &args.name)?;
+    orgpolicy_projects_policies_get_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_projects_policies_get_effective_policy_execute()` to send, or `orgpolicy_projects_policies_get_effective_policy` for simplest API.
+
+pub fn orgpolicy_projects_policies_get_effective_policy_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/projects/{}/policies/{policiesId}:getEffectivePolicy",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_projects_policies_get_effective_policy_execute()` or `orgpolicy_projects_policies_get_effective_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_projects_policies_get_effective_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_projects_policies_get_effective_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_projects_policies_get_effective_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_projects_policies_get_effective_policy_task()`.
+/// For the simplest API, use `orgpolicy_projects_policies_get_effective_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_projects_policies_get_effective_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_projects_policies_get_effective_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_projects_policies_get_effective_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_projects_policies_get_effective_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesGetEffectivePolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/policies/{policiesId}:getEffectivePolicy
+/// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_projects_policies_get_effective_policy_builder()` + `orgpolicy_projects_policies_get_effective_policy_execute()`.
+/// For task-level control, use `orgpolicy_projects_policies_get_effective_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_projects_policies_get_effective_policy(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyProjectsPoliciesGetEffectivePolicyArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_projects_policies_get_effective_policy_builder(client, &args.name)?;
+    orgpolicy_projects_policies_get_effective_policy_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_projects_policies_list_execute()` to send, or `orgpolicy_projects_policies_list` for simplest API.
+
+pub fn orgpolicy_projects_policies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/projects/{}/policies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_projects_policies_list_execute()` or `orgpolicy_projects_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_projects_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_projects_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2ListPoliciesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_projects_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_projects_policies_list_task()`.
+/// For the simplest API, use `orgpolicy_projects_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_projects_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_projects_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_projects_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_projects_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/policies
+/// Retrieves all of the policies that exist on a particular resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_projects_policies_list_builder()` + `orgpolicy_projects_policies_list_execute()`.
+/// For task-level control, use `orgpolicy_projects_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_projects_policies_list(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyProjectsPoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_projects_policies_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    orgpolicy_projects_policies_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `orgpolicy_projects_policies_patch_execute()` to send, or `orgpolicy_projects_policies_patch` for simplest API.
+
+pub fn orgpolicy_projects_policies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://orgpolicy.googleapis.com/v2/projects/{}/policies/{policiesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `orgpolicy_projects_policies_patch_execute()` or `orgpolicy_projects_policies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_projects_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_projects_policies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOrgpolicyV2Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `orgpolicy_projects_policies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `orgpolicy_projects_policies_patch_task()`.
+/// For the simplest API, use `orgpolicy_projects_policies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `orgpolicy_projects_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn orgpolicy_projects_policies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = orgpolicy_projects_policies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`orgpolicy_projects_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/policies/{policiesId}
+/// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `orgpolicy_projects_policies_patch_builder()` + `orgpolicy_projects_policies_patch_execute()`.
+/// For task-level control, use `orgpolicy_projects_policies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn orgpolicy_projects_policies_patch(
+    client: &SimpleHttpClient,
+    args: &OrgpolicyProjectsPoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = orgpolicy_projects_policies_patch_builder(client, &args.name, &args.updateMask)?;
+    orgpolicy_projects_policies_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListConstraintsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListConstraintsResponse with OrgpolicyFoldersConstraintsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersConstraintsListArgs>
+    for GoogleCloudOrgpolicyV2ListConstraintsResponse
+{
+    fn generate_resource_id(&self, input: &OrgpolicyFoldersConstraintsListArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListConstraintsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListConstraintsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyFoldersPoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersPoliciesCreateArgs> for GoogleCloudOrgpolicyV2Policy {
+    fn generate_resource_id(&self, input: &OrgpolicyFoldersPoliciesCreateArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with OrgpolicyFoldersPoliciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersPoliciesDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &OrgpolicyFoldersPoliciesDeleteArgs) -> String {
+        format!("gcp::orgpolicy::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyFoldersPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersPoliciesGetArgs> for GoogleCloudOrgpolicyV2Policy {
+    fn generate_resource_id(&self, input: &OrgpolicyFoldersPoliciesGetArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyFoldersPoliciesGetEffectivePolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersPoliciesGetEffectivePolicyArgs>
+    for GoogleCloudOrgpolicyV2Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &OrgpolicyFoldersPoliciesGetEffectivePolicyArgs,
+    ) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListPoliciesResponse with OrgpolicyFoldersPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersPoliciesListArgs>
+    for GoogleCloudOrgpolicyV2ListPoliciesResponse
+{
+    fn generate_resource_id(&self, input: &OrgpolicyFoldersPoliciesListArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListPoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyFoldersPoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersPoliciesPatchArgs> for GoogleCloudOrgpolicyV2Policy {
+    fn generate_resource_id(&self, input: &OrgpolicyFoldersPoliciesPatchArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListConstraintsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListConstraintsResponse with OrgpolicyOrganizationsConstraintsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsConstraintsListArgs>
+    for GoogleCloudOrgpolicyV2ListConstraintsResponse
+{
+    fn generate_resource_id(&self, input: &OrgpolicyOrganizationsConstraintsListArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListConstraintsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListConstraintsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2CustomConstraint
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2CustomConstraint with OrgpolicyOrganizationsCustomConstraintsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsCustomConstraintsCreateArgs>
+    for GoogleCloudOrgpolicyV2CustomConstraint
+{
+    fn generate_resource_id(
+        &self,
+        input: &OrgpolicyOrganizationsCustomConstraintsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2CustomConstraint/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2CustomConstraint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with OrgpolicyOrganizationsCustomConstraintsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsCustomConstraintsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &OrgpolicyOrganizationsCustomConstraintsDeleteArgs,
+    ) -> String {
+        format!("gcp::orgpolicy::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2CustomConstraint
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2CustomConstraint with OrgpolicyOrganizationsCustomConstraintsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsCustomConstraintsGetArgs>
+    for GoogleCloudOrgpolicyV2CustomConstraint
+{
+    fn generate_resource_id(
+        &self,
+        input: &OrgpolicyOrganizationsCustomConstraintsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2CustomConstraint/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2CustomConstraint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListCustomConstraintsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListCustomConstraintsResponse with OrgpolicyOrganizationsCustomConstraintsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsCustomConstraintsListArgs>
+    for GoogleCloudOrgpolicyV2ListCustomConstraintsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OrgpolicyOrganizationsCustomConstraintsListArgs,
+    ) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListCustomConstraintsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListCustomConstraintsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2CustomConstraint
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2CustomConstraint with OrgpolicyOrganizationsCustomConstraintsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsCustomConstraintsPatchArgs>
+    for GoogleCloudOrgpolicyV2CustomConstraint
+{
+    fn generate_resource_id(
+        &self,
+        input: &OrgpolicyOrganizationsCustomConstraintsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2CustomConstraint/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2CustomConstraint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyOrganizationsPoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsPoliciesCreateArgs> for GoogleCloudOrgpolicyV2Policy {
+    fn generate_resource_id(&self, input: &OrgpolicyOrganizationsPoliciesCreateArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with OrgpolicyOrganizationsPoliciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsPoliciesDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &OrgpolicyOrganizationsPoliciesDeleteArgs) -> String {
+        format!("gcp::orgpolicy::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyOrganizationsPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsPoliciesGetArgs> for GoogleCloudOrgpolicyV2Policy {
+    fn generate_resource_id(&self, input: &OrgpolicyOrganizationsPoliciesGetArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyOrganizationsPoliciesGetEffectivePolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsPoliciesGetEffectivePolicyArgs>
+    for GoogleCloudOrgpolicyV2Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &OrgpolicyOrganizationsPoliciesGetEffectivePolicyArgs,
+    ) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListPoliciesResponse with OrgpolicyOrganizationsPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsPoliciesListArgs>
+    for GoogleCloudOrgpolicyV2ListPoliciesResponse
+{
+    fn generate_resource_id(&self, input: &OrgpolicyOrganizationsPoliciesListArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListPoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyOrganizationsPoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsPoliciesPatchArgs> for GoogleCloudOrgpolicyV2Policy {
+    fn generate_resource_id(&self, input: &OrgpolicyOrganizationsPoliciesPatchArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListConstraintsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListConstraintsResponse with OrgpolicyProjectsConstraintsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyProjectsConstraintsListArgs>
+    for GoogleCloudOrgpolicyV2ListConstraintsResponse
+{
+    fn generate_resource_id(&self, input: &OrgpolicyProjectsConstraintsListArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListConstraintsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListConstraintsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyProjectsPoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyProjectsPoliciesCreateArgs> for GoogleCloudOrgpolicyV2Policy {
+    fn generate_resource_id(&self, input: &OrgpolicyProjectsPoliciesCreateArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with OrgpolicyProjectsPoliciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyProjectsPoliciesDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &OrgpolicyProjectsPoliciesDeleteArgs) -> String {
+        format!("gcp::orgpolicy::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyProjectsPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyProjectsPoliciesGetArgs> for GoogleCloudOrgpolicyV2Policy {
+    fn generate_resource_id(&self, input: &OrgpolicyProjectsPoliciesGetArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyProjectsPoliciesGetEffectivePolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyProjectsPoliciesGetEffectivePolicyArgs>
+    for GoogleCloudOrgpolicyV2Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &OrgpolicyProjectsPoliciesGetEffectivePolicyArgs,
+    ) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListPoliciesResponse with OrgpolicyProjectsPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyProjectsPoliciesListArgs>
+    for GoogleCloudOrgpolicyV2ListPoliciesResponse
+{
+    fn generate_resource_id(&self, input: &OrgpolicyProjectsPoliciesListArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListPoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2ListPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy with OrgpolicyProjectsPoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyProjectsPoliciesPatchArgs> for GoogleCloudOrgpolicyV2Policy {
+    fn generate_resource_id(&self, input: &OrgpolicyProjectsPoliciesPatchArgs) -> String {
+        format!(
+            "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::orgpolicy::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -12,24 +12,41 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::parallelstore::{
+    parallelstore_projects_locations_get_builder, parallelstore_projects_locations_get_task,
+    parallelstore_projects_locations_list_builder, parallelstore_projects_locations_list_task,
     parallelstore_projects_locations_instances_create_builder, parallelstore_projects_locations_instances_create_task,
     parallelstore_projects_locations_instances_delete_builder, parallelstore_projects_locations_instances_delete_task,
     parallelstore_projects_locations_instances_export_data_builder, parallelstore_projects_locations_instances_export_data_task,
+    parallelstore_projects_locations_instances_get_builder, parallelstore_projects_locations_instances_get_task,
     parallelstore_projects_locations_instances_import_data_builder, parallelstore_projects_locations_instances_import_data_task,
+    parallelstore_projects_locations_instances_list_builder, parallelstore_projects_locations_instances_list_task,
     parallelstore_projects_locations_instances_patch_builder, parallelstore_projects_locations_instances_patch_task,
     parallelstore_projects_locations_operations_cancel_builder, parallelstore_projects_locations_operations_cancel_task,
     parallelstore_projects_locations_operations_delete_builder, parallelstore_projects_locations_operations_delete_task,
+    parallelstore_projects_locations_operations_get_builder, parallelstore_projects_locations_operations_get_task,
+    parallelstore_projects_locations_operations_list_builder, parallelstore_projects_locations_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::parallelstore::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::parallelstore::Instance;
+use crate::providers::gcp::clients::parallelstore::ListInstancesResponse;
+use crate::providers::gcp::clients::parallelstore::ListLocationsResponse;
+use crate::providers::gcp::clients::parallelstore::ListOperationsResponse;
+use crate::providers::gcp::clients::parallelstore::Location;
 use crate::providers::gcp::clients::parallelstore::Operation;
+use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsGetArgs;
 use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsInstancesCreateArgs;
 use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsInstancesDeleteArgs;
 use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsInstancesExportDataArgs;
+use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsInstancesGetArgs;
 use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsInstancesImportDataArgs;
+use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsInstancesListArgs;
 use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsInstancesPatchArgs;
+use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsListArgs;
 use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::parallelstore::ParallelstoreProjectsLocationsOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -69,6 +86,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Parallelstore projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn parallelstore_projects_locations_get(
+        &self,
+        args: &ParallelstoreProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = parallelstore_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = parallelstore_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Parallelstore projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn parallelstore_projects_locations_list(
+        &self,
+        args: &ParallelstoreProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = parallelstore_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = parallelstore_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Parallelstore projects locations instances create.
@@ -162,7 +259,7 @@ where
 
     /// Parallelstore projects locations instances export data.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -174,7 +271,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn parallelstore_projects_locations_instances_export_data(
         &self,
         args: &ParallelstoreProjectsLocationsInstancesExportDataArgs,
@@ -195,12 +292,45 @@ where
         let task = parallelstore_projects_locations_instances_export_data_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Parallelstore projects locations instances get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Instance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn parallelstore_projects_locations_instances_get(
+        &self,
+        args: &ParallelstoreProjectsLocationsInstancesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Instance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = parallelstore_projects_locations_instances_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = parallelstore_projects_locations_instances_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Parallelstore projects locations instances import data.
@@ -244,6 +374,48 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Parallelstore projects locations instances list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListInstancesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn parallelstore_projects_locations_instances_list(
+        &self,
+        args: &ParallelstoreProjectsLocationsInstancesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListInstancesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = parallelstore_projects_locations_instances_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = parallelstore_projects_locations_instances_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Parallelstore projects locations instances patch.
@@ -375,6 +547,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Parallelstore projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn parallelstore_projects_locations_operations_get(
+        &self,
+        args: &ParallelstoreProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = parallelstore_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = parallelstore_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Parallelstore projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn parallelstore_projects_locations_operations_list(
+        &self,
+        args: &ParallelstoreProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = parallelstore_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = parallelstore_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

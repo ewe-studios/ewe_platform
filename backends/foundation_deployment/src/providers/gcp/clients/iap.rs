@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/projects/{projectsId}/brands
+/// POST v1/projects/{projectsId}/brands
 /// Constructs a new OAuth brand for the project if one does not exist. The created brand is "internal only", meaning that OAuth clients created under it only accept requests from users who belong to the same Google Workspace organization as the project. The brand is created in an un-reviewed status. NOTE: The "internal only" status can be manually changed in the Google Cloud Console. Requires that a brand does not already exist for the project, and that the specified support email is owned by the caller.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +29,19 @@ use serde::Serialize;
 pub fn iap_projects_brands_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &Brand,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://iap.googleapis.com/v1/projects/{}/brands",);
+    let endpoint_url = format!("https://iap.googleapis.com/v1/projects/{}/brands", parent,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/brands
+/// POST v1/projects/{projectsId}/brands
 /// Constructs a new OAuth brand for the project if one does not exist. The created brand is "internal only", meaning that OAuth clients created under it only accept requests from users who belong to the same Google Workspace organization as the project. The brand is created in an un-reviewed status. NOTE: The "internal only" status can be manually changed in the Google Cloud Console. Requires that a brand does not already exist for the project, and that the specified support email is owned by the caller.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +115,7 @@ pub fn iap_projects_brands_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/brands
+/// POST v1/projects/{projectsId}/brands
 /// Constructs a new OAuth brand for the project if one does not exist. The created brand is "internal only", meaning that OAuth clients created under it only accept requests from users who belong to the same Google Workspace organization as the project. The brand is created in an un-reviewed status. NOTE: The "internal only" status can be manually changed in the Google Cloud Console. Requires that a brand does not already exist for the project, and that the specified support email is owned by the caller.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -153,11 +150,9 @@ pub fn iap_projects_brands_create_execute(
 pub struct IapProjectsBrandsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: Brand,
 }
 
-/// GET v1/projects/{projectsId}/brands
+/// POST v1/projects/{projectsId}/brands
 /// Constructs a new OAuth brand for the project if one does not exist. The created brand is "internal only", meaning that OAuth clients created under it only accept requests from users who belong to the same Google Workspace organization as the project. The brand is created in an un-reviewed status. NOTE: The "internal only" status can be manually changed in the Google Cloud Console. Requires that a brand does not already exist for the project, and that the specified support email is owned by the caller.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -175,11 +170,2025 @@ pub fn iap_projects_brands_create(
     impl StreamIterator<D = Result<ApiResponse<Brand>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_projects_brands_create_builder(client, &args.parent, &args.body)?;
+    let builder = iap_projects_brands_create_builder(client, &args.parent)?;
     iap_projects_brands_create_execute(builder)
 }
 
-/// GET v1/{v1Id}:getIamPolicy
+/// GET v1/projects/{projectsId}/brands/{brandsId}
+/// Retrieves the OAuth brand of the project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_brands_get_execute()` to send, or `iap_projects_brands_get` for simplest API.
+
+pub fn iap_projects_brands_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}
+/// Retrieves the OAuth brand of the project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_brands_get_execute()` or `iap_projects_brands_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Brand>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Brand = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}
+/// Retrieves the OAuth brand of the project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_brands_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_brands_get_task()`.
+/// For the simplest API, use `iap_projects_brands_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_brands_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Brand>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = iap_projects_brands_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_brands_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}
+/// Retrieves the OAuth brand of the project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_brands_get_builder()` + `iap_projects_brands_get_execute()`.
+/// For task-level control, use `iap_projects_brands_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_get(
+    client: &SimpleHttpClient,
+    args: &IapProjectsBrandsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Brand>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = iap_projects_brands_get_builder(client, &args.name)?;
+    iap_projects_brands_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/brands
+/// Lists the existing brands for the project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_brands_list_execute()` to send, or `iap_projects_brands_list` for simplest API.
+
+pub fn iap_projects_brands_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://iap.googleapis.com/v1/projects/{}/brands", parent,);
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/brands
+/// Lists the existing brands for the project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_brands_list_execute()` or `iap_projects_brands_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBrandsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBrandsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/brands
+/// Lists the existing brands for the project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_brands_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_brands_list_task()`.
+/// For the simplest API, use `iap_projects_brands_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_brands_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBrandsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = iap_projects_brands_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_brands_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/projects/{projectsId}/brands
+/// Lists the existing brands for the project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_brands_list_builder()` + `iap_projects_brands_list_execute()`.
+/// For task-level control, use `iap_projects_brands_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_list(
+    client: &SimpleHttpClient,
+    args: &IapProjectsBrandsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBrandsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = iap_projects_brands_list_builder(client, &args.parent)?;
+    iap_projects_brands_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
+/// Creates an Identity Aware Proxy (IAP) OAuth client. The client is owned by IAP. Requires that the brand for the project exists and that it is set for internal-only use.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_brands_identity_aware_proxy_clients_create_execute()` to send, or `iap_projects_brands_identity_aware_proxy_clients_create` for simplest API.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}/identityAwareProxyClients",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
+/// Creates an Identity Aware Proxy (IAP) OAuth client. The client is owned by IAP. Requires that the brand for the project exists and that it is set for internal-only use.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_brands_identity_aware_proxy_clients_create_execute()` or `iap_projects_brands_identity_aware_proxy_clients_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_identity_aware_proxy_clients_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: IdentityAwareProxyClient = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
+/// Creates an Identity Aware Proxy (IAP) OAuth client. The client is owned by IAP. Requires that the brand for the project exists and that it is set for internal-only use.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_brands_identity_aware_proxy_clients_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_brands_identity_aware_proxy_clients_create_task()`.
+/// For the simplest API, use `iap_projects_brands_identity_aware_proxy_clients_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_identity_aware_proxy_clients_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = iap_projects_brands_identity_aware_proxy_clients_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_brands_identity_aware_proxy_clients_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsIdentityAwareProxyClientsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
+/// Creates an Identity Aware Proxy (IAP) OAuth client. The client is owned by IAP. Requires that the brand for the project exists and that it is set for internal-only use.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_brands_identity_aware_proxy_clients_create_builder()` + `iap_projects_brands_identity_aware_proxy_clients_create_execute()`.
+/// For task-level control, use `iap_projects_brands_identity_aware_proxy_clients_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_create(
+    client: &SimpleHttpClient,
+    args: &IapProjectsBrandsIdentityAwareProxyClientsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        iap_projects_brands_identity_aware_proxy_clients_create_builder(client, &args.parent)?;
+    iap_projects_brands_identity_aware_proxy_clients_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}
+/// Deletes an Identity Aware Proxy (IAP) OAuth client. Useful for removing obsolete clients, managing the number of clients in a given project, and cleaning up after tests. Requires that the client is owned by IAP.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_brands_identity_aware_proxy_clients_delete_execute()` to send, or `iap_projects_brands_identity_aware_proxy_clients_delete` for simplest API.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}
+/// Deletes an Identity Aware Proxy (IAP) OAuth client. Useful for removing obsolete clients, managing the number of clients in a given project, and cleaning up after tests. Requires that the client is owned by IAP.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_brands_identity_aware_proxy_clients_delete_execute()` or `iap_projects_brands_identity_aware_proxy_clients_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_identity_aware_proxy_clients_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}
+/// Deletes an Identity Aware Proxy (IAP) OAuth client. Useful for removing obsolete clients, managing the number of clients in a given project, and cleaning up after tests. Requires that the client is owned by IAP.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_brands_identity_aware_proxy_clients_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_brands_identity_aware_proxy_clients_delete_task()`.
+/// For the simplest API, use `iap_projects_brands_identity_aware_proxy_clients_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_identity_aware_proxy_clients_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = iap_projects_brands_identity_aware_proxy_clients_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_brands_identity_aware_proxy_clients_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsIdentityAwareProxyClientsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}
+/// Deletes an Identity Aware Proxy (IAP) OAuth client. Useful for removing obsolete clients, managing the number of clients in a given project, and cleaning up after tests. Requires that the client is owned by IAP.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_brands_identity_aware_proxy_clients_delete_builder()` + `iap_projects_brands_identity_aware_proxy_clients_delete_execute()`.
+/// For task-level control, use `iap_projects_brands_identity_aware_proxy_clients_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_delete(
+    client: &SimpleHttpClient,
+    args: &IapProjectsBrandsIdentityAwareProxyClientsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        iap_projects_brands_identity_aware_proxy_clients_delete_builder(client, &args.name)?;
+    iap_projects_brands_identity_aware_proxy_clients_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}
+/// Retrieves an Identity Aware Proxy (IAP) OAuth client. Requires that the client is owned by IAP.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_brands_identity_aware_proxy_clients_get_execute()` to send, or `iap_projects_brands_identity_aware_proxy_clients_get` for simplest API.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}
+/// Retrieves an Identity Aware Proxy (IAP) OAuth client. Requires that the client is owned by IAP.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_brands_identity_aware_proxy_clients_get_execute()` or `iap_projects_brands_identity_aware_proxy_clients_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_identity_aware_proxy_clients_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: IdentityAwareProxyClient = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}
+/// Retrieves an Identity Aware Proxy (IAP) OAuth client. Requires that the client is owned by IAP.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_brands_identity_aware_proxy_clients_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_brands_identity_aware_proxy_clients_get_task()`.
+/// For the simplest API, use `iap_projects_brands_identity_aware_proxy_clients_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_identity_aware_proxy_clients_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = iap_projects_brands_identity_aware_proxy_clients_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_brands_identity_aware_proxy_clients_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsIdentityAwareProxyClientsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}
+/// Retrieves an Identity Aware Proxy (IAP) OAuth client. Requires that the client is owned by IAP.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_brands_identity_aware_proxy_clients_get_builder()` + `iap_projects_brands_identity_aware_proxy_clients_get_execute()`.
+/// For task-level control, use `iap_projects_brands_identity_aware_proxy_clients_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_get(
+    client: &SimpleHttpClient,
+    args: &IapProjectsBrandsIdentityAwareProxyClientsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = iap_projects_brands_identity_aware_proxy_clients_get_builder(client, &args.name)?;
+    iap_projects_brands_identity_aware_proxy_clients_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
+/// Lists the existing clients for the brand.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_brands_identity_aware_proxy_clients_list_execute()` to send, or `iap_projects_brands_identity_aware_proxy_clients_list` for simplest API.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}/identityAwareProxyClients",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
+/// Lists the existing clients for the brand.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_brands_identity_aware_proxy_clients_list_execute()` or `iap_projects_brands_identity_aware_proxy_clients_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_identity_aware_proxy_clients_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListIdentityAwareProxyClientsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListIdentityAwareProxyClientsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
+/// Lists the existing clients for the brand.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_brands_identity_aware_proxy_clients_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_brands_identity_aware_proxy_clients_list_task()`.
+/// For the simplest API, use `iap_projects_brands_identity_aware_proxy_clients_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_identity_aware_proxy_clients_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListIdentityAwareProxyClientsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = iap_projects_brands_identity_aware_proxy_clients_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_brands_identity_aware_proxy_clients_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsIdentityAwareProxyClientsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
+/// Lists the existing clients for the brand.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_brands_identity_aware_proxy_clients_list_builder()` + `iap_projects_brands_identity_aware_proxy_clients_list_execute()`.
+/// For task-level control, use `iap_projects_brands_identity_aware_proxy_clients_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_list(
+    client: &SimpleHttpClient,
+    args: &IapProjectsBrandsIdentityAwareProxyClientsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListIdentityAwareProxyClientsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = iap_projects_brands_identity_aware_proxy_clients_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    iap_projects_brands_identity_aware_proxy_clients_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}:resetSecret
+/// Resets an Identity Aware Proxy (IAP) OAuth client secret. Useful if the secret was compromised. Requires that the client is owned by IAP.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_brands_identity_aware_proxy_clients_reset_secret_execute()` to send, or `iap_projects_brands_identity_aware_proxy_clients_reset_secret` for simplest API.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}:resetSecret",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}:resetSecret
+/// Resets an Identity Aware Proxy (IAP) OAuth client secret. Useful if the secret was compromised. Requires that the client is owned by IAP.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_brands_identity_aware_proxy_clients_reset_secret_execute()` or `iap_projects_brands_identity_aware_proxy_clients_reset_secret`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: IdentityAwareProxyClient = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}:resetSecret
+/// Resets an Identity Aware Proxy (IAP) OAuth client secret. Useful if the secret was compromised. Requires that the client is owned by IAP.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_brands_identity_aware_proxy_clients_reset_secret_task()`.
+/// For the simplest API, use `iap_projects_brands_identity_aware_proxy_clients_reset_secret()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = iap_projects_brands_identity_aware_proxy_clients_reset_secret_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_brands_identity_aware_proxy_clients_reset_secret`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsIdentityAwareProxyClientsResetSecretArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}:resetSecret
+/// Resets an Identity Aware Proxy (IAP) OAuth client secret. Useful if the secret was compromised. Requires that the client is owned by IAP.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder()` + `iap_projects_brands_identity_aware_proxy_clients_reset_secret_execute()`.
+/// For task-level control, use `iap_projects_brands_identity_aware_proxy_clients_reset_secret_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret(
+    client: &SimpleHttpClient,
+    args: &IapProjectsBrandsIdentityAwareProxyClientsResetSecretArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder(client, &args.name)?;
+    iap_projects_brands_identity_aware_proxy_clients_reset_secret_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
+/// Creates a new TunnelDestGroup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_iap_tunnel_locations_dest_groups_create_execute()` to send, or `iap_projects_iap_tunnel_locations_dest_groups_create` for simplest API.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    tunnelDestGroupId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/iap_tunnel/locations/{locationsId}/destGroups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = tunnelDestGroupId.as_ref() {
+        query_parts.push(format!("tunnelDestGroupId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
+/// Creates a new TunnelDestGroup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_iap_tunnel_locations_dest_groups_create_execute()` or `iap_projects_iap_tunnel_locations_dest_groups_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_iap_tunnel_locations_dest_groups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TunnelDestGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TunnelDestGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
+/// Creates a new TunnelDestGroup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_iap_tunnel_locations_dest_groups_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_iap_tunnel_locations_dest_groups_create_task()`.
+/// For the simplest API, use `iap_projects_iap_tunnel_locations_dest_groups_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_iap_tunnel_locations_dest_groups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TunnelDestGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = iap_projects_iap_tunnel_locations_dest_groups_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_iap_tunnel_locations_dest_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsIapTunnelLocationsDestGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tunnelDestGroupId
+    pub tunnelDestGroupId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
+/// Creates a new TunnelDestGroup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_iap_tunnel_locations_dest_groups_create_builder()` + `iap_projects_iap_tunnel_locations_dest_groups_create_execute()`.
+/// For task-level control, use `iap_projects_iap_tunnel_locations_dest_groups_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_create(
+    client: &SimpleHttpClient,
+    args: &IapProjectsIapTunnelLocationsDestGroupsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TunnelDestGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = iap_projects_iap_tunnel_locations_dest_groups_create_builder(
+        client,
+        &args.parent,
+        &args.tunnelDestGroupId,
+    )?;
+    iap_projects_iap_tunnel_locations_dest_groups_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Deletes a TunnelDestGroup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_iap_tunnel_locations_dest_groups_delete_execute()` to send, or `iap_projects_iap_tunnel_locations_dest_groups_delete` for simplest API.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Deletes a TunnelDestGroup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_iap_tunnel_locations_dest_groups_delete_execute()` or `iap_projects_iap_tunnel_locations_dest_groups_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_iap_tunnel_locations_dest_groups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Deletes a TunnelDestGroup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_iap_tunnel_locations_dest_groups_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_iap_tunnel_locations_dest_groups_delete_task()`.
+/// For the simplest API, use `iap_projects_iap_tunnel_locations_dest_groups_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_iap_tunnel_locations_dest_groups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = iap_projects_iap_tunnel_locations_dest_groups_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_iap_tunnel_locations_dest_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsIapTunnelLocationsDestGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Deletes a TunnelDestGroup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_iap_tunnel_locations_dest_groups_delete_builder()` + `iap_projects_iap_tunnel_locations_dest_groups_delete_execute()`.
+/// For task-level control, use `iap_projects_iap_tunnel_locations_dest_groups_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_delete(
+    client: &SimpleHttpClient,
+    args: &IapProjectsIapTunnelLocationsDestGroupsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = iap_projects_iap_tunnel_locations_dest_groups_delete_builder(client, &args.name)?;
+    iap_projects_iap_tunnel_locations_dest_groups_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Retrieves an existing TunnelDestGroup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_iap_tunnel_locations_dest_groups_get_execute()` to send, or `iap_projects_iap_tunnel_locations_dest_groups_get` for simplest API.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Retrieves an existing TunnelDestGroup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_iap_tunnel_locations_dest_groups_get_execute()` or `iap_projects_iap_tunnel_locations_dest_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_iap_tunnel_locations_dest_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TunnelDestGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TunnelDestGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Retrieves an existing TunnelDestGroup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_iap_tunnel_locations_dest_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_iap_tunnel_locations_dest_groups_get_task()`.
+/// For the simplest API, use `iap_projects_iap_tunnel_locations_dest_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_iap_tunnel_locations_dest_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TunnelDestGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = iap_projects_iap_tunnel_locations_dest_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_iap_tunnel_locations_dest_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsIapTunnelLocationsDestGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Retrieves an existing TunnelDestGroup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_iap_tunnel_locations_dest_groups_get_builder()` + `iap_projects_iap_tunnel_locations_dest_groups_get_execute()`.
+/// For task-level control, use `iap_projects_iap_tunnel_locations_dest_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_get(
+    client: &SimpleHttpClient,
+    args: &IapProjectsIapTunnelLocationsDestGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TunnelDestGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = iap_projects_iap_tunnel_locations_dest_groups_get_builder(client, &args.name)?;
+    iap_projects_iap_tunnel_locations_dest_groups_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
+/// Lists the existing TunnelDestGroups. To group across all locations, use a - as the location ID. For example: /v1/`projects/123/iap_tunnel/locations/-/`destGroups``
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_iap_tunnel_locations_dest_groups_list_execute()` to send, or `iap_projects_iap_tunnel_locations_dest_groups_list` for simplest API.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/iap_tunnel/locations/{locationsId}/destGroups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
+/// Lists the existing TunnelDestGroups. To group across all locations, use a - as the location ID. For example: /v1/`projects/123/iap_tunnel/locations/-/`destGroups``
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_iap_tunnel_locations_dest_groups_list_execute()` or `iap_projects_iap_tunnel_locations_dest_groups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_iap_tunnel_locations_dest_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTunnelDestGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTunnelDestGroupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
+/// Lists the existing TunnelDestGroups. To group across all locations, use a - as the location ID. For example: /v1/`projects/123/iap_tunnel/locations/-/`destGroups``
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_iap_tunnel_locations_dest_groups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_iap_tunnel_locations_dest_groups_list_task()`.
+/// For the simplest API, use `iap_projects_iap_tunnel_locations_dest_groups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_iap_tunnel_locations_dest_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTunnelDestGroupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = iap_projects_iap_tunnel_locations_dest_groups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_iap_tunnel_locations_dest_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsIapTunnelLocationsDestGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
+/// Lists the existing TunnelDestGroups. To group across all locations, use a - as the location ID. For example: /v1/`projects/123/iap_tunnel/locations/-/`destGroups``
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_iap_tunnel_locations_dest_groups_list_builder()` + `iap_projects_iap_tunnel_locations_dest_groups_list_execute()`.
+/// For task-level control, use `iap_projects_iap_tunnel_locations_dest_groups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_list(
+    client: &SimpleHttpClient,
+    args: &IapProjectsIapTunnelLocationsDestGroupsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTunnelDestGroupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = iap_projects_iap_tunnel_locations_dest_groups_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    iap_projects_iap_tunnel_locations_dest_groups_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Updates a TunnelDestGroup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_projects_iap_tunnel_locations_dest_groups_patch_execute()` to send, or `iap_projects_iap_tunnel_locations_dest_groups_patch` for simplest API.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/projects/{}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Updates a TunnelDestGroup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_projects_iap_tunnel_locations_dest_groups_patch_execute()` or `iap_projects_iap_tunnel_locations_dest_groups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_iap_tunnel_locations_dest_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TunnelDestGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TunnelDestGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Updates a TunnelDestGroup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_projects_iap_tunnel_locations_dest_groups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_projects_iap_tunnel_locations_dest_groups_patch_task()`.
+/// For the simplest API, use `iap_projects_iap_tunnel_locations_dest_groups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_projects_iap_tunnel_locations_dest_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TunnelDestGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = iap_projects_iap_tunnel_locations_dest_groups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_projects_iap_tunnel_locations_dest_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsIapTunnelLocationsDestGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
+/// Updates a TunnelDestGroup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_projects_iap_tunnel_locations_dest_groups_patch_builder()` + `iap_projects_iap_tunnel_locations_dest_groups_patch_execute()`.
+/// For task-level control, use `iap_projects_iap_tunnel_locations_dest_groups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_projects_iap_tunnel_locations_dest_groups_patch(
+    client: &SimpleHttpClient,
+    args: &IapProjectsIapTunnelLocationsDestGroupsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TunnelDestGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = iap_projects_iap_tunnel_locations_dest_groups_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    iap_projects_iap_tunnel_locations_dest_groups_patch_execute(builder)
+}
+
+/// POST v1/{v1Id}:getIamPolicy
 /// Gets the access control policy for an Identity-Aware Proxy protected resource. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -188,22 +2197,19 @@ pub fn iap_projects_brands_create(
 pub fn iap_get_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://iap.googleapis.com/v1/{}:getIamPolicy",);
+    let endpoint_url = format!("https://iap.googleapis.com/v1/{}:getIamPolicy", resource,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/{v1Id}:getIamPolicy
+/// POST v1/{v1Id}:getIamPolicy
 /// Gets the access control policy for an Identity-Aware Proxy protected resource. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -277,7 +2283,7 @@ pub fn iap_get_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/{v1Id}:getIamPolicy
+/// POST v1/{v1Id}:getIamPolicy
 /// Gets the access control policy for an Identity-Aware Proxy protected resource. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -312,11 +2318,9 @@ pub fn iap_get_iam_policy_execute(
 pub struct IapGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
 }
 
-/// GET v1/{v1Id}:getIamPolicy
+/// POST v1/{v1Id}:getIamPolicy
 /// Gets the access control policy for an Identity-Aware Proxy protected resource. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -334,7 +2338,7 @@ pub fn iap_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_get_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = iap_get_iam_policy_builder(client, &args.resource)?;
     iap_get_iam_policy_execute(builder)
 }
 
@@ -349,7 +2353,7 @@ pub fn iap_get_iap_settings_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://iap.googleapis.com/v1/{}:iapSettings",);
+    let endpoint_url = format!("https://iap.googleapis.com/v1/{}:iapSettings", name,);
 
     // Build request
     let builder = client
@@ -492,7 +2496,7 @@ pub fn iap_get_iap_settings(
     iap_get_iap_settings_execute(builder)
 }
 
-/// GET v1/{v1Id}:setIamPolicy
+/// POST v1/{v1Id}:setIamPolicy
 /// Sets the access control policy for an Identity-Aware Proxy protected resource. Replaces any existing policy. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -501,22 +2505,19 @@ pub fn iap_get_iap_settings(
 pub fn iap_set_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://iap.googleapis.com/v1/{}:setIamPolicy",);
+    let endpoint_url = format!("https://iap.googleapis.com/v1/{}:setIamPolicy", resource,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/{v1Id}:setIamPolicy
+/// POST v1/{v1Id}:setIamPolicy
 /// Sets the access control policy for an Identity-Aware Proxy protected resource. Replaces any existing policy. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -590,7 +2591,7 @@ pub fn iap_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/{v1Id}:setIamPolicy
+/// POST v1/{v1Id}:setIamPolicy
 /// Sets the access control policy for an Identity-Aware Proxy protected resource. Replaces any existing policy. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -625,11 +2626,9 @@ pub fn iap_set_iam_policy_execute(
 pub struct IapSetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
 }
 
-/// GET v1/{v1Id}:setIamPolicy
+/// POST v1/{v1Id}:setIamPolicy
 /// Sets the access control policy for an Identity-Aware Proxy protected resource. Replaces any existing policy. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -647,11 +2646,11 @@ pub fn iap_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_set_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = iap_set_iam_policy_builder(client, &args.resource)?;
     iap_set_iam_policy_execute(builder)
 }
 
-/// GET v1/{v1Id}:testIamPermissions
+/// POST v1/{v1Id}:testIamPermissions
 /// Returns permissions that a caller has on the Identity-Aware Proxy protected resource. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -660,22 +2659,22 @@ pub fn iap_set_iam_policy(
 pub fn iap_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://iap.googleapis.com/v1/{}:testIamPermissions",);
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/{}:testIamPermissions",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/{v1Id}:testIamPermissions
+/// POST v1/{v1Id}:testIamPermissions
 /// Returns permissions that a caller has on the Identity-Aware Proxy protected resource. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -749,7 +2748,7 @@ pub fn iap_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/{v1Id}:testIamPermissions
+/// POST v1/{v1Id}:testIamPermissions
 /// Returns permissions that a caller has on the Identity-Aware Proxy protected resource. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -788,11 +2787,9 @@ pub fn iap_test_iam_permissions_execute(
 pub struct IapTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
 }
 
-/// GET v1/{v1Id}:testIamPermissions
+/// POST v1/{v1Id}:testIamPermissions
 /// Returns permissions that a caller has on the Identity-Aware Proxy protected resource. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -814,11 +2811,179 @@ pub fn iap_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = iap_test_iam_permissions_builder(client, &args.resource, &args.body)?;
+    let builder = iap_test_iam_permissions_builder(client, &args.resource)?;
     iap_test_iam_permissions_execute(builder)
 }
 
-/// GET v1/{v1Id}:validateAttributeExpression
+/// PATCH v1/{v1Id}:iapSettings
+/// Updates the IAP settings on a particular IAP protected resource. It replaces all fields unless the update_mask is set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `iap_update_iap_settings_execute()` to send, or `iap_update_iap_settings` for simplest API.
+
+pub fn iap_update_iap_settings_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://iap.googleapis.com/v1/{}:iapSettings", name,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/{v1Id}:iapSettings
+/// Updates the IAP settings on a particular IAP protected resource. It replaces all fields unless the update_mask is set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `iap_update_iap_settings_execute()` or `iap_update_iap_settings`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_update_iap_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_update_iap_settings_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IapSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: IapSettings = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/{v1Id}:iapSettings
+/// Updates the IAP settings on a particular IAP protected resource. It replaces all fields unless the update_mask is set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `iap_update_iap_settings_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `iap_update_iap_settings_task()`.
+/// For the simplest API, use `iap_update_iap_settings()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `iap_update_iap_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn iap_update_iap_settings_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IapSettings>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = iap_update_iap_settings_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`iap_update_iap_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapUpdateIapSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/{v1Id}:iapSettings
+/// Updates the IAP settings on a particular IAP protected resource. It replaces all fields unless the update_mask is set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `iap_update_iap_settings_builder()` + `iap_update_iap_settings_execute()`.
+/// For task-level control, use `iap_update_iap_settings_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn iap_update_iap_settings(
+    client: &SimpleHttpClient,
+    args: &IapUpdateIapSettingsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IapSettings>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = iap_update_iap_settings_builder(client, &args.name, &args.updateMask)?;
+    iap_update_iap_settings_execute(builder)
+}
+
+/// POST v1/{v1Id}:validateAttributeExpression
 /// Validates that a given CEL expression conforms to IAP restrictions.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -827,10 +2992,13 @@ pub fn iap_test_iam_permissions(
 pub fn iap_validate_attribute_expression_builder(
     client: &SimpleHttpClient,
     name: &String,
-    expression: &Option<String>,
+    expression: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://iap.googleapis.com/v1/{}:validateAttributeExpression",);
+    let endpoint_url = format!(
+        "https://iap.googleapis.com/v1/{}:validateAttributeExpression",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -845,13 +3013,13 @@ pub fn iap_validate_attribute_expression_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/{v1Id}:validateAttributeExpression
+/// POST v1/{v1Id}:validateAttributeExpression
 /// Validates that a given CEL expression conforms to IAP restrictions.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -925,7 +3093,7 @@ pub fn iap_validate_attribute_expression_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/{v1Id}:validateAttributeExpression
+/// POST v1/{v1Id}:validateAttributeExpression
 /// Validates that a given CEL expression conforms to IAP restrictions.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -965,10 +3133,10 @@ pub struct IapValidateAttributeExpressionArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: expression
-    pub expression: Option<String>,
+    pub expression: Option<Option<String>>,
 }
 
-/// GET v1/{v1Id}:validateAttributeExpression
+/// POST v1/{v1Id}:validateAttributeExpression
 /// Validates that a given CEL expression conforms to IAP restrictions.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -992,4 +3160,489 @@ pub fn iap_validate_attribute_expression(
 > {
     let builder = iap_validate_attribute_expression_builder(client, &args.name, &args.expression)?;
     iap_validate_attribute_expression_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Brand
+// =============================================================================
+
+/// ResourceIdentifier implementation for Brand with IapProjectsBrandsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsCreateArgs> for Brand {
+    fn generate_resource_id(&self, input: &IapProjectsBrandsCreateArgs) -> String {
+        format!("gcp::iap::Brand/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::Brand"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Brand
+// =============================================================================
+
+/// ResourceIdentifier implementation for Brand with IapProjectsBrandsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsGetArgs> for Brand {
+    fn generate_resource_id(&self, input: &IapProjectsBrandsGetArgs) -> String {
+        format!("gcp::iap::Brand/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::Brand"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBrandsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBrandsResponse with IapProjectsBrandsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsListArgs> for ListBrandsResponse {
+    fn generate_resource_id(&self, input: &IapProjectsBrandsListArgs) -> String {
+        format!("gcp::iap::ListBrandsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::ListBrandsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IdentityAwareProxyClient
+// =============================================================================
+
+/// ResourceIdentifier implementation for IdentityAwareProxyClient with IapProjectsBrandsIdentityAwareProxyClientsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsIdentityAwareProxyClientsCreateArgs>
+    for IdentityAwareProxyClient
+{
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsBrandsIdentityAwareProxyClientsCreateArgs,
+    ) -> String {
+        format!("gcp::iap::IdentityAwareProxyClient/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::IdentityAwareProxyClient"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with IapProjectsBrandsIdentityAwareProxyClientsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsIdentityAwareProxyClientsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsBrandsIdentityAwareProxyClientsDeleteArgs,
+    ) -> String {
+        format!("gcp::iap::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IdentityAwareProxyClient
+// =============================================================================
+
+/// ResourceIdentifier implementation for IdentityAwareProxyClient with IapProjectsBrandsIdentityAwareProxyClientsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsIdentityAwareProxyClientsGetArgs>
+    for IdentityAwareProxyClient
+{
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsBrandsIdentityAwareProxyClientsGetArgs,
+    ) -> String {
+        format!("gcp::iap::IdentityAwareProxyClient/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::IdentityAwareProxyClient"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListIdentityAwareProxyClientsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListIdentityAwareProxyClientsResponse with IapProjectsBrandsIdentityAwareProxyClientsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsIdentityAwareProxyClientsListArgs>
+    for ListIdentityAwareProxyClientsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsBrandsIdentityAwareProxyClientsListArgs,
+    ) -> String {
+        format!(
+            "gcp::iap::ListIdentityAwareProxyClientsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::ListIdentityAwareProxyClientsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IdentityAwareProxyClient
+// =============================================================================
+
+/// ResourceIdentifier implementation for IdentityAwareProxyClient with IapProjectsBrandsIdentityAwareProxyClientsResetSecretArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsIdentityAwareProxyClientsResetSecretArgs>
+    for IdentityAwareProxyClient
+{
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsBrandsIdentityAwareProxyClientsResetSecretArgs,
+    ) -> String {
+        format!("gcp::iap::IdentityAwareProxyClient/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::IdentityAwareProxyClient"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TunnelDestGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for TunnelDestGroup with IapProjectsIapTunnelLocationsDestGroupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsIapTunnelLocationsDestGroupsCreateArgs> for TunnelDestGroup {
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsIapTunnelLocationsDestGroupsCreateArgs,
+    ) -> String {
+        format!("gcp::iap::TunnelDestGroup/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::TunnelDestGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with IapProjectsIapTunnelLocationsDestGroupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsIapTunnelLocationsDestGroupsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsIapTunnelLocationsDestGroupsDeleteArgs,
+    ) -> String {
+        format!("gcp::iap::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TunnelDestGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for TunnelDestGroup with IapProjectsIapTunnelLocationsDestGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsIapTunnelLocationsDestGroupsGetArgs> for TunnelDestGroup {
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsIapTunnelLocationsDestGroupsGetArgs,
+    ) -> String {
+        format!("gcp::iap::TunnelDestGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::TunnelDestGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTunnelDestGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTunnelDestGroupsResponse with IapProjectsIapTunnelLocationsDestGroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsIapTunnelLocationsDestGroupsListArgs>
+    for ListTunnelDestGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsIapTunnelLocationsDestGroupsListArgs,
+    ) -> String {
+        format!("gcp::iap::ListTunnelDestGroupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::ListTunnelDestGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TunnelDestGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for TunnelDestGroup with IapProjectsIapTunnelLocationsDestGroupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsIapTunnelLocationsDestGroupsPatchArgs> for TunnelDestGroup {
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsIapTunnelLocationsDestGroupsPatchArgs,
+    ) -> String {
+        format!("gcp::iap::TunnelDestGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::TunnelDestGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with IapGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &IapGetIamPolicyArgs) -> String {
+        format!("gcp::iap::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IapSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for IapSettings with IapGetIapSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapGetIapSettingsArgs> for IapSettings {
+    fn generate_resource_id(&self, input: &IapGetIapSettingsArgs) -> String {
+        format!("gcp::iap::IapSettings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::IapSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with IapSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &IapSetIamPolicyArgs) -> String {
+        format!("gcp::iap::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with IapTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapTestIamPermissionsArgs> for TestIamPermissionsResponse {
+    fn generate_resource_id(&self, input: &IapTestIamPermissionsArgs) -> String {
+        format!("gcp::iap::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IapSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for IapSettings with IapUpdateIapSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapUpdateIapSettingsArgs> for IapSettings {
+    fn generate_resource_id(&self, input: &IapUpdateIapSettingsArgs) -> String {
+        format!("gcp::iap::IapSettings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::IapSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ValidateIapAttributeExpressionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ValidateIapAttributeExpressionResponse with IapValidateAttributeExpressionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapValidateAttributeExpressionArgs>
+    for ValidateIapAttributeExpressionResponse
+{
+    fn generate_resource_id(&self, input: &IapValidateAttributeExpressionArgs) -> String {
+        format!(
+            "gcp::iap::ValidateIapAttributeExpressionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::iap::ValidateIapAttributeExpressionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

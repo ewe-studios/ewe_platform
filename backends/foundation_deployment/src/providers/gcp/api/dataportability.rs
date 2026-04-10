@@ -14,6 +14,7 @@
 use crate::providers::gcp::clients::dataportability::{
     dataportability_access_type_check_builder, dataportability_access_type_check_task,
     dataportability_archive_jobs_cancel_builder, dataportability_archive_jobs_cancel_task,
+    dataportability_archive_jobs_get_portability_archive_state_builder, dataportability_archive_jobs_get_portability_archive_state_task,
     dataportability_archive_jobs_retry_builder, dataportability_archive_jobs_retry_task,
     dataportability_authorization_reset_builder, dataportability_authorization_reset_task,
     dataportability_portability_archive_initiate_builder, dataportability_portability_archive_initiate_task,
@@ -23,9 +24,11 @@ use crate::providers::gcp::clients::dataportability::CancelPortabilityArchiveRes
 use crate::providers::gcp::clients::dataportability::CheckAccessTypeResponse;
 use crate::providers::gcp::clients::dataportability::Empty;
 use crate::providers::gcp::clients::dataportability::InitiatePortabilityArchiveResponse;
+use crate::providers::gcp::clients::dataportability::PortabilityArchiveState;
 use crate::providers::gcp::clients::dataportability::RetryPortabilityArchiveResponse;
 use crate::providers::gcp::clients::dataportability::DataportabilityAccessTypeCheckArgs;
 use crate::providers::gcp::clients::dataportability::DataportabilityArchiveJobsCancelArgs;
+use crate::providers::gcp::clients::dataportability::DataportabilityArchiveJobsGetPortabilityArchiveStateArgs;
 use crate::providers::gcp::clients::dataportability::DataportabilityArchiveJobsRetryArgs;
 use crate::providers::gcp::clients::dataportability::DataportabilityAuthorizationResetArgs;
 use crate::providers::gcp::clients::dataportability::DataportabilityPortabilityArchiveInitiateArgs;
@@ -153,6 +156,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Dataportability archive jobs get portability archive state.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the PortabilityArchiveState result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn dataportability_archive_jobs_get_portability_archive_state(
+        &self,
+        args: &DataportabilityArchiveJobsGetPortabilityArchiveStateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<PortabilityArchiveState, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = dataportability_archive_jobs_get_portability_archive_state_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = dataportability_archive_jobs_get_portability_archive_state_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Dataportability archive jobs retry.

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/cancelPreview
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/cancelPreview
 /// Cancels and removes the preview currently associated with the deployment.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -30,7 +30,6 @@ pub fn deploymentmanager_deployments_cancel_preview_builder(
     client: &SimpleHttpClient,
     project: &String,
     deployment: &String,
-    body: &DeploymentsCancelPreviewRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -41,15 +40,13 @@ pub fn deploymentmanager_deployments_cancel_preview_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/cancelPreview
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/cancelPreview
 /// Cancels and removes the preview currently associated with the deployment.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -123,7 +120,7 @@ pub fn deploymentmanager_deployments_cancel_preview_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/cancelPreview
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/cancelPreview
 /// Cancels and removes the preview currently associated with the deployment.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -160,11 +157,9 @@ pub struct DeploymentmanagerDeploymentsCancelPreviewArgs {
     pub project: String,
     /// Path parameter: deployment
     pub deployment: String,
-    /// Request body.
-    pub body: DeploymentsCancelPreviewRequest,
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/cancelPreview
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/cancelPreview
 /// Cancels and removes the preview currently associated with the deployment.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -186,12 +181,11 @@ pub fn deploymentmanager_deployments_cancel_preview(
         client,
         &args.project,
         &args.deployment,
-        &args.body,
     )?;
     deploymentmanager_deployments_cancel_preview_execute(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// DELETE deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
 /// Deletes a deployment and all of the resources in the deployment.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -201,8 +195,8 @@ pub fn deploymentmanager_deployments_delete_builder(
     client: &SimpleHttpClient,
     project: &String,
     deployment: &String,
-    deletePolicy: &Option<String>,
-    header_bypassBillingFilter: &Option<bool>,
+    deletePolicy: &Option<Option<String>>,
+    header_bypassBillingFilter: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -227,13 +221,13 @@ pub fn deploymentmanager_deployments_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// DELETE deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
 /// Deletes a deployment and all of the resources in the deployment.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -307,7 +301,7 @@ pub fn deploymentmanager_deployments_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// DELETE deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
 /// Deletes a deployment and all of the resources in the deployment.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -345,12 +339,12 @@ pub struct DeploymentmanagerDeploymentsDeleteArgs {
     /// Path parameter: deployment
     pub deployment: String,
     /// Query parameter: deletePolicy
-    pub deletePolicy: Option<String>,
+    pub deletePolicy: Option<Option<String>>,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<bool>,
+    pub header_bypassBillingFilter: Option<Option<String>>,
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// DELETE deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
 /// Deletes a deployment and all of the resources in the deployment.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -378,6 +372,186 @@ pub fn deploymentmanager_deployments_delete(
     deploymentmanager_deployments_delete_execute(builder)
 }
 
+/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Gets information about a specific deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `deploymentmanager_deployments_get_execute()` to send, or `deploymentmanager_deployments_get` for simplest API.
+
+pub fn deploymentmanager_deployments_get_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    deployment: &String,
+    header_bypassBillingFilter: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
+        project,
+        deployment,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = header_bypassBillingFilter.as_ref() {
+        query_parts.push(format!("header.bypassBillingFilter={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Gets information about a specific deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `deploymentmanager_deployments_get_execute()` or `deploymentmanager_deployments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn deploymentmanager_deployments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Deployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Deployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Gets information about a specific deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `deploymentmanager_deployments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `deploymentmanager_deployments_get_task()`.
+/// For the simplest API, use `deploymentmanager_deployments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn deploymentmanager_deployments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = deploymentmanager_deployments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`deploymentmanager_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<Option<String>>,
+}
+
+/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Gets information about a specific deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `deploymentmanager_deployments_get_builder()` + `deploymentmanager_deployments_get_execute()`.
+/// For task-level control, use `deploymentmanager_deployments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn deploymentmanager_deployments_get(
+    client: &SimpleHttpClient,
+    args: &DeploymentmanagerDeploymentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = deploymentmanager_deployments_get_builder(
+        client,
+        &args.project,
+        &args.deployment,
+        &args.header_bypassBillingFilter,
+    )?;
+    deploymentmanager_deployments_get_execute(builder)
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/getIamPolicy
 /// Gets the access control policy for a resource. May be empty if no such policy or resource exists.
 ///
@@ -388,8 +562,8 @@ pub fn deploymentmanager_deployments_get_iam_policy_builder(
     client: &SimpleHttpClient,
     project: &String,
     resource: &String,
-    header_bypassBillingFilter: &Option<bool>,
-    optionsRequestedPolicyVersion: &Option<i32>,
+    header_bypassBillingFilter: &Option<Option<String>>,
+    optionsRequestedPolicyVersion: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -532,9 +706,9 @@ pub struct DeploymentmanagerDeploymentsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<bool>,
+    pub header_bypassBillingFilter: Option<Option<String>>,
     /// Query parameter: optionsRequestedPolicyVersion
-    pub optionsRequestedPolicyVersion: Option<i32>,
+    pub optionsRequestedPolicyVersion: Option<Option<String>>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/getIamPolicy
@@ -565,7 +739,7 @@ pub fn deploymentmanager_deployments_get_iam_policy(
     deploymentmanager_deployments_get_iam_policy_execute(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments
+/// POST deploymentmanager/v2/projects/{project}/global/deployments
 /// Creates a deployment and all of the resources described by the deployment manifest.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -574,10 +748,9 @@ pub fn deploymentmanager_deployments_get_iam_policy(
 pub fn deploymentmanager_deployments_insert_builder(
     client: &SimpleHttpClient,
     project: &String,
-    createPolicy: &Option<String>,
-    header_bypassBillingFilter: &Option<bool>,
-    preview: &Option<bool>,
-    body: &Deployment,
+    createPolicy: &Option<Option<String>>,
+    header_bypassBillingFilter: &Option<Option<String>>,
+    preview: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -604,15 +777,13 @@ pub fn deploymentmanager_deployments_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments
+/// POST deploymentmanager/v2/projects/{project}/global/deployments
 /// Creates a deployment and all of the resources described by the deployment manifest.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -686,7 +857,7 @@ pub fn deploymentmanager_deployments_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments
+/// POST deploymentmanager/v2/projects/{project}/global/deployments
 /// Creates a deployment and all of the resources described by the deployment manifest.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -722,16 +893,14 @@ pub struct DeploymentmanagerDeploymentsInsertArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: createPolicy
-    pub createPolicy: Option<String>,
+    pub createPolicy: Option<Option<String>>,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<bool>,
+    pub header_bypassBillingFilter: Option<Option<String>>,
     /// Query parameter: preview
-    pub preview: Option<bool>,
-    /// Request body.
-    pub body: Deployment,
+    pub preview: Option<Option<String>>,
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments
+/// POST deploymentmanager/v2/projects/{project}/global/deployments
 /// Creates a deployment and all of the resources described by the deployment manifest.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -755,12 +924,412 @@ pub fn deploymentmanager_deployments_insert(
         &args.createPolicy,
         &args.header_bypassBillingFilter,
         &args.preview,
-        &args.body,
     )?;
     deploymentmanager_deployments_insert_execute(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/setIamPolicy
+/// GET deploymentmanager/v2/projects/{project}/global/deployments
+/// Lists all deployments for a given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `deploymentmanager_deployments_list_execute()` to send, or `deploymentmanager_deployments_list` for simplest API.
+
+pub fn deploymentmanager_deployments_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    filter: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments",
+        project,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET deploymentmanager/v2/projects/{project}/global/deployments
+/// Lists all deployments for a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `deploymentmanager_deployments_list_execute()` or `deploymentmanager_deployments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn deploymentmanager_deployments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeploymentsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DeploymentsListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET deploymentmanager/v2/projects/{project}/global/deployments
+/// Lists all deployments for a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `deploymentmanager_deployments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `deploymentmanager_deployments_list_task()`.
+/// For the simplest API, use `deploymentmanager_deployments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn deploymentmanager_deployments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DeploymentsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = deploymentmanager_deployments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`deploymentmanager_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET deploymentmanager/v2/projects/{project}/global/deployments
+/// Lists all deployments for a given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `deploymentmanager_deployments_list_builder()` + `deploymentmanager_deployments_list_execute()`.
+/// For task-level control, use `deploymentmanager_deployments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn deploymentmanager_deployments_list(
+    client: &SimpleHttpClient,
+    args: &DeploymentmanagerDeploymentsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DeploymentsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = deploymentmanager_deployments_list_builder(
+        client,
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+    )?;
+    deploymentmanager_deployments_list_execute(builder)
+}
+
+/// PATCH deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Patches a deployment and all of the resources described by the deployment manifest.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `deploymentmanager_deployments_patch_execute()` to send, or `deploymentmanager_deployments_patch` for simplest API.
+
+pub fn deploymentmanager_deployments_patch_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    deployment: &String,
+    createPolicy: &Option<Option<String>>,
+    deletePolicy: &Option<Option<String>>,
+    header_bypassBillingFilter: &Option<Option<String>>,
+    preview: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
+        project,
+        deployment,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = createPolicy.as_ref() {
+        query_parts.push(format!("createPolicy={}", val));
+    }
+    if let Some(val) = deletePolicy.as_ref() {
+        query_parts.push(format!("deletePolicy={}", val));
+    }
+    if let Some(val) = header_bypassBillingFilter.as_ref() {
+        query_parts.push(format!("header.bypassBillingFilter={}", val));
+    }
+    if let Some(val) = preview.as_ref() {
+        query_parts.push(format!("preview={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Patches a deployment and all of the resources described by the deployment manifest.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `deploymentmanager_deployments_patch_execute()` or `deploymentmanager_deployments_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn deploymentmanager_deployments_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Patches a deployment and all of the resources described by the deployment manifest.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `deploymentmanager_deployments_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `deploymentmanager_deployments_patch_task()`.
+/// For the simplest API, use `deploymentmanager_deployments_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn deploymentmanager_deployments_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = deploymentmanager_deployments_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`deploymentmanager_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Query parameter: createPolicy
+    pub createPolicy: Option<Option<String>>,
+    /// Query parameter: deletePolicy
+    pub deletePolicy: Option<Option<String>>,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<Option<String>>,
+    /// Query parameter: preview
+    pub preview: Option<Option<String>>,
+}
+
+/// PATCH deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Patches a deployment and all of the resources described by the deployment manifest.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `deploymentmanager_deployments_patch_builder()` + `deploymentmanager_deployments_patch_execute()`.
+/// For task-level control, use `deploymentmanager_deployments_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn deploymentmanager_deployments_patch(
+    client: &SimpleHttpClient,
+    args: &DeploymentmanagerDeploymentsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = deploymentmanager_deployments_patch_builder(
+        client,
+        &args.project,
+        &args.deployment,
+        &args.createPolicy,
+        &args.deletePolicy,
+        &args.header_bypassBillingFilter,
+        &args.preview,
+    )?;
+    deploymentmanager_deployments_patch_execute(builder)
+}
+
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{resource}/setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -770,7 +1339,6 @@ pub fn deploymentmanager_deployments_set_iam_policy_builder(
     client: &SimpleHttpClient,
     project: &String,
     resource: &String,
-    body: &GlobalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -781,15 +1349,13 @@ pub fn deploymentmanager_deployments_set_iam_policy_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/setIamPolicy
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{resource}/setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -863,7 +1429,7 @@ pub fn deploymentmanager_deployments_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/setIamPolicy
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{resource}/setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -900,11 +1466,9 @@ pub struct DeploymentmanagerDeploymentsSetIamPolicyArgs {
     pub project: String,
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GlobalSetPolicyRequest,
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/setIamPolicy
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{resource}/setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -926,12 +1490,11 @@ pub fn deploymentmanager_deployments_set_iam_policy(
         client,
         &args.project,
         &args.resource,
-        &args.body,
     )?;
     deploymentmanager_deployments_set_iam_policy_execute(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/stop
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/stop
 /// Stops an ongoing operation. This does not roll back any work that has already been completed, but prevents any new work from being started.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -941,7 +1504,6 @@ pub fn deploymentmanager_deployments_stop_builder(
     client: &SimpleHttpClient,
     project: &String,
     deployment: &String,
-    body: &DeploymentsStopRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -952,15 +1514,13 @@ pub fn deploymentmanager_deployments_stop_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/stop
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/stop
 /// Stops an ongoing operation. This does not roll back any work that has already been completed, but prevents any new work from being started.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1034,7 +1594,7 @@ pub fn deploymentmanager_deployments_stop_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/stop
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/stop
 /// Stops an ongoing operation. This does not roll back any work that has already been completed, but prevents any new work from being started.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1071,11 +1631,9 @@ pub struct DeploymentmanagerDeploymentsStopArgs {
     pub project: String,
     /// Path parameter: deployment
     pub deployment: String,
-    /// Request body.
-    pub body: DeploymentsStopRequest,
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/stop
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/stop
 /// Stops an ongoing operation. This does not roll back any work that has already been completed, but prevents any new work from being started.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1093,16 +1651,12 @@ pub fn deploymentmanager_deployments_stop(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = deploymentmanager_deployments_stop_builder(
-        client,
-        &args.project,
-        &args.deployment,
-        &args.body,
-    )?;
+    let builder =
+        deploymentmanager_deployments_stop_builder(client, &args.project, &args.deployment)?;
     deploymentmanager_deployments_stop_execute(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/testIamPermissions
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{resource}/testIamPermissions
 /// Returns permissions that a caller has on the specified resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1112,8 +1666,7 @@ pub fn deploymentmanager_deployments_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     project: &String,
     resource: &String,
-    header_bypassBillingFilter: &Option<bool>,
-    body: &TestPermissionsRequest,
+    header_bypassBillingFilter: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1135,15 +1688,13 @@ pub fn deploymentmanager_deployments_test_iam_permissions_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/testIamPermissions
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{resource}/testIamPermissions
 /// Returns permissions that a caller has on the specified resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1217,7 +1768,7 @@ pub fn deploymentmanager_deployments_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/testIamPermissions
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{resource}/testIamPermissions
 /// Returns permissions that a caller has on the specified resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1257,12 +1808,10 @@ pub struct DeploymentmanagerDeploymentsTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<bool>,
-    /// Request body.
-    pub body: TestPermissionsRequest,
+    pub header_bypassBillingFilter: Option<Option<String>>,
 }
 
-/// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/testIamPermissions
+/// POST deploymentmanager/v2/projects/{project}/global/deployments/{resource}/testIamPermissions
 /// Returns permissions that a caller has on the specified resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1287,9 +1836,209 @@ pub fn deploymentmanager_deployments_test_iam_permissions(
         &args.project,
         &args.resource,
         &args.header_bypassBillingFilter,
-        &args.body,
     )?;
     deploymentmanager_deployments_test_iam_permissions_execute(builder)
+}
+
+/// PUT deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Updates a deployment and all of the resources described by the deployment manifest.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `deploymentmanager_deployments_update_execute()` to send, or `deploymentmanager_deployments_update` for simplest API.
+
+pub fn deploymentmanager_deployments_update_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    deployment: &String,
+    createPolicy: &Option<Option<String>>,
+    deletePolicy: &Option<Option<String>>,
+    header_bypassBillingFilter: &Option<Option<String>>,
+    preview: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://deploymentmanager.googleapis.com/deploymentmanager/v2/projects/{}/global/deployments/{}",
+        project,
+        deployment,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = createPolicy.as_ref() {
+        query_parts.push(format!("createPolicy={}", val));
+    }
+    if let Some(val) = deletePolicy.as_ref() {
+        query_parts.push(format!("deletePolicy={}", val));
+    }
+    if let Some(val) = header_bypassBillingFilter.as_ref() {
+        query_parts.push(format!("header.bypassBillingFilter={}", val));
+    }
+    if let Some(val) = preview.as_ref() {
+        query_parts.push(format!("preview={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Updates a deployment and all of the resources described by the deployment manifest.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `deploymentmanager_deployments_update_execute()` or `deploymentmanager_deployments_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn deploymentmanager_deployments_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Updates a deployment and all of the resources described by the deployment manifest.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `deploymentmanager_deployments_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `deploymentmanager_deployments_update_task()`.
+/// For the simplest API, use `deploymentmanager_deployments_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `deploymentmanager_deployments_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn deploymentmanager_deployments_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = deploymentmanager_deployments_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`deploymentmanager_deployments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Query parameter: createPolicy
+    pub createPolicy: Option<Option<String>>,
+    /// Query parameter: deletePolicy
+    pub deletePolicy: Option<Option<String>>,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<Option<String>>,
+    /// Query parameter: preview
+    pub preview: Option<Option<String>>,
+}
+
+/// PUT deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
+/// Updates a deployment and all of the resources described by the deployment manifest.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `deploymentmanager_deployments_update_builder()` + `deploymentmanager_deployments_update_execute()`.
+/// For task-level control, use `deploymentmanager_deployments_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn deploymentmanager_deployments_update(
+    client: &SimpleHttpClient,
+    args: &DeploymentmanagerDeploymentsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = deploymentmanager_deployments_update_builder(
+        client,
+        &args.project,
+        &args.deployment,
+        &args.createPolicy,
+        &args.deletePolicy,
+        &args.header_bypassBillingFilter,
+        &args.preview,
+    )?;
+    deploymentmanager_deployments_update_execute(builder)
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/manifests/{manifest}
@@ -1303,7 +2052,7 @@ pub fn deploymentmanager_manifests_get_builder(
     project: &String,
     deployment: &String,
     manifest: &String,
-    header_bypassBillingFilter: &Option<bool>,
+    header_bypassBillingFilter: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1446,7 +2195,7 @@ pub struct DeploymentmanagerManifestsGetArgs {
     /// Path parameter: manifest
     pub manifest: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<bool>,
+    pub header_bypassBillingFilter: Option<Option<String>>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/manifests/{manifest}
@@ -1487,10 +2236,10 @@ pub fn deploymentmanager_manifests_list_builder(
     client: &SimpleHttpClient,
     project: &String,
     deployment: &String,
-    filter: &Option<String>,
-    maxResults: &Option<i32>,
-    orderBy: &Option<String>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1641,13 +2390,13 @@ pub struct DeploymentmanagerManifestsListArgs {
     /// Path parameter: deployment
     pub deployment: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/manifests
@@ -1692,7 +2441,7 @@ pub fn deploymentmanager_operations_get_builder(
     client: &SimpleHttpClient,
     project: &String,
     operation: &String,
-    header_bypassBillingFilter: &Option<bool>,
+    header_bypassBillingFilter: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1832,7 +2581,7 @@ pub struct DeploymentmanagerOperationsGetArgs {
     /// Path parameter: operation
     pub operation: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<bool>,
+    pub header_bypassBillingFilter: Option<Option<String>>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/operations/{operation}
@@ -1871,10 +2620,10 @@ pub fn deploymentmanager_operations_get(
 pub fn deploymentmanager_operations_list_builder(
     client: &SimpleHttpClient,
     project: &String,
-    filter: &Option<String>,
-    maxResults: &Option<i32>,
-    orderBy: &Option<String>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2022,13 +2771,13 @@ pub struct DeploymentmanagerOperationsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/operations
@@ -2073,7 +2822,7 @@ pub fn deploymentmanager_resources_get_builder(
     project: &String,
     deployment: &String,
     resource: &String,
-    header_bypassBillingFilter: &Option<bool>,
+    header_bypassBillingFilter: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2216,7 +2965,7 @@ pub struct DeploymentmanagerResourcesGetArgs {
     /// Path parameter: resource
     pub resource: String,
     /// Query parameter: header_bypassBillingFilter
-    pub header_bypassBillingFilter: Option<bool>,
+    pub header_bypassBillingFilter: Option<Option<String>>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/resources/{resource}
@@ -2257,10 +3006,10 @@ pub fn deploymentmanager_resources_list_builder(
     client: &SimpleHttpClient,
     project: &String,
     deployment: &String,
-    filter: &Option<String>,
-    maxResults: &Option<i32>,
-    orderBy: &Option<String>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2411,13 +3160,13 @@ pub struct DeploymentmanagerResourcesListArgs {
     /// Path parameter: deployment
     pub deployment: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/resources
@@ -2461,10 +3210,10 @@ pub fn deploymentmanager_resources_list(
 pub fn deploymentmanager_types_list_builder(
     client: &SimpleHttpClient,
     project: &String,
-    filter: &Option<String>,
-    maxResults: &Option<i32>,
-    orderBy: &Option<String>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2612,13 +3361,13 @@ pub struct DeploymentmanagerTypesListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET deploymentmanager/v2/projects/{project}/global/types
@@ -2650,4 +3399,477 @@ pub fn deploymentmanager_types_list(
         &args.pageToken,
     )?;
     deploymentmanager_types_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DeploymentmanagerDeploymentsCancelPreviewArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsCancelPreviewArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DeploymentmanagerDeploymentsCancelPreviewArgs,
+    ) -> String {
+        format!(
+            "gcp::deploymentmanager::Operation/{}/{}",
+            input.project, input.deployment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DeploymentmanagerDeploymentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsDeleteArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::Operation/{}/{}",
+            input.project, input.deployment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Deployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Deployment with DeploymentmanagerDeploymentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsGetArgs> for Deployment {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsGetArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::Deployment/{}/{}",
+            input.project, input.deployment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DeploymentmanagerDeploymentsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsGetIamPolicyArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::Policy/{}/{}",
+            input.project, input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DeploymentmanagerDeploymentsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsInsertArgs> for Operation {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsInsertArgs) -> String {
+        format!("gcp::deploymentmanager::Operation/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeploymentsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeploymentsListResponse with DeploymentmanagerDeploymentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsListArgs> for DeploymentsListResponse {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsListArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::DeploymentsListResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::DeploymentsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DeploymentmanagerDeploymentsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsPatchArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::Operation/{}/{}",
+            input.project, input.deployment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DeploymentmanagerDeploymentsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsSetIamPolicyArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::Policy/{}/{}",
+            input.project, input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DeploymentmanagerDeploymentsStopArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsStopArgs> for Operation {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsStopArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::Operation/{}/{}",
+            input.project, input.deployment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestPermissionsResponse with DeploymentmanagerDeploymentsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsTestIamPermissionsArgs>
+    for TestPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeploymentmanagerDeploymentsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::deploymentmanager::TestPermissionsResponse/{}/{}",
+            input.project, input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::TestPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DeploymentmanagerDeploymentsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsUpdateArgs> for Operation {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsUpdateArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::Operation/{}/{}",
+            input.project, input.deployment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Manifest
+// =============================================================================
+
+/// ResourceIdentifier implementation for Manifest with DeploymentmanagerManifestsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerManifestsGetArgs> for Manifest {
+    fn generate_resource_id(&self, input: &DeploymentmanagerManifestsGetArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::Manifest/{}/{}/{}",
+            input.project, input.deployment, input.manifest
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Manifest"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManifestsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManifestsListResponse with DeploymentmanagerManifestsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerManifestsListArgs> for ManifestsListResponse {
+    fn generate_resource_id(&self, input: &DeploymentmanagerManifestsListArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::ManifestsListResponse/{}/{}",
+            input.project, input.deployment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::ManifestsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DeploymentmanagerOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &DeploymentmanagerOperationsGetArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::Operation/{}/{}",
+            input.project, input.operation
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OperationsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OperationsListResponse with DeploymentmanagerOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerOperationsListArgs> for OperationsListResponse {
+    fn generate_resource_id(&self, input: &DeploymentmanagerOperationsListArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::OperationsListResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::OperationsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Resource
+// =============================================================================
+
+/// ResourceIdentifier implementation for Resource with DeploymentmanagerResourcesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerResourcesGetArgs> for Resource {
+    fn generate_resource_id(&self, input: &DeploymentmanagerResourcesGetArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::Resource/{}/{}/{}",
+            input.project, input.deployment, input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::Resource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResourcesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResourcesListResponse with DeploymentmanagerResourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerResourcesListArgs> for ResourcesListResponse {
+    fn generate_resource_id(&self, input: &DeploymentmanagerResourcesListArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::ResourcesListResponse/{}/{}",
+            input.project, input.deployment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::ResourcesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TypesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TypesListResponse with DeploymentmanagerTypesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerTypesListArgs> for TypesListResponse {
+    fn generate_resource_id(&self, input: &DeploymentmanagerTypesListArgs) -> String {
+        format!(
+            "gcp::deploymentmanager::TypesListResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::deploymentmanager::TypesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

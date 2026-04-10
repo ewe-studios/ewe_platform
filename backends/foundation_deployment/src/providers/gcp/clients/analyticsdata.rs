@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1beta/properties/{propertiesId}:batchRunPivotReports
+/// POST v1beta/properties/{propertiesId}:batchRunPivotReports
 /// Returns multiple pivot reports in a batch. All reports must be for the same Google Analytics property.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,23 +29,22 @@ use serde::Serialize;
 pub fn analyticsdata_properties_batch_run_pivot_reports_builder(
     client: &SimpleHttpClient,
     property: &String,
-    body: &BatchRunPivotReportsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsdata.googleapis.com/v1beta/properties/{}:batchRunPivotReports",);
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}:batchRunPivotReports",
+        property,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:batchRunPivotReports
+/// POST v1beta/properties/{propertiesId}:batchRunPivotReports
 /// Returns multiple pivot reports in a batch. All reports must be for the same Google Analytics property.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -119,7 +118,7 @@ pub fn analyticsdata_properties_batch_run_pivot_reports_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}:batchRunPivotReports
+/// POST v1beta/properties/{propertiesId}:batchRunPivotReports
 /// Returns multiple pivot reports in a batch. All reports must be for the same Google Analytics property.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -158,11 +157,9 @@ pub fn analyticsdata_properties_batch_run_pivot_reports_execute(
 pub struct AnalyticsdataPropertiesBatchRunPivotReportsArgs {
     /// Path parameter: property
     pub property: String,
-    /// Request body.
-    pub body: BatchRunPivotReportsRequest,
 }
 
-/// GET v1beta/properties/{propertiesId}:batchRunPivotReports
+/// POST v1beta/properties/{propertiesId}:batchRunPivotReports
 /// Returns multiple pivot reports in a batch. All reports must be for the same Google Analytics property.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -184,15 +181,11 @@ pub fn analyticsdata_properties_batch_run_pivot_reports(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsdata_properties_batch_run_pivot_reports_builder(
-        client,
-        &args.property,
-        &args.body,
-    )?;
+    let builder = analyticsdata_properties_batch_run_pivot_reports_builder(client, &args.property)?;
     analyticsdata_properties_batch_run_pivot_reports_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:batchRunReports
+/// POST v1beta/properties/{propertiesId}:batchRunReports
 /// Returns multiple reports in a batch. All reports must be for the same Google Analytics property.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -201,23 +194,22 @@ pub fn analyticsdata_properties_batch_run_pivot_reports(
 pub fn analyticsdata_properties_batch_run_reports_builder(
     client: &SimpleHttpClient,
     property: &String,
-    body: &BatchRunReportsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsdata.googleapis.com/v1beta/properties/{}:batchRunReports",);
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}:batchRunReports",
+        property,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:batchRunReports
+/// POST v1beta/properties/{propertiesId}:batchRunReports
 /// Returns multiple reports in a batch. All reports must be for the same Google Analytics property.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -291,7 +283,7 @@ pub fn analyticsdata_properties_batch_run_reports_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}:batchRunReports
+/// POST v1beta/properties/{propertiesId}:batchRunReports
 /// Returns multiple reports in a batch. All reports must be for the same Google Analytics property.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -328,11 +320,9 @@ pub fn analyticsdata_properties_batch_run_reports_execute(
 pub struct AnalyticsdataPropertiesBatchRunReportsArgs {
     /// Path parameter: property
     pub property: String,
-    /// Request body.
-    pub body: BatchRunReportsRequest,
 }
 
-/// GET v1beta/properties/{propertiesId}:batchRunReports
+/// POST v1beta/properties/{propertiesId}:batchRunReports
 /// Returns multiple reports in a batch. All reports must be for the same Google Analytics property.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -352,12 +342,11 @@ pub fn analyticsdata_properties_batch_run_reports(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsdata_properties_batch_run_reports_builder(client, &args.property, &args.body)?;
+    let builder = analyticsdata_properties_batch_run_reports_builder(client, &args.property)?;
     analyticsdata_properties_batch_run_reports_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:checkCompatibility
+/// POST v1beta/properties/{propertiesId}:checkCompatibility
 /// This compatibility method lists dimensions and metrics that can be added to a report request and maintain compatibility. This method fails if the request's dimensions and metrics are incompatible. In Google Analytics, reports fail if they request incompatible dimensions `and/or` metrics; in that case, you will need to remove dimensions `and/or` metrics from the incompatible report until the report is compatible. The Realtime and Core reports have different compatibility rules. This method checks compatibility for Core reports.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -366,23 +355,22 @@ pub fn analyticsdata_properties_batch_run_reports(
 pub fn analyticsdata_properties_check_compatibility_builder(
     client: &SimpleHttpClient,
     property: &String,
-    body: &CheckCompatibilityRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsdata.googleapis.com/v1beta/properties/{}:checkCompatibility",);
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}:checkCompatibility",
+        property,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:checkCompatibility
+/// POST v1beta/properties/{propertiesId}:checkCompatibility
 /// This compatibility method lists dimensions and metrics that can be added to a report request and maintain compatibility. This method fails if the request's dimensions and metrics are incompatible. In Google Analytics, reports fail if they request incompatible dimensions `and/or` metrics; in that case, you will need to remove dimensions `and/or` metrics from the incompatible report until the report is compatible. The Realtime and Core reports have different compatibility rules. This method checks compatibility for Core reports.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -456,7 +444,7 @@ pub fn analyticsdata_properties_check_compatibility_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}:checkCompatibility
+/// POST v1beta/properties/{propertiesId}:checkCompatibility
 /// This compatibility method lists dimensions and metrics that can be added to a report request and maintain compatibility. This method fails if the request's dimensions and metrics are incompatible. In Google Analytics, reports fail if they request incompatible dimensions `and/or` metrics; in that case, you will need to remove dimensions `and/or` metrics from the incompatible report until the report is compatible. The Realtime and Core reports have different compatibility rules. This method checks compatibility for Core reports.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -495,11 +483,9 @@ pub fn analyticsdata_properties_check_compatibility_execute(
 pub struct AnalyticsdataPropertiesCheckCompatibilityArgs {
     /// Path parameter: property
     pub property: String,
-    /// Request body.
-    pub body: CheckCompatibilityRequest,
 }
 
-/// GET v1beta/properties/{propertiesId}:checkCompatibility
+/// POST v1beta/properties/{propertiesId}:checkCompatibility
 /// This compatibility method lists dimensions and metrics that can be added to a report request and maintain compatibility. This method fails if the request's dimensions and metrics are incompatible. In Google Analytics, reports fail if they request incompatible dimensions `and/or` metrics; in that case, you will need to remove dimensions `and/or` metrics from the incompatible report until the report is compatible. The Realtime and Core reports have different compatibility rules. This method checks compatibility for Core reports.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -521,8 +507,7 @@ pub fn analyticsdata_properties_check_compatibility(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsdata_properties_check_compatibility_builder(client, &args.property, &args.body)?;
+    let builder = analyticsdata_properties_check_compatibility_builder(client, &args.property)?;
     analyticsdata_properties_check_compatibility_execute(builder)
 }
 
@@ -537,8 +522,10 @@ pub fn analyticsdata_properties_get_metadata_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsdata.googleapis.com/v1beta/properties/{}/metadata",);
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}/metadata",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -681,7 +668,7 @@ pub fn analyticsdata_properties_get_metadata(
     analyticsdata_properties_get_metadata_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:runPivotReport
+/// POST v1beta/properties/{propertiesId}:runPivotReport
 /// Returns a customized pivot report of your Google Analytics event data. Pivot reports are more advanced and expressive formats than regular reports. In a pivot report, dimensions are only visible if they are included in a pivot. Multiple pivots can be specified to further dissect your data.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -690,23 +677,22 @@ pub fn analyticsdata_properties_get_metadata(
 pub fn analyticsdata_properties_run_pivot_report_builder(
     client: &SimpleHttpClient,
     property: &String,
-    body: &RunPivotReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsdata.googleapis.com/v1beta/properties/{}:runPivotReport",);
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}:runPivotReport",
+        property,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:runPivotReport
+/// POST v1beta/properties/{propertiesId}:runPivotReport
 /// Returns a customized pivot report of your Google Analytics event data. Pivot reports are more advanced and expressive formats than regular reports. In a pivot report, dimensions are only visible if they are included in a pivot. Multiple pivots can be specified to further dissect your data.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -780,7 +766,7 @@ pub fn analyticsdata_properties_run_pivot_report_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}:runPivotReport
+/// POST v1beta/properties/{propertiesId}:runPivotReport
 /// Returns a customized pivot report of your Google Analytics event data. Pivot reports are more advanced and expressive formats than regular reports. In a pivot report, dimensions are only visible if they are included in a pivot. Multiple pivots can be specified to further dissect your data.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -817,11 +803,9 @@ pub fn analyticsdata_properties_run_pivot_report_execute(
 pub struct AnalyticsdataPropertiesRunPivotReportArgs {
     /// Path parameter: property
     pub property: String,
-    /// Request body.
-    pub body: RunPivotReportRequest,
 }
 
-/// GET v1beta/properties/{propertiesId}:runPivotReport
+/// POST v1beta/properties/{propertiesId}:runPivotReport
 /// Returns a customized pivot report of your Google Analytics event data. Pivot reports are more advanced and expressive formats than regular reports. In a pivot report, dimensions are only visible if they are included in a pivot. Multiple pivots can be specified to further dissect your data.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -841,12 +825,11 @@ pub fn analyticsdata_properties_run_pivot_report(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsdata_properties_run_pivot_report_builder(client, &args.property, &args.body)?;
+    let builder = analyticsdata_properties_run_pivot_report_builder(client, &args.property)?;
     analyticsdata_properties_run_pivot_report_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:runRealtimeReport
+/// POST v1beta/properties/{propertiesId}:runRealtimeReport
 /// Returns a customized report of realtime event data for your property. Events appear in realtime reports seconds after they have been sent to the Google Analytics. Realtime reports show events and usage data for the periods of time ranging from the present moment to 30 minutes ago (up to 60 minutes for Google Analytics 360 properties). For a guide to constructing realtime requests & understanding responses, see [Creating a Realtime Report](<https://developers.google.`com/analytics/devguides/reporting/data/v1/realtime-basics`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -855,23 +838,22 @@ pub fn analyticsdata_properties_run_pivot_report(
 pub fn analyticsdata_properties_run_realtime_report_builder(
     client: &SimpleHttpClient,
     property: &String,
-    body: &RunRealtimeReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsdata.googleapis.com/v1beta/properties/{}:runRealtimeReport",);
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}:runRealtimeReport",
+        property,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:runRealtimeReport
+/// POST v1beta/properties/{propertiesId}:runRealtimeReport
 /// Returns a customized report of realtime event data for your property. Events appear in realtime reports seconds after they have been sent to the Google Analytics. Realtime reports show events and usage data for the periods of time ranging from the present moment to 30 minutes ago (up to 60 minutes for Google Analytics 360 properties). For a guide to constructing realtime requests & understanding responses, see [Creating a Realtime Report](<https://developers.google.`com/analytics/devguides/reporting/data/v1/realtime-basics`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -945,7 +927,7 @@ pub fn analyticsdata_properties_run_realtime_report_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}:runRealtimeReport
+/// POST v1beta/properties/{propertiesId}:runRealtimeReport
 /// Returns a customized report of realtime event data for your property. Events appear in realtime reports seconds after they have been sent to the Google Analytics. Realtime reports show events and usage data for the periods of time ranging from the present moment to 30 minutes ago (up to 60 minutes for Google Analytics 360 properties). For a guide to constructing realtime requests & understanding responses, see [Creating a Realtime Report](<https://developers.google.`com/analytics/devguides/reporting/data/v1/realtime-basics`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -982,11 +964,9 @@ pub fn analyticsdata_properties_run_realtime_report_execute(
 pub struct AnalyticsdataPropertiesRunRealtimeReportArgs {
     /// Path parameter: property
     pub property: String,
-    /// Request body.
-    pub body: RunRealtimeReportRequest,
 }
 
-/// GET v1beta/properties/{propertiesId}:runRealtimeReport
+/// POST v1beta/properties/{propertiesId}:runRealtimeReport
 /// Returns a customized report of realtime event data for your property. Events appear in realtime reports seconds after they have been sent to the Google Analytics. Realtime reports show events and usage data for the periods of time ranging from the present moment to 30 minutes ago (up to 60 minutes for Google Analytics 360 properties). For a guide to constructing realtime requests & understanding responses, see [Creating a Realtime Report](<https://developers.google.`com/analytics/devguides/reporting/data/v1/realtime-basics`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1006,12 +986,11 @@ pub fn analyticsdata_properties_run_realtime_report(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsdata_properties_run_realtime_report_builder(client, &args.property, &args.body)?;
+    let builder = analyticsdata_properties_run_realtime_report_builder(client, &args.property)?;
     analyticsdata_properties_run_realtime_report_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:runReport
+/// POST v1beta/properties/{propertiesId}:runReport
 /// Returns a customized report of your Google Analytics event data. Reports contain statistics derived from data collected by the Google Analytics tracking code. The data returned from the API is as a table with columns for the requested dimensions and metrics. Metrics are individual measurements of user activity on your property, such as active users or event count. Dimensions break down metrics across some common criteria, such as country or event name. For a guide to constructing requests & understanding responses, see [Creating a Report](<https://developers.google.`com/analytics/devguides/reporting/data/v1/basics`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1020,23 +999,22 @@ pub fn analyticsdata_properties_run_realtime_report(
 pub fn analyticsdata_properties_run_report_builder(
     client: &SimpleHttpClient,
     property: &String,
-    body: &RunReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsdata.googleapis.com/v1beta/properties/{}:runReport",);
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}:runReport",
+        property,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:runReport
+/// POST v1beta/properties/{propertiesId}:runReport
 /// Returns a customized report of your Google Analytics event data. Reports contain statistics derived from data collected by the Google Analytics tracking code. The data returned from the API is as a table with columns for the requested dimensions and metrics. Metrics are individual measurements of user activity on your property, such as active users or event count. Dimensions break down metrics across some common criteria, such as country or event name. For a guide to constructing requests & understanding responses, see [Creating a Report](<https://developers.google.`com/analytics/devguides/reporting/data/v1/basics`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1110,7 +1088,7 @@ pub fn analyticsdata_properties_run_report_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}:runReport
+/// POST v1beta/properties/{propertiesId}:runReport
 /// Returns a customized report of your Google Analytics event data. Reports contain statistics derived from data collected by the Google Analytics tracking code. The data returned from the API is as a table with columns for the requested dimensions and metrics. Metrics are individual measurements of user activity on your property, such as active users or event count. Dimensions break down metrics across some common criteria, such as country or event name. For a guide to constructing requests & understanding responses, see [Creating a Report](<https://developers.google.`com/analytics/devguides/reporting/data/v1/basics`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1147,11 +1125,9 @@ pub fn analyticsdata_properties_run_report_execute(
 pub struct AnalyticsdataPropertiesRunReportArgs {
     /// Path parameter: property
     pub property: String,
-    /// Request body.
-    pub body: RunReportRequest,
 }
 
-/// GET v1beta/properties/{propertiesId}:runReport
+/// POST v1beta/properties/{propertiesId}:runReport
 /// Returns a customized report of your Google Analytics event data. Reports contain statistics derived from data collected by the Google Analytics tracking code. The data returned from the API is as a table with columns for the requested dimensions and metrics. Metrics are individual measurements of user activity on your property, such as active users or event count. Dimensions break down metrics across some common criteria, such as country or event name. For a guide to constructing requests & understanding responses, see [Creating a Report](<https://developers.google.`com/analytics/devguides/reporting/data/v1/basics`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1171,11 +1147,11 @@ pub fn analyticsdata_properties_run_report(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsdata_properties_run_report_builder(client, &args.property, &args.body)?;
+    let builder = analyticsdata_properties_run_report_builder(client, &args.property)?;
     analyticsdata_properties_run_report_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/audienceExports
+/// POST v1beta/properties/{propertiesId}/audienceExports
 /// Creates an audience export for later retrieval. This method quickly returns the audience export's resource name and initiates a long running asynchronous request to form an audience export. To export the users in an audience export, first create the audience export through this method and then send the audience resource name to the QueryAudienceExport method. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. An audience export is a snapshot of the users currently in the audience at the time of audience export creation. Creating audience exports for one audience on different days will return different results as users enter and exit the audience. Audiences in Google Analytics 4 allow you to segment your users in the ways that are important to your business. To learn more, see <https://support.google.`com/analytics/answer/9267572`.> Audience exports contain the users in each audience. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1184,23 +1160,22 @@ pub fn analyticsdata_properties_run_report(
 pub fn analyticsdata_properties_audience_exports_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &AudienceExport,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsdata.googleapis.com/v1beta/properties/{}/audienceExports",);
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}/audienceExports",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/audienceExports
+/// POST v1beta/properties/{propertiesId}/audienceExports
 /// Creates an audience export for later retrieval. This method quickly returns the audience export's resource name and initiates a long running asynchronous request to form an audience export. To export the users in an audience export, first create the audience export through this method and then send the audience resource name to the QueryAudienceExport method. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. An audience export is a snapshot of the users currently in the audience at the time of audience export creation. Creating audience exports for one audience on different days will return different results as users enter and exit the audience. Audiences in Google Analytics 4 allow you to segment your users in the ways that are important to your business. To learn more, see <https://support.google.`com/analytics/answer/9267572`.> Audience exports contain the users in each audience. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1274,7 +1249,7 @@ pub fn analyticsdata_properties_audience_exports_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}/audienceExports
+/// POST v1beta/properties/{propertiesId}/audienceExports
 /// Creates an audience export for later retrieval. This method quickly returns the audience export's resource name and initiates a long running asynchronous request to form an audience export. To export the users in an audience export, first create the audience export through this method and then send the audience resource name to the QueryAudienceExport method. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. An audience export is a snapshot of the users currently in the audience at the time of audience export creation. Creating audience exports for one audience on different days will return different results as users enter and exit the audience. Audiences in Google Analytics 4 allow you to segment your users in the ways that are important to your business. To learn more, see <https://support.google.`com/analytics/answer/9267572`.> Audience exports contain the users in each audience. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1309,11 +1284,9 @@ pub fn analyticsdata_properties_audience_exports_create_execute(
 pub struct AnalyticsdataPropertiesAudienceExportsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: AudienceExport,
 }
 
-/// GET v1beta/properties/{propertiesId}/audienceExports
+/// POST v1beta/properties/{propertiesId}/audienceExports
 /// Creates an audience export for later retrieval. This method quickly returns the audience export's resource name and initiates a long running asynchronous request to form an audience export. To export the users in an audience export, first create the audience export through this method and then send the audience resource name to the QueryAudienceExport method. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. An audience export is a snapshot of the users currently in the audience at the time of audience export creation. Creating audience exports for one audience on different days will return different results as users enter and exit the audience. Audiences in Google Analytics 4 allow you to segment your users in the ways that are important to your business. To learn more, see <https://support.google.`com/analytics/answer/9267572`.> Audience exports contain the users in each audience. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1331,7 +1304,824 @@ pub fn analyticsdata_properties_audience_exports_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsdata_properties_audience_exports_create_builder(client, &args.parent, &args.body)?;
+    let builder = analyticsdata_properties_audience_exports_create_builder(client, &args.parent)?;
     analyticsdata_properties_audience_exports_create_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/audienceExports/{audienceExportsId}
+/// Gets configuration metadata about a specific audience export. This method can be used to understand an audience export after it has been created. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsdata_properties_audience_exports_get_execute()` to send, or `analyticsdata_properties_audience_exports_get` for simplest API.
+
+pub fn analyticsdata_properties_audience_exports_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}/audienceExports/{audienceExportsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/audienceExports/{audienceExportsId}
+/// Gets configuration metadata about a specific audience export. This method can be used to understand an audience export after it has been created. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsdata_properties_audience_exports_get_execute()` or `analyticsdata_properties_audience_exports_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsdata_properties_audience_exports_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsdata_properties_audience_exports_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AudienceExport>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AudienceExport = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/audienceExports/{audienceExportsId}
+/// Gets configuration metadata about a specific audience export. This method can be used to understand an audience export after it has been created. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsdata_properties_audience_exports_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsdata_properties_audience_exports_get_task()`.
+/// For the simplest API, use `analyticsdata_properties_audience_exports_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsdata_properties_audience_exports_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsdata_properties_audience_exports_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AudienceExport>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsdata_properties_audience_exports_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsdata_properties_audience_exports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsdataPropertiesAudienceExportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/properties/{propertiesId}/audienceExports/{audienceExportsId}
+/// Gets configuration metadata about a specific audience export. This method can be used to understand an audience export after it has been created. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsdata_properties_audience_exports_get_builder()` + `analyticsdata_properties_audience_exports_get_execute()`.
+/// For task-level control, use `analyticsdata_properties_audience_exports_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsdata_properties_audience_exports_get(
+    client: &SimpleHttpClient,
+    args: &AnalyticsdataPropertiesAudienceExportsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AudienceExport>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsdata_properties_audience_exports_get_builder(client, &args.name)?;
+    analyticsdata_properties_audience_exports_get_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/audienceExports
+/// Lists all audience exports for a property. This method can be used for you to find and reuse existing audience exports rather than creating unnecessary new audience exports. The same audience can have multiple audience exports that represent the export of users that were in an audience on different days. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsdata_properties_audience_exports_list_execute()` to send, or `analyticsdata_properties_audience_exports_list` for simplest API.
+
+pub fn analyticsdata_properties_audience_exports_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}/audienceExports",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/audienceExports
+/// Lists all audience exports for a property. This method can be used for you to find and reuse existing audience exports rather than creating unnecessary new audience exports. The same audience can have multiple audience exports that represent the export of users that were in an audience on different days. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsdata_properties_audience_exports_list_execute()` or `analyticsdata_properties_audience_exports_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsdata_properties_audience_exports_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsdata_properties_audience_exports_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAudienceExportsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAudienceExportsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/audienceExports
+/// Lists all audience exports for a property. This method can be used for you to find and reuse existing audience exports rather than creating unnecessary new audience exports. The same audience can have multiple audience exports that represent the export of users that were in an audience on different days. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsdata_properties_audience_exports_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsdata_properties_audience_exports_list_task()`.
+/// For the simplest API, use `analyticsdata_properties_audience_exports_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsdata_properties_audience_exports_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsdata_properties_audience_exports_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAudienceExportsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsdata_properties_audience_exports_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsdata_properties_audience_exports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsdataPropertiesAudienceExportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta/properties/{propertiesId}/audienceExports
+/// Lists all audience exports for a property. This method can be used for you to find and reuse existing audience exports rather than creating unnecessary new audience exports. The same audience can have multiple audience exports that represent the export of users that were in an audience on different days. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsdata_properties_audience_exports_list_builder()` + `analyticsdata_properties_audience_exports_list_execute()`.
+/// For task-level control, use `analyticsdata_properties_audience_exports_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsdata_properties_audience_exports_list(
+    client: &SimpleHttpClient,
+    args: &AnalyticsdataPropertiesAudienceExportsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAudienceExportsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsdata_properties_audience_exports_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    analyticsdata_properties_audience_exports_list_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/audienceExports/{audienceExportsId}:query
+/// Retrieves an audience export of users. After creating an audience, the users are not immediately available for exporting. First, a request to CreateAudienceExport is necessary to create an audience export of users, and then second, this method is used to retrieve the users in the audience export. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audiences in Google Analytics 4 allow you to segment your users in the ways that are important to your business. To learn more, see <https://support.google.`com/analytics/answer/9267572`.> Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsdata_properties_audience_exports_query_execute()` to send, or `analyticsdata_properties_audience_exports_query` for simplest API.
+
+pub fn analyticsdata_properties_audience_exports_query_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsdata.googleapis.com/v1beta/properties/{}/audienceExports/{audienceExportsId}:query",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/audienceExports/{audienceExportsId}:query
+/// Retrieves an audience export of users. After creating an audience, the users are not immediately available for exporting. First, a request to CreateAudienceExport is necessary to create an audience export of users, and then second, this method is used to retrieve the users in the audience export. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audiences in Google Analytics 4 allow you to segment your users in the ways that are important to your business. To learn more, see <https://support.google.`com/analytics/answer/9267572`.> Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsdata_properties_audience_exports_query_execute()` or `analyticsdata_properties_audience_exports_query`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsdata_properties_audience_exports_query_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsdata_properties_audience_exports_query_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<QueryAudienceExportResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: QueryAudienceExportResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta/properties/{propertiesId}/audienceExports/{audienceExportsId}:query
+/// Retrieves an audience export of users. After creating an audience, the users are not immediately available for exporting. First, a request to CreateAudienceExport is necessary to create an audience export of users, and then second, this method is used to retrieve the users in the audience export. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audiences in Google Analytics 4 allow you to segment your users in the ways that are important to your business. To learn more, see <https://support.google.`com/analytics/answer/9267572`.> Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsdata_properties_audience_exports_query_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsdata_properties_audience_exports_query_task()`.
+/// For the simplest API, use `analyticsdata_properties_audience_exports_query()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsdata_properties_audience_exports_query_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsdata_properties_audience_exports_query_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<QueryAudienceExportResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsdata_properties_audience_exports_query_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsdata_properties_audience_exports_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsdataPropertiesAudienceExportsQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1beta/properties/{propertiesId}/audienceExports/{audienceExportsId}:query
+/// Retrieves an audience export of users. After creating an audience, the users are not immediately available for exporting. First, a request to CreateAudienceExport is necessary to create an audience export of users, and then second, this method is used to retrieve the users in the audience export. See [Creating an Audience Export](<https://developers.google.`com/analytics/devguides/reporting/data/v1/audience-list-basics`>) for an introduction to Audience Exports with examples. Audiences in Google Analytics 4 allow you to segment your users in the ways that are important to your business. To learn more, see <https://support.google.`com/analytics/answer/9267572`.> Audience Export APIs have some methods at alpha and other methods at beta stability. The intention is to advance methods to beta stability after some feedback and adoption. To give your feedback on this API, complete the [Google Analytics Audience Export API Feedback](<https://forms.`gle/EeA5u5LW6PEggtCEA`>) form.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsdata_properties_audience_exports_query_builder()` + `analyticsdata_properties_audience_exports_query_execute()`.
+/// For task-level control, use `analyticsdata_properties_audience_exports_query_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsdata_properties_audience_exports_query(
+    client: &SimpleHttpClient,
+    args: &AnalyticsdataPropertiesAudienceExportsQueryArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<QueryAudienceExportResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsdata_properties_audience_exports_query_builder(client, &args.name)?;
+    analyticsdata_properties_audience_exports_query_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchRunPivotReportsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchRunPivotReportsResponse with AnalyticsdataPropertiesBatchRunPivotReportsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesBatchRunPivotReportsArgs>
+    for BatchRunPivotReportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesBatchRunPivotReportsArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsdata::BatchRunPivotReportsResponse/{}",
+            input.property
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::BatchRunPivotReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchRunReportsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchRunReportsResponse with AnalyticsdataPropertiesBatchRunReportsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesBatchRunReportsArgs> for BatchRunReportsResponse {
+    fn generate_resource_id(&self, input: &AnalyticsdataPropertiesBatchRunReportsArgs) -> String {
+        format!(
+            "gcp::analyticsdata::BatchRunReportsResponse/{}",
+            input.property
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::BatchRunReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckCompatibilityResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckCompatibilityResponse with AnalyticsdataPropertiesCheckCompatibilityArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesCheckCompatibilityArgs>
+    for CheckCompatibilityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesCheckCompatibilityArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsdata::CheckCompatibilityResponse/{}",
+            input.property
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::CheckCompatibilityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Metadata
+// =============================================================================
+
+/// ResourceIdentifier implementation for Metadata with AnalyticsdataPropertiesGetMetadataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesGetMetadataArgs> for Metadata {
+    fn generate_resource_id(&self, input: &AnalyticsdataPropertiesGetMetadataArgs) -> String {
+        format!("gcp::analyticsdata::Metadata/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::Metadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RunPivotReportResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RunPivotReportResponse with AnalyticsdataPropertiesRunPivotReportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesRunPivotReportArgs> for RunPivotReportResponse {
+    fn generate_resource_id(&self, input: &AnalyticsdataPropertiesRunPivotReportArgs) -> String {
+        format!(
+            "gcp::analyticsdata::RunPivotReportResponse/{}",
+            input.property
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::RunPivotReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RunRealtimeReportResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RunRealtimeReportResponse with AnalyticsdataPropertiesRunRealtimeReportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesRunRealtimeReportArgs>
+    for RunRealtimeReportResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsdataPropertiesRunRealtimeReportArgs) -> String {
+        format!(
+            "gcp::analyticsdata::RunRealtimeReportResponse/{}",
+            input.property
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::RunRealtimeReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RunReportResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RunReportResponse with AnalyticsdataPropertiesRunReportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesRunReportArgs> for RunReportResponse {
+    fn generate_resource_id(&self, input: &AnalyticsdataPropertiesRunReportArgs) -> String {
+        format!("gcp::analyticsdata::RunReportResponse/{}", input.property)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::RunReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AnalyticsdataPropertiesAudienceExportsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesAudienceExportsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesAudienceExportsCreateArgs,
+    ) -> String {
+        format!("gcp::analyticsdata::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AudienceExport
+// =============================================================================
+
+/// ResourceIdentifier implementation for AudienceExport with AnalyticsdataPropertiesAudienceExportsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesAudienceExportsGetArgs> for AudienceExport {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesAudienceExportsGetArgs,
+    ) -> String {
+        format!("gcp::analyticsdata::AudienceExport/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::AudienceExport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAudienceExportsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAudienceExportsResponse with AnalyticsdataPropertiesAudienceExportsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesAudienceExportsListArgs>
+    for ListAudienceExportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesAudienceExportsListArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsdata::ListAudienceExportsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::ListAudienceExportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for QueryAudienceExportResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for QueryAudienceExportResponse with AnalyticsdataPropertiesAudienceExportsQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsdataPropertiesAudienceExportsQueryArgs>
+    for QueryAudienceExportResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsdataPropertiesAudienceExportsQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsdata::QueryAudienceExportResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsdata::QueryAudienceExportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

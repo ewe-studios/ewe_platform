@@ -14,12 +14,15 @@
 use crate::providers::gcp::clients::cloudprofiler::{
     cloudprofiler_projects_profiles_create_builder, cloudprofiler_projects_profiles_create_task,
     cloudprofiler_projects_profiles_create_offline_builder, cloudprofiler_projects_profiles_create_offline_task,
+    cloudprofiler_projects_profiles_list_builder, cloudprofiler_projects_profiles_list_task,
     cloudprofiler_projects_profiles_patch_builder, cloudprofiler_projects_profiles_patch_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::cloudprofiler::ListProfilesResponse;
 use crate::providers::gcp::clients::cloudprofiler::Profile;
 use crate::providers::gcp::clients::cloudprofiler::CloudprofilerProjectsProfilesCreateArgs;
 use crate::providers::gcp::clients::cloudprofiler::CloudprofilerProjectsProfilesCreateOfflineArgs;
+use crate::providers::gcp::clients::cloudprofiler::CloudprofilerProjectsProfilesListArgs;
 use crate::providers::gcp::clients::cloudprofiler::CloudprofilerProjectsProfilesPatchArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -146,6 +149,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudprofiler projects profiles list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListProfilesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudprofiler_projects_profiles_list(
+        &self,
+        args: &CloudprofilerProjectsProfilesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListProfilesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudprofiler_projects_profiles_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudprofiler_projects_profiles_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudprofiler projects profiles patch.

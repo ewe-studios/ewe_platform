@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/agentUsers/{agentUsersId}
+/// DELETE v1/agentUsers/{agentUsersId}
 /// Unlinks the given third-party user from your smart home Action. All data related to this user will be deleted. For more details on how users link their accounts, see [fulfillment and authentication](<https://developers.home.google.`com/cloud-to-cloud/primer/fulfillment`>). The third-party user's identity is passed in via the agent_user_id (see DeleteAgentUserRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,10 +29,13 @@ use serde::Serialize;
 pub fn homegraph_agent_users_delete_builder(
     client: &SimpleHttpClient,
     agentUserId: &String,
-    requestId: &Option<String>,
+    requestId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://homegraph.googleapis.com/v1/agentUsers/{}",);
+    let endpoint_url = format!(
+        "https://homegraph.googleapis.com/v1/agentUsers/{}",
+        agentUserId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -47,13 +50,13 @@ pub fn homegraph_agent_users_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/agentUsers/{agentUsersId}
+/// DELETE v1/agentUsers/{agentUsersId}
 /// Unlinks the given third-party user from your smart home Action. All data related to this user will be deleted. For more details on how users link their accounts, see [fulfillment and authentication](<https://developers.home.google.`com/cloud-to-cloud/primer/fulfillment`>). The third-party user's identity is passed in via the agent_user_id (see DeleteAgentUserRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -127,7 +130,7 @@ pub fn homegraph_agent_users_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/agentUsers/{agentUsersId}
+/// DELETE v1/agentUsers/{agentUsersId}
 /// Unlinks the given third-party user from your smart home Action. All data related to this user will be deleted. For more details on how users link their accounts, see [fulfillment and authentication](<https://developers.home.google.`com/cloud-to-cloud/primer/fulfillment`>). The third-party user's identity is passed in via the agent_user_id (see DeleteAgentUserRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -163,10 +166,10 @@ pub struct HomegraphAgentUsersDeleteArgs {
     /// Path parameter: agentUserId
     pub agentUserId: String,
     /// Query parameter: requestId
-    pub requestId: Option<String>,
+    pub requestId: Option<Option<String>>,
 }
 
-/// GET v1/agentUsers/{agentUsersId}
+/// DELETE v1/agentUsers/{agentUsersId}
 /// Unlinks the given third-party user from your smart home Action. All data related to this user will be deleted. For more details on how users link their accounts, see [fulfillment and authentication](<https://developers.home.google.`com/cloud-to-cloud/primer/fulfillment`>). The third-party user's identity is passed in via the agent_user_id (see DeleteAgentUserRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -188,7 +191,7 @@ pub fn homegraph_agent_users_delete(
     homegraph_agent_users_delete_execute(builder)
 }
 
-/// GET v1/devices:query
+/// POST v1/devices:query
 /// Gets the current states in Home Graph for the given set of the third-party user's devices. The third-party user's identity is passed in via the agent_user_id (see QueryRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -196,22 +199,19 @@ pub fn homegraph_agent_users_delete(
 
 pub fn homegraph_devices_query_builder(
     client: &SimpleHttpClient,
-    body: &QueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://homegraph.googleapis.com/v1/devices:query",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/devices:query
+/// POST v1/devices:query
 /// Gets the current states in Home Graph for the given set of the third-party user's devices. The third-party user's identity is passed in via the agent_user_id (see QueryRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -285,7 +285,7 @@ pub fn homegraph_devices_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/devices:query
+/// POST v1/devices:query
 /// Gets the current states in Home Graph for the given set of the third-party user's devices. The third-party user's identity is passed in via the agent_user_id (see QueryRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -317,14 +317,7 @@ pub fn homegraph_devices_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`homegraph_devices_query`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct HomegraphDevicesQueryArgs {
-    /// Request body.
-    pub body: QueryRequest,
-}
-
-/// GET v1/devices:query
+/// POST v1/devices:query
 /// Gets the current states in Home Graph for the given set of the third-party user's devices. The third-party user's identity is passed in via the agent_user_id (see QueryRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -337,18 +330,17 @@ pub struct HomegraphDevicesQueryArgs {
 
 pub fn homegraph_devices_query(
     client: &SimpleHttpClient,
-    args: &HomegraphDevicesQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = homegraph_devices_query_builder(client, &args.body)?;
+    let builder = homegraph_devices_query_builder(client)?;
     homegraph_devices_query_execute(builder)
 }
 
-/// GET v1/devices:reportStateAndNotification
+/// POST v1/devices:reportStateAndNotification
 /// Reports device state and optionally sends device notifications. Called by your smart home Action when the state of a third-party device changes or you need to send a notification about the device. See [Implement Report State](<https://developers.home.google.`com/cloud-to-cloud/integration/report-state`>) for more information. This method updates the device state according to its declared [traits](<https://developers.home.google.`com/cloud-to-cloud/primer/device-types-and-traits`>). Publishing a new state value outside of these traits will result in an INVALID_ARGUMENT error response. The third-party user's identity is passed in via the agent_user_id (see ReportStateAndNotificationRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -356,7 +348,6 @@ pub fn homegraph_devices_query(
 
 pub fn homegraph_devices_report_state_and_notification_builder(
     client: &SimpleHttpClient,
-    body: &ReportStateAndNotificationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -364,15 +355,13 @@ pub fn homegraph_devices_report_state_and_notification_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/devices:reportStateAndNotification
+/// POST v1/devices:reportStateAndNotification
 /// Reports device state and optionally sends device notifications. Called by your smart home Action when the state of a third-party device changes or you need to send a notification about the device. See [Implement Report State](<https://developers.home.google.`com/cloud-to-cloud/integration/report-state`>) for more information. This method updates the device state according to its declared [traits](<https://developers.home.google.`com/cloud-to-cloud/primer/device-types-and-traits`>). Publishing a new state value outside of these traits will result in an INVALID_ARGUMENT error response. The third-party user's identity is passed in via the agent_user_id (see ReportStateAndNotificationRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -446,7 +435,7 @@ pub fn homegraph_devices_report_state_and_notification_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/devices:reportStateAndNotification
+/// POST v1/devices:reportStateAndNotification
 /// Reports device state and optionally sends device notifications. Called by your smart home Action when the state of a third-party device changes or you need to send a notification about the device. See [Implement Report State](<https://developers.home.google.`com/cloud-to-cloud/integration/report-state`>) for more information. This method updates the device state according to its declared [traits](<https://developers.home.google.`com/cloud-to-cloud/primer/device-types-and-traits`>). Publishing a new state value outside of these traits will result in an INVALID_ARGUMENT error response. The third-party user's identity is passed in via the agent_user_id (see ReportStateAndNotificationRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -480,14 +469,7 @@ pub fn homegraph_devices_report_state_and_notification_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`homegraph_devices_report_state_and_notification`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct HomegraphDevicesReportStateAndNotificationArgs {
-    /// Request body.
-    pub body: ReportStateAndNotificationRequest,
-}
-
-/// GET v1/devices:reportStateAndNotification
+/// POST v1/devices:reportStateAndNotification
 /// Reports device state and optionally sends device notifications. Called by your smart home Action when the state of a third-party device changes or you need to send a notification about the device. See [Implement Report State](<https://developers.home.google.`com/cloud-to-cloud/integration/report-state`>) for more information. This method updates the device state according to its declared [traits](<https://developers.home.google.`com/cloud-to-cloud/primer/device-types-and-traits`>). Publishing a new state value outside of these traits will result in an INVALID_ARGUMENT error response. The third-party user's identity is passed in via the agent_user_id (see ReportStateAndNotificationRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -500,7 +482,6 @@ pub struct HomegraphDevicesReportStateAndNotificationArgs {
 
 pub fn homegraph_devices_report_state_and_notification(
     client: &SimpleHttpClient,
-    args: &HomegraphDevicesReportStateAndNotificationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ReportStateAndNotificationResponse>, ApiError>,
@@ -509,11 +490,11 @@ pub fn homegraph_devices_report_state_and_notification(
         + 'static,
     ApiError,
 > {
-    let builder = homegraph_devices_report_state_and_notification_builder(client, &args.body)?;
+    let builder = homegraph_devices_report_state_and_notification_builder(client)?;
     homegraph_devices_report_state_and_notification_execute(builder)
 }
 
-/// GET v1/devices:requestSync
+/// POST v1/devices:requestSync
 /// Requests Google to send an action.devices.SYNC [intent](<https://developers.home.google.`com/cloud-to-cloud/intents/sync`>) to your smart home Action to update device metadata for the given user. The third-party user's identity is passed via the agent_user_id (see RequestSyncDevicesRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -521,22 +502,19 @@ pub fn homegraph_devices_report_state_and_notification(
 
 pub fn homegraph_devices_request_sync_builder(
     client: &SimpleHttpClient,
-    body: &RequestSyncDevicesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://homegraph.googleapis.com/v1/devices:requestSync",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/devices:requestSync
+/// POST v1/devices:requestSync
 /// Requests Google to send an action.devices.SYNC [intent](<https://developers.home.google.`com/cloud-to-cloud/intents/sync`>) to your smart home Action to update device metadata for the given user. The third-party user's identity is passed via the agent_user_id (see RequestSyncDevicesRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -610,7 +588,7 @@ pub fn homegraph_devices_request_sync_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/devices:requestSync
+/// POST v1/devices:requestSync
 /// Requests Google to send an action.devices.SYNC [intent](<https://developers.home.google.`com/cloud-to-cloud/intents/sync`>) to your smart home Action to update device metadata for the given user. The third-party user's identity is passed via the agent_user_id (see RequestSyncDevicesRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -644,14 +622,7 @@ pub fn homegraph_devices_request_sync_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`homegraph_devices_request_sync`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct HomegraphDevicesRequestSyncArgs {
-    /// Request body.
-    pub body: RequestSyncDevicesRequest,
-}
-
-/// GET v1/devices:requestSync
+/// POST v1/devices:requestSync
 /// Requests Google to send an action.devices.SYNC [intent](<https://developers.home.google.`com/cloud-to-cloud/intents/sync`>) to your smart home Action to update device metadata for the given user. The third-party user's identity is passed via the agent_user_id (see RequestSyncDevicesRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -664,7 +635,6 @@ pub struct HomegraphDevicesRequestSyncArgs {
 
 pub fn homegraph_devices_request_sync(
     client: &SimpleHttpClient,
-    args: &HomegraphDevicesRequestSyncArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RequestSyncDevicesResponse>, ApiError>,
@@ -673,11 +643,11 @@ pub fn homegraph_devices_request_sync(
         + 'static,
     ApiError,
 > {
-    let builder = homegraph_devices_request_sync_builder(client, &args.body)?;
+    let builder = homegraph_devices_request_sync_builder(client)?;
     homegraph_devices_request_sync_execute(builder)
 }
 
-/// GET v1/devices:sync
+/// POST v1/devices:sync
 /// Gets all the devices associated with the given third-party user. The third-party user's identity is passed in via the agent_user_id (see SyncRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -685,22 +655,19 @@ pub fn homegraph_devices_request_sync(
 
 pub fn homegraph_devices_sync_builder(
     client: &SimpleHttpClient,
-    body: &SyncRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://homegraph.googleapis.com/v1/devices:sync",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/devices:sync
+/// POST v1/devices:sync
 /// Gets all the devices associated with the given third-party user. The third-party user's identity is passed in via the agent_user_id (see SyncRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -774,7 +741,7 @@ pub fn homegraph_devices_sync_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/devices:sync
+/// POST v1/devices:sync
 /// Gets all the devices associated with the given third-party user. The third-party user's identity is passed in via the agent_user_id (see SyncRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -806,14 +773,7 @@ pub fn homegraph_devices_sync_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`homegraph_devices_sync`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct HomegraphDevicesSyncArgs {
-    /// Request body.
-    pub body: SyncRequest,
-}
-
-/// GET v1/devices:sync
+/// POST v1/devices:sync
 /// Gets all the devices associated with the given third-party user. The third-party user's identity is passed in via the agent_user_id (see SyncRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -826,13 +786,132 @@ pub struct HomegraphDevicesSyncArgs {
 
 pub fn homegraph_devices_sync(
     client: &SimpleHttpClient,
-    args: &HomegraphDevicesSyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SyncResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = homegraph_devices_sync_builder(client, &args.body)?;
+    let builder = homegraph_devices_sync_builder(client)?;
     homegraph_devices_sync_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with HomegraphAgentUsersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HomegraphAgentUsersDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &HomegraphAgentUsersDeleteArgs) -> String {
+        format!("gcp::homegraph::Empty/{}", input.agentUserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::homegraph::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for QueryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for QueryResponse with HomegraphDevicesQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HomegraphDevicesQueryArgs> for QueryResponse {
+    fn generate_resource_id(&self, input: &HomegraphDevicesQueryArgs) -> String {
+        "gcp::homegraph::QueryResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::homegraph::QueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReportStateAndNotificationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReportStateAndNotificationResponse with HomegraphDevicesReportStateAndNotificationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HomegraphDevicesReportStateAndNotificationArgs>
+    for ReportStateAndNotificationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HomegraphDevicesReportStateAndNotificationArgs,
+    ) -> String {
+        "gcp::homegraph::ReportStateAndNotificationResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::homegraph::ReportStateAndNotificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RequestSyncDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RequestSyncDevicesResponse with HomegraphDevicesRequestSyncArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HomegraphDevicesRequestSyncArgs> for RequestSyncDevicesResponse {
+    fn generate_resource_id(&self, input: &HomegraphDevicesRequestSyncArgs) -> String {
+        "gcp::homegraph::RequestSyncDevicesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::homegraph::RequestSyncDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SyncResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SyncResponse with HomegraphDevicesSyncArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HomegraphDevicesSyncArgs> for SyncResponse {
+    fn generate_resource_id(&self, input: &HomegraphDevicesSyncArgs) -> String {
+        "gcp::homegraph::SyncResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::homegraph::SyncResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -15,14 +15,19 @@ use crate::providers::gcp::clients::firebasedatabase::{
     firebasedatabase_projects_locations_instances_create_builder, firebasedatabase_projects_locations_instances_create_task,
     firebasedatabase_projects_locations_instances_delete_builder, firebasedatabase_projects_locations_instances_delete_task,
     firebasedatabase_projects_locations_instances_disable_builder, firebasedatabase_projects_locations_instances_disable_task,
+    firebasedatabase_projects_locations_instances_get_builder, firebasedatabase_projects_locations_instances_get_task,
+    firebasedatabase_projects_locations_instances_list_builder, firebasedatabase_projects_locations_instances_list_task,
     firebasedatabase_projects_locations_instances_reenable_builder, firebasedatabase_projects_locations_instances_reenable_task,
     firebasedatabase_projects_locations_instances_undelete_builder, firebasedatabase_projects_locations_instances_undelete_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::firebasedatabase::DatabaseInstance;
+use crate::providers::gcp::clients::firebasedatabase::ListDatabaseInstancesResponse;
 use crate::providers::gcp::clients::firebasedatabase::FirebasedatabaseProjectsLocationsInstancesCreateArgs;
 use crate::providers::gcp::clients::firebasedatabase::FirebasedatabaseProjectsLocationsInstancesDeleteArgs;
 use crate::providers::gcp::clients::firebasedatabase::FirebasedatabaseProjectsLocationsInstancesDisableArgs;
+use crate::providers::gcp::clients::firebasedatabase::FirebasedatabaseProjectsLocationsInstancesGetArgs;
+use crate::providers::gcp::clients::firebasedatabase::FirebasedatabaseProjectsLocationsInstancesListArgs;
 use crate::providers::gcp::clients::firebasedatabase::FirebasedatabaseProjectsLocationsInstancesReenableArgs;
 use crate::providers::gcp::clients::firebasedatabase::FirebasedatabaseProjectsLocationsInstancesUndeleteArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -195,6 +200,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebasedatabase projects locations instances get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DatabaseInstance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebasedatabase_projects_locations_instances_get(
+        &self,
+        args: &FirebasedatabaseProjectsLocationsInstancesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DatabaseInstance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebasedatabase_projects_locations_instances_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebasedatabase_projects_locations_instances_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebasedatabase projects locations instances list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDatabaseInstancesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebasedatabase_projects_locations_instances_list(
+        &self,
+        args: &FirebasedatabaseProjectsLocationsInstancesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDatabaseInstancesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebasedatabase_projects_locations_instances_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+            &args.showDeleted,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebasedatabase_projects_locations_instances_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Firebasedatabase projects locations instances reenable.

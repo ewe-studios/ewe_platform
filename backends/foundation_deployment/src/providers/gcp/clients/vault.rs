@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/matters/{matterId}:addPermissions
+/// POST v1/matters/{matterId}:addPermissions
 /// Adds an account as a matter collaborator.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,7 +29,6 @@ use serde::Serialize;
 pub fn vault_matters_add_permissions_builder(
     client: &SimpleHttpClient,
     matterId: &String,
-    body: &AddMatterPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -39,15 +38,13 @@ pub fn vault_matters_add_permissions_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}:addPermissions
+/// POST v1/matters/{matterId}:addPermissions
 /// Adds an account as a matter collaborator.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -121,7 +118,7 @@ pub fn vault_matters_add_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}:addPermissions
+/// POST v1/matters/{matterId}:addPermissions
 /// Adds an account as a matter collaborator.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -158,11 +155,9 @@ pub fn vault_matters_add_permissions_execute(
 pub struct VaultMattersAddPermissionsArgs {
     /// Path parameter: matterId
     pub matterId: String,
-    /// Request body.
-    pub body: AddMatterPermissionsRequest,
 }
 
-/// GET v1/matters/{matterId}:addPermissions
+/// POST v1/matters/{matterId}:addPermissions
 /// Adds an account as a matter collaborator.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -182,11 +177,11 @@ pub fn vault_matters_add_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_add_permissions_builder(client, &args.matterId, &args.body)?;
+    let builder = vault_matters_add_permissions_builder(client, &args.matterId)?;
     vault_matters_add_permissions_execute(builder)
 }
 
-/// GET v1/matters/{matterId}:close
+/// POST v1/matters/{matterId}:close
 /// Closes the specified matter. Returns the matter with updated state.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -195,22 +190,19 @@ pub fn vault_matters_add_permissions(
 pub fn vault_matters_close_builder(
     client: &SimpleHttpClient,
     matterId: &String,
-    body: &CloseMatterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}:close", matterId,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}:close
+/// POST v1/matters/{matterId}:close
 /// Closes the specified matter. Returns the matter with updated state.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -284,7 +276,7 @@ pub fn vault_matters_close_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}:close
+/// POST v1/matters/{matterId}:close
 /// Closes the specified matter. Returns the matter with updated state.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -321,11 +313,9 @@ pub fn vault_matters_close_execute(
 pub struct VaultMattersCloseArgs {
     /// Path parameter: matterId
     pub matterId: String,
-    /// Request body.
-    pub body: CloseMatterRequest,
 }
 
-/// GET v1/matters/{matterId}:close
+/// POST v1/matters/{matterId}:close
 /// Closes the specified matter. Returns the matter with updated state.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -345,11 +335,11 @@ pub fn vault_matters_close(
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_close_builder(client, &args.matterId, &args.body)?;
+    let builder = vault_matters_close_builder(client, &args.matterId)?;
     vault_matters_close_execute(builder)
 }
 
-/// GET v1/matters/{matterId}:count
+/// POST v1/matters/{matterId}:count
 /// Counts the accounts processed by the specified query.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -358,22 +348,19 @@ pub fn vault_matters_close(
 pub fn vault_matters_count_builder(
     client: &SimpleHttpClient,
     matterId: &String,
-    body: &CountArtifactsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}:count", matterId,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}:count
+/// POST v1/matters/{matterId}:count
 /// Counts the accounts processed by the specified query.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -447,7 +434,7 @@ pub fn vault_matters_count_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}:count
+/// POST v1/matters/{matterId}:count
 /// Counts the accounts processed by the specified query.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -482,11 +469,9 @@ pub fn vault_matters_count_execute(
 pub struct VaultMattersCountArgs {
     /// Path parameter: matterId
     pub matterId: String,
-    /// Request body.
-    pub body: CountArtifactsRequest,
 }
 
-/// GET v1/matters/{matterId}:count
+/// POST v1/matters/{matterId}:count
 /// Counts the accounts processed by the specified query.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -504,11 +489,11 @@ pub fn vault_matters_count(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_count_builder(client, &args.matterId, &args.body)?;
+    let builder = vault_matters_count_builder(client, &args.matterId)?;
     vault_matters_count_execute(builder)
 }
 
-/// GET v1/matters
+/// POST v1/matters
 /// Creates a matter with the given name and description. The initial state is open, and the owner is the method caller. Returns the created matter with default view.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -516,22 +501,19 @@ pub fn vault_matters_count(
 
 pub fn vault_matters_create_builder(
     client: &SimpleHttpClient,
-    body: &Matter,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters
+/// POST v1/matters
 /// Creates a matter with the given name and description. The initial state is open, and the owner is the method caller. Returns the created matter with default view.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -605,7 +587,7 @@ pub fn vault_matters_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters
+/// POST v1/matters
 /// Creates a matter with the given name and description. The initial state is open, and the owner is the method caller. Returns the created matter with default view.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -635,14 +617,7 @@ pub fn vault_matters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`vault_matters_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VaultMattersCreateArgs {
-    /// Request body.
-    pub body: Matter,
-}
-
-/// GET v1/matters
+/// POST v1/matters
 /// Creates a matter with the given name and description. The initial state is open, and the owner is the method caller. Returns the created matter with default view.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -655,16 +630,15 @@ pub struct VaultMattersCreateArgs {
 
 pub fn vault_matters_create(
     client: &SimpleHttpClient,
-    args: &VaultMattersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_create_builder(client, &args.body)?;
+    let builder = vault_matters_create_builder(client)?;
     vault_matters_create_execute(builder)
 }
 
-/// GET v1/matters/{matterId}
+/// DELETE v1/matters/{matterId}
 /// Deletes the specified matter. Returns the matter with updated state.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -679,13 +653,13 @@ pub fn vault_matters_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/matters/{matterId}
+/// DELETE v1/matters/{matterId}
 /// Deletes the specified matter. Returns the matter with updated state.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -759,7 +733,7 @@ pub fn vault_matters_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}
+/// DELETE v1/matters/{matterId}
 /// Deletes the specified matter. Returns the matter with updated state.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -796,7 +770,7 @@ pub struct VaultMattersDeleteArgs {
     pub matterId: String,
 }
 
-/// GET v1/matters/{matterId}
+/// DELETE v1/matters/{matterId}
 /// Deletes the specified matter. Returns the matter with updated state.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -818,7 +792,368 @@ pub fn vault_matters_delete(
     vault_matters_delete_execute(builder)
 }
 
-/// GET v1/matters/{matterId}:removePermissions
+/// GET v1/matters/{matterId}
+/// Gets the specified matter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_get_execute()` to send, or `vault_matters_get` for simplest API.
+
+pub fn vault_matters_get_builder(
+    client: &SimpleHttpClient,
+    matterId: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}", matterId,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/matters/{matterId}
+/// Gets the specified matter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_get_execute()` or `vault_matters_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Matter>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Matter = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/matters/{matterId}
+/// Gets the specified matter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_get_task()`.
+/// For the simplest API, use `vault_matters_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vault_matters_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersGetArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/matters/{matterId}
+/// Gets the specified matter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_get_builder()` + `vault_matters_get_execute()`.
+/// For task-level control, use `vault_matters_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_get(
+    client: &SimpleHttpClient,
+    args: &VaultMattersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vault_matters_get_builder(client, &args.matterId, &args.view)?;
+    vault_matters_get_execute(builder)
+}
+
+/// GET v1/matters
+/// Lists matters the requestor has access to.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_list_execute()` to send, or `vault_matters_list` for simplest API.
+
+pub fn vault_matters_list_builder(
+    client: &SimpleHttpClient,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    state: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://vault.googleapis.com/v1/matters",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = state.as_ref() {
+        query_parts.push(format!("state={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/matters
+/// Lists matters the requestor has access to.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_list_execute()` or `vault_matters_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListMattersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListMattersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/matters
+/// Lists matters the requestor has access to.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_list_task()`.
+/// For the simplest API, use `vault_matters_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMattersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vault_matters_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: state
+    pub state: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/matters
+/// Lists matters the requestor has access to.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_list_builder()` + `vault_matters_list_execute()`.
+/// For task-level control, use `vault_matters_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_list(
+    client: &SimpleHttpClient,
+    args: &VaultMattersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListMattersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vault_matters_list_builder(
+        client,
+        &args.pageSize,
+        &args.pageToken,
+        &args.state,
+        &args.view,
+    )?;
+    vault_matters_list_execute(builder)
+}
+
+/// POST v1/matters/{matterId}:removePermissions
 /// Removes an account as a matter collaborator.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -827,7 +1162,6 @@ pub fn vault_matters_delete(
 pub fn vault_matters_remove_permissions_builder(
     client: &SimpleHttpClient,
     matterId: &String,
-    body: &RemoveMatterPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -837,15 +1171,13 @@ pub fn vault_matters_remove_permissions_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}:removePermissions
+/// POST v1/matters/{matterId}:removePermissions
 /// Removes an account as a matter collaborator.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -919,7 +1251,7 @@ pub fn vault_matters_remove_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}:removePermissions
+/// POST v1/matters/{matterId}:removePermissions
 /// Removes an account as a matter collaborator.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -954,11 +1286,9 @@ pub fn vault_matters_remove_permissions_execute(
 pub struct VaultMattersRemovePermissionsArgs {
     /// Path parameter: matterId
     pub matterId: String,
-    /// Request body.
-    pub body: RemoveMatterPermissionsRequest,
 }
 
-/// GET v1/matters/{matterId}:removePermissions
+/// POST v1/matters/{matterId}:removePermissions
 /// Removes an account as a matter collaborator.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -976,11 +1306,11 @@ pub fn vault_matters_remove_permissions(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_remove_permissions_builder(client, &args.matterId, &args.body)?;
+    let builder = vault_matters_remove_permissions_builder(client, &args.matterId)?;
     vault_matters_remove_permissions_execute(builder)
 }
 
-/// GET v1/matters/{matterId}:reopen
+/// POST v1/matters/{matterId}:reopen
 /// Reopens the specified matter. Returns the matter with updated state.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -989,7 +1319,6 @@ pub fn vault_matters_remove_permissions(
 pub fn vault_matters_reopen_builder(
     client: &SimpleHttpClient,
     matterId: &String,
-    body: &ReopenMatterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -999,15 +1328,13 @@ pub fn vault_matters_reopen_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}:reopen
+/// POST v1/matters/{matterId}:reopen
 /// Reopens the specified matter. Returns the matter with updated state.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1081,7 +1408,7 @@ pub fn vault_matters_reopen_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}:reopen
+/// POST v1/matters/{matterId}:reopen
 /// Reopens the specified matter. Returns the matter with updated state.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1118,11 +1445,9 @@ pub fn vault_matters_reopen_execute(
 pub struct VaultMattersReopenArgs {
     /// Path parameter: matterId
     pub matterId: String,
-    /// Request body.
-    pub body: ReopenMatterRequest,
 }
 
-/// GET v1/matters/{matterId}:reopen
+/// POST v1/matters/{matterId}:reopen
 /// Reopens the specified matter. Returns the matter with updated state.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1142,11 +1467,11 @@ pub fn vault_matters_reopen(
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_reopen_builder(client, &args.matterId, &args.body)?;
+    let builder = vault_matters_reopen_builder(client, &args.matterId)?;
     vault_matters_reopen_execute(builder)
 }
 
-/// GET v1/matters/{matterId}:undelete
+/// POST v1/matters/{matterId}:undelete
 /// Undeletes the specified matter. Returns the matter with updated state.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1155,7 +1480,6 @@ pub fn vault_matters_reopen(
 pub fn vault_matters_undelete_builder(
     client: &SimpleHttpClient,
     matterId: &String,
-    body: &UndeleteMatterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1165,15 +1489,13 @@ pub fn vault_matters_undelete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}:undelete
+/// POST v1/matters/{matterId}:undelete
 /// Undeletes the specified matter. Returns the matter with updated state.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1247,7 +1569,7 @@ pub fn vault_matters_undelete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}:undelete
+/// POST v1/matters/{matterId}:undelete
 /// Undeletes the specified matter. Returns the matter with updated state.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1282,11 +1604,9 @@ pub fn vault_matters_undelete_execute(
 pub struct VaultMattersUndeleteArgs {
     /// Path parameter: matterId
     pub matterId: String,
-    /// Request body.
-    pub body: UndeleteMatterRequest,
 }
 
-/// GET v1/matters/{matterId}:undelete
+/// POST v1/matters/{matterId}:undelete
 /// Undeletes the specified matter. Returns the matter with updated state.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1304,11 +1624,165 @@ pub fn vault_matters_undelete(
     impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_undelete_builder(client, &args.matterId, &args.body)?;
+    let builder = vault_matters_undelete_builder(client, &args.matterId)?;
     vault_matters_undelete_execute(builder)
 }
 
-/// GET v1/matters/{matterId}/exports
+/// PUT v1/matters/{matterId}
+/// Updates the specified matter. This updates only the name and description of the matter, identified by matter ID. Changes to any other fields are ignored. Returns the default view of the matter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_update_execute()` to send, or `vault_matters_update` for simplest API.
+
+pub fn vault_matters_update_builder(
+    client: &SimpleHttpClient,
+    matterId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}", matterId,);
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/matters/{matterId}
+/// Updates the specified matter. This updates only the name and description of the matter, identified by matter ID. Changes to any other fields are ignored. Returns the default view of the matter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_update_execute()` or `vault_matters_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Matter>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Matter = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/matters/{matterId}
+/// Updates the specified matter. This updates only the name and description of the matter, identified by matter ID. Changes to any other fields are ignored. Returns the default view of the matter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_update_task()`.
+/// For the simplest API, use `vault_matters_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vault_matters_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersUpdateArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+}
+
+/// PUT v1/matters/{matterId}
+/// Updates the specified matter. This updates only the name and description of the matter, identified by matter ID. Changes to any other fields are ignored. Returns the default view of the matter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_update_builder()` + `vault_matters_update_execute()`.
+/// For task-level control, use `vault_matters_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_update(
+    client: &SimpleHttpClient,
+    args: &VaultMattersUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Matter>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vault_matters_update_builder(client, &args.matterId)?;
+    vault_matters_update_execute(builder)
+}
+
+/// POST v1/matters/{matterId}/exports
 /// Creates an export.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1317,7 +1791,6 @@ pub fn vault_matters_undelete(
 pub fn vault_matters_exports_create_builder(
     client: &SimpleHttpClient,
     matterId: &String,
-    body: &Export,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1327,15 +1800,13 @@ pub fn vault_matters_exports_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}/exports
+/// POST v1/matters/{matterId}/exports
 /// Creates an export.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1409,7 +1880,7 @@ pub fn vault_matters_exports_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}/exports
+/// POST v1/matters/{matterId}/exports
 /// Creates an export.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1444,11 +1915,9 @@ pub fn vault_matters_exports_create_execute(
 pub struct VaultMattersExportsCreateArgs {
     /// Path parameter: matterId
     pub matterId: String,
-    /// Request body.
-    pub body: Export,
 }
 
-/// GET v1/matters/{matterId}/exports
+/// POST v1/matters/{matterId}/exports
 /// Creates an export.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1466,11 +1935,11 @@ pub fn vault_matters_exports_create(
     impl StreamIterator<D = Result<ApiResponse<Export>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_exports_create_builder(client, &args.matterId, &args.body)?;
+    let builder = vault_matters_exports_create_builder(client, &args.matterId)?;
     vault_matters_exports_create_execute(builder)
 }
 
-/// GET v1/matters/{matterId}/exports/{exportId}
+/// DELETE v1/matters/{matterId}/exports/{exportId}
 /// Deletes an export.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1489,13 +1958,13 @@ pub fn vault_matters_exports_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/matters/{matterId}/exports/{exportId}
+/// DELETE v1/matters/{matterId}/exports/{exportId}
 /// Deletes an export.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1569,7 +2038,7 @@ pub fn vault_matters_exports_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}/exports/{exportId}
+/// DELETE v1/matters/{matterId}/exports/{exportId}
 /// Deletes an export.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1608,7 +2077,7 @@ pub struct VaultMattersExportsDeleteArgs {
     pub exportId: String,
 }
 
-/// GET v1/matters/{matterId}/exports/{exportId}
+/// DELETE v1/matters/{matterId}/exports/{exportId}
 /// Deletes an export.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1630,7 +2099,353 @@ pub fn vault_matters_exports_delete(
     vault_matters_exports_delete_execute(builder)
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}:addHeldAccounts
+/// GET v1/matters/{matterId}/exports/{exportId}
+/// Gets an export.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_exports_get_execute()` to send, or `vault_matters_exports_get` for simplest API.
+
+pub fn vault_matters_exports_get_builder(
+    client: &SimpleHttpClient,
+    matterId: &String,
+    exportId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vault.googleapis.com/v1/matters/{}/exports/{}",
+        matterId, exportId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/matters/{matterId}/exports/{exportId}
+/// Gets an export.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_exports_get_execute()` or `vault_matters_exports_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_exports_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_exports_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Export>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Export = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/matters/{matterId}/exports/{exportId}
+/// Gets an export.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_exports_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_exports_get_task()`.
+/// For the simplest API, use `vault_matters_exports_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_exports_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_exports_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Export>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vault_matters_exports_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_exports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersExportsGetArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: exportId
+    pub exportId: String,
+}
+
+/// GET v1/matters/{matterId}/exports/{exportId}
+/// Gets an export.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_exports_get_builder()` + `vault_matters_exports_get_execute()`.
+/// For task-level control, use `vault_matters_exports_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_exports_get(
+    client: &SimpleHttpClient,
+    args: &VaultMattersExportsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Export>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vault_matters_exports_get_builder(client, &args.matterId, &args.exportId)?;
+    vault_matters_exports_get_execute(builder)
+}
+
+/// GET v1/matters/{matterId}/exports
+/// Lists details about the exports in the specified matter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_exports_list_execute()` to send, or `vault_matters_exports_list` for simplest API.
+
+pub fn vault_matters_exports_list_builder(
+    client: &SimpleHttpClient,
+    matterId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vault.googleapis.com/v1/matters/{}/exports",
+        matterId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/matters/{matterId}/exports
+/// Lists details about the exports in the specified matter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_exports_list_execute()` or `vault_matters_exports_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_exports_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_exports_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListExportsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListExportsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/matters/{matterId}/exports
+/// Lists details about the exports in the specified matter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_exports_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_exports_list_task()`.
+/// For the simplest API, use `vault_matters_exports_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_exports_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_exports_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListExportsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vault_matters_exports_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_exports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersExportsListArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/matters/{matterId}/exports
+/// Lists details about the exports in the specified matter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_exports_list_builder()` + `vault_matters_exports_list_execute()`.
+/// For task-level control, use `vault_matters_exports_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_exports_list(
+    client: &SimpleHttpClient,
+    args: &VaultMattersExportsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListExportsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vault_matters_exports_list_builder(
+        client,
+        &args.matterId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vault_matters_exports_list_execute(builder)
+}
+
+/// POST v1/matters/{matterId}/holds/{holdId}:addHeldAccounts
 /// Adds accounts to a hold. Returns a list of accounts that have been successfully added. Accounts can be added only to an existing account-based hold.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1640,7 +2455,6 @@ pub fn vault_matters_holds_add_held_accounts_builder(
     client: &SimpleHttpClient,
     matterId: &String,
     holdId: &String,
-    body: &AddHeldAccountsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1650,15 +2464,13 @@ pub fn vault_matters_holds_add_held_accounts_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}:addHeldAccounts
+/// POST v1/matters/{matterId}/holds/{holdId}:addHeldAccounts
 /// Adds accounts to a hold. Returns a list of accounts that have been successfully added. Accounts can be added only to an existing account-based hold.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1732,7 +2544,7 @@ pub fn vault_matters_holds_add_held_accounts_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}:addHeldAccounts
+/// POST v1/matters/{matterId}/holds/{holdId}:addHeldAccounts
 /// Adds accounts to a hold. Returns a list of accounts that have been successfully added. Accounts can be added only to an existing account-based hold.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1771,11 +2583,9 @@ pub struct VaultMattersHoldsAddHeldAccountsArgs {
     pub matterId: String,
     /// Path parameter: holdId
     pub holdId: String,
-    /// Request body.
-    pub body: AddHeldAccountsRequest,
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}:addHeldAccounts
+/// POST v1/matters/{matterId}/holds/{holdId}:addHeldAccounts
 /// Adds accounts to a hold. Returns a list of accounts that have been successfully added. Accounts can be added only to an existing account-based hold.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1795,16 +2605,12 @@ pub fn vault_matters_holds_add_held_accounts(
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_add_held_accounts_builder(
-        client,
-        &args.matterId,
-        &args.holdId,
-        &args.body,
-    )?;
+    let builder =
+        vault_matters_holds_add_held_accounts_builder(client, &args.matterId, &args.holdId)?;
     vault_matters_holds_add_held_accounts_execute(builder)
 }
 
-/// GET v1/matters/{matterId}/holds
+/// POST v1/matters/{matterId}/holds
 /// Creates a hold in the specified matter.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1813,22 +2619,19 @@ pub fn vault_matters_holds_add_held_accounts(
 pub fn vault_matters_holds_create_builder(
     client: &SimpleHttpClient,
     matterId: &String,
-    body: &Hold,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}/holds", matterId,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}/holds
+/// POST v1/matters/{matterId}/holds
 /// Creates a hold in the specified matter.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1902,7 +2705,7 @@ pub fn vault_matters_holds_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}/holds
+/// POST v1/matters/{matterId}/holds
 /// Creates a hold in the specified matter.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1937,11 +2740,9 @@ pub fn vault_matters_holds_create_execute(
 pub struct VaultMattersHoldsCreateArgs {
     /// Path parameter: matterId
     pub matterId: String,
-    /// Request body.
-    pub body: Hold,
 }
 
-/// GET v1/matters/{matterId}/holds
+/// POST v1/matters/{matterId}/holds
 /// Creates a hold in the specified matter.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1959,11 +2760,11 @@ pub fn vault_matters_holds_create(
     impl StreamIterator<D = Result<ApiResponse<Hold>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_create_builder(client, &args.matterId, &args.body)?;
+    let builder = vault_matters_holds_create_builder(client, &args.matterId)?;
     vault_matters_holds_create_execute(builder)
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}
+/// DELETE v1/matters/{matterId}/holds/{holdId}
 /// Removes the specified hold and releases the accounts or organizational unit covered by the hold. If the data is not preserved by another hold or retention rule, it might be purged.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1982,13 +2783,13 @@ pub fn vault_matters_holds_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}
+/// DELETE v1/matters/{matterId}/holds/{holdId}
 /// Removes the specified hold and releases the accounts or organizational unit covered by the hold. If the data is not preserved by another hold or retention rule, it might be purged.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2062,7 +2863,7 @@ pub fn vault_matters_holds_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}
+/// DELETE v1/matters/{matterId}/holds/{holdId}
 /// Removes the specified hold and releases the accounts or organizational unit covered by the hold. If the data is not preserved by another hold or retention rule, it might be purged.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2101,7 +2902,7 @@ pub struct VaultMattersHoldsDeleteArgs {
     pub holdId: String,
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}
+/// DELETE v1/matters/{matterId}/holds/{holdId}
 /// Removes the specified hold and releases the accounts or organizational unit covered by the hold. If the data is not preserved by another hold or retention rule, it might be purged.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2123,7 +2924,372 @@ pub fn vault_matters_holds_delete(
     vault_matters_holds_delete_execute(builder)
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}:removeHeldAccounts
+/// GET v1/matters/{matterId}/holds/{holdId}
+/// Gets the specified hold.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_holds_get_execute()` to send, or `vault_matters_holds_get` for simplest API.
+
+pub fn vault_matters_holds_get_builder(
+    client: &SimpleHttpClient,
+    matterId: &String,
+    holdId: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vault.googleapis.com/v1/matters/{}/holds/{}",
+        matterId, holdId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/matters/{matterId}/holds/{holdId}
+/// Gets the specified hold.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_holds_get_execute()` or `vault_matters_holds_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_holds_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_holds_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Hold>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Hold = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/matters/{matterId}/holds/{holdId}
+/// Gets the specified hold.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_holds_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_holds_get_task()`.
+/// For the simplest API, use `vault_matters_holds_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_holds_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_holds_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Hold>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vault_matters_holds_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_holds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsGetArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/matters/{matterId}/holds/{holdId}
+/// Gets the specified hold.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_holds_get_builder()` + `vault_matters_holds_get_execute()`.
+/// For task-level control, use `vault_matters_holds_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_holds_get(
+    client: &SimpleHttpClient,
+    args: &VaultMattersHoldsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Hold>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vault_matters_holds_get_builder(client, &args.matterId, &args.holdId, &args.view)?;
+    vault_matters_holds_get_execute(builder)
+}
+
+/// GET v1/matters/{matterId}/holds
+/// Lists the holds in a matter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_holds_list_execute()` to send, or `vault_matters_holds_list` for simplest API.
+
+pub fn vault_matters_holds_list_builder(
+    client: &SimpleHttpClient,
+    matterId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://vault.googleapis.com/v1/matters/{}/holds", matterId,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/matters/{matterId}/holds
+/// Lists the holds in a matter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_holds_list_execute()` or `vault_matters_holds_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_holds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_holds_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListHoldsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListHoldsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/matters/{matterId}/holds
+/// Lists the holds in a matter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_holds_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_holds_list_task()`.
+/// For the simplest API, use `vault_matters_holds_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_holds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_holds_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHoldsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vault_matters_holds_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_holds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsListArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/matters/{matterId}/holds
+/// Lists the holds in a matter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_holds_list_builder()` + `vault_matters_holds_list_execute()`.
+/// For task-level control, use `vault_matters_holds_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_holds_list(
+    client: &SimpleHttpClient,
+    args: &VaultMattersHoldsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHoldsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vault_matters_holds_list_builder(
+        client,
+        &args.matterId,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    vault_matters_holds_list_execute(builder)
+}
+
+/// POST v1/matters/{matterId}/holds/{holdId}:removeHeldAccounts
 /// Removes the specified accounts from a hold. Returns a list of statuses in the same order as the request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2133,7 +3299,6 @@ pub fn vault_matters_holds_remove_held_accounts_builder(
     client: &SimpleHttpClient,
     matterId: &String,
     holdId: &String,
-    body: &RemoveHeldAccountsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2143,15 +3308,13 @@ pub fn vault_matters_holds_remove_held_accounts_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}:removeHeldAccounts
+/// POST v1/matters/{matterId}/holds/{holdId}:removeHeldAccounts
 /// Removes the specified accounts from a hold. Returns a list of statuses in the same order as the request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2225,7 +3388,7 @@ pub fn vault_matters_holds_remove_held_accounts_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}:removeHeldAccounts
+/// POST v1/matters/{matterId}/holds/{holdId}:removeHeldAccounts
 /// Removes the specified accounts from a hold. Returns a list of statuses in the same order as the request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2266,11 +3429,9 @@ pub struct VaultMattersHoldsRemoveHeldAccountsArgs {
     pub matterId: String,
     /// Path parameter: holdId
     pub holdId: String,
-    /// Request body.
-    pub body: RemoveHeldAccountsRequest,
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}:removeHeldAccounts
+/// POST v1/matters/{matterId}/holds/{holdId}:removeHeldAccounts
 /// Removes the specified accounts from a hold. Returns a list of statuses in the same order as the request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2292,16 +3453,172 @@ pub fn vault_matters_holds_remove_held_accounts(
         + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_remove_held_accounts_builder(
-        client,
-        &args.matterId,
-        &args.holdId,
-        &args.body,
-    )?;
+    let builder =
+        vault_matters_holds_remove_held_accounts_builder(client, &args.matterId, &args.holdId)?;
     vault_matters_holds_remove_held_accounts_execute(builder)
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}/accounts
+/// PUT v1/matters/{matterId}/holds/{holdId}
+/// Updates the scope (organizational unit or accounts) and query parameters of a hold. You cannot add accounts to a hold that covers an organizational unit, nor can you add organizational units to a hold that covers individual accounts. If you try, the unsupported values are ignored.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_holds_update_execute()` to send, or `vault_matters_holds_update` for simplest API.
+
+pub fn vault_matters_holds_update_builder(
+    client: &SimpleHttpClient,
+    matterId: &String,
+    holdId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vault.googleapis.com/v1/matters/{}/holds/{}",
+        matterId, holdId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/matters/{matterId}/holds/{holdId}
+/// Updates the scope (organizational unit or accounts) and query parameters of a hold. You cannot add accounts to a hold that covers an organizational unit, nor can you add organizational units to a hold that covers individual accounts. If you try, the unsupported values are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_holds_update_execute()` or `vault_matters_holds_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_holds_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_holds_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Hold>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Hold = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/matters/{matterId}/holds/{holdId}
+/// Updates the scope (organizational unit or accounts) and query parameters of a hold. You cannot add accounts to a hold that covers an organizational unit, nor can you add organizational units to a hold that covers individual accounts. If you try, the unsupported values are ignored.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_holds_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_holds_update_task()`.
+/// For the simplest API, use `vault_matters_holds_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_holds_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_holds_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Hold>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vault_matters_holds_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_holds_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsUpdateArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+}
+
+/// PUT v1/matters/{matterId}/holds/{holdId}
+/// Updates the scope (organizational unit or accounts) and query parameters of a hold. You cannot add accounts to a hold that covers an organizational unit, nor can you add organizational units to a hold that covers individual accounts. If you try, the unsupported values are ignored.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_holds_update_builder()` + `vault_matters_holds_update_execute()`.
+/// For task-level control, use `vault_matters_holds_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_holds_update(
+    client: &SimpleHttpClient,
+    args: &VaultMattersHoldsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Hold>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vault_matters_holds_update_builder(client, &args.matterId, &args.holdId)?;
+    vault_matters_holds_update_execute(builder)
+}
+
+/// POST v1/matters/{matterId}/holds/{holdId}/accounts
 /// Adds an account to a hold. Accounts can be added only to a hold that does not have an organizational unit set. If you try to add an account to an organizational unit-based hold, an error is returned.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2311,7 +3628,6 @@ pub fn vault_matters_holds_accounts_create_builder(
     client: &SimpleHttpClient,
     matterId: &String,
     holdId: &String,
-    body: &HeldAccount,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2321,15 +3637,13 @@ pub fn vault_matters_holds_accounts_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}/accounts
+/// POST v1/matters/{matterId}/holds/{holdId}/accounts
 /// Adds an account to a hold. Accounts can be added only to a hold that does not have an organizational unit set. If you try to add an account to an organizational unit-based hold, an error is returned.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2403,7 +3717,7 @@ pub fn vault_matters_holds_accounts_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}/accounts
+/// POST v1/matters/{matterId}/holds/{holdId}/accounts
 /// Adds an account to a hold. Accounts can be added only to a hold that does not have an organizational unit set. If you try to add an account to an organizational unit-based hold, an error is returned.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2440,11 +3754,9 @@ pub struct VaultMattersHoldsAccountsCreateArgs {
     pub matterId: String,
     /// Path parameter: holdId
     pub holdId: String,
-    /// Request body.
-    pub body: HeldAccount,
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}/accounts
+/// POST v1/matters/{matterId}/holds/{holdId}/accounts
 /// Adds an account to a hold. Accounts can be added only to a hold that does not have an organizational unit set. If you try to add an account to an organizational unit-based hold, an error is returned.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2462,16 +3774,12 @@ pub fn vault_matters_holds_accounts_create(
     impl StreamIterator<D = Result<ApiResponse<HeldAccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_holds_accounts_create_builder(
-        client,
-        &args.matterId,
-        &args.holdId,
-        &args.body,
-    )?;
+    let builder =
+        vault_matters_holds_accounts_create_builder(client, &args.matterId, &args.holdId)?;
     vault_matters_holds_accounts_create_execute(builder)
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}/accounts/{accountId}
+/// DELETE v1/matters/{matterId}/holds/{holdId}/accounts/{accountId}
 /// Removes an account from a hold.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2491,13 +3799,13 @@ pub fn vault_matters_holds_accounts_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}/accounts/{accountId}
+/// DELETE v1/matters/{matterId}/holds/{holdId}/accounts/{accountId}
 /// Removes an account from a hold.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2571,7 +3879,7 @@ pub fn vault_matters_holds_accounts_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}/accounts/{accountId}
+/// DELETE v1/matters/{matterId}/holds/{holdId}/accounts/{accountId}
 /// Removes an account from a hold.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2612,7 +3920,7 @@ pub struct VaultMattersHoldsAccountsDeleteArgs {
     pub accountId: String,
 }
 
-/// GET v1/matters/{matterId}/holds/{holdId}/accounts/{accountId}
+/// DELETE v1/matters/{matterId}/holds/{holdId}/accounts/{accountId}
 /// Removes an account from a hold.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2639,7 +3947,171 @@ pub fn vault_matters_holds_accounts_delete(
     vault_matters_holds_accounts_delete_execute(builder)
 }
 
-/// GET v1/matters/{matterId}/savedQueries
+/// GET v1/matters/{matterId}/holds/{holdId}/accounts
+/// Lists the accounts covered by a hold. This can list only individually-specified accounts covered by the hold. If the hold covers an organizational unit, use the [Admin SDK](<https://developers.google.`com/admin-sdk/`>). to list the members of the organizational unit on hold.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_holds_accounts_list_execute()` to send, or `vault_matters_holds_accounts_list` for simplest API.
+
+pub fn vault_matters_holds_accounts_list_builder(
+    client: &SimpleHttpClient,
+    matterId: &String,
+    holdId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vault.googleapis.com/v1/matters/{}/holds/{}/accounts",
+        matterId, holdId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/matters/{matterId}/holds/{holdId}/accounts
+/// Lists the accounts covered by a hold. This can list only individually-specified accounts covered by the hold. If the hold covers an organizational unit, use the [Admin SDK](<https://developers.google.`com/admin-sdk/`>). to list the members of the organizational unit on hold.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_holds_accounts_list_execute()` or `vault_matters_holds_accounts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_holds_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_holds_accounts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListHeldAccountsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListHeldAccountsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/matters/{matterId}/holds/{holdId}/accounts
+/// Lists the accounts covered by a hold. This can list only individually-specified accounts covered by the hold. If the hold covers an organizational unit, use the [Admin SDK](<https://developers.google.`com/admin-sdk/`>). to list the members of the organizational unit on hold.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_holds_accounts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_holds_accounts_list_task()`.
+/// For the simplest API, use `vault_matters_holds_accounts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_holds_accounts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_holds_accounts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHeldAccountsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vault_matters_holds_accounts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_holds_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersHoldsAccountsListArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: holdId
+    pub holdId: String,
+}
+
+/// GET v1/matters/{matterId}/holds/{holdId}/accounts
+/// Lists the accounts covered by a hold. This can list only individually-specified accounts covered by the hold. If the hold covers an organizational unit, use the [Admin SDK](<https://developers.google.`com/admin-sdk/`>). to list the members of the organizational unit on hold.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_holds_accounts_list_builder()` + `vault_matters_holds_accounts_list_execute()`.
+/// For task-level control, use `vault_matters_holds_accounts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_holds_accounts_list(
+    client: &SimpleHttpClient,
+    args: &VaultMattersHoldsAccountsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHeldAccountsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vault_matters_holds_accounts_list_builder(client, &args.matterId, &args.holdId)?;
+    vault_matters_holds_accounts_list_execute(builder)
+}
+
+/// POST v1/matters/{matterId}/savedQueries
 /// Creates a saved query.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2648,7 +4120,6 @@ pub fn vault_matters_holds_accounts_delete(
 pub fn vault_matters_saved_queries_create_builder(
     client: &SimpleHttpClient,
     matterId: &String,
-    body: &SavedQuery,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2658,15 +4129,13 @@ pub fn vault_matters_saved_queries_create_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/matters/{matterId}/savedQueries
+/// POST v1/matters/{matterId}/savedQueries
 /// Creates a saved query.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2740,7 +4209,7 @@ pub fn vault_matters_saved_queries_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}/savedQueries
+/// POST v1/matters/{matterId}/savedQueries
 /// Creates a saved query.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2775,11 +4244,9 @@ pub fn vault_matters_saved_queries_create_execute(
 pub struct VaultMattersSavedQueriesCreateArgs {
     /// Path parameter: matterId
     pub matterId: String,
-    /// Request body.
-    pub body: SavedQuery,
 }
 
-/// GET v1/matters/{matterId}/savedQueries
+/// POST v1/matters/{matterId}/savedQueries
 /// Creates a saved query.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2797,11 +4264,11 @@ pub fn vault_matters_saved_queries_create(
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_matters_saved_queries_create_builder(client, &args.matterId, &args.body)?;
+    let builder = vault_matters_saved_queries_create_builder(client, &args.matterId)?;
     vault_matters_saved_queries_create_execute(builder)
 }
 
-/// GET v1/matters/{matterId}/savedQueries/{savedQueryId}
+/// DELETE v1/matters/{matterId}/savedQueries/{savedQueryId}
 /// Deletes the specified saved query.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2820,13 +4287,13 @@ pub fn vault_matters_saved_queries_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/matters/{matterId}/savedQueries/{savedQueryId}
+/// DELETE v1/matters/{matterId}/savedQueries/{savedQueryId}
 /// Deletes the specified saved query.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2900,7 +4367,7 @@ pub fn vault_matters_saved_queries_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/matters/{matterId}/savedQueries/{savedQueryId}
+/// DELETE v1/matters/{matterId}/savedQueries/{savedQueryId}
 /// Deletes the specified saved query.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2939,7 +4406,7 @@ pub struct VaultMattersSavedQueriesDeleteArgs {
     pub savedQueryId: String,
 }
 
-/// GET v1/matters/{matterId}/savedQueries/{savedQueryId}
+/// DELETE v1/matters/{matterId}/savedQueries/{savedQueryId}
 /// Deletes the specified saved query.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2962,7 +4429,354 @@ pub fn vault_matters_saved_queries_delete(
     vault_matters_saved_queries_delete_execute(builder)
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// GET v1/matters/{matterId}/savedQueries/{savedQueryId}
+/// Retrieves the specified saved query.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_saved_queries_get_execute()` to send, or `vault_matters_saved_queries_get` for simplest API.
+
+pub fn vault_matters_saved_queries_get_builder(
+    client: &SimpleHttpClient,
+    matterId: &String,
+    savedQueryId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vault.googleapis.com/v1/matters/{}/savedQueries/{}",
+        matterId, savedQueryId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/matters/{matterId}/savedQueries/{savedQueryId}
+/// Retrieves the specified saved query.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_saved_queries_get_execute()` or `vault_matters_saved_queries_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_saved_queries_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_saved_queries_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SavedQuery>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SavedQuery = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/matters/{matterId}/savedQueries/{savedQueryId}
+/// Retrieves the specified saved query.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_saved_queries_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_saved_queries_get_task()`.
+/// For the simplest API, use `vault_matters_saved_queries_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_saved_queries_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_saved_queries_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vault_matters_saved_queries_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_saved_queries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersSavedQueriesGetArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Path parameter: savedQueryId
+    pub savedQueryId: String,
+}
+
+/// GET v1/matters/{matterId}/savedQueries/{savedQueryId}
+/// Retrieves the specified saved query.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_saved_queries_get_builder()` + `vault_matters_saved_queries_get_execute()`.
+/// For task-level control, use `vault_matters_saved_queries_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_saved_queries_get(
+    client: &SimpleHttpClient,
+    args: &VaultMattersSavedQueriesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vault_matters_saved_queries_get_builder(client, &args.matterId, &args.savedQueryId)?;
+    vault_matters_saved_queries_get_execute(builder)
+}
+
+/// GET v1/matters/{matterId}/savedQueries
+/// Lists the saved queries in a matter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_matters_saved_queries_list_execute()` to send, or `vault_matters_saved_queries_list` for simplest API.
+
+pub fn vault_matters_saved_queries_list_builder(
+    client: &SimpleHttpClient,
+    matterId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vault.googleapis.com/v1/matters/{}/savedQueries",
+        matterId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/matters/{matterId}/savedQueries
+/// Lists the saved queries in a matter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_matters_saved_queries_list_execute()` or `vault_matters_saved_queries_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_saved_queries_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_saved_queries_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSavedQueriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSavedQueriesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/matters/{matterId}/savedQueries
+/// Lists the saved queries in a matter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_matters_saved_queries_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_matters_saved_queries_list_task()`.
+/// For the simplest API, use `vault_matters_saved_queries_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_matters_saved_queries_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_matters_saved_queries_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSavedQueriesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vault_matters_saved_queries_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_matters_saved_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultMattersSavedQueriesListArgs {
+    /// Path parameter: matterId
+    pub matterId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/matters/{matterId}/savedQueries
+/// Lists the saved queries in a matter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_matters_saved_queries_list_builder()` + `vault_matters_saved_queries_list_execute()`.
+/// For task-level control, use `vault_matters_saved_queries_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_matters_saved_queries_list(
+    client: &SimpleHttpClient,
+    args: &VaultMattersSavedQueriesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSavedQueriesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vault_matters_saved_queries_list_builder(
+        client,
+        &args.matterId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vault_matters_saved_queries_list_execute(builder)
+}
+
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2971,22 +4785,19 @@ pub fn vault_matters_saved_queries_delete(
 pub fn vault_operations_cancel_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://vault.googleapis.com/v1/operations/{}:cancel",);
+    let endpoint_url = format!("https://vault.googleapis.com/v1/operations/{}:cancel", name,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3060,7 +4871,7 @@ pub fn vault_operations_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3095,11 +4906,9 @@ pub fn vault_operations_cancel_execute(
 pub struct VaultOperationsCancelArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: CancelOperationRequest,
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3117,11 +4926,11 @@ pub fn vault_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vault_operations_cancel_builder(client, &args.name, &args.body)?;
+    let builder = vault_operations_cancel_builder(client, &args.name)?;
     vault_operations_cancel_execute(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3132,17 +4941,17 @@ pub fn vault_operations_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://vault.googleapis.com/v1/operations/{}",);
+    let endpoint_url = format!("https://vault.googleapis.com/v1/operations/{}", name,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3216,7 +5025,7 @@ pub fn vault_operations_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3253,7 +5062,7 @@ pub struct VaultOperationsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3273,4 +5082,1131 @@ pub fn vault_operations_delete(
 > {
     let builder = vault_operations_delete_builder(client, &args.name)?;
     vault_operations_delete_execute(builder)
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_operations_get_execute()` to send, or `vault_operations_get` for simplest API.
+
+pub fn vault_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://vault.googleapis.com/v1/operations/{}", name,);
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_operations_get_execute()` or `vault_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_operations_get_task()`.
+/// For the simplest API, use `vault_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vault_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_operations_get_builder()` + `vault_operations_get_execute()`.
+/// For task-level control, use `vault_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_operations_get(
+    client: &SimpleHttpClient,
+    args: &VaultOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vault_operations_get_builder(client, &args.name)?;
+    vault_operations_get_execute(builder)
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vault_operations_list_execute()` to send, or `vault_operations_list` for simplest API.
+
+pub fn vault_operations_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://vault.googleapis.com/v1/operations",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vault_operations_list_execute()` or `vault_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vault_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vault_operations_list_task()`.
+/// For the simplest API, use `vault_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vault_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vault_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vault_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vault_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VaultOperationsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vault_operations_list_builder()` + `vault_operations_list_execute()`.
+/// For task-level control, use `vault_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vault_operations_list(
+    client: &SimpleHttpClient,
+    args: &VaultOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vault_operations_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    vault_operations_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MatterPermission
+// =============================================================================
+
+/// ResourceIdentifier implementation for MatterPermission with VaultMattersAddPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersAddPermissionsArgs> for MatterPermission {
+    fn generate_resource_id(&self, input: &VaultMattersAddPermissionsArgs) -> String {
+        format!("gcp::vault::MatterPermission/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::MatterPermission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CloseMatterResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CloseMatterResponse with VaultMattersCloseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersCloseArgs> for CloseMatterResponse {
+    fn generate_resource_id(&self, input: &VaultMattersCloseArgs) -> String {
+        format!("gcp::vault::CloseMatterResponse/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::CloseMatterResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VaultMattersCountArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersCountArgs> for Operation {
+    fn generate_resource_id(&self, input: &VaultMattersCountArgs) -> String {
+        format!("gcp::vault::Operation/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Matter
+// =============================================================================
+
+/// ResourceIdentifier implementation for Matter with VaultMattersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersCreateArgs> for Matter {
+    fn generate_resource_id(&self, input: &VaultMattersCreateArgs) -> String {
+        "gcp::vault::Matter".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Matter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Matter
+// =============================================================================
+
+/// ResourceIdentifier implementation for Matter with VaultMattersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersDeleteArgs> for Matter {
+    fn generate_resource_id(&self, input: &VaultMattersDeleteArgs) -> String {
+        format!("gcp::vault::Matter/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Matter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Matter
+// =============================================================================
+
+/// ResourceIdentifier implementation for Matter with VaultMattersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersGetArgs> for Matter {
+    fn generate_resource_id(&self, input: &VaultMattersGetArgs) -> String {
+        format!("gcp::vault::Matter/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Matter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListMattersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListMattersResponse with VaultMattersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersListArgs> for ListMattersResponse {
+    fn generate_resource_id(&self, input: &VaultMattersListArgs) -> String {
+        "gcp::vault::ListMattersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::ListMattersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VaultMattersRemovePermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersRemovePermissionsArgs> for Empty {
+    fn generate_resource_id(&self, input: &VaultMattersRemovePermissionsArgs) -> String {
+        format!("gcp::vault::Empty/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReopenMatterResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReopenMatterResponse with VaultMattersReopenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersReopenArgs> for ReopenMatterResponse {
+    fn generate_resource_id(&self, input: &VaultMattersReopenArgs) -> String {
+        format!("gcp::vault::ReopenMatterResponse/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::ReopenMatterResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Matter
+// =============================================================================
+
+/// ResourceIdentifier implementation for Matter with VaultMattersUndeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersUndeleteArgs> for Matter {
+    fn generate_resource_id(&self, input: &VaultMattersUndeleteArgs) -> String {
+        format!("gcp::vault::Matter/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Matter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Matter
+// =============================================================================
+
+/// ResourceIdentifier implementation for Matter with VaultMattersUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersUpdateArgs> for Matter {
+    fn generate_resource_id(&self, input: &VaultMattersUpdateArgs) -> String {
+        format!("gcp::vault::Matter/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Matter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Export
+// =============================================================================
+
+/// ResourceIdentifier implementation for Export with VaultMattersExportsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersExportsCreateArgs> for Export {
+    fn generate_resource_id(&self, input: &VaultMattersExportsCreateArgs) -> String {
+        format!("gcp::vault::Export/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Export"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VaultMattersExportsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersExportsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &VaultMattersExportsDeleteArgs) -> String {
+        format!("gcp::vault::Empty/{}/{}", input.matterId, input.exportId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Export
+// =============================================================================
+
+/// ResourceIdentifier implementation for Export with VaultMattersExportsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersExportsGetArgs> for Export {
+    fn generate_resource_id(&self, input: &VaultMattersExportsGetArgs) -> String {
+        format!("gcp::vault::Export/{}/{}", input.matterId, input.exportId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Export"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListExportsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListExportsResponse with VaultMattersExportsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersExportsListArgs> for ListExportsResponse {
+    fn generate_resource_id(&self, input: &VaultMattersExportsListArgs) -> String {
+        format!("gcp::vault::ListExportsResponse/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::ListExportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AddHeldAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AddHeldAccountsResponse with VaultMattersHoldsAddHeldAccountsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersHoldsAddHeldAccountsArgs> for AddHeldAccountsResponse {
+    fn generate_resource_id(&self, input: &VaultMattersHoldsAddHeldAccountsArgs) -> String {
+        format!(
+            "gcp::vault::AddHeldAccountsResponse/{}/{}",
+            input.matterId, input.holdId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::AddHeldAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Hold
+// =============================================================================
+
+/// ResourceIdentifier implementation for Hold with VaultMattersHoldsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersHoldsCreateArgs> for Hold {
+    fn generate_resource_id(&self, input: &VaultMattersHoldsCreateArgs) -> String {
+        format!("gcp::vault::Hold/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Hold"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VaultMattersHoldsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersHoldsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &VaultMattersHoldsDeleteArgs) -> String {
+        format!("gcp::vault::Empty/{}/{}", input.matterId, input.holdId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Hold
+// =============================================================================
+
+/// ResourceIdentifier implementation for Hold with VaultMattersHoldsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersHoldsGetArgs> for Hold {
+    fn generate_resource_id(&self, input: &VaultMattersHoldsGetArgs) -> String {
+        format!("gcp::vault::Hold/{}/{}", input.matterId, input.holdId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Hold"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListHoldsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListHoldsResponse with VaultMattersHoldsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersHoldsListArgs> for ListHoldsResponse {
+    fn generate_resource_id(&self, input: &VaultMattersHoldsListArgs) -> String {
+        format!("gcp::vault::ListHoldsResponse/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::ListHoldsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RemoveHeldAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RemoveHeldAccountsResponse with VaultMattersHoldsRemoveHeldAccountsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersHoldsRemoveHeldAccountsArgs> for RemoveHeldAccountsResponse {
+    fn generate_resource_id(&self, input: &VaultMattersHoldsRemoveHeldAccountsArgs) -> String {
+        format!(
+            "gcp::vault::RemoveHeldAccountsResponse/{}/{}",
+            input.matterId, input.holdId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::RemoveHeldAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Hold
+// =============================================================================
+
+/// ResourceIdentifier implementation for Hold with VaultMattersHoldsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersHoldsUpdateArgs> for Hold {
+    fn generate_resource_id(&self, input: &VaultMattersHoldsUpdateArgs) -> String {
+        format!("gcp::vault::Hold/{}/{}", input.matterId, input.holdId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Hold"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HeldAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for HeldAccount with VaultMattersHoldsAccountsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersHoldsAccountsCreateArgs> for HeldAccount {
+    fn generate_resource_id(&self, input: &VaultMattersHoldsAccountsCreateArgs) -> String {
+        format!(
+            "gcp::vault::HeldAccount/{}/{}",
+            input.matterId, input.holdId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::HeldAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VaultMattersHoldsAccountsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersHoldsAccountsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &VaultMattersHoldsAccountsDeleteArgs) -> String {
+        format!(
+            "gcp::vault::Empty/{}/{}/{}",
+            input.matterId, input.holdId, input.accountId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListHeldAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListHeldAccountsResponse with VaultMattersHoldsAccountsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersHoldsAccountsListArgs> for ListHeldAccountsResponse {
+    fn generate_resource_id(&self, input: &VaultMattersHoldsAccountsListArgs) -> String {
+        format!(
+            "gcp::vault::ListHeldAccountsResponse/{}/{}",
+            input.matterId, input.holdId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::ListHeldAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SavedQuery
+// =============================================================================
+
+/// ResourceIdentifier implementation for SavedQuery with VaultMattersSavedQueriesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersSavedQueriesCreateArgs> for SavedQuery {
+    fn generate_resource_id(&self, input: &VaultMattersSavedQueriesCreateArgs) -> String {
+        format!("gcp::vault::SavedQuery/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::SavedQuery"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VaultMattersSavedQueriesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersSavedQueriesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &VaultMattersSavedQueriesDeleteArgs) -> String {
+        format!(
+            "gcp::vault::Empty/{}/{}",
+            input.matterId, input.savedQueryId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SavedQuery
+// =============================================================================
+
+/// ResourceIdentifier implementation for SavedQuery with VaultMattersSavedQueriesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersSavedQueriesGetArgs> for SavedQuery {
+    fn generate_resource_id(&self, input: &VaultMattersSavedQueriesGetArgs) -> String {
+        format!(
+            "gcp::vault::SavedQuery/{}/{}",
+            input.matterId, input.savedQueryId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::SavedQuery"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSavedQueriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSavedQueriesResponse with VaultMattersSavedQueriesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultMattersSavedQueriesListArgs> for ListSavedQueriesResponse {
+    fn generate_resource_id(&self, input: &VaultMattersSavedQueriesListArgs) -> String {
+        format!("gcp::vault::ListSavedQueriesResponse/{}", input.matterId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::ListSavedQueriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VaultOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &VaultOperationsCancelArgs) -> String {
+        format!("gcp::vault::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VaultOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &VaultOperationsDeleteArgs) -> String {
+        format!("gcp::vault::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VaultOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &VaultOperationsGetArgs) -> String {
+        format!("gcp::vault::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with VaultOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VaultOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &VaultOperationsListArgs) -> String {
+        "gcp::vault::ListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vault::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

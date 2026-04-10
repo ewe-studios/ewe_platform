@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/flights:computeFlightEmissions
+/// POST v1/flights:computeFlightEmissions
 /// Stateless method to retrieve emission estimates. Details on how emission estimates are computed are in [GitHub](<https://github.`com/google/travel-impact-model`>) The response will contain all entries that match the input flight legs, in the same order. If there are no estimates available for a certain flight leg, the response will return the flight leg object with empty emission fields. The request will still be considered successful. Reasons for missing emission estimates include: * The flight is unknown to the server. * The input flight leg is missing one or more identifiers. * The flight date is in the past. * The aircraft type is not supported by the model. * Missing seat configuration. The request can contain up to 1000 flight legs. If the request has more than 1000 direct flights, if will fail with an INVALID_ARGUMENT error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,7 +28,6 @@ use serde::Serialize;
 
 pub fn travelimpactmodel_flights_compute_flight_emissions_builder(
     client: &SimpleHttpClient,
-    body: &ComputeFlightEmissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -36,15 +35,13 @@ pub fn travelimpactmodel_flights_compute_flight_emissions_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/flights:computeFlightEmissions
+/// POST v1/flights:computeFlightEmissions
 /// Stateless method to retrieve emission estimates. Details on how emission estimates are computed are in [GitHub](<https://github.`com/google/travel-impact-model`>) The response will contain all entries that match the input flight legs, in the same order. If there are no estimates available for a certain flight leg, the response will return the flight leg object with empty emission fields. The request will still be considered successful. Reasons for missing emission estimates include: * The flight is unknown to the server. * The input flight leg is missing one or more identifiers. * The flight date is in the past. * The aircraft type is not supported by the model. * Missing seat configuration. The request can contain up to 1000 flight legs. If the request has more than 1000 direct flights, if will fail with an INVALID_ARGUMENT error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +115,7 @@ pub fn travelimpactmodel_flights_compute_flight_emissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/flights:computeFlightEmissions
+/// POST v1/flights:computeFlightEmissions
 /// Stateless method to retrieve emission estimates. Details on how emission estimates are computed are in [GitHub](<https://github.`com/google/travel-impact-model`>) The response will contain all entries that match the input flight legs, in the same order. If there are no estimates available for a certain flight leg, the response will return the flight leg object with empty emission fields. The request will still be considered successful. Reasons for missing emission estimates include: * The flight is unknown to the server. * The input flight leg is missing one or more identifiers. * The flight date is in the past. * The aircraft type is not supported by the model. * Missing seat configuration. The request can contain up to 1000 flight legs. If the request has more than 1000 direct flights, if will fail with an INVALID_ARGUMENT error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -152,14 +149,7 @@ pub fn travelimpactmodel_flights_compute_flight_emissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`travelimpactmodel_flights_compute_flight_emissions`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TravelimpactmodelFlightsComputeFlightEmissionsArgs {
-    /// Request body.
-    pub body: ComputeFlightEmissionsRequest,
-}
-
-/// GET v1/flights:computeFlightEmissions
+/// POST v1/flights:computeFlightEmissions
 /// Stateless method to retrieve emission estimates. Details on how emission estimates are computed are in [GitHub](<https://github.`com/google/travel-impact-model`>) The response will contain all entries that match the input flight legs, in the same order. If there are no estimates available for a certain flight leg, the response will return the flight leg object with empty emission fields. The request will still be considered successful. Reasons for missing emission estimates include: * The flight is unknown to the server. * The input flight leg is missing one or more identifiers. * The flight date is in the past. * The aircraft type is not supported by the model. * Missing seat configuration. The request can contain up to 1000 flight legs. If the request has more than 1000 direct flights, if will fail with an INVALID_ARGUMENT error.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -172,7 +162,6 @@ pub struct TravelimpactmodelFlightsComputeFlightEmissionsArgs {
 
 pub fn travelimpactmodel_flights_compute_flight_emissions(
     client: &SimpleHttpClient,
-    args: &TravelimpactmodelFlightsComputeFlightEmissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeFlightEmissionsResponse>, ApiError>,
@@ -181,11 +170,11 @@ pub fn travelimpactmodel_flights_compute_flight_emissions(
         + 'static,
     ApiError,
 > {
-    let builder = travelimpactmodel_flights_compute_flight_emissions_builder(client, &args.body)?;
+    let builder = travelimpactmodel_flights_compute_flight_emissions_builder(client)?;
     travelimpactmodel_flights_compute_flight_emissions_execute(builder)
 }
 
-/// GET v1/flights:computeScope3FlightEmissions
+/// POST v1/flights:computeScope3FlightEmissions
 /// Stateless method to retrieve GHG emissions estimates for a set of flight segments for Scope 3 reporting. The response will contain all entries that match the input Scope3FlightSegment flight segments, in the same order provided. The estimates will be computed using the following cascading logic (using the first one that is available): 1. TIM-based emissions given origin, destination, carrier, `flightNumber`, `departureDate`, and `cabinClass`. 2. Typical flight emissions given origin, destination, year in `departureDate`, and `cabinClass`. 3. Distance-based emissions calculated using `distanceKm`, year in `departureDate`, and `cabinClass`. If there is a future flight requested in this calendar year, we do not support Tier 1 emissions and will fallback to Tier 2 or 3 emissions. If the requested future flight is in not in this calendar year, we will return an empty response. We recommend that for future flights, `computeFlightEmissions` API is used instead. If there are no estimates available for a certain flight with any of the three methods, the response will return a Scope3FlightEmissions object with empty emission fields. The request will still be considered successful. Generally, missing emissions estimates occur when the flight is unknown to the server (e.g. no specific flight exists, or typical flight emissions are not available for the requested pair). The request will fail with an INVALID_ARGUMENT error if: * The request contains more than 1,000 flight legs. * The input flight leg is missing one or more identifiers. For example, missing `origin/destination` without a valid distance for TIM_EMISSIONS or TYPICAL_FLIGHT_EMISSIONS type matching, or missing distance for a DISTANCE_BASED_EMISSIONS type matching (if you want to fallback to distance-based emissions or want a distance-based emissions estimate, you need to specify a distance). * The flight date is before 2019 (Scope 3 data is only available for 2019 and after). * The flight distance is 0 or lower. * Missing cabin class. Because the request is processed with fallback logic, it is possible that misconfigured requests return valid emissions estimates using fallback methods. For example, if a request has the wrong flight number but specifies the origin and destination, the request will still succeed, but the returned emissions will be based solely on the typical flight emissions. Similarly, if a request is missing the origin for a typical flight emissions request, but specifies a valid distance, the request could succeed based solely on the distance-based emissions. Consequently, one should check the source of the returned emissions (source) to confirm the results are as expected.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -193,7 +182,6 @@ pub fn travelimpactmodel_flights_compute_flight_emissions(
 
 pub fn travelimpactmodel_flights_compute_scope3_flight_emissions_builder(
     client: &SimpleHttpClient,
-    body: &ComputeScope3FlightEmissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -202,15 +190,13 @@ pub fn travelimpactmodel_flights_compute_scope3_flight_emissions_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/flights:computeScope3FlightEmissions
+/// POST v1/flights:computeScope3FlightEmissions
 /// Stateless method to retrieve GHG emissions estimates for a set of flight segments for Scope 3 reporting. The response will contain all entries that match the input Scope3FlightSegment flight segments, in the same order provided. The estimates will be computed using the following cascading logic (using the first one that is available): 1. TIM-based emissions given origin, destination, carrier, `flightNumber`, `departureDate`, and `cabinClass`. 2. Typical flight emissions given origin, destination, year in `departureDate`, and `cabinClass`. 3. Distance-based emissions calculated using `distanceKm`, year in `departureDate`, and `cabinClass`. If there is a future flight requested in this calendar year, we do not support Tier 1 emissions and will fallback to Tier 2 or 3 emissions. If the requested future flight is in not in this calendar year, we will return an empty response. We recommend that for future flights, `computeFlightEmissions` API is used instead. If there are no estimates available for a certain flight with any of the three methods, the response will return a Scope3FlightEmissions object with empty emission fields. The request will still be considered successful. Generally, missing emissions estimates occur when the flight is unknown to the server (e.g. no specific flight exists, or typical flight emissions are not available for the requested pair). The request will fail with an INVALID_ARGUMENT error if: * The request contains more than 1,000 flight legs. * The input flight leg is missing one or more identifiers. For example, missing `origin/destination` without a valid distance for TIM_EMISSIONS or TYPICAL_FLIGHT_EMISSIONS type matching, or missing distance for a DISTANCE_BASED_EMISSIONS type matching (if you want to fallback to distance-based emissions or want a distance-based emissions estimate, you need to specify a distance). * The flight date is before 2019 (Scope 3 data is only available for 2019 and after). * The flight distance is 0 or lower. * Missing cabin class. Because the request is processed with fallback logic, it is possible that misconfigured requests return valid emissions estimates using fallback methods. For example, if a request has the wrong flight number but specifies the origin and destination, the request will still succeed, but the returned emissions will be based solely on the typical flight emissions. Similarly, if a request is missing the origin for a typical flight emissions request, but specifies a valid distance, the request could succeed based solely on the distance-based emissions. Consequently, one should check the source of the returned emissions (source) to confirm the results are as expected.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -284,7 +270,7 @@ pub fn travelimpactmodel_flights_compute_scope3_flight_emissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/flights:computeScope3FlightEmissions
+/// POST v1/flights:computeScope3FlightEmissions
 /// Stateless method to retrieve GHG emissions estimates for a set of flight segments for Scope 3 reporting. The response will contain all entries that match the input Scope3FlightSegment flight segments, in the same order provided. The estimates will be computed using the following cascading logic (using the first one that is available): 1. TIM-based emissions given origin, destination, carrier, `flightNumber`, `departureDate`, and `cabinClass`. 2. Typical flight emissions given origin, destination, year in `departureDate`, and `cabinClass`. 3. Distance-based emissions calculated using `distanceKm`, year in `departureDate`, and `cabinClass`. If there is a future flight requested in this calendar year, we do not support Tier 1 emissions and will fallback to Tier 2 or 3 emissions. If the requested future flight is in not in this calendar year, we will return an empty response. We recommend that for future flights, `computeFlightEmissions` API is used instead. If there are no estimates available for a certain flight with any of the three methods, the response will return a Scope3FlightEmissions object with empty emission fields. The request will still be considered successful. Generally, missing emissions estimates occur when the flight is unknown to the server (e.g. no specific flight exists, or typical flight emissions are not available for the requested pair). The request will fail with an INVALID_ARGUMENT error if: * The request contains more than 1,000 flight legs. * The input flight leg is missing one or more identifiers. For example, missing `origin/destination` without a valid distance for TIM_EMISSIONS or TYPICAL_FLIGHT_EMISSIONS type matching, or missing distance for a DISTANCE_BASED_EMISSIONS type matching (if you want to fallback to distance-based emissions or want a distance-based emissions estimate, you need to specify a distance). * The flight date is before 2019 (Scope 3 data is only available for 2019 and after). * The flight distance is 0 or lower. * Missing cabin class. Because the request is processed with fallback logic, it is possible that misconfigured requests return valid emissions estimates using fallback methods. For example, if a request has the wrong flight number but specifies the origin and destination, the request will still succeed, but the returned emissions will be based solely on the typical flight emissions. Similarly, if a request is missing the origin for a typical flight emissions request, but specifies a valid distance, the request could succeed based solely on the distance-based emissions. Consequently, one should check the source of the returned emissions (source) to confirm the results are as expected.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -318,14 +304,7 @@ pub fn travelimpactmodel_flights_compute_scope3_flight_emissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`travelimpactmodel_flights_compute_scope3_flight_emissions`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TravelimpactmodelFlightsComputeScope3FlightEmissionsArgs {
-    /// Request body.
-    pub body: ComputeScope3FlightEmissionsRequest,
-}
-
-/// GET v1/flights:computeScope3FlightEmissions
+/// POST v1/flights:computeScope3FlightEmissions
 /// Stateless method to retrieve GHG emissions estimates for a set of flight segments for Scope 3 reporting. The response will contain all entries that match the input Scope3FlightSegment flight segments, in the same order provided. The estimates will be computed using the following cascading logic (using the first one that is available): 1. TIM-based emissions given origin, destination, carrier, `flightNumber`, `departureDate`, and `cabinClass`. 2. Typical flight emissions given origin, destination, year in `departureDate`, and `cabinClass`. 3. Distance-based emissions calculated using `distanceKm`, year in `departureDate`, and `cabinClass`. If there is a future flight requested in this calendar year, we do not support Tier 1 emissions and will fallback to Tier 2 or 3 emissions. If the requested future flight is in not in this calendar year, we will return an empty response. We recommend that for future flights, `computeFlightEmissions` API is used instead. If there are no estimates available for a certain flight with any of the three methods, the response will return a Scope3FlightEmissions object with empty emission fields. The request will still be considered successful. Generally, missing emissions estimates occur when the flight is unknown to the server (e.g. no specific flight exists, or typical flight emissions are not available for the requested pair). The request will fail with an INVALID_ARGUMENT error if: * The request contains more than 1,000 flight legs. * The input flight leg is missing one or more identifiers. For example, missing `origin/destination` without a valid distance for TIM_EMISSIONS or TYPICAL_FLIGHT_EMISSIONS type matching, or missing distance for a DISTANCE_BASED_EMISSIONS type matching (if you want to fallback to distance-based emissions or want a distance-based emissions estimate, you need to specify a distance). * The flight date is before 2019 (Scope 3 data is only available for 2019 and after). * The flight distance is 0 or lower. * Missing cabin class. Because the request is processed with fallback logic, it is possible that misconfigured requests return valid emissions estimates using fallback methods. For example, if a request has the wrong flight number but specifies the origin and destination, the request will still succeed, but the returned emissions will be based solely on the typical flight emissions. Similarly, if a request is missing the origin for a typical flight emissions request, but specifies a valid distance, the request could succeed based solely on the distance-based emissions. Consequently, one should check the source of the returned emissions (source) to confirm the results are as expected.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -338,7 +317,6 @@ pub struct TravelimpactmodelFlightsComputeScope3FlightEmissionsArgs {
 
 pub fn travelimpactmodel_flights_compute_scope3_flight_emissions(
     client: &SimpleHttpClient,
-    args: &TravelimpactmodelFlightsComputeScope3FlightEmissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeScope3FlightEmissionsResponse>, ApiError>,
@@ -347,12 +325,11 @@ pub fn travelimpactmodel_flights_compute_scope3_flight_emissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        travelimpactmodel_flights_compute_scope3_flight_emissions_builder(client, &args.body)?;
+    let builder = travelimpactmodel_flights_compute_scope3_flight_emissions_builder(client)?;
     travelimpactmodel_flights_compute_scope3_flight_emissions_execute(builder)
 }
 
-/// GET v1/flights:computeTypicalFlightEmissions
+/// POST v1/flights:computeTypicalFlightEmissions
 /// Retrieves typical flight emissions estimates between two airports, also known as a market. If there are no estimates available for a certain market, the response will return the market object with empty emission fields. The request will still be considered successful. Details on how the typical emissions estimates are computed are on [GitHub](<https://github.`com/google/travel-impact-model/blob/main/projects/typical_flight_emissions`.md>). The request can contain up to 1000 markets. If the request has more than 1000 markets, it will fail with an INVALID_ARGUMENT error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -360,7 +337,6 @@ pub fn travelimpactmodel_flights_compute_scope3_flight_emissions(
 
 pub fn travelimpactmodel_flights_compute_typical_flight_emissions_builder(
     client: &SimpleHttpClient,
-    body: &ComputeTypicalFlightEmissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -369,15 +345,13 @@ pub fn travelimpactmodel_flights_compute_typical_flight_emissions_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/flights:computeTypicalFlightEmissions
+/// POST v1/flights:computeTypicalFlightEmissions
 /// Retrieves typical flight emissions estimates between two airports, also known as a market. If there are no estimates available for a certain market, the response will return the market object with empty emission fields. The request will still be considered successful. Details on how the typical emissions estimates are computed are on [GitHub](<https://github.`com/google/travel-impact-model/blob/main/projects/typical_flight_emissions`.md>). The request can contain up to 1000 markets. If the request has more than 1000 markets, it will fail with an INVALID_ARGUMENT error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -451,7 +425,7 @@ pub fn travelimpactmodel_flights_compute_typical_flight_emissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/flights:computeTypicalFlightEmissions
+/// POST v1/flights:computeTypicalFlightEmissions
 /// Retrieves typical flight emissions estimates between two airports, also known as a market. If there are no estimates available for a certain market, the response will return the market object with empty emission fields. The request will still be considered successful. Details on how the typical emissions estimates are computed are on [GitHub](<https://github.`com/google/travel-impact-model/blob/main/projects/typical_flight_emissions`.md>). The request can contain up to 1000 markets. If the request has more than 1000 markets, it will fail with an INVALID_ARGUMENT error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -485,14 +459,7 @@ pub fn travelimpactmodel_flights_compute_typical_flight_emissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`travelimpactmodel_flights_compute_typical_flight_emissions`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TravelimpactmodelFlightsComputeTypicalFlightEmissionsArgs {
-    /// Request body.
-    pub body: ComputeTypicalFlightEmissionsRequest,
-}
-
-/// GET v1/flights:computeTypicalFlightEmissions
+/// POST v1/flights:computeTypicalFlightEmissions
 /// Retrieves typical flight emissions estimates between two airports, also known as a market. If there are no estimates available for a certain market, the response will return the market object with empty emission fields. The request will still be considered successful. Details on how the typical emissions estimates are computed are on [GitHub](<https://github.`com/google/travel-impact-model/blob/main/projects/typical_flight_emissions`.md>). The request can contain up to 1000 markets. If the request has more than 1000 markets, it will fail with an INVALID_ARGUMENT error.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -505,7 +472,6 @@ pub struct TravelimpactmodelFlightsComputeTypicalFlightEmissionsArgs {
 
 pub fn travelimpactmodel_flights_compute_typical_flight_emissions(
     client: &SimpleHttpClient,
-    args: &TravelimpactmodelFlightsComputeTypicalFlightEmissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeTypicalFlightEmissionsResponse>, ApiError>,
@@ -514,7 +480,90 @@ pub fn travelimpactmodel_flights_compute_typical_flight_emissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        travelimpactmodel_flights_compute_typical_flight_emissions_builder(client, &args.body)?;
+    let builder = travelimpactmodel_flights_compute_typical_flight_emissions_builder(client)?;
     travelimpactmodel_flights_compute_typical_flight_emissions_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeFlightEmissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeFlightEmissionsResponse with TravelimpactmodelFlightsComputeFlightEmissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TravelimpactmodelFlightsComputeFlightEmissionsArgs>
+    for ComputeFlightEmissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TravelimpactmodelFlightsComputeFlightEmissionsArgs,
+    ) -> String {
+        "gcp::travelimpactmodel::ComputeFlightEmissionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::travelimpactmodel::ComputeFlightEmissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeScope3FlightEmissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeScope3FlightEmissionsResponse with TravelimpactmodelFlightsComputeScope3FlightEmissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TravelimpactmodelFlightsComputeScope3FlightEmissionsArgs>
+    for ComputeScope3FlightEmissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TravelimpactmodelFlightsComputeScope3FlightEmissionsArgs,
+    ) -> String {
+        "gcp::travelimpactmodel::ComputeScope3FlightEmissionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::travelimpactmodel::ComputeScope3FlightEmissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ComputeTypicalFlightEmissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ComputeTypicalFlightEmissionsResponse with TravelimpactmodelFlightsComputeTypicalFlightEmissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TravelimpactmodelFlightsComputeTypicalFlightEmissionsArgs>
+    for ComputeTypicalFlightEmissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TravelimpactmodelFlightsComputeTypicalFlightEmissionsArgs,
+    ) -> String {
+        "gcp::travelimpactmodel::ComputeTypicalFlightEmissionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::travelimpactmodel::ComputeTypicalFlightEmissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
+/// POST dns/v1/projects/{project}/managedZones/{managedZone}/changes
 /// Atomically updates the ResourceRecordSet collection.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -30,8 +30,7 @@ pub fn dns_changes_create_builder(
     client: &SimpleHttpClient,
     project: &String,
     managedZone: &String,
-    clientOperationId: &Option<String>,
-    body: &Change,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -52,15 +51,13 @@ pub fn dns_changes_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
+/// POST dns/v1/projects/{project}/managedZones/{managedZone}/changes
 /// Atomically updates the ResourceRecordSet collection.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -134,7 +131,7 @@ pub fn dns_changes_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
+/// POST dns/v1/projects/{project}/managedZones/{managedZone}/changes
 /// Atomically updates the ResourceRecordSet collection.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -172,12 +169,10 @@ pub struct DnsChangesCreateArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
-    /// Request body.
-    pub body: Change,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
+/// POST dns/v1/projects/{project}/managedZones/{managedZone}/changes
 /// Atomically updates the ResourceRecordSet collection.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -200,7 +195,6 @@ pub fn dns_changes_create(
         &args.project,
         &args.managedZone,
         &args.clientOperationId,
-        &args.body,
     )?;
     dns_changes_create_execute(builder)
 }
@@ -216,7 +210,7 @@ pub fn dns_changes_get_builder(
     project: &String,
     managedZone: &String,
     changeId: &String,
-    clientOperationId: &Option<String>,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -357,7 +351,7 @@ pub struct DnsChangesGetArgs {
     /// Path parameter: changeId
     pub changeId: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
+    pub clientOperationId: Option<Option<String>>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes/{changeId}
@@ -388,6 +382,210 @@ pub fn dns_changes_get(
     dns_changes_get_execute(builder)
 }
 
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
+/// Enumerates Changes to a ResourceRecordSet collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_changes_list_execute()` to send, or `dns_changes_list` for simplest API.
+
+pub fn dns_changes_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    managedZone: &String,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    sortBy: &Option<Option<String>>,
+    sortOrder: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/changes",
+        project, managedZone,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = sortBy.as_ref() {
+        query_parts.push(format!("sortBy={}", val));
+    }
+    if let Some(val) = sortOrder.as_ref() {
+        query_parts.push(format!("sortOrder={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
+/// Enumerates Changes to a ResourceRecordSet collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_changes_list_execute()` or `dns_changes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_changes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_changes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ChangesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ChangesListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
+/// Enumerates Changes to a ResourceRecordSet collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_changes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_changes_list_task()`.
+/// For the simplest API, use `dns_changes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_changes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_changes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ChangesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_changes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_changes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsChangesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: sortBy
+    pub sortBy: Option<Option<String>>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
+/// Enumerates Changes to a ResourceRecordSet collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_changes_list_builder()` + `dns_changes_list_execute()`.
+/// For task-level control, use `dns_changes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_changes_list(
+    client: &SimpleHttpClient,
+    args: &DnsChangesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ChangesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_changes_list_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        &args.maxResults,
+        &args.pageToken,
+        &args.sortBy,
+        &args.sortOrder,
+    )?;
+    dns_changes_list_execute(builder)
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/dnsKeys/{dnsKeyId}
 /// Fetches the representation of an existing DnsKey.
 ///
@@ -399,8 +597,8 @@ pub fn dns_dns_keys_get_builder(
     project: &String,
     managedZone: &String,
     dnsKeyId: &String,
-    clientOperationId: &Option<String>,
-    digestType: &Option<String>,
+    clientOperationId: &Option<Option<String>>,
+    digestType: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -544,9 +742,9 @@ pub struct DnsDnsKeysGetArgs {
     /// Path parameter: dnsKeyId
     pub dnsKeyId: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
+    pub clientOperationId: Option<Option<String>>,
     /// Query parameter: digestType
-    pub digestType: Option<String>,
+    pub digestType: Option<Option<String>>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/dnsKeys/{dnsKeyId}
@@ -588,9 +786,9 @@ pub fn dns_dns_keys_list_builder(
     client: &SimpleHttpClient,
     project: &String,
     managedZone: &String,
-    digestType: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    digestType: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -737,11 +935,11 @@ pub struct DnsDnsKeysListArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: digestType
-    pub digestType: Option<String>,
+    pub digestType: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/dnsKeys
@@ -786,7 +984,7 @@ pub fn dns_managed_zone_operations_get_builder(
     project: &String,
     managedZone: &String,
     operation: &String,
-    clientOperationId: &Option<String>,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -927,7 +1125,7 @@ pub struct DnsManagedZoneOperationsGetArgs {
     /// Path parameter: operation
     pub operation: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
+    pub clientOperationId: Option<Option<String>>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/operations/{operation}
@@ -968,9 +1166,9 @@ pub fn dns_managed_zone_operations_list_builder(
     client: &SimpleHttpClient,
     project: &String,
     managedZone: &String,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    sortBy: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    sortBy: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1119,11 +1317,11 @@ pub struct DnsManagedZoneOperationsListArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: sortBy
-    pub sortBy: Option<String>,
+    pub sortBy: Option<Option<String>>,
 }
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/operations
@@ -1159,7 +1357,7 @@ pub fn dns_managed_zone_operations_list(
     dns_managed_zone_operations_list_execute(builder)
 }
 
-/// GET dns/v1/projects/{project}/managedZones
+/// POST dns/v1/projects/{project}/managedZones
 /// Creates a new ManagedZone.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1168,8 +1366,7 @@ pub fn dns_managed_zone_operations_list(
 pub fn dns_managed_zones_create_builder(
     client: &SimpleHttpClient,
     project: &String,
-    clientOperationId: &Option<String>,
-    body: &ManagedZone,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1190,15 +1387,13 @@ pub fn dns_managed_zones_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/managedZones
+/// POST dns/v1/projects/{project}/managedZones
 /// Creates a new ManagedZone.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1272,7 +1467,7 @@ pub fn dns_managed_zones_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/managedZones
+/// POST dns/v1/projects/{project}/managedZones
 /// Creates a new ManagedZone.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1308,12 +1503,10 @@ pub struct DnsManagedZonesCreateArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
-    /// Request body.
-    pub body: ManagedZone,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/managedZones
+/// POST dns/v1/projects/{project}/managedZones
 /// Creates a new ManagedZone.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1331,16 +1524,11 @@ pub fn dns_managed_zones_create(
     impl StreamIterator<D = Result<ApiResponse<ManagedZone>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dns_managed_zones_create_builder(
-        client,
-        &args.project,
-        &args.clientOperationId,
-        &args.body,
-    )?;
+    let builder = dns_managed_zones_create_builder(client, &args.project, &args.clientOperationId)?;
     dns_managed_zones_create_execute(builder)
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}
+/// DELETE dns/v1/projects/{project}/managedZones/{managedZone}
 /// Deletes a previously created ManagedZone.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1350,7 +1538,7 @@ pub fn dns_managed_zones_delete_builder(
     client: &SimpleHttpClient,
     project: &String,
     managedZone: &String,
-    clientOperationId: &Option<String>,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1371,13 +1559,13 @@ pub fn dns_managed_zones_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}
+/// DELETE dns/v1/projects/{project}/managedZones/{managedZone}
 /// Deletes a previously created ManagedZone.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1448,7 +1636,7 @@ pub fn dns_managed_zones_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}
+/// DELETE dns/v1/projects/{project}/managedZones/{managedZone}
 /// Deletes a previously created ManagedZone.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1486,10 +1674,10 @@ pub struct DnsManagedZonesDeleteArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}
+/// DELETE dns/v1/projects/{project}/managedZones/{managedZone}
 /// Deletes a previously created ManagedZone.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1516,7 +1704,1224 @@ pub fn dns_managed_zones_delete(
     dns_managed_zones_delete_execute(builder)
 }
 
-/// GET dns/v1/projects/{project}/policies
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}
+/// Fetches the representation of an existing ManagedZone.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_managed_zones_get_execute()` to send, or `dns_managed_zones_get` for simplest API.
+
+pub fn dns_managed_zones_get_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    managedZone: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}",
+        project, managedZone,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}
+/// Fetches the representation of an existing ManagedZone.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_managed_zones_get_execute()` or `dns_managed_zones_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagedZone>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagedZone = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}
+/// Fetches the representation of an existing ManagedZone.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_managed_zones_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_managed_zones_get_task()`.
+/// For the simplest API, use `dns_managed_zones_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_managed_zones_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedZone>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = dns_managed_zones_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_managed_zones_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}
+/// Fetches the representation of an existing ManagedZone.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_managed_zones_get_builder()` + `dns_managed_zones_get_execute()`.
+/// For task-level control, use `dns_managed_zones_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_get(
+    client: &SimpleHttpClient,
+    args: &DnsManagedZonesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedZone>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = dns_managed_zones_get_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        &args.clientOperationId,
+    )?;
+    dns_managed_zones_get_execute(builder)
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_managed_zones_get_iam_policy_execute()` to send, or `dns_managed_zones_get_iam_policy` for simplest API.
+
+pub fn dns_managed_zones_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{managedZonesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_managed_zones_get_iam_policy_execute()` or `dns_managed_zones_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_managed_zones_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_managed_zones_get_iam_policy_task()`.
+/// For the simplest API, use `dns_managed_zones_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_managed_zones_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_managed_zones_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_managed_zones_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_managed_zones_get_iam_policy_builder()` + `dns_managed_zones_get_iam_policy_execute()`.
+/// For task-level control, use `dns_managed_zones_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DnsManagedZonesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_managed_zones_get_iam_policy_builder(client, &args.resource)?;
+    dns_managed_zones_get_iam_policy_execute(builder)
+}
+
+/// GET dns/v1/projects/{project}/managedZones
+/// Enumerates ManagedZones that have been created but not yet deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_managed_zones_list_execute()` to send, or `dns_managed_zones_list` for simplest API.
+
+pub fn dns_managed_zones_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    dnsName: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones",
+        project,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = dnsName.as_ref() {
+        query_parts.push(format!("dnsName={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/managedZones
+/// Enumerates ManagedZones that have been created but not yet deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_managed_zones_list_execute()` or `dns_managed_zones_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagedZonesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagedZonesListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/managedZones
+/// Enumerates ManagedZones that have been created but not yet deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_managed_zones_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_managed_zones_list_task()`.
+/// For the simplest API, use `dns_managed_zones_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_managed_zones_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedZonesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_managed_zones_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_managed_zones_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: dnsName
+    pub dnsName: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/managedZones
+/// Enumerates ManagedZones that have been created but not yet deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_managed_zones_list_builder()` + `dns_managed_zones_list_execute()`.
+/// For task-level control, use `dns_managed_zones_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_list(
+    client: &SimpleHttpClient,
+    args: &DnsManagedZonesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagedZonesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_managed_zones_list_builder(
+        client,
+        &args.project,
+        &args.dnsName,
+        &args.maxResults,
+        &args.pageToken,
+    )?;
+    dns_managed_zones_list_execute(builder)
+}
+
+/// PATCH dns/v1/projects/{project}/managedZones/{managedZone}
+/// Applies a partial update to an existing ManagedZone.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_managed_zones_patch_execute()` to send, or `dns_managed_zones_patch` for simplest API.
+
+pub fn dns_managed_zones_patch_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    managedZone: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}",
+        project, managedZone,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH dns/v1/projects/{project}/managedZones/{managedZone}
+/// Applies a partial update to an existing ManagedZone.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_managed_zones_patch_execute()` or `dns_managed_zones_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH dns/v1/projects/{project}/managedZones/{managedZone}
+/// Applies a partial update to an existing ManagedZone.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_managed_zones_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_managed_zones_patch_task()`.
+/// For the simplest API, use `dns_managed_zones_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_managed_zones_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = dns_managed_zones_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_managed_zones_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// PATCH dns/v1/projects/{project}/managedZones/{managedZone}
+/// Applies a partial update to an existing ManagedZone.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_managed_zones_patch_builder()` + `dns_managed_zones_patch_execute()`.
+/// For task-level control, use `dns_managed_zones_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_patch(
+    client: &SimpleHttpClient,
+    args: &DnsManagedZonesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = dns_managed_zones_patch_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        &args.clientOperationId,
+    )?;
+    dns_managed_zones_patch_execute(builder)
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_managed_zones_set_iam_policy_execute()` to send, or `dns_managed_zones_set_iam_policy` for simplest API.
+
+pub fn dns_managed_zones_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{managedZonesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_managed_zones_set_iam_policy_execute()` or `dns_managed_zones_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_managed_zones_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_managed_zones_set_iam_policy_task()`.
+/// For the simplest API, use `dns_managed_zones_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_managed_zones_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_managed_zones_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_managed_zones_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_managed_zones_set_iam_policy_builder()` + `dns_managed_zones_set_iam_policy_execute()`.
+/// For task-level control, use `dns_managed_zones_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DnsManagedZonesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_managed_zones_set_iam_policy_builder(client, &args.resource)?;
+    dns_managed_zones_set_iam_policy_execute(builder)
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_managed_zones_test_iam_permissions_execute()` to send, or `dns_managed_zones_test_iam_permissions` for simplest API.
+
+pub fn dns_managed_zones_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{managedZonesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_managed_zones_test_iam_permissions_execute()` or `dns_managed_zones_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleIamV1TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_managed_zones_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_managed_zones_test_iam_permissions_task()`.
+/// For the simplest API, use `dns_managed_zones_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_managed_zones_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_managed_zones_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_managed_zones_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_managed_zones_test_iam_permissions_builder()` + `dns_managed_zones_test_iam_permissions_execute()`.
+/// For task-level control, use `dns_managed_zones_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &DnsManagedZonesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_managed_zones_test_iam_permissions_builder(client, &args.resource)?;
+    dns_managed_zones_test_iam_permissions_execute(builder)
+}
+
+/// PUT dns/v1/projects/{project}/managedZones/{managedZone}
+/// Updates an existing ManagedZone.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_managed_zones_update_execute()` to send, or `dns_managed_zones_update` for simplest API.
+
+pub fn dns_managed_zones_update_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    managedZone: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}",
+        project, managedZone,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT dns/v1/projects/{project}/managedZones/{managedZone}
+/// Updates an existing ManagedZone.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_managed_zones_update_execute()` or `dns_managed_zones_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT dns/v1/projects/{project}/managedZones/{managedZone}
+/// Updates an existing ManagedZone.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_managed_zones_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_managed_zones_update_task()`.
+/// For the simplest API, use `dns_managed_zones_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_managed_zones_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_managed_zones_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = dns_managed_zones_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_managed_zones_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// PUT dns/v1/projects/{project}/managedZones/{managedZone}
+/// Updates an existing ManagedZone.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_managed_zones_update_builder()` + `dns_managed_zones_update_execute()`.
+/// For task-level control, use `dns_managed_zones_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_managed_zones_update(
+    client: &SimpleHttpClient,
+    args: &DnsManagedZonesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = dns_managed_zones_update_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        &args.clientOperationId,
+    )?;
+    dns_managed_zones_update_execute(builder)
+}
+
+/// POST dns/v1/projects/{project}/policies
 /// Creates a new policy.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1525,8 +2930,7 @@ pub fn dns_managed_zones_delete(
 pub fn dns_policies_create_builder(
     client: &SimpleHttpClient,
     project: &String,
-    clientOperationId: &Option<String>,
-    body: &Policy,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1547,15 +2951,13 @@ pub fn dns_policies_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/policies
+/// POST dns/v1/projects/{project}/policies
 /// Creates a new policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1629,7 +3031,7 @@ pub fn dns_policies_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/policies
+/// POST dns/v1/projects/{project}/policies
 /// Creates a new policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1665,12 +3067,10 @@ pub struct DnsPoliciesCreateArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
-    /// Request body.
-    pub body: Policy,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/policies
+/// POST dns/v1/projects/{project}/policies
 /// Creates a new policy.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1688,12 +3088,11 @@ pub fn dns_policies_create(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dns_policies_create_builder(client, &args.project, &args.clientOperationId, &args.body)?;
+    let builder = dns_policies_create_builder(client, &args.project, &args.clientOperationId)?;
     dns_policies_create_execute(builder)
 }
 
-/// GET dns/v1/projects/{project}/policies/{policy}
+/// DELETE dns/v1/projects/{project}/policies/{policy}
 /// Deletes a previously created policy. Fails if the policy is still being referenced by a network.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1703,7 +3102,7 @@ pub fn dns_policies_delete_builder(
     client: &SimpleHttpClient,
     project: &String,
     policy: &String,
-    clientOperationId: &Option<String>,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1724,13 +3123,13 @@ pub fn dns_policies_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/policies/{policy}
+/// DELETE dns/v1/projects/{project}/policies/{policy}
 /// Deletes a previously created policy. Fails if the policy is still being referenced by a network.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1801,7 +3200,7 @@ pub fn dns_policies_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/policies/{policy}
+/// DELETE dns/v1/projects/{project}/policies/{policy}
 /// Deletes a previously created policy. Fails if the policy is still being referenced by a network.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1839,10 +3238,10 @@ pub struct DnsPoliciesDeleteArgs {
     /// Path parameter: policy
     pub policy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/policies/{policy}
+/// DELETE dns/v1/projects/{project}/policies/{policy}
 /// Deletes a previously created policy. Fails if the policy is still being referenced by a network.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1865,6 +3264,721 @@ pub fn dns_policies_delete(
     dns_policies_delete_execute(builder)
 }
 
+/// GET dns/v1/projects/{project}/policies/{policy}
+/// Fetches the representation of an existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_policies_get_execute()` to send, or `dns_policies_get` for simplest API.
+
+pub fn dns_policies_get_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    policy: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/policies/{}",
+        project, policy,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/policies/{policy}
+/// Fetches the representation of an existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_policies_get_execute()` or `dns_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/policies/{policy}
+/// Fetches the representation of an existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_policies_get_task()`.
+/// For the simplest API, use `dns_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = dns_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsPoliciesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: policy
+    pub policy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/policies/{policy}
+/// Fetches the representation of an existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_policies_get_builder()` + `dns_policies_get_execute()`.
+/// For task-level control, use `dns_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_policies_get(
+    client: &SimpleHttpClient,
+    args: &DnsPoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        dns_policies_get_builder(client, &args.project, &args.policy, &args.clientOperationId)?;
+    dns_policies_get_execute(builder)
+}
+
+/// GET dns/v1/projects/{project}/policies
+/// Enumerates all policies associated with a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_policies_list_execute()` to send, or `dns_policies_list` for simplest API.
+
+pub fn dns_policies_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/policies",
+        project,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/policies
+/// Enumerates all policies associated with a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_policies_list_execute()` or `dns_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PoliciesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PoliciesListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/policies
+/// Enumerates all policies associated with a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_policies_list_task()`.
+/// For the simplest API, use `dns_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PoliciesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsPoliciesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/policies
+/// Enumerates all policies associated with a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_policies_list_builder()` + `dns_policies_list_execute()`.
+/// For task-level control, use `dns_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_policies_list(
+    client: &SimpleHttpClient,
+    args: &DnsPoliciesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PoliciesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        dns_policies_list_builder(client, &args.project, &args.maxResults, &args.pageToken)?;
+    dns_policies_list_execute(builder)
+}
+
+/// PATCH dns/v1/projects/{project}/policies/{policy}
+/// Applies a partial update to an existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_policies_patch_execute()` to send, or `dns_policies_patch` for simplest API.
+
+pub fn dns_policies_patch_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    policy: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/policies/{}",
+        project, policy,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH dns/v1/projects/{project}/policies/{policy}
+/// Applies a partial update to an existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_policies_patch_execute()` or `dns_policies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_policies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PoliciesPatchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PoliciesPatchResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH dns/v1/projects/{project}/policies/{policy}
+/// Applies a partial update to an existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_policies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_policies_patch_task()`.
+/// For the simplest API, use `dns_policies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_policies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PoliciesPatchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_policies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsPoliciesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: policy
+    pub policy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// PATCH dns/v1/projects/{project}/policies/{policy}
+/// Applies a partial update to an existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_policies_patch_builder()` + `dns_policies_patch_execute()`.
+/// For task-level control, use `dns_policies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_policies_patch(
+    client: &SimpleHttpClient,
+    args: &DnsPoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PoliciesPatchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        dns_policies_patch_builder(client, &args.project, &args.policy, &args.clientOperationId)?;
+    dns_policies_patch_execute(builder)
+}
+
+/// PUT dns/v1/projects/{project}/policies/{policy}
+/// Updates an existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_policies_update_execute()` to send, or `dns_policies_update` for simplest API.
+
+pub fn dns_policies_update_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    policy: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/policies/{}",
+        project, policy,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT dns/v1/projects/{project}/policies/{policy}
+/// Updates an existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_policies_update_execute()` or `dns_policies_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_policies_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_policies_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PoliciesUpdateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PoliciesUpdateResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT dns/v1/projects/{project}/policies/{policy}
+/// Updates an existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_policies_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_policies_update_task()`.
+/// For the simplest API, use `dns_policies_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_policies_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_policies_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PoliciesUpdateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_policies_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_policies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsPoliciesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: policy
+    pub policy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// PUT dns/v1/projects/{project}/policies/{policy}
+/// Updates an existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_policies_update_builder()` + `dns_policies_update_execute()`.
+/// For task-level control, use `dns_policies_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_policies_update(
+    client: &SimpleHttpClient,
+    args: &DnsPoliciesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PoliciesUpdateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        dns_policies_update_builder(client, &args.project, &args.policy, &args.clientOperationId)?;
+    dns_policies_update_execute(builder)
+}
+
 /// GET dns/v1/projects/{project}
 /// Fetches the representation of an existing Project.
 ///
@@ -1874,7 +3988,7 @@ pub fn dns_policies_delete(
 pub fn dns_projects_get_builder(
     client: &SimpleHttpClient,
     project: &String,
-    clientOperationId: &Option<String>,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://dns.googleapis.com/dns/v1/projects/{}", project,);
@@ -2008,7 +4122,7 @@ pub struct DnsProjectsGetArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
+    pub clientOperationId: Option<Option<String>>,
 }
 
 /// GET dns/v1/projects/{project}
@@ -2033,7 +4147,7 @@ pub fn dns_projects_get(
     dns_projects_get_execute(builder)
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
+/// POST dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
 /// Creates a new ResourceRecordSet.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2043,8 +4157,7 @@ pub fn dns_resource_record_sets_create_builder(
     client: &SimpleHttpClient,
     project: &String,
     managedZone: &String,
-    clientOperationId: &Option<String>,
-    body: &ResourceRecordSet,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2065,15 +4178,13 @@ pub fn dns_resource_record_sets_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
+/// POST dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
 /// Creates a new ResourceRecordSet.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2147,7 +4258,7 @@ pub fn dns_resource_record_sets_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
+/// POST dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
 /// Creates a new ResourceRecordSet.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2187,12 +4298,10 @@ pub struct DnsResourceRecordSetsCreateArgs {
     /// Path parameter: managedZone
     pub managedZone: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
-    /// Request body.
-    pub body: ResourceRecordSet,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
+/// POST dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
 /// Creates a new ResourceRecordSet.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2217,12 +4326,11 @@ pub fn dns_resource_record_sets_create(
         &args.project,
         &args.managedZone,
         &args.clientOperationId,
-        &args.body,
     )?;
     dns_resource_record_sets_create_execute(builder)
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// DELETE dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
 /// Deletes a previously created ResourceRecordSet.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2234,7 +4342,7 @@ pub fn dns_resource_record_sets_delete_builder(
     managedZone: &String,
     name: &String,
     type_rs: &String,
-    clientOperationId: &Option<String>,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2255,13 +4363,13 @@ pub fn dns_resource_record_sets_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// DELETE dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
 /// Deletes a previously created ResourceRecordSet.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2335,7 +4443,7 @@ pub fn dns_resource_record_sets_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// DELETE dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
 /// Deletes a previously created ResourceRecordSet.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2381,10 +4489,10 @@ pub struct DnsResourceRecordSetsDeleteArgs {
     /// Path parameter: type
     pub type_rs: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// DELETE dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
 /// Deletes a previously created ResourceRecordSet.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2417,7 +4525,604 @@ pub fn dns_resource_record_sets_delete(
     dns_resource_record_sets_delete_execute(builder)
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// Fetches the representation of an existing ResourceRecordSet.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_resource_record_sets_get_execute()` to send, or `dns_resource_record_sets_get` for simplest API.
+
+pub fn dns_resource_record_sets_get_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    managedZone: &String,
+    name: &String,
+    type_rs: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/rrsets/{}/{}",
+        project, managedZone, name, type_rs,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// Fetches the representation of an existing ResourceRecordSet.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_resource_record_sets_get_execute()` or `dns_resource_record_sets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_resource_record_sets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_resource_record_sets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResourceRecordSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResourceRecordSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// Fetches the representation of an existing ResourceRecordSet.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_resource_record_sets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_resource_record_sets_get_task()`.
+/// For the simplest API, use `dns_resource_record_sets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_resource_record_sets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_resource_record_sets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResourceRecordSet>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_resource_record_sets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_resource_record_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResourceRecordSetsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// Fetches the representation of an existing ResourceRecordSet.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_resource_record_sets_get_builder()` + `dns_resource_record_sets_get_execute()`.
+/// For task-level control, use `dns_resource_record_sets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_resource_record_sets_get(
+    client: &SimpleHttpClient,
+    args: &DnsResourceRecordSetsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResourceRecordSet>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_resource_record_sets_get_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        &args.name,
+        &args.type_rs,
+        &args.clientOperationId,
+    )?;
+    dns_resource_record_sets_get_execute(builder)
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
+/// Enumerates ResourceRecordSets that you have created but not yet deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_resource_record_sets_list_execute()` to send, or `dns_resource_record_sets_list` for simplest API.
+
+pub fn dns_resource_record_sets_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    managedZone: &String,
+    filter: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    type_rs: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/rrsets",
+        project, managedZone,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = name.as_ref() {
+        query_parts.push(format!("name={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = type_rs.as_ref() {
+        query_parts.push(format!("type={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
+/// Enumerates ResourceRecordSets that you have created but not yet deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_resource_record_sets_list_execute()` or `dns_resource_record_sets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_resource_record_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_resource_record_sets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResourceRecordSetsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResourceRecordSetsListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
+/// Enumerates ResourceRecordSets that you have created but not yet deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_resource_record_sets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_resource_record_sets_list_task()`.
+/// For the simplest API, use `dns_resource_record_sets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_resource_record_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_resource_record_sets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResourceRecordSetsListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_resource_record_sets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_resource_record_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResourceRecordSetsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: name
+    pub name: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: type
+    pub type_rs: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
+/// Enumerates ResourceRecordSets that you have created but not yet deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_resource_record_sets_list_builder()` + `dns_resource_record_sets_list_execute()`.
+/// For task-level control, use `dns_resource_record_sets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_resource_record_sets_list(
+    client: &SimpleHttpClient,
+    args: &DnsResourceRecordSetsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResourceRecordSetsListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_resource_record_sets_list_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        &args.filter,
+        &args.maxResults,
+        &args.name,
+        &args.pageToken,
+        &args.type_rs,
+    )?;
+    dns_resource_record_sets_list_execute(builder)
+}
+
+/// PATCH dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// Applies a partial update to an existing ResourceRecordSet.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_resource_record_sets_patch_execute()` to send, or `dns_resource_record_sets_patch` for simplest API.
+
+pub fn dns_resource_record_sets_patch_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    managedZone: &String,
+    name: &String,
+    type_rs: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/managedZones/{}/rrsets/{}/{}",
+        project, managedZone, name, type_rs,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// Applies a partial update to an existing ResourceRecordSet.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_resource_record_sets_patch_execute()` or `dns_resource_record_sets_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_resource_record_sets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_resource_record_sets_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResourceRecordSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResourceRecordSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// Applies a partial update to an existing ResourceRecordSet.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_resource_record_sets_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_resource_record_sets_patch_task()`.
+/// For the simplest API, use `dns_resource_record_sets_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_resource_record_sets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_resource_record_sets_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResourceRecordSet>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_resource_record_sets_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_resource_record_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResourceRecordSetsPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// PATCH dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
+/// Applies a partial update to an existing ResourceRecordSet.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_resource_record_sets_patch_builder()` + `dns_resource_record_sets_patch_execute()`.
+/// For task-level control, use `dns_resource_record_sets_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_resource_record_sets_patch(
+    client: &SimpleHttpClient,
+    args: &DnsResourceRecordSetsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResourceRecordSet>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_resource_record_sets_patch_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        &args.name,
+        &args.type_rs,
+        &args.clientOperationId,
+    )?;
+    dns_resource_record_sets_patch_execute(builder)
+}
+
+/// POST dns/v1/projects/{project}/responsePolicies
 /// Creates a new Response Policy
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2426,8 +5131,7 @@ pub fn dns_resource_record_sets_delete(
 pub fn dns_response_policies_create_builder(
     client: &SimpleHttpClient,
     project: &String,
-    clientOperationId: &Option<String>,
-    body: &ResponsePolicy,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2448,15 +5152,13 @@ pub fn dns_response_policies_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies
+/// POST dns/v1/projects/{project}/responsePolicies
 /// Creates a new Response Policy
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2530,7 +5232,7 @@ pub fn dns_response_policies_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies
+/// POST dns/v1/projects/{project}/responsePolicies
 /// Creates a new Response Policy
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2568,12 +5270,10 @@ pub struct DnsResponsePoliciesCreateArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
-    /// Request body.
-    pub body: ResponsePolicy,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies
+/// POST dns/v1/projects/{project}/responsePolicies
 /// Creates a new Response Policy
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2593,16 +5293,12 @@ pub fn dns_response_policies_create(
         + 'static,
     ApiError,
 > {
-    let builder = dns_response_policies_create_builder(
-        client,
-        &args.project,
-        &args.clientOperationId,
-        &args.body,
-    )?;
+    let builder =
+        dns_response_policies_create_builder(client, &args.project, &args.clientOperationId)?;
     dns_response_policies_create_execute(builder)
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// DELETE dns/v1/projects/{project}/responsePolicies/{responsePolicy}
 /// Deletes a previously created Response Policy. Fails if the response policy is non-empty or still being referenced by a network.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2612,7 +5308,7 @@ pub fn dns_response_policies_delete_builder(
     client: &SimpleHttpClient,
     project: &String,
     responsePolicy: &String,
-    clientOperationId: &Option<String>,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2633,13 +5329,13 @@ pub fn dns_response_policies_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// DELETE dns/v1/projects/{project}/responsePolicies/{responsePolicy}
 /// Deletes a previously created Response Policy. Fails if the response policy is non-empty or still being referenced by a network.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2710,7 +5406,7 @@ pub fn dns_response_policies_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// DELETE dns/v1/projects/{project}/responsePolicies/{responsePolicy}
 /// Deletes a previously created Response Policy. Fails if the response policy is non-empty or still being referenced by a network.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2748,10 +5444,10 @@ pub struct DnsResponsePoliciesDeleteArgs {
     /// Path parameter: responsePolicy
     pub responsePolicy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// DELETE dns/v1/projects/{project}/responsePolicies/{responsePolicy}
 /// Deletes a previously created Response Policy. Fails if the response policy is non-empty or still being referenced by a network.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2778,7 +5474,754 @@ pub fn dns_response_policies_delete(
     dns_response_policies_delete_execute(builder)
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Fetches the representation of an existing Response Policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_response_policies_get_execute()` to send, or `dns_response_policies_get` for simplest API.
+
+pub fn dns_response_policies_get_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    responsePolicy: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}",
+        project, responsePolicy,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Fetches the representation of an existing Response Policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_response_policies_get_execute()` or `dns_response_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResponsePolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResponsePolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Fetches the representation of an existing Response Policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_response_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_response_policies_get_task()`.
+/// For the simplest API, use `dns_response_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_response_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResponsePolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_response_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_response_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePoliciesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Fetches the representation of an existing Response Policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_response_policies_get_builder()` + `dns_response_policies_get_execute()`.
+/// For task-level control, use `dns_response_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policies_get(
+    client: &SimpleHttpClient,
+    args: &DnsResponsePoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResponsePolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_response_policies_get_builder(
+        client,
+        &args.project,
+        &args.responsePolicy,
+        &args.clientOperationId,
+    )?;
+    dns_response_policies_get_execute(builder)
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies
+/// Enumerates all Response Policies associated with a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_response_policies_list_execute()` to send, or `dns_response_policies_list` for simplest API.
+
+pub fn dns_response_policies_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies",
+        project,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies
+/// Enumerates all Response Policies associated with a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_response_policies_list_execute()` or `dns_response_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResponsePoliciesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResponsePoliciesListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies
+/// Enumerates all Response Policies associated with a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_response_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_response_policies_list_task()`.
+/// For the simplest API, use `dns_response_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_response_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePoliciesListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_response_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_response_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePoliciesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies
+/// Enumerates all Response Policies associated with a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_response_policies_list_builder()` + `dns_response_policies_list_execute()`.
+/// For task-level control, use `dns_response_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policies_list(
+    client: &SimpleHttpClient,
+    args: &DnsResponsePoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePoliciesListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_response_policies_list_builder(
+        client,
+        &args.project,
+        &args.maxResults,
+        &args.pageToken,
+    )?;
+    dns_response_policies_list_execute(builder)
+}
+
+/// PATCH dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Applies a partial update to an existing Response Policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_response_policies_patch_execute()` to send, or `dns_response_policies_patch` for simplest API.
+
+pub fn dns_response_policies_patch_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    responsePolicy: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}",
+        project, responsePolicy,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Applies a partial update to an existing Response Policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_response_policies_patch_execute()` or `dns_response_policies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResponsePoliciesPatchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResponsePoliciesPatchResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Applies a partial update to an existing Response Policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_response_policies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_response_policies_patch_task()`.
+/// For the simplest API, use `dns_response_policies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_response_policies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePoliciesPatchResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_response_policies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_response_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePoliciesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// PATCH dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Applies a partial update to an existing Response Policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_response_policies_patch_builder()` + `dns_response_policies_patch_execute()`.
+/// For task-level control, use `dns_response_policies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policies_patch(
+    client: &SimpleHttpClient,
+    args: &DnsResponsePoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePoliciesPatchResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_response_policies_patch_builder(
+        client,
+        &args.project,
+        &args.responsePolicy,
+        &args.clientOperationId,
+    )?;
+    dns_response_policies_patch_execute(builder)
+}
+
+/// PUT dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Updates an existing Response Policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_response_policies_update_execute()` to send, or `dns_response_policies_update` for simplest API.
+
+pub fn dns_response_policies_update_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    responsePolicy: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}",
+        project, responsePolicy,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Updates an existing Response Policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_response_policies_update_execute()` or `dns_response_policies_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policies_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policies_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResponsePoliciesUpdateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResponsePoliciesUpdateResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Updates an existing Response Policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_response_policies_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_response_policies_update_task()`.
+/// For the simplest API, use `dns_response_policies_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policies_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_response_policies_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePoliciesUpdateResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_response_policies_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_response_policies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePoliciesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// PUT dns/v1/projects/{project}/responsePolicies/{responsePolicy}
+/// Updates an existing Response Policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_response_policies_update_builder()` + `dns_response_policies_update_execute()`.
+/// For task-level control, use `dns_response_policies_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policies_update(
+    client: &SimpleHttpClient,
+    args: &DnsResponsePoliciesUpdateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePoliciesUpdateResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_response_policies_update_builder(
+        client,
+        &args.project,
+        &args.responsePolicy,
+        &args.clientOperationId,
+    )?;
+    dns_response_policies_update_execute(builder)
+}
+
+/// POST dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
 /// Creates a new Response Policy Rule.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2788,8 +6231,7 @@ pub fn dns_response_policy_rules_create_builder(
     client: &SimpleHttpClient,
     project: &String,
     responsePolicy: &String,
-    clientOperationId: &Option<String>,
-    body: &ResponsePolicyRule,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2810,15 +6252,13 @@ pub fn dns_response_policy_rules_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
+/// POST dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
 /// Creates a new Response Policy Rule.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2892,7 +6332,7 @@ pub fn dns_response_policy_rules_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
+/// POST dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
 /// Creates a new Response Policy Rule.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2932,12 +6372,10 @@ pub struct DnsResponsePolicyRulesCreateArgs {
     /// Path parameter: responsePolicy
     pub responsePolicy: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
-    /// Request body.
-    pub body: ResponsePolicyRule,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
+/// POST dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
 /// Creates a new Response Policy Rule.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2962,12 +6400,11 @@ pub fn dns_response_policy_rules_create(
         &args.project,
         &args.responsePolicy,
         &args.clientOperationId,
-        &args.body,
     )?;
     dns_response_policy_rules_create_execute(builder)
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// DELETE dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
 /// Deletes a previously created Response Policy Rule.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2978,7 +6415,7 @@ pub fn dns_response_policy_rules_delete_builder(
     project: &String,
     responsePolicy: &String,
     responsePolicyRule: &String,
-    clientOperationId: &Option<String>,
+    clientOperationId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2999,13 +6436,13 @@ pub fn dns_response_policy_rules_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// DELETE dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
 /// Deletes a previously created Response Policy Rule.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3076,7 +6513,7 @@ pub fn dns_response_policy_rules_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// DELETE dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
 /// Deletes a previously created Response Policy Rule.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3116,10 +6553,10 @@ pub struct DnsResponsePolicyRulesDeleteArgs {
     /// Path parameter: responsePolicyRule
     pub responsePolicyRule: String,
     /// Query parameter: clientOperationId
-    pub clientOperationId: Option<String>,
+    pub clientOperationId: Option<Option<String>>,
 }
 
-/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// DELETE dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
 /// Deletes a previously created Response Policy Rule.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3145,4 +6582,1672 @@ pub fn dns_response_policy_rules_delete(
         &args.clientOperationId,
     )?;
     dns_response_policy_rules_delete_execute(builder)
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Fetches the representation of an existing Response Policy Rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_response_policy_rules_get_execute()` to send, or `dns_response_policy_rules_get` for simplest API.
+
+pub fn dns_response_policy_rules_get_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    responsePolicy: &String,
+    responsePolicyRule: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules/{}",
+        project, responsePolicy, responsePolicyRule,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Fetches the representation of an existing Response Policy Rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_response_policy_rules_get_execute()` or `dns_response_policy_rules_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policy_rules_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policy_rules_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResponsePolicyRule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResponsePolicyRule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Fetches the representation of an existing Response Policy Rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_response_policy_rules_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_response_policy_rules_get_task()`.
+/// For the simplest API, use `dns_response_policy_rules_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policy_rules_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_response_policy_rules_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResponsePolicyRule>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_response_policy_rules_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_response_policy_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePolicyRulesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Path parameter: responsePolicyRule
+    pub responsePolicyRule: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Fetches the representation of an existing Response Policy Rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_response_policy_rules_get_builder()` + `dns_response_policy_rules_get_execute()`.
+/// For task-level control, use `dns_response_policy_rules_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policy_rules_get(
+    client: &SimpleHttpClient,
+    args: &DnsResponsePolicyRulesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResponsePolicyRule>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_response_policy_rules_get_builder(
+        client,
+        &args.project,
+        &args.responsePolicy,
+        &args.responsePolicyRule,
+        &args.clientOperationId,
+    )?;
+    dns_response_policy_rules_get_execute(builder)
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
+/// Enumerates all Response Policy Rules associated with a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_response_policy_rules_list_execute()` to send, or `dns_response_policy_rules_list` for simplest API.
+
+pub fn dns_response_policy_rules_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    responsePolicy: &String,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules",
+        project, responsePolicy,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
+/// Enumerates all Response Policy Rules associated with a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_response_policy_rules_list_execute()` or `dns_response_policy_rules_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policy_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policy_rules_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResponsePolicyRulesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResponsePolicyRulesListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
+/// Enumerates all Response Policy Rules associated with a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_response_policy_rules_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_response_policy_rules_list_task()`.
+/// For the simplest API, use `dns_response_policy_rules_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policy_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_response_policy_rules_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePolicyRulesListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_response_policy_rules_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_response_policy_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePolicyRulesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
+/// Enumerates all Response Policy Rules associated with a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_response_policy_rules_list_builder()` + `dns_response_policy_rules_list_execute()`.
+/// For task-level control, use `dns_response_policy_rules_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policy_rules_list(
+    client: &SimpleHttpClient,
+    args: &DnsResponsePolicyRulesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePolicyRulesListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_response_policy_rules_list_builder(
+        client,
+        &args.project,
+        &args.responsePolicy,
+        &args.maxResults,
+        &args.pageToken,
+    )?;
+    dns_response_policy_rules_list_execute(builder)
+}
+
+/// PATCH dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Applies a partial update to an existing Response Policy Rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_response_policy_rules_patch_execute()` to send, or `dns_response_policy_rules_patch` for simplest API.
+
+pub fn dns_response_policy_rules_patch_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    responsePolicy: &String,
+    responsePolicyRule: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules/{}",
+        project, responsePolicy, responsePolicyRule,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Applies a partial update to an existing Response Policy Rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_response_policy_rules_patch_execute()` or `dns_response_policy_rules_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policy_rules_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policy_rules_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResponsePolicyRulesPatchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResponsePolicyRulesPatchResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Applies a partial update to an existing Response Policy Rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_response_policy_rules_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_response_policy_rules_patch_task()`.
+/// For the simplest API, use `dns_response_policy_rules_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policy_rules_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_response_policy_rules_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePolicyRulesPatchResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_response_policy_rules_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_response_policy_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePolicyRulesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Path parameter: responsePolicyRule
+    pub responsePolicyRule: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// PATCH dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Applies a partial update to an existing Response Policy Rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_response_policy_rules_patch_builder()` + `dns_response_policy_rules_patch_execute()`.
+/// For task-level control, use `dns_response_policy_rules_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policy_rules_patch(
+    client: &SimpleHttpClient,
+    args: &DnsResponsePolicyRulesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePolicyRulesPatchResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_response_policy_rules_patch_builder(
+        client,
+        &args.project,
+        &args.responsePolicy,
+        &args.responsePolicyRule,
+        &args.clientOperationId,
+    )?;
+    dns_response_policy_rules_patch_execute(builder)
+}
+
+/// PUT dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Updates an existing Response Policy Rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `dns_response_policy_rules_update_execute()` to send, or `dns_response_policy_rules_update` for simplest API.
+
+pub fn dns_response_policy_rules_update_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    responsePolicy: &String,
+    responsePolicyRule: &String,
+    clientOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://dns.googleapis.com/dns/v1/projects/{}/responsePolicies/{}/rules/{}",
+        project, responsePolicy, responsePolicyRule,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientOperationId.as_ref() {
+        query_parts.push(format!("clientOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Updates an existing Response Policy Rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `dns_response_policy_rules_update_execute()` or `dns_response_policy_rules_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policy_rules_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policy_rules_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResponsePolicyRulesUpdateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResponsePolicyRulesUpdateResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Updates an existing Response Policy Rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `dns_response_policy_rules_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `dns_response_policy_rules_update_task()`.
+/// For the simplest API, use `dns_response_policy_rules_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `dns_response_policy_rules_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn dns_response_policy_rules_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePolicyRulesUpdateResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = dns_response_policy_rules_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`dns_response_policy_rules_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePolicyRulesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Path parameter: responsePolicyRule
+    pub responsePolicyRule: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<Option<String>>,
+}
+
+/// PUT dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
+/// Updates an existing Response Policy Rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `dns_response_policy_rules_update_builder()` + `dns_response_policy_rules_update_execute()`.
+/// For task-level control, use `dns_response_policy_rules_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn dns_response_policy_rules_update(
+    client: &SimpleHttpClient,
+    args: &DnsResponsePolicyRulesUpdateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ResponsePolicyRulesUpdateResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = dns_response_policy_rules_update_builder(
+        client,
+        &args.project,
+        &args.responsePolicy,
+        &args.responsePolicyRule,
+        &args.clientOperationId,
+    )?;
+    dns_response_policy_rules_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Change
+// =============================================================================
+
+/// ResourceIdentifier implementation for Change with DnsChangesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsChangesCreateArgs> for Change {
+    fn generate_resource_id(&self, input: &DnsChangesCreateArgs) -> String {
+        format!("gcp::dns::Change/{}/{}", input.project, input.managedZone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::Change"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Change
+// =============================================================================
+
+/// ResourceIdentifier implementation for Change with DnsChangesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsChangesGetArgs> for Change {
+    fn generate_resource_id(&self, input: &DnsChangesGetArgs) -> String {
+        format!(
+            "gcp::dns::Change/{}/{}/{}",
+            input.project, input.managedZone, input.changeId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::Change"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ChangesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ChangesListResponse with DnsChangesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsChangesListArgs> for ChangesListResponse {
+    fn generate_resource_id(&self, input: &DnsChangesListArgs) -> String {
+        format!(
+            "gcp::dns::ChangesListResponse/{}/{}",
+            input.project, input.managedZone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ChangesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DnsKey
+// =============================================================================
+
+/// ResourceIdentifier implementation for DnsKey with DnsDnsKeysGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsDnsKeysGetArgs> for DnsKey {
+    fn generate_resource_id(&self, input: &DnsDnsKeysGetArgs) -> String {
+        format!(
+            "gcp::dns::DnsKey/{}/{}/{}",
+            input.project, input.managedZone, input.dnsKeyId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::DnsKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DnsKeysListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DnsKeysListResponse with DnsDnsKeysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsDnsKeysListArgs> for DnsKeysListResponse {
+    fn generate_resource_id(&self, input: &DnsDnsKeysListArgs) -> String {
+        format!(
+            "gcp::dns::DnsKeysListResponse/{}/{}",
+            input.project, input.managedZone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::DnsKeysListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DnsManagedZoneOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZoneOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &DnsManagedZoneOperationsGetArgs) -> String {
+        format!(
+            "gcp::dns::Operation/{}/{}/{}",
+            input.project, input.managedZone, input.operation
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedZoneOperationsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedZoneOperationsListResponse with DnsManagedZoneOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZoneOperationsListArgs> for ManagedZoneOperationsListResponse {
+    fn generate_resource_id(&self, input: &DnsManagedZoneOperationsListArgs) -> String {
+        format!(
+            "gcp::dns::ManagedZoneOperationsListResponse/{}/{}",
+            input.project, input.managedZone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ManagedZoneOperationsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedZone
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedZone with DnsManagedZonesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesCreateArgs> for ManagedZone {
+    fn generate_resource_id(&self, input: &DnsManagedZonesCreateArgs) -> String {
+        format!("gcp::dns::ManagedZone/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ManagedZone"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedZone
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedZone with DnsManagedZonesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesGetArgs> for ManagedZone {
+    fn generate_resource_id(&self, input: &DnsManagedZonesGetArgs) -> String {
+        format!(
+            "gcp::dns::ManagedZone/{}/{}",
+            input.project, input.managedZone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ManagedZone"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with DnsManagedZonesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesGetIamPolicyArgs> for GoogleIamV1Policy {
+    fn generate_resource_id(&self, input: &DnsManagedZonesGetIamPolicyArgs) -> String {
+        format!("gcp::dns::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagedZonesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagedZonesListResponse with DnsManagedZonesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesListArgs> for ManagedZonesListResponse {
+    fn generate_resource_id(&self, input: &DnsManagedZonesListArgs) -> String {
+        format!("gcp::dns::ManagedZonesListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ManagedZonesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DnsManagedZonesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &DnsManagedZonesPatchArgs) -> String {
+        format!(
+            "gcp::dns::Operation/{}/{}",
+            input.project, input.managedZone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy with DnsManagedZonesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesSetIamPolicyArgs> for GoogleIamV1Policy {
+    fn generate_resource_id(&self, input: &DnsManagedZonesSetIamPolicyArgs) -> String {
+        format!("gcp::dns::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse with DnsManagedZonesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesTestIamPermissionsArgs>
+    for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(&self, input: &DnsManagedZonesTestIamPermissionsArgs) -> String {
+        format!(
+            "gcp::dns::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DnsManagedZonesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesUpdateArgs> for Operation {
+    fn generate_resource_id(&self, input: &DnsManagedZonesUpdateArgs) -> String {
+        format!(
+            "gcp::dns::Operation/{}/{}",
+            input.project, input.managedZone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DnsPoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsPoliciesCreateArgs> for Policy {
+    fn generate_resource_id(&self, input: &DnsPoliciesCreateArgs) -> String {
+        format!("gcp::dns::Policy/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DnsPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsPoliciesGetArgs> for Policy {
+    fn generate_resource_id(&self, input: &DnsPoliciesGetArgs) -> String {
+        format!("gcp::dns::Policy/{}/{}", input.project, input.policy)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PoliciesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PoliciesListResponse with DnsPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsPoliciesListArgs> for PoliciesListResponse {
+    fn generate_resource_id(&self, input: &DnsPoliciesListArgs) -> String {
+        format!("gcp::dns::PoliciesListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::PoliciesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PoliciesPatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PoliciesPatchResponse with DnsPoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsPoliciesPatchArgs> for PoliciesPatchResponse {
+    fn generate_resource_id(&self, input: &DnsPoliciesPatchArgs) -> String {
+        format!(
+            "gcp::dns::PoliciesPatchResponse/{}/{}",
+            input.project, input.policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::PoliciesPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PoliciesUpdateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PoliciesUpdateResponse with DnsPoliciesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsPoliciesUpdateArgs> for PoliciesUpdateResponse {
+    fn generate_resource_id(&self, input: &DnsPoliciesUpdateArgs) -> String {
+        format!(
+            "gcp::dns::PoliciesUpdateResponse/{}/{}",
+            input.project, input.policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::PoliciesUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Project
+// =============================================================================
+
+/// ResourceIdentifier implementation for Project with DnsProjectsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsProjectsGetArgs> for Project {
+    fn generate_resource_id(&self, input: &DnsProjectsGetArgs) -> String {
+        format!("gcp::dns::Project/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::Project"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResourceRecordSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResourceRecordSet with DnsResourceRecordSetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResourceRecordSetsCreateArgs> for ResourceRecordSet {
+    fn generate_resource_id(&self, input: &DnsResourceRecordSetsCreateArgs) -> String {
+        format!(
+            "gcp::dns::ResourceRecordSet/{}/{}",
+            input.project, input.managedZone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResourceRecordSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResourceRecordSetsDeleteResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResourceRecordSetsDeleteResponse with DnsResourceRecordSetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResourceRecordSetsDeleteArgs> for ResourceRecordSetsDeleteResponse {
+    fn generate_resource_id(&self, input: &DnsResourceRecordSetsDeleteArgs) -> String {
+        format!(
+            "gcp::dns::ResourceRecordSetsDeleteResponse/{}/{}/{}/{}",
+            input.project, input.managedZone, input.name, input.type_rs
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResourceRecordSetsDeleteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResourceRecordSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResourceRecordSet with DnsResourceRecordSetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResourceRecordSetsGetArgs> for ResourceRecordSet {
+    fn generate_resource_id(&self, input: &DnsResourceRecordSetsGetArgs) -> String {
+        format!(
+            "gcp::dns::ResourceRecordSet/{}/{}/{}/{}",
+            input.project, input.managedZone, input.name, input.type_rs
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResourceRecordSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResourceRecordSetsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResourceRecordSetsListResponse with DnsResourceRecordSetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResourceRecordSetsListArgs> for ResourceRecordSetsListResponse {
+    fn generate_resource_id(&self, input: &DnsResourceRecordSetsListArgs) -> String {
+        format!(
+            "gcp::dns::ResourceRecordSetsListResponse/{}/{}",
+            input.project, input.managedZone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResourceRecordSetsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResourceRecordSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResourceRecordSet with DnsResourceRecordSetsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResourceRecordSetsPatchArgs> for ResourceRecordSet {
+    fn generate_resource_id(&self, input: &DnsResourceRecordSetsPatchArgs) -> String {
+        format!(
+            "gcp::dns::ResourceRecordSet/{}/{}/{}/{}",
+            input.project, input.managedZone, input.name, input.type_rs
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResourceRecordSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResponsePolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResponsePolicy with DnsResponsePoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePoliciesCreateArgs> for ResponsePolicy {
+    fn generate_resource_id(&self, input: &DnsResponsePoliciesCreateArgs) -> String {
+        format!("gcp::dns::ResponsePolicy/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResponsePolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResponsePolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResponsePolicy with DnsResponsePoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePoliciesGetArgs> for ResponsePolicy {
+    fn generate_resource_id(&self, input: &DnsResponsePoliciesGetArgs) -> String {
+        format!(
+            "gcp::dns::ResponsePolicy/{}/{}",
+            input.project, input.responsePolicy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResponsePolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResponsePoliciesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResponsePoliciesListResponse with DnsResponsePoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePoliciesListArgs> for ResponsePoliciesListResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePoliciesListArgs) -> String {
+        format!("gcp::dns::ResponsePoliciesListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResponsePoliciesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResponsePoliciesPatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResponsePoliciesPatchResponse with DnsResponsePoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePoliciesPatchArgs> for ResponsePoliciesPatchResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePoliciesPatchArgs) -> String {
+        format!(
+            "gcp::dns::ResponsePoliciesPatchResponse/{}/{}",
+            input.project, input.responsePolicy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResponsePoliciesPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResponsePoliciesUpdateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResponsePoliciesUpdateResponse with DnsResponsePoliciesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePoliciesUpdateArgs> for ResponsePoliciesUpdateResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePoliciesUpdateArgs) -> String {
+        format!(
+            "gcp::dns::ResponsePoliciesUpdateResponse/{}/{}",
+            input.project, input.responsePolicy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResponsePoliciesUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResponsePolicyRule
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResponsePolicyRule with DnsResponsePolicyRulesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePolicyRulesCreateArgs> for ResponsePolicyRule {
+    fn generate_resource_id(&self, input: &DnsResponsePolicyRulesCreateArgs) -> String {
+        format!(
+            "gcp::dns::ResponsePolicyRule/{}/{}",
+            input.project, input.responsePolicy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResponsePolicyRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResponsePolicyRule
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResponsePolicyRule with DnsResponsePolicyRulesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePolicyRulesGetArgs> for ResponsePolicyRule {
+    fn generate_resource_id(&self, input: &DnsResponsePolicyRulesGetArgs) -> String {
+        format!(
+            "gcp::dns::ResponsePolicyRule/{}/{}/{}",
+            input.project, input.responsePolicy, input.responsePolicyRule
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResponsePolicyRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResponsePolicyRulesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResponsePolicyRulesListResponse with DnsResponsePolicyRulesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePolicyRulesListArgs> for ResponsePolicyRulesListResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePolicyRulesListArgs) -> String {
+        format!(
+            "gcp::dns::ResponsePolicyRulesListResponse/{}/{}",
+            input.project, input.responsePolicy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResponsePolicyRulesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResponsePolicyRulesPatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResponsePolicyRulesPatchResponse with DnsResponsePolicyRulesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePolicyRulesPatchArgs> for ResponsePolicyRulesPatchResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePolicyRulesPatchArgs) -> String {
+        format!(
+            "gcp::dns::ResponsePolicyRulesPatchResponse/{}/{}/{}",
+            input.project, input.responsePolicy, input.responsePolicyRule
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResponsePolicyRulesPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResponsePolicyRulesUpdateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResponsePolicyRulesUpdateResponse with DnsResponsePolicyRulesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePolicyRulesUpdateArgs> for ResponsePolicyRulesUpdateResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePolicyRulesUpdateArgs) -> String {
+        format!(
+            "gcp::dns::ResponsePolicyRulesUpdateResponse/{}/{}/{}",
+            input.project, input.responsePolicy, input.responsePolicyRule
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dns::ResponsePolicyRulesUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

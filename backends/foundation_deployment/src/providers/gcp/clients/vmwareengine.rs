@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,328 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_get_execute()` to send, or `vmwareengine_projects_locations_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_get_execute()` or `vmwareengine_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_get_builder()` + `vmwareengine_projects_locations_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission
+/// Gets all the principals having bind permission on the intranet VPC associated with the consumer project granted by the Grant API. DnsBindPermission is a global resource and location can only be global.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_get_dns_bind_permission_execute()` to send, or `vmwareengine_projects_locations_get_dns_bind_permission` for simplest API.
+
+pub fn vmwareengine_projects_locations_get_dns_bind_permission_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsBindPermission",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission
+/// Gets all the principals having bind permission on the intranet VPC associated with the consumer project granted by the Grant API. DnsBindPermission is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_get_dns_bind_permission_execute()` or `vmwareengine_projects_locations_get_dns_bind_permission`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_get_dns_bind_permission_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_get_dns_bind_permission_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DnsBindPermission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DnsBindPermission = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission
+/// Gets all the principals having bind permission on the intranet VPC associated with the consumer project granted by the Grant API. DnsBindPermission is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_get_dns_bind_permission_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_get_dns_bind_permission_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_get_dns_bind_permission()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_get_dns_bind_permission_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_get_dns_bind_permission_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DnsBindPermission>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_get_dns_bind_permission_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_get_dns_bind_permission`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsGetDnsBindPermissionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission
+/// Gets all the principals having bind permission on the intranet VPC associated with the consumer project granted by the Grant API. DnsBindPermission is a global resource and location can only be global.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_get_dns_bind_permission_builder()` + `vmwareengine_projects_locations_get_dns_bind_permission_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_get_dns_bind_permission_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_get_dns_bind_permission(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsGetDnsBindPermissionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DnsBindPermission>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_get_dns_bind_permission_builder(client, &args.name)?;
+    vmwareengine_projects_locations_get_dns_bind_permission_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +348,16 @@ use serde::Serialize;
 pub fn vmwareengine_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://vmwareengine.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +499,13 @@ pub struct VmwareengineProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +537,20323 @@ pub fn vmwareengine_projects_locations_list(
         &args.pageToken,
     )?;
     vmwareengine_projects_locations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/announcements/{announcementsId}
+/// Retrieves a Announcement by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_announcements_get_execute()` to send, or `vmwareengine_projects_locations_announcements_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_announcements_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/announcements/{announcementsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/announcements/{announcementsId}
+/// Retrieves a Announcement by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_announcements_get_execute()` or `vmwareengine_projects_locations_announcements_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_announcements_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_announcements_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Announcement>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Announcement = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/announcements/{announcementsId}
+/// Retrieves a Announcement by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_announcements_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_announcements_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_announcements_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_announcements_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_announcements_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_announcements_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_announcements_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsAnnouncementsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/announcements/{announcementsId}
+/// Retrieves a Announcement by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_announcements_get_builder()` + `vmwareengine_projects_locations_announcements_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_announcements_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_announcements_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsAnnouncementsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Announcement>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_announcements_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_announcements_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/announcements
+/// Lists Announcements for a given region and project
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_announcements_list_execute()` to send, or `vmwareengine_projects_locations_announcements_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_announcements_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/announcements",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/announcements
+/// Lists Announcements for a given region and project
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_announcements_list_execute()` or `vmwareengine_projects_locations_announcements_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_announcements_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_announcements_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAnnouncementsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAnnouncementsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/announcements
+/// Lists Announcements for a given region and project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_announcements_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_announcements_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_announcements_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_announcements_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_announcements_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAnnouncementsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_announcements_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_announcements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsAnnouncementsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/announcements
+/// Lists Announcements for a given region and project
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_announcements_list_builder()` + `vmwareengine_projects_locations_announcements_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_announcements_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_announcements_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsAnnouncementsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAnnouncementsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_announcements_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_announcements_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/datastores
+/// Creates a new Datastore resource in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_datastores_create_execute()` to send, or `vmwareengine_projects_locations_datastores_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_datastores_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    datastoreId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/datastores",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = datastoreId.as_ref() {
+        query_parts.push(format!("datastoreId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/datastores
+/// Creates a new Datastore resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_datastores_create_execute()` or `vmwareengine_projects_locations_datastores_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_datastores_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_datastores_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/datastores
+/// Creates a new Datastore resource in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_datastores_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_datastores_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_datastores_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_datastores_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_datastores_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_datastores_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_datastores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDatastoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: datastoreId
+    pub datastoreId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/datastores
+/// Creates a new Datastore resource in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_datastores_create_builder()` + `vmwareengine_projects_locations_datastores_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_datastores_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_datastores_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsDatastoresCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_datastores_create_builder(
+        client,
+        &args.parent,
+        &args.datastoreId,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_datastores_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Deletes a Datastore resource. You can only delete a Datastore after all resources that refer to it are deleted. For example, multiple clusters of the same private cloud or different private clouds can refer to the same datastore.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_datastores_delete_execute()` to send, or `vmwareengine_projects_locations_datastores_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_datastores_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/datastores/{datastoresId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Deletes a Datastore resource. You can only delete a Datastore after all resources that refer to it are deleted. For example, multiple clusters of the same private cloud or different private clouds can refer to the same datastore.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_datastores_delete_execute()` or `vmwareengine_projects_locations_datastores_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_datastores_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_datastores_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Deletes a Datastore resource. You can only delete a Datastore after all resources that refer to it are deleted. For example, multiple clusters of the same private cloud or different private clouds can refer to the same datastore.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_datastores_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_datastores_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_datastores_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_datastores_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_datastores_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_datastores_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_datastores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDatastoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Deletes a Datastore resource. You can only delete a Datastore after all resources that refer to it are deleted. For example, multiple clusters of the same private cloud or different private clouds can refer to the same datastore.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_datastores_delete_builder()` + `vmwareengine_projects_locations_datastores_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_datastores_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_datastores_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsDatastoresDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_datastores_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_datastores_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Retrieves a Datastore resource by its resource name. The resource contains details of the Datastore, such as its description, subnets, type, and more.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_datastores_get_execute()` to send, or `vmwareengine_projects_locations_datastores_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_datastores_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/datastores/{datastoresId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Retrieves a Datastore resource by its resource name. The resource contains details of the Datastore, such as its description, subnets, type, and more.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_datastores_get_execute()` or `vmwareengine_projects_locations_datastores_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_datastores_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_datastores_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Datastore>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Datastore = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Retrieves a Datastore resource by its resource name. The resource contains details of the Datastore, such as its description, subnets, type, and more.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_datastores_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_datastores_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_datastores_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_datastores_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_datastores_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Datastore>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_datastores_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_datastores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDatastoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Retrieves a Datastore resource by its resource name. The resource contains details of the Datastore, such as its description, subnets, type, and more.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_datastores_get_builder()` + `vmwareengine_projects_locations_datastores_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_datastores_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_datastores_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsDatastoresGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Datastore>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_datastores_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_datastores_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/datastores
+/// Lists Datastore resources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_datastores_list_execute()` to send, or `vmwareengine_projects_locations_datastores_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_datastores_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/datastores",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/datastores
+/// Lists Datastore resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_datastores_list_execute()` or `vmwareengine_projects_locations_datastores_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_datastores_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_datastores_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDatastoresResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDatastoresResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/datastores
+/// Lists Datastore resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_datastores_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_datastores_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_datastores_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_datastores_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_datastores_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDatastoresResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_datastores_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_datastores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDatastoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/datastores
+/// Lists Datastore resources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_datastores_list_builder()` + `vmwareengine_projects_locations_datastores_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_datastores_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_datastores_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsDatastoresListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDatastoresResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_datastores_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_datastores_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Modifies a Datastore resource. Only fields specified in `updateMask` are applied.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_datastores_patch_execute()` to send, or `vmwareengine_projects_locations_datastores_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_datastores_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/datastores/{datastoresId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Modifies a Datastore resource. Only fields specified in `updateMask` are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_datastores_patch_execute()` or `vmwareengine_projects_locations_datastores_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_datastores_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_datastores_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Modifies a Datastore resource. Only fields specified in `updateMask` are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_datastores_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_datastores_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_datastores_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_datastores_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_datastores_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_datastores_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_datastores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDatastoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/datastores/{datastoresId}
+/// Modifies a Datastore resource. Only fields specified in `updateMask` are applied.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_datastores_patch_builder()` + `vmwareengine_projects_locations_datastores_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_datastores_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_datastores_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsDatastoresPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_datastores_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    vmwareengine_projects_locations_datastores_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission:grant
+/// Grants the bind permission to the customer provided principal(user / service account) to bind their DNS zone with the intranet VPC associated with the project. DnsBindPermission is a global resource and location can only be global.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_dns_bind_permission_grant_execute()` to send, or `vmwareengine_projects_locations_dns_bind_permission_grant` for simplest API.
+
+pub fn vmwareengine_projects_locations_dns_bind_permission_grant_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsBindPermission:grant",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission:grant
+/// Grants the bind permission to the customer provided principal(user / service account) to bind their DNS zone with the intranet VPC associated with the project. DnsBindPermission is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_dns_bind_permission_grant_execute()` or `vmwareengine_projects_locations_dns_bind_permission_grant`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_dns_bind_permission_grant_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_dns_bind_permission_grant_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission:grant
+/// Grants the bind permission to the customer provided principal(user / service account) to bind their DNS zone with the intranet VPC associated with the project. DnsBindPermission is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_dns_bind_permission_grant_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_dns_bind_permission_grant_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_dns_bind_permission_grant()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_dns_bind_permission_grant_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_dns_bind_permission_grant_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_dns_bind_permission_grant_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_dns_bind_permission_grant`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDnsBindPermissionGrantArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission:grant
+/// Grants the bind permission to the customer provided principal(user / service account) to bind their DNS zone with the intranet VPC associated with the project. DnsBindPermission is a global resource and location can only be global.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_dns_bind_permission_grant_builder()` + `vmwareengine_projects_locations_dns_bind_permission_grant_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_dns_bind_permission_grant_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_dns_bind_permission_grant(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsDnsBindPermissionGrantArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_dns_bind_permission_grant_builder(client, &args.name)?;
+    vmwareengine_projects_locations_dns_bind_permission_grant_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission:revoke
+/// Revokes the bind permission from the customer provided principal(user / service account) on the intranet VPC associated with the consumer project. DnsBindPermission is a global resource and location can only be global.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_dns_bind_permission_revoke_execute()` to send, or `vmwareengine_projects_locations_dns_bind_permission_revoke` for simplest API.
+
+pub fn vmwareengine_projects_locations_dns_bind_permission_revoke_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/dnsBindPermission:revoke",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission:revoke
+/// Revokes the bind permission from the customer provided principal(user / service account) on the intranet VPC associated with the consumer project. DnsBindPermission is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_dns_bind_permission_revoke_execute()` or `vmwareengine_projects_locations_dns_bind_permission_revoke`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_dns_bind_permission_revoke_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_dns_bind_permission_revoke_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission:revoke
+/// Revokes the bind permission from the customer provided principal(user / service account) on the intranet VPC associated with the consumer project. DnsBindPermission is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_dns_bind_permission_revoke_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_dns_bind_permission_revoke_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_dns_bind_permission_revoke()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_dns_bind_permission_revoke_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_dns_bind_permission_revoke_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_dns_bind_permission_revoke_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_dns_bind_permission_revoke`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsDnsBindPermissionRevokeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dnsBindPermission:revoke
+/// Revokes the bind permission from the customer provided principal(user / service account) on the intranet VPC associated with the consumer project. DnsBindPermission is a global resource and location can only be global.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_dns_bind_permission_revoke_builder()` + `vmwareengine_projects_locations_dns_bind_permission_revoke_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_dns_bind_permission_revoke_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_dns_bind_permission_revoke(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsDnsBindPermissionRevokeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_dns_bind_permission_revoke_builder(client, &args.name)?;
+    vmwareengine_projects_locations_dns_bind_permission_revoke_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
+/// Creates a new network peering between the peer network and VMware Engine network provided in a NetworkPeering resource. NetworkPeering is a global resource and location can only be global.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_peerings_create_execute()` to send, or `vmwareengine_projects_locations_network_peerings_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_peerings_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    networkPeeringId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = networkPeeringId.as_ref() {
+        query_parts.push(format!("networkPeeringId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
+/// Creates a new network peering between the peer network and VMware Engine network provided in a NetworkPeering resource. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_peerings_create_execute()` or `vmwareengine_projects_locations_network_peerings_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
+/// Creates a new network peering between the peer network and VMware Engine network provided in a NetworkPeering resource. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_peerings_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_peerings_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_peerings_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_peerings_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: networkPeeringId
+    pub networkPeeringId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
+/// Creates a new network peering between the peer network and VMware Engine network provided in a NetworkPeering resource. NetworkPeering is a global resource and location can only be global.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_peerings_create_builder()` + `vmwareengine_projects_locations_network_peerings_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_peerings_create_builder(
+        client,
+        &args.parent,
+        &args.networkPeeringId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_network_peerings_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Deletes a NetworkPeering resource. When a network peering is deleted for a VMware Engine network, the peer network becomes inaccessible to that VMware Engine network. NetworkPeering is a global resource and location can only be global.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_peerings_delete_execute()` to send, or `vmwareengine_projects_locations_network_peerings_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_peerings_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings/{networkPeeringsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Deletes a NetworkPeering resource. When a network peering is deleted for a VMware Engine network, the peer network becomes inaccessible to that VMware Engine network. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_peerings_delete_execute()` or `vmwareengine_projects_locations_network_peerings_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Deletes a NetworkPeering resource. When a network peering is deleted for a VMware Engine network, the peer network becomes inaccessible to that VMware Engine network. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_peerings_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_peerings_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_peerings_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_peerings_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Deletes a NetworkPeering resource. When a network peering is deleted for a VMware Engine network, the peer network becomes inaccessible to that VMware Engine network. NetworkPeering is a global resource and location can only be global.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_peerings_delete_builder()` + `vmwareengine_projects_locations_network_peerings_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_peerings_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_network_peerings_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Retrieves a NetworkPeering resource by its resource name. The resource contains details of the network peering, such as peered networks, import and export custom route configurations, and peering state. NetworkPeering is a global resource and location can only be global.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_peerings_get_execute()` to send, or `vmwareengine_projects_locations_network_peerings_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_peerings_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings/{networkPeeringsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Retrieves a NetworkPeering resource by its resource name. The resource contains details of the network peering, such as peered networks, import and export custom route configurations, and peering state. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_peerings_get_execute()` or `vmwareengine_projects_locations_network_peerings_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NetworkPeering>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NetworkPeering = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Retrieves a NetworkPeering resource by its resource name. The resource contains details of the network peering, such as peered networks, import and export custom route configurations, and peering state. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_peerings_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_peerings_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_peerings_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NetworkPeering>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_peerings_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Retrieves a NetworkPeering resource by its resource name. The resource contains details of the network peering, such as peered networks, import and export custom route configurations, and peering state. NetworkPeering is a global resource and location can only be global.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_peerings_get_builder()` + `vmwareengine_projects_locations_network_peerings_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NetworkPeering>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_peerings_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_network_peerings_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
+/// Lists NetworkPeering resources in a given project. NetworkPeering is a global resource and location can only be global.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_peerings_list_execute()` to send, or `vmwareengine_projects_locations_network_peerings_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_peerings_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
+/// Lists NetworkPeering resources in a given project. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_peerings_list_execute()` or `vmwareengine_projects_locations_network_peerings_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNetworkPeeringsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNetworkPeeringsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
+/// Lists NetworkPeering resources in a given project. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_peerings_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_peerings_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_peerings_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNetworkPeeringsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_peerings_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings
+/// Lists NetworkPeering resources in a given project. NetworkPeering is a global resource and location can only be global.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_peerings_list_builder()` + `vmwareengine_projects_locations_network_peerings_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNetworkPeeringsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_peerings_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_network_peerings_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Modifies a NetworkPeering resource. Only the description field can be updated. Only fields specified in `updateMask` are applied. NetworkPeering is a global resource and location can only be global.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_peerings_patch_execute()` to send, or `vmwareengine_projects_locations_network_peerings_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_peerings_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings/{networkPeeringsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Modifies a NetworkPeering resource. Only the description field can be updated. Only fields specified in `updateMask` are applied. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_peerings_patch_execute()` or `vmwareengine_projects_locations_network_peerings_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Modifies a NetworkPeering resource. Only the description field can be updated. Only fields specified in `updateMask` are applied. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_peerings_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_peerings_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_peerings_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_peerings_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}
+/// Modifies a NetworkPeering resource. Only the description field can be updated. Only fields specified in `updateMask` are applied. NetworkPeering is a global resource and location can only be global.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_peerings_patch_builder()` + `vmwareengine_projects_locations_network_peerings_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_peerings_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_network_peerings_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}/peeringRoutes
+/// Lists the network peering routes exchanged over a peering connection. NetworkPeering is a global resource and location can only be global.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_peerings_peering_routes_list_execute()` to send, or `vmwareengine_projects_locations_network_peerings_peering_routes_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPeerings/{networkPeeringsId}/peeringRoutes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}/peeringRoutes
+/// Lists the network peering routes exchanged over a peering connection. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_peerings_peering_routes_list_execute()` or `vmwareengine_projects_locations_network_peerings_peering_routes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_peering_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPeeringRoutesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPeeringRoutesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}/peeringRoutes
+/// Lists the network peering routes exchanged over a peering connection. NetworkPeering is a global resource and location can only be global.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_peerings_peering_routes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_peering_routes_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_peerings_peering_routes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_peerings_peering_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListPeeringRoutesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_peerings_peering_routes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_peerings_peering_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPeeringsPeeringRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPeerings/{networkPeeringsId}/peeringRoutes
+/// Lists the network peering routes exchanged over a peering connection. NetworkPeering is a global resource and location can only be global.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_peerings_peering_routes_list_builder()` + `vmwareengine_projects_locations_network_peerings_peering_routes_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_peerings_peering_routes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_peerings_peering_routes_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPeeringsPeeringRoutesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListPeeringRoutesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_peerings_peering_routes_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_network_peerings_peering_routes_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
+/// Creates a new network policy in a given VMware Engine network of a project and location (region). A new network policy cannot be created if another network policy already exists in the same scope.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_create_execute()` to send, or `vmwareengine_projects_locations_network_policies_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    networkPolicyId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = networkPolicyId.as_ref() {
+        query_parts.push(format!("networkPolicyId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
+/// Creates a new network policy in a given VMware Engine network of a project and location (region). A new network policy cannot be created if another network policy already exists in the same scope.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_create_execute()` or `vmwareengine_projects_locations_network_policies_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
+/// Creates a new network policy in a given VMware Engine network of a project and location (region). A new network policy cannot be created if another network policy already exists in the same scope.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_policies_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: networkPolicyId
+    pub networkPolicyId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
+/// Creates a new network policy in a given VMware Engine network of a project and location (region). A new network policy cannot be created if another network policy already exists in the same scope.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_create_builder()` + `vmwareengine_projects_locations_network_policies_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_policies_create_builder(
+        client,
+        &args.parent,
+        &args.networkPolicyId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_network_policies_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Deletes a NetworkPolicy resource. A network policy cannot be deleted when NetworkService.state is set to RECONCILING for either its external IP or internet access service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_delete_execute()` to send, or `vmwareengine_projects_locations_network_policies_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Deletes a NetworkPolicy resource. A network policy cannot be deleted when NetworkService.state is set to RECONCILING for either its external IP or internet access service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_delete_execute()` or `vmwareengine_projects_locations_network_policies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Deletes a NetworkPolicy resource. A network policy cannot be deleted when NetworkService.state is set to RECONCILING for either its external IP or internet access service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_policies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Deletes a NetworkPolicy resource. A network policy cannot be deleted when NetworkService.state is set to RECONCILING for either its external IP or internet access service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_delete_builder()` + `vmwareengine_projects_locations_network_policies_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_policies_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_network_policies_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}:fetchExternalAddresses
+/// Lists external IP addresses assigned to VMware workload VMs within the scope of the given network policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_fetch_external_addresses_execute()` to send, or `vmwareengine_projects_locations_network_policies_fetch_external_addresses` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses_builder(
+    client: &SimpleHttpClient,
+    networkPolicy: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}:fetchExternalAddresses",
+        networkPolicy,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}:fetchExternalAddresses
+/// Lists external IP addresses assigned to VMware workload VMs within the scope of the given network policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_fetch_external_addresses_execute()` or `vmwareengine_projects_locations_network_policies_fetch_external_addresses`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_fetch_external_addresses_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FetchNetworkPolicyExternalAddressesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FetchNetworkPolicyExternalAddressesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}:fetchExternalAddresses
+/// Lists external IP addresses assigned to VMware workload VMs within the scope of the given network policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_fetch_external_addresses_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_fetch_external_addresses_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_fetch_external_addresses()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_fetch_external_addresses_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchNetworkPolicyExternalAddressesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_network_policies_fetch_external_addresses_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_fetch_external_addresses`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesFetchExternalAddressesArgs {
+    /// Path parameter: networkPolicy
+    pub networkPolicy: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}:fetchExternalAddresses
+/// Lists external IP addresses assigned to VMware workload VMs within the scope of the given network policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_fetch_external_addresses_builder()` + `vmwareengine_projects_locations_network_policies_fetch_external_addresses_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_fetch_external_addresses_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_fetch_external_addresses(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesFetchExternalAddressesArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FetchNetworkPolicyExternalAddressesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_network_policies_fetch_external_addresses_builder(
+            client,
+            &args.networkPolicy,
+            &args.pageSize,
+            &args.pageToken,
+        )?;
+    vmwareengine_projects_locations_network_policies_fetch_external_addresses_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Retrieves a NetworkPolicy resource by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_get_execute()` to send, or `vmwareengine_projects_locations_network_policies_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Retrieves a NetworkPolicy resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_get_execute()` or `vmwareengine_projects_locations_network_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NetworkPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NetworkPolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Retrieves a NetworkPolicy resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NetworkPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Retrieves a NetworkPolicy resource by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_get_builder()` + `vmwareengine_projects_locations_network_policies_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NetworkPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_policies_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_network_policies_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
+/// Lists NetworkPolicy resources in a specified project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_list_execute()` to send, or `vmwareengine_projects_locations_network_policies_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
+/// Lists NetworkPolicy resources in a specified project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_list_execute()` or `vmwareengine_projects_locations_network_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNetworkPoliciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNetworkPoliciesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
+/// Lists NetworkPolicy resources in a specified project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNetworkPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies
+/// Lists NetworkPolicy resources in a specified project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_list_builder()` + `vmwareengine_projects_locations_network_policies_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNetworkPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_policies_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_network_policies_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_patch_execute()` to send, or `vmwareengine_projects_locations_network_policies_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_patch_execute()` or `vmwareengine_projects_locations_network_policies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_policies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}
+/// Modifies a NetworkPolicy resource. Only the following fields can be updated: internet_access, external_ip, edge_services_cidr. Only fields specified in `updateMask` are applied. When updating a network policy, the external IP network service can only be disabled if there are no external IP addresses present in the scope of the policy. Also, a NetworkService cannot be updated when NetworkService.state is set to RECONCILING. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_patch_builder()` + `vmwareengine_projects_locations_network_policies_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_network_policies_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_network_policies_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
+/// Creates a new external access rule in a given network policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_external_access_rules_create_execute()` to send, or `vmwareengine_projects_locations_network_policies_external_access_rules_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    externalAccessRuleId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = externalAccessRuleId.as_ref() {
+        query_parts.push(format!("externalAccessRuleId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
+/// Creates a new external access rule in a given network policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_external_access_rules_create_execute()` or `vmwareengine_projects_locations_network_policies_external_access_rules_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_external_access_rules_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
+/// Creates a new external access rule in a given network policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_external_access_rules_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_external_access_rules_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_external_access_rules_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_external_access_rules_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_policies_external_access_rules_create_task(
+        builder,
+    )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_external_access_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: externalAccessRuleId
+    pub externalAccessRuleId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
+/// Creates a new external access rule in a given network policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_external_access_rules_create_builder()` + `vmwareengine_projects_locations_network_policies_external_access_rules_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_external_access_rules_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_network_policies_external_access_rules_create_builder(
+            client,
+            &args.parent,
+            &args.externalAccessRuleId,
+            &args.requestId,
+            &args.validateOnly,
+        )?;
+    vmwareengine_projects_locations_network_policies_external_access_rules_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Deletes a single external access rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_external_access_rules_delete_execute()` to send, or `vmwareengine_projects_locations_network_policies_external_access_rules_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Deletes a single external access rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_external_access_rules_delete_execute()` or `vmwareengine_projects_locations_network_policies_external_access_rules_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_external_access_rules_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Deletes a single external access rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_external_access_rules_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_external_access_rules_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_external_access_rules_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_external_access_rules_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_network_policies_external_access_rules_delete_task(
+        builder,
+    )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_external_access_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Deletes a single external access rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_external_access_rules_delete_builder()` + `vmwareengine_projects_locations_network_policies_external_access_rules_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_external_access_rules_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_network_policies_external_access_rules_delete_builder(
+            client,
+            &args.name,
+            &args.requestId,
+        )?;
+    vmwareengine_projects_locations_network_policies_external_access_rules_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Gets details of a single external access rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_external_access_rules_get_execute()` to send, or `vmwareengine_projects_locations_network_policies_external_access_rules_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Gets details of a single external access rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_external_access_rules_get_execute()` or `vmwareengine_projects_locations_network_policies_external_access_rules_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_external_access_rules_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExternalAccessRule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExternalAccessRule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Gets details of a single external access rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_external_access_rules_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_external_access_rules_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_external_access_rules_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_external_access_rules_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExternalAccessRule>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_network_policies_external_access_rules_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_external_access_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Gets details of a single external access rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_external_access_rules_get_builder()` + `vmwareengine_projects_locations_network_policies_external_access_rules_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_external_access_rules_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExternalAccessRule>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_network_policies_external_access_rules_get_builder(
+            client, &args.name,
+        )?;
+    vmwareengine_projects_locations_network_policies_external_access_rules_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
+/// Lists ExternalAccessRule resources in the specified network policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_external_access_rules_list_execute()` to send, or `vmwareengine_projects_locations_network_policies_external_access_rules_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
+/// Lists ExternalAccessRule resources in the specified network policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_external_access_rules_list_execute()` or `vmwareengine_projects_locations_network_policies_external_access_rules_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_external_access_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListExternalAccessRulesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListExternalAccessRulesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
+/// Lists ExternalAccessRule resources in the specified network policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_external_access_rules_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_external_access_rules_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_external_access_rules_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_external_access_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListExternalAccessRulesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_network_policies_external_access_rules_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_external_access_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules
+/// Lists ExternalAccessRule resources in the specified network policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_external_access_rules_list_builder()` + `vmwareengine_projects_locations_network_policies_external_access_rules_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_external_access_rules_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListExternalAccessRulesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_network_policies_external_access_rules_list_builder(
+            client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )?;
+    vmwareengine_projects_locations_network_policies_external_access_rules_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Updates the parameters of a single external access rule. Only fields specified in update_mask are applied.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_network_policies_external_access_rules_patch_execute()` to send, or `vmwareengine_projects_locations_network_policies_external_access_rules_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Updates the parameters of a single external access rule. Only fields specified in update_mask are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_network_policies_external_access_rules_patch_execute()` or `vmwareengine_projects_locations_network_policies_external_access_rules_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_external_access_rules_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Updates the parameters of a single external access rule. Only fields specified in update_mask are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_network_policies_external_access_rules_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_external_access_rules_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_network_policies_external_access_rules_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_network_policies_external_access_rules_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_network_policies_external_access_rules_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_network_policies_external_access_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/networkPolicies/{networkPoliciesId}/externalAccessRules/{externalAccessRulesId}
+/// Updates the parameters of a single external access rule. Only fields specified in update_mask are applied.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_network_policies_external_access_rules_patch_builder()` + `vmwareengine_projects_locations_network_policies_external_access_rules_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_network_policies_external_access_rules_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_network_policies_external_access_rules_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_network_policies_external_access_rules_patch_builder(
+            client,
+            &args.name,
+            &args.requestId,
+            &args.updateMask,
+            &args.validateOnly,
+        )?;
+    vmwareengine_projects_locations_network_policies_external_access_rules_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes/{nodeTypesId}
+/// Gets details of a single NodeType.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_node_types_get_execute()` to send, or `vmwareengine_projects_locations_node_types_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_node_types_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/nodeTypes/{nodeTypesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes/{nodeTypesId}
+/// Gets details of a single NodeType.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_node_types_get_execute()` or `vmwareengine_projects_locations_node_types_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_node_types_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_node_types_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NodeType>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NodeType = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes/{nodeTypesId}
+/// Gets details of a single NodeType.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_node_types_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_node_types_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_node_types_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_node_types_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_node_types_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NodeType>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_node_types_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_node_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNodeTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes/{nodeTypesId}
+/// Gets details of a single NodeType.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_node_types_get_builder()` + `vmwareengine_projects_locations_node_types_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_node_types_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_node_types_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNodeTypesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NodeType>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_node_types_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_node_types_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes
+/// Lists node types
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_node_types_list_execute()` to send, or `vmwareengine_projects_locations_node_types_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_node_types_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/nodeTypes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes
+/// Lists node types
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_node_types_list_execute()` or `vmwareengine_projects_locations_node_types_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_node_types_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_node_types_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNodeTypesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNodeTypesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes
+/// Lists node types
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_node_types_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_node_types_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_node_types_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_node_types_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_node_types_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNodeTypesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_node_types_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_node_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsNodeTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/nodeTypes
+/// Lists node types
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_node_types_list_builder()` + `vmwareengine_projects_locations_node_types_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_node_types_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_node_types_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsNodeTypesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNodeTypesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_node_types_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_node_types_list_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_operations_delete_execute()` to send, or `vmwareengine_projects_locations_operations_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_operations_delete_execute()` or `vmwareengine_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_operations_delete_builder()` + `vmwareengine_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_operations_delete_builder(client, &args.name)?;
+    vmwareengine_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_operations_get_execute()` to send, or `vmwareengine_projects_locations_operations_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_operations_get_execute()` or `vmwareengine_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_operations_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_operations_get_builder()` + `vmwareengine_projects_locations_operations_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_operations_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_operations_list_execute()` to send, or `vmwareengine_projects_locations_operations_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_operations_list_execute()` or `vmwareengine_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_operations_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_operations_list_builder()` + `vmwareengine_projects_locations_operations_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    vmwareengine_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds
+/// Creates a new PrivateCloud resource in a given project and location. Private clouds of type STANDARD and TIME_LIMITED are zonal resources, STRETCHED private clouds are regional. Creating a private cloud also creates a [management cluster](<https://cloud.google.`com/vmware-engine/docs/concepts-vmware-components`>) for that private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    privateCloudId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = privateCloudId.as_ref() {
+        query_parts.push(format!("privateCloudId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds
+/// Creates a new PrivateCloud resource in a given project and location. Private clouds of type STANDARD and TIME_LIMITED are zonal resources, STRETCHED private clouds are regional. Creating a private cloud also creates a [management cluster](<https://cloud.google.`com/vmware-engine/docs/concepts-vmware-components`>) for that private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_create_execute()` or `vmwareengine_projects_locations_private_clouds_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds
+/// Creates a new PrivateCloud resource in a given project and location. Private clouds of type STANDARD and TIME_LIMITED are zonal resources, STRETCHED private clouds are regional. Creating a private cloud also creates a [management cluster](<https://cloud.google.`com/vmware-engine/docs/concepts-vmware-components`>) for that private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: privateCloudId
+    pub privateCloudId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds
+/// Creates a new PrivateCloud resource in a given project and location. Private clouds of type STANDARD and TIME_LIMITED are zonal resources, STRETCHED private clouds are regional. Creating a private cloud also creates a [management cluster](<https://cloud.google.`com/vmware-engine/docs/concepts-vmware-components`>) for that private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_create_builder()` + `vmwareengine_projects_locations_private_clouds_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_create_builder(
+        client,
+        &args.parent,
+        &args.privateCloudId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_private_clouds_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Schedules a PrivateCloud resource for deletion. A PrivateCloud resource scheduled for deletion has PrivateCloud.state set to DELETED and `expireTime` set to the time when deletion is final and can no longer be reversed. The delete operation is marked as done as soon as the PrivateCloud is successfully scheduled for deletion (this also applies when `delayHours` is set to zero), and the operation is not kept in pending state until PrivateCloud is purged. PrivateCloud can be restored using UndeletePrivateCloud method before the `expireTime` elapses. When `expireTime` is reached, deletion is final and all private cloud resources are irreversibly removed and billing stops. During the final removal process, PrivateCloud.state is set to PURGING. PrivateCloud can be polled using standard GET method for the whole period of deletion and purging. It will not be returned only when it is completely purged.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_delete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    delayHours: &Option<Option<String>>,
+    force: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = delayHours.as_ref() {
+        query_parts.push(format!("delayHours={}", val));
+    }
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Schedules a PrivateCloud resource for deletion. A PrivateCloud resource scheduled for deletion has PrivateCloud.state set to DELETED and `expireTime` set to the time when deletion is final and can no longer be reversed. The delete operation is marked as done as soon as the PrivateCloud is successfully scheduled for deletion (this also applies when `delayHours` is set to zero), and the operation is not kept in pending state until PrivateCloud is purged. PrivateCloud can be restored using UndeletePrivateCloud method before the `expireTime` elapses. When `expireTime` is reached, deletion is final and all private cloud resources are irreversibly removed and billing stops. During the final removal process, PrivateCloud.state is set to PURGING. PrivateCloud can be polled using standard GET method for the whole period of deletion and purging. It will not be returned only when it is completely purged.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_delete_execute()` or `vmwareengine_projects_locations_private_clouds_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Schedules a PrivateCloud resource for deletion. A PrivateCloud resource scheduled for deletion has PrivateCloud.state set to DELETED and `expireTime` set to the time when deletion is final and can no longer be reversed. The delete operation is marked as done as soon as the PrivateCloud is successfully scheduled for deletion (this also applies when `delayHours` is set to zero), and the operation is not kept in pending state until PrivateCloud is purged. PrivateCloud can be restored using UndeletePrivateCloud method before the `expireTime` elapses. When `expireTime` is reached, deletion is final and all private cloud resources are irreversibly removed and billing stops. During the final removal process, PrivateCloud.state is set to PURGING. PrivateCloud can be polled using standard GET method for the whole period of deletion and purging. It will not be returned only when it is completely purged.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: delayHours
+    pub delayHours: Option<Option<String>>,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Schedules a PrivateCloud resource for deletion. A PrivateCloud resource scheduled for deletion has PrivateCloud.state set to DELETED and `expireTime` set to the time when deletion is final and can no longer be reversed. The delete operation is marked as done as soon as the PrivateCloud is successfully scheduled for deletion (this also applies when `delayHours` is set to zero), and the operation is not kept in pending state until PrivateCloud is purged. PrivateCloud can be restored using UndeletePrivateCloud method before the `expireTime` elapses. When `expireTime` is reached, deletion is final and all private cloud resources are irreversibly removed and billing stops. During the final removal process, PrivateCloud.state is set to PURGING. PrivateCloud can be polled using standard GET method for the whole period of deletion and purging. It will not be returned only when it is completely purged.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_delete_builder()` + `vmwareengine_projects_locations_private_clouds_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_delete_builder(
+        client,
+        &args.name,
+        &args.delayHours,
+        &args.force,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_private_clouds_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Retrieves a PrivateCloud resource by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Retrieves a PrivateCloud resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_get_execute()` or `vmwareengine_projects_locations_private_clouds_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PrivateCloud>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PrivateCloud = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Retrieves a PrivateCloud resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PrivateCloud>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Retrieves a PrivateCloud resource by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_get_builder()` + `vmwareengine_projects_locations_private_clouds_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PrivateCloud>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_private_clouds_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
+/// Gets details of the DnsForwarding config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_get_dns_forwarding_execute()` to send, or `vmwareengine_projects_locations_private_clouds_get_dns_forwarding` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
+/// Gets details of the DnsForwarding config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_get_dns_forwarding_execute()` or `vmwareengine_projects_locations_private_clouds_get_dns_forwarding`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_get_dns_forwarding_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DnsForwarding>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DnsForwarding = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
+/// Gets details of the DnsForwarding config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_get_dns_forwarding_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_get_dns_forwarding_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_get_dns_forwarding()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_get_dns_forwarding_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DnsForwarding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_get_dns_forwarding_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_get_dns_forwarding`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsGetDnsForwardingArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
+/// Gets details of the DnsForwarding config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_get_dns_forwarding_builder()` + `vmwareengine_projects_locations_private_clouds_get_dns_forwarding_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_get_dns_forwarding_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_dns_forwarding(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsGetDnsForwardingArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DnsForwarding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_get_dns_forwarding_builder(
+        client, &args.name,
+    )?;
+    vmwareengine_projects_locations_private_clouds_get_dns_forwarding_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_get_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_get_iam_policy` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_get_iam_policy_execute()` or `vmwareengine_projects_locations_private_clouds_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_get_iam_policy_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_get_iam_policy_builder()` + `vmwareengine_projects_locations_private_clouds_get_iam_policy_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    vmwareengine_projects_locations_private_clouds_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds
+/// Lists PrivateCloud resources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds
+/// Lists PrivateCloud resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_list_execute()` or `vmwareengine_projects_locations_private_clouds_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPrivateCloudsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPrivateCloudsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds
+/// Lists PrivateCloud resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListPrivateCloudsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds
+/// Lists PrivateCloud resources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_list_builder()` + `vmwareengine_projects_locations_private_clouds_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListPrivateCloudsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_private_clouds_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_patch_execute()` or `vmwareengine_projects_locations_private_clouds_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}
+/// Modifies a PrivateCloud resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_patch_builder()` + `vmwareengine_projects_locations_private_clouds_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_private_clouds_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:privateCloudDeletionNow
+/// Accelerates the deletion of a private cloud that is currently in soft deletion A PrivateCloud resource in soft deletion has PrivateCloud.state set to SOFT_DELETED and PrivateCloud.`expireTime` set to the time when deletion can no longer be reversed.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_execute()` to send, or `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:privateCloudDeletionNow",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:privateCloudDeletionNow
+/// Accelerates the deletion of a private cloud that is currently in soft deletion A PrivateCloud resource in soft deletion has PrivateCloud.state set to SOFT_DELETED and PrivateCloud.`expireTime` set to the time when deletion can no longer be reversed.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_execute()` or `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:privateCloudDeletionNow
+/// Accelerates the deletion of a private cloud that is currently in soft deletion A PrivateCloud resource in soft deletion has PrivateCloud.state set to SOFT_DELETED and PrivateCloud.`expireTime` set to the time when deletion can no longer be reversed.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsPrivateCloudDeletionNowArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:privateCloudDeletionNow
+/// Accelerates the deletion of a private cloud that is currently in soft deletion A PrivateCloud resource in soft deletion has PrivateCloud.state set to SOFT_DELETED and PrivateCloud.`expireTime` set to the time when deletion can no longer be reversed.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_builder()` + `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsPrivateCloudDeletionNowArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_builder(
+            client, &args.name,
+        )?;
+    vmwareengine_projects_locations_private_clouds_private_cloud_deletion_now_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetNsxCredentials
+/// Resets credentials of the NSX appliance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_execute()` to send, or `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_builder(
+    client: &SimpleHttpClient,
+    privateCloud: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetNsxCredentials",
+        privateCloud,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetNsxCredentials
+/// Resets credentials of the NSX appliance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_execute()` or `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetNsxCredentials
+/// Resets credentials of the NSX appliance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_reset_nsx_credentials`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsResetNsxCredentialsArgs {
+    /// Path parameter: privateCloud
+    pub privateCloud: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetNsxCredentials
+/// Resets credentials of the NSX appliance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_builder()` + `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_reset_nsx_credentials(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsResetNsxCredentialsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_builder(
+        client,
+        &args.privateCloud,
+    )?;
+    vmwareengine_projects_locations_private_clouds_reset_nsx_credentials_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetVcenterCredentials
+/// Resets credentials of the Vcenter appliance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_execute()` to send, or `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_builder(
+    client: &SimpleHttpClient,
+    privateCloud: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetVcenterCredentials",
+        privateCloud,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetVcenterCredentials
+/// Resets credentials of the Vcenter appliance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_execute()` or `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetVcenterCredentials
+/// Resets credentials of the Vcenter appliance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsResetVcenterCredentialsArgs {
+    /// Path parameter: privateCloud
+    pub privateCloud: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:resetVcenterCredentials
+/// Resets credentials of the Vcenter appliance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_builder()` + `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsResetVcenterCredentialsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_builder(
+        client,
+        &args.privateCloud,
+    )?;
+    vmwareengine_projects_locations_private_clouds_reset_vcenter_credentials_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_set_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_set_iam_policy` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_set_iam_policy_execute()` or `vmwareengine_projects_locations_private_clouds_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_set_iam_policy_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_set_iam_policy_builder()` + `vmwareengine_projects_locations_private_clouds_set_iam_policy_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    vmwareengine_projects_locations_private_clouds_set_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showNsxCredentials
+/// Gets details of credentials for NSX appliance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_show_nsx_credentials_execute()` to send, or `vmwareengine_projects_locations_private_clouds_show_nsx_credentials` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials_builder(
+    client: &SimpleHttpClient,
+    privateCloud: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:showNsxCredentials",
+        privateCloud,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showNsxCredentials
+/// Gets details of credentials for NSX appliance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_show_nsx_credentials_execute()` or `vmwareengine_projects_locations_private_clouds_show_nsx_credentials`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_show_nsx_credentials_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Credentials>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Credentials = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showNsxCredentials
+/// Gets details of credentials for NSX appliance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_show_nsx_credentials_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_show_nsx_credentials_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_show_nsx_credentials()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_show_nsx_credentials_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Credentials>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_show_nsx_credentials_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_show_nsx_credentials`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsShowNsxCredentialsArgs {
+    /// Path parameter: privateCloud
+    pub privateCloud: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showNsxCredentials
+/// Gets details of credentials for NSX appliance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_show_nsx_credentials_builder()` + `vmwareengine_projects_locations_private_clouds_show_nsx_credentials_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_show_nsx_credentials_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_show_nsx_credentials(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsShowNsxCredentialsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Credentials>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_show_nsx_credentials_builder(
+        client,
+        &args.privateCloud,
+    )?;
+    vmwareengine_projects_locations_private_clouds_show_nsx_credentials_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showVcenterCredentials
+/// Gets details of credentials for Vcenter appliance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_execute()` to send, or `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_builder(
+    client: &SimpleHttpClient,
+    privateCloud: &String,
+    username: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:showVcenterCredentials",
+        privateCloud,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = username.as_ref() {
+        query_parts.push(format!("username={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showVcenterCredentials
+/// Gets details of credentials for Vcenter appliance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_execute()` or `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Credentials>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Credentials = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showVcenterCredentials
+/// Gets details of credentials for Vcenter appliance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Credentials>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_show_vcenter_credentials`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsShowVcenterCredentialsArgs {
+    /// Path parameter: privateCloud
+    pub privateCloud: String,
+    /// Query parameter: username
+    pub username: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:showVcenterCredentials
+/// Gets details of credentials for Vcenter appliance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_builder()` + `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_show_vcenter_credentials(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsShowVcenterCredentialsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Credentials>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_builder(
+        client,
+        &args.privateCloud,
+        &args.username,
+    )?;
+    vmwareengine_projects_locations_private_clouds_show_vcenter_credentials_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_test_iam_permissions_execute()` to send, or `vmwareengine_projects_locations_private_clouds_test_iam_permissions` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_test_iam_permissions_execute()` or `vmwareengine_projects_locations_private_clouds_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_test_iam_permissions_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_test_iam_permissions_builder()` + `vmwareengine_projects_locations_private_clouds_test_iam_permissions_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    vmwareengine_projects_locations_private_clouds_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:undelete
+/// Restores a private cloud that was previously scheduled for deletion by DeletePrivateCloud. A PrivateCloud resource scheduled for deletion has PrivateCloud.state set to DELETED and PrivateCloud.`expireTime` set to the time when deletion can no longer be reversed.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_undelete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_undelete` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_undelete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}:undelete",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:undelete
+/// Restores a private cloud that was previously scheduled for deletion by DeletePrivateCloud. A PrivateCloud resource scheduled for deletion has PrivateCloud.state set to DELETED and PrivateCloud.`expireTime` set to the time when deletion can no longer be reversed.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_undelete_execute()` or `vmwareengine_projects_locations_private_clouds_undelete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_undelete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_undelete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:undelete
+/// Restores a private cloud that was previously scheduled for deletion by DeletePrivateCloud. A PrivateCloud resource scheduled for deletion has PrivateCloud.state set to DELETED and PrivateCloud.`expireTime` set to the time when deletion can no longer be reversed.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_undelete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_undelete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_undelete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_undelete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_undelete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_undelete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}:undelete
+/// Restores a private cloud that was previously scheduled for deletion by DeletePrivateCloud. A PrivateCloud resource scheduled for deletion has PrivateCloud.state set to DELETED and PrivateCloud.`expireTime` set to the time when deletion can no longer be reversed.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_undelete_builder()` + `vmwareengine_projects_locations_private_clouds_undelete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_undelete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_undelete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsUndeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_undelete_builder(client, &args.name)?;
+    vmwareengine_projects_locations_private_clouds_undelete_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
+/// Updates the parameters of the DnsForwarding config, like associated domains. Only fields specified in update_mask are applied.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_update_dns_forwarding_execute()` to send, or `vmwareengine_projects_locations_private_clouds_update_dns_forwarding` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
+/// Updates the parameters of the DnsForwarding config, like associated domains. Only fields specified in update_mask are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_update_dns_forwarding_execute()` or `vmwareengine_projects_locations_private_clouds_update_dns_forwarding`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_update_dns_forwarding_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
+/// Updates the parameters of the DnsForwarding config, like associated domains. Only fields specified in update_mask are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_update_dns_forwarding_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_update_dns_forwarding_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_update_dns_forwarding()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_update_dns_forwarding_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_update_dns_forwarding_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_update_dns_forwarding`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsUpdateDnsForwardingArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/dnsForwarding
+/// Updates the parameters of the DnsForwarding config, like associated domains. Only fields specified in update_mask are applied.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_update_dns_forwarding_builder()` + `vmwareengine_projects_locations_private_clouds_update_dns_forwarding_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_update_dns_forwarding_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_update_dns_forwarding(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsUpdateDnsForwardingArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_update_dns_forwarding_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    vmwareengine_projects_locations_private_clouds_update_dns_forwarding_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
+/// Creates a new cluster in a given private cloud. Creating a new cluster provides additional nodes for use in the parent private cloud and requires sufficient [node quota](<https://cloud.google.`com/vmware-engine/quotas`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    clusterId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clusterId.as_ref() {
+        query_parts.push(format!("clusterId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
+/// Creates a new cluster in a given private cloud. Creating a new cluster provides additional nodes for use in the parent private cloud and requires sufficient [node quota](<https://cloud.google.`com/vmware-engine/quotas`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_create_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
+/// Creates a new cluster in a given private cloud. Creating a new cluster provides additional nodes for use in the parent private cloud and requires sufficient [node quota](<https://cloud.google.`com/vmware-engine/quotas`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_clusters_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clusterId
+    pub clusterId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
+/// Creates a new cluster in a given private cloud. Creating a new cluster provides additional nodes for use in the parent private cloud and requires sufficient [node quota](<https://cloud.google.`com/vmware-engine/quotas`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_create_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_clusters_create_builder(
+        client,
+        &args.parent,
+        &args.clusterId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_private_clouds_clusters_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Deletes a Cluster resource. To avoid unintended data loss, migrate or gracefully shut down any workloads running on the cluster before deletion. You cannot delete the management cluster of a private cloud using this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_delete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Deletes a Cluster resource. To avoid unintended data loss, migrate or gracefully shut down any workloads running on the cluster before deletion. You cannot delete the management cluster of a private cloud using this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_delete_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Deletes a Cluster resource. To avoid unintended data loss, migrate or gracefully shut down any workloads running on the cluster before deletion. You cannot delete the management cluster of a private cloud using this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_clusters_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Deletes a Cluster resource. To avoid unintended data loss, migrate or gracefully shut down any workloads running on the cluster before deletion. You cannot delete the management cluster of a private cloud using this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_delete_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_clusters_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_private_clouds_clusters_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Retrieves a Cluster resource by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Retrieves a Cluster resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_get_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Cluster>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Cluster = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Retrieves a Cluster resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_clusters_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Retrieves a Cluster resource by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_get_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_clusters_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_private_clouds_clusters_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    vmwareengine_projects_locations_private_clouds_clusters_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
+/// Lists Cluster resources in a given private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
+/// Lists Cluster resources in a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_list_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListClustersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListClustersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
+/// Lists Cluster resources in a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_clusters_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters
+/// Lists Cluster resources in a given private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_list_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_clusters_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_private_clouds_clusters_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:mountDatastore
+/// Mounts a Datastore on a cluster resource
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:mountDatastore",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:mountDatastore
+/// Mounts a Datastore on a cluster resource
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:mountDatastore
+/// Mounts a Datastore on a cluster resource
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_mount_datastore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersMountDatastoreArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:mountDatastore
+/// Mounts a Datastore on a cluster resource
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_mount_datastore(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersMountDatastoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_builder(
+        client, &args.name,
+    )?;
+    vmwareengine_projects_locations_private_clouds_clusters_mount_datastore_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_patch_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_clusters_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}
+/// Modifies a Cluster resource. Only fields specified in `updateMask` are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_patch_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_clusters_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_private_clouds_clusters_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    vmwareengine_projects_locations_private_clouds_clusters_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    vmwareengine_projects_locations_private_clouds_clusters_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:unmountDatastore
+/// Unmounts a Datastore on a cluster resource
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:unmountDatastore",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:unmountDatastore
+/// Unmounts a Datastore on a cluster resource
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:unmountDatastore
+/// Unmounts a Datastore on a cluster resource
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersUnmountDatastoreArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}:unmountDatastore
+/// Unmounts a Datastore on a cluster resource
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersUnmountDatastoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_builder(
+            client, &args.name,
+        )?;
+    vmwareengine_projects_locations_private_clouds_clusters_unmount_datastore_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes/{nodesId}
+/// Gets details of a single node.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_nodes_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_nodes_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes/{nodesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes/{nodesId}
+/// Gets details of a single node.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_get_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_nodes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_nodes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Node>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Node = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes/{nodesId}
+/// Gets details of a single node.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_nodes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Node>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_clusters_nodes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_nodes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersNodesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes/{nodesId}
+/// Gets details of a single node.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_get_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_nodes_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersNodesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Node>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_clusters_nodes_get_builder(
+        client, &args.name,
+    )?;
+    vmwareengine_projects_locations_private_clouds_clusters_nodes_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes
+/// Lists nodes in a given cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_clusters_nodes_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_clusters_nodes_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes
+/// Lists nodes in a given cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_list_execute()` or `vmwareengine_projects_locations_private_clouds_clusters_nodes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNodesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNodesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes
+/// Lists nodes in a given cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_clusters_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNodesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_clusters_nodes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_clusters_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsClustersNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/clusters/{clustersId}/nodes
+/// Lists nodes in a given cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_list_builder()` + `vmwareengine_projects_locations_private_clouds_clusters_nodes_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_clusters_nodes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_clusters_nodes_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsClustersNodesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNodesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_clusters_nodes_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_private_clouds_clusters_nodes_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
+/// Creates a new ExternalAddress resource in a given private cloud. The network policy that corresponds to the private cloud must have the external IP address network service enabled (NetworkPolicy.external_ip).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_external_addresses_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    externalAddressId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = externalAddressId.as_ref() {
+        query_parts.push(format!("externalAddressId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
+/// Creates a new ExternalAddress resource in a given private cloud. The network policy that corresponds to the private cloud must have the external IP address network service enabled (NetworkPolicy.external_ip).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_external_addresses_create_execute()` or `vmwareengine_projects_locations_private_clouds_external_addresses_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_external_addresses_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
+/// Creates a new ExternalAddress resource in a given private cloud. The network policy that corresponds to the private cloud must have the external IP address network service enabled (NetworkPolicy.external_ip).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_external_addresses_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_external_addresses_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_external_addresses_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_external_addresses_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_external_addresses_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: externalAddressId
+    pub externalAddressId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
+/// Creates a new ExternalAddress resource in a given private cloud. The network policy that corresponds to the private cloud must have the external IP address network service enabled (NetworkPolicy.external_ip).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_create_builder()` + `vmwareengine_projects_locations_private_clouds_external_addresses_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_external_addresses_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_external_addresses_create_builder(
+        client,
+        &args.parent,
+        &args.externalAddressId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_private_clouds_external_addresses_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Deletes a single external IP address. When you delete an external IP address, connectivity between the external IP address and the corresponding internal IP address is lost.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_external_addresses_delete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Deletes a single external IP address. When you delete an external IP address, connectivity between the external IP address and the corresponding internal IP address is lost.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_external_addresses_delete_execute()` or `vmwareengine_projects_locations_private_clouds_external_addresses_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_external_addresses_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Deletes a single external IP address. When you delete an external IP address, connectivity between the external IP address and the corresponding internal IP address is lost.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_external_addresses_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_external_addresses_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_external_addresses_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_external_addresses_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_external_addresses_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Deletes a single external IP address. When you delete an external IP address, connectivity between the external IP address and the corresponding internal IP address is lost.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_delete_builder()` + `vmwareengine_projects_locations_private_clouds_external_addresses_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_external_addresses_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_external_addresses_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_private_clouds_external_addresses_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Gets details of a single external IP address.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_external_addresses_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Gets details of a single external IP address.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_external_addresses_get_execute()` or `vmwareengine_projects_locations_private_clouds_external_addresses_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_external_addresses_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExternalAddress>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExternalAddress = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Gets details of a single external IP address.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_external_addresses_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_external_addresses_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_external_addresses_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExternalAddress>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_external_addresses_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_external_addresses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Gets details of a single external IP address.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_get_builder()` + `vmwareengine_projects_locations_private_clouds_external_addresses_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_external_addresses_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExternalAddress>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_external_addresses_get_builder(
+        client, &args.name,
+    )?;
+    vmwareengine_projects_locations_private_clouds_external_addresses_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
+/// Lists external IP addresses assigned to VMware workload VMs in a given private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_external_addresses_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
+/// Lists external IP addresses assigned to VMware workload VMs in a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_external_addresses_list_execute()` or `vmwareengine_projects_locations_private_clouds_external_addresses_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_external_addresses_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListExternalAddressesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListExternalAddressesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
+/// Lists external IP addresses assigned to VMware workload VMs in a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_external_addresses_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_external_addresses_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_external_addresses_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListExternalAddressesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_external_addresses_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_external_addresses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses
+/// Lists external IP addresses assigned to VMware workload VMs in a given private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_list_builder()` + `vmwareengine_projects_locations_private_clouds_external_addresses_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_external_addresses_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListExternalAddressesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_external_addresses_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_private_clouds_external_addresses_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_external_addresses_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_external_addresses_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_external_addresses_patch_execute()` or `vmwareengine_projects_locations_private_clouds_external_addresses_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_external_addresses_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_external_addresses_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_external_addresses_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_external_addresses_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsExternalAddressesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/externalAddresses/{externalAddressesId}
+/// Updates the parameters of a single external IP address. Only fields specified in update_mask are applied. During operation processing, the resource is temporarily in the `ACTIVE` state before the operation fully completes. For that period of time, you can't update the resource. Use the operation status to determine when the processing fully completes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder()` + `vmwareengine_projects_locations_private_clouds_external_addresses_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_external_addresses_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_external_addresses_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_external_addresses_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_private_clouds_external_addresses_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
+/// Creates a new HCX activation key in a given private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    hcxActivationKeyId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = hcxActivationKeyId.as_ref() {
+        query_parts.push(format!("hcxActivationKeyId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
+/// Creates a new HCX activation key in a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_execute()` or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
+/// Creates a new HCX activation key in a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: hcxActivationKeyId
+    pub hcxActivationKeyId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
+/// Creates a new HCX activation key in a given private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_builder()` + `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_builder(
+            client,
+            &args.parent,
+            &args.hcxActivationKeyId,
+            &args.requestId,
+        )?;
+    vmwareengine_projects_locations_private_clouds_hcx_activation_keys_create_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}
+/// Retrieves a HcxActivationKey resource by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}
+/// Retrieves a HcxActivationKey resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_execute()` or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HcxActivationKey>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HcxActivationKey = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}
+/// Retrieves a HcxActivationKey resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HcxActivationKey>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}
+/// Retrieves a HcxActivationKey resource by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_builder()` + `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HcxActivationKey>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_builder(
+        client, &args.name,
+    )?;
+    vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_execute()` or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_builder()` + `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_builder(
+            client,
+            &args.resource,
+            &args.options_requestedPolicyVersion,
+        )?;
+    vmwareengine_projects_locations_private_clouds_hcx_activation_keys_get_iam_policy_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
+/// Lists HcxActivationKey resources in a given private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
+/// Lists HcxActivationKey resources in a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_execute()` or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListHcxActivationKeysResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListHcxActivationKeysResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
+/// Lists HcxActivationKey resources in a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListHcxActivationKeysResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys
+/// Lists HcxActivationKey resources in a given private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_builder()` + `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListHcxActivationKeysResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_private_clouds_hcx_activation_keys_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_execute()` or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_builder()` + `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_builder(
+            client,
+            &args.resource,
+        )?;
+    vmwareengine_projects_locations_private_clouds_hcx_activation_keys_set_iam_policy_execute(
+        builder,
+    )
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_execute()` to send, or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_execute()` or `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/hcxActivationKeys/{hcxActivationKeysId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_builder()` + `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_builder(client, &args.resource)?;
+    vmwareengine_projects_locations_private_clouds_hcx_activation_keys_test_iam_permissions_execute(
+        builder,
+    )
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
+/// Create a new logging server for a given private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_logging_servers_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_logging_servers_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    loggingServerId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = loggingServerId.as_ref() {
+        query_parts.push(format!("loggingServerId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
+/// Create a new logging server for a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_logging_servers_create_execute()` or `vmwareengine_projects_locations_private_clouds_logging_servers_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_logging_servers_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
+/// Create a new logging server for a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_logging_servers_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_logging_servers_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_logging_servers_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_logging_servers_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_logging_servers_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_logging_servers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: loggingServerId
+    pub loggingServerId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
+/// Create a new logging server for a given private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_logging_servers_create_builder()` + `vmwareengine_projects_locations_private_clouds_logging_servers_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_logging_servers_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_logging_servers_create_builder(
+        client,
+        &args.parent,
+        &args.loggingServerId,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_private_clouds_logging_servers_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Deletes a single logging server.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_logging_servers_delete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_logging_servers_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Deletes a single logging server.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_logging_servers_delete_execute()` or `vmwareengine_projects_locations_private_clouds_logging_servers_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_logging_servers_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Deletes a single logging server.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_logging_servers_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_logging_servers_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_logging_servers_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_logging_servers_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_logging_servers_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_logging_servers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Deletes a single logging server.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_logging_servers_delete_builder()` + `vmwareengine_projects_locations_private_clouds_logging_servers_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_logging_servers_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_logging_servers_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_private_clouds_logging_servers_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Gets details of a logging server.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_logging_servers_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_logging_servers_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Gets details of a logging server.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_logging_servers_get_execute()` or `vmwareengine_projects_locations_private_clouds_logging_servers_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_logging_servers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoggingServer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LoggingServer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Gets details of a logging server.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_logging_servers_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_logging_servers_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_logging_servers_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_logging_servers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoggingServer>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_logging_servers_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_logging_servers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Gets details of a logging server.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_logging_servers_get_builder()` + `vmwareengine_projects_locations_private_clouds_logging_servers_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_logging_servers_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoggingServer>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_logging_servers_get_builder(
+        client, &args.name,
+    )?;
+    vmwareengine_projects_locations_private_clouds_logging_servers_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
+/// Lists logging servers configured for a given private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_logging_servers_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_logging_servers_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
+/// Lists logging servers configured for a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_logging_servers_list_execute()` or `vmwareengine_projects_locations_private_clouds_logging_servers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_logging_servers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLoggingServersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLoggingServersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
+/// Lists logging servers configured for a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_logging_servers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_logging_servers_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_logging_servers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_logging_servers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLoggingServersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_logging_servers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_logging_servers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers
+/// Lists logging servers configured for a given private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_logging_servers_list_builder()` + `vmwareengine_projects_locations_private_clouds_logging_servers_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_logging_servers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLoggingServersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_logging_servers_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_private_clouds_logging_servers_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Updates the parameters of a single logging server. Only fields specified in update_mask are applied.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_logging_servers_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_logging_servers_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Updates the parameters of a single logging server. Only fields specified in update_mask are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_logging_servers_patch_execute()` or `vmwareengine_projects_locations_private_clouds_logging_servers_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_logging_servers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Updates the parameters of a single logging server. Only fields specified in update_mask are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_logging_servers_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_logging_servers_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_logging_servers_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_logging_servers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_logging_servers_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_logging_servers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsLoggingServersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/loggingServers/{loggingServersId}
+/// Updates the parameters of a single logging server. Only fields specified in update_mask are applied.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_logging_servers_patch_builder()` + `vmwareengine_projects_locations_private_clouds_logging_servers_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_logging_servers_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_logging_servers_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_logging_servers_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    vmwareengine_projects_locations_private_clouds_logging_servers_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
+/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud's ESXi hosts and management VM appliances like vCenter and NSX Manager.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    managementDnsZoneBindingId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = managementDnsZoneBindingId.as_ref() {
+        query_parts.push(format!("managementDnsZoneBindingId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
+/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud's ESXi hosts and management VM appliances like vCenter and NSX Manager.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_execute()` or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
+/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud's ESXi hosts and management VM appliances like vCenter and NSX Manager.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: managementDnsZoneBindingId
+    pub managementDnsZoneBindingId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
+/// Creates a new ManagementDnsZoneBinding resource in a private cloud. This RPC creates the DNS binding and the resource that represents the DNS binding of the consumer VPC network to the management DNS zone. A management DNS zone is the Cloud DNS cross-project binding zone that VMware Engine creates for each private cloud. It contains FQDNs and corresponding IP addresses for the private cloud's ESXi hosts and management VM appliances like vCenter and NSX Manager.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_builder()` + `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_builder(
+            client,
+            &args.parent,
+            &args.managementDnsZoneBindingId,
+            &args.requestId,
+        )?;
+    vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_create_execute(
+        builder,
+    )
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Deletes a ManagementDnsZoneBinding resource. When a management DNS zone binding is deleted, the corresponding consumer VPC network is no longer bound to the management DNS zone.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Deletes a ManagementDnsZoneBinding resource. When a management DNS zone binding is deleted, the corresponding consumer VPC network is no longer bound to the management DNS zone.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_execute()` or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Deletes a ManagementDnsZoneBinding resource. When a management DNS zone binding is deleted, the corresponding consumer VPC network is no longer bound to the management DNS zone.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Deletes a ManagementDnsZoneBinding resource. When a management DNS zone binding is deleted, the corresponding consumer VPC network is no longer bound to the management DNS zone.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_builder()` + `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_builder(
+            client,
+            &args.name,
+            &args.requestId,
+        )?;
+    vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_delete_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Retrieves a 'ManagementDnsZoneBinding' resource by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Retrieves a 'ManagementDnsZoneBinding' resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_execute()` or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ManagementDnsZoneBinding>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ManagementDnsZoneBinding = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Retrieves a 'ManagementDnsZoneBinding' resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagementDnsZoneBinding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Retrieves a 'ManagementDnsZoneBinding' resource by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_builder()` + `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ManagementDnsZoneBinding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_builder(
+            client, &args.name,
+        )?;
+    vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
+/// Lists Consumer VPCs bound to Management DNS Zone of a given private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
+/// Lists Consumer VPCs bound to Management DNS Zone of a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_execute()` or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListManagementDnsZoneBindingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListManagementDnsZoneBindingsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
+/// Lists Consumer VPCs bound to Management DNS Zone of a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListManagementDnsZoneBindingsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings
+/// Lists Consumer VPCs bound to Management DNS Zone of a given private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_builder()` + `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListManagementDnsZoneBindingsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_builder(
+            client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )?;
+    vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_list_execute(
+        builder,
+    )
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Updates a ManagementDnsZoneBinding resource. Only fields specified in update_mask are applied.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Updates a ManagementDnsZoneBinding resource. Only fields specified in update_mask are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_execute()` or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Updates a ManagementDnsZoneBinding resource. Only fields specified in update_mask are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}
+/// Updates a ManagementDnsZoneBinding resource. Only fields specified in update_mask are applied.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_builder()` + `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_builder(
+            client,
+            &args.name,
+            &args.requestId,
+            &args.updateMask,
+        )?;
+    vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_patch_execute(
+        builder,
+    )
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}:repair
+/// Retries to create a ManagementDnsZoneBinding resource that is in failed state.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_execute()` to send, or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}:repair",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}:repair
+/// Retries to create a ManagementDnsZoneBinding resource that is in failed state.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_execute()` or `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}:repair
+/// Retries to create a ManagementDnsZoneBinding resource that is in failed state.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsRepairArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/managementDnsZoneBindings/{managementDnsZoneBindingsId}:repair
+/// Retries to create a ManagementDnsZoneBinding resource that is in failed state.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_builder()` + `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsRepairArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_builder(
+            client, &args.name,
+        )?;
+    vmwareengine_projects_locations_private_clouds_management_dns_zone_bindings_repair_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
+/// Gets details of a single subnet.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_subnets_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_subnets_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
+/// Gets details of a single subnet.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_subnets_get_execute()` or `vmwareengine_projects_locations_private_clouds_subnets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_subnets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subnet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Subnet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
+/// Gets details of a single subnet.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_subnets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_subnets_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_subnets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_subnets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Subnet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_subnets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_subnets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsSubnetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
+/// Gets details of a single subnet.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_subnets_get_builder()` + `vmwareengine_projects_locations_private_clouds_subnets_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_subnets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsSubnetsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Subnet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_subnets_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_private_clouds_subnets_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets
+/// Lists subnets in a given private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_subnets_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_subnets_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets
+/// Lists subnets in a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_subnets_list_execute()` or `vmwareengine_projects_locations_private_clouds_subnets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_subnets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSubnetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSubnetsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets
+/// Lists subnets in a given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_subnets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_subnets_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_subnets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_subnets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSubnetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_subnets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_subnets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsSubnetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets
+/// Lists subnets in a given private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_subnets_list_builder()` + `vmwareengine_projects_locations_private_clouds_subnets_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_subnets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsSubnetsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSubnetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_subnets_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_private_clouds_subnets_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
+/// Updates the parameters of a single subnet. Only fields specified in update_mask are applied. *Note*: This API is synchronous and always returns a successful google.longrunning.Operation (LRO). The returned LRO will only have done and response fields.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_subnets_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_subnets_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
+/// Updates the parameters of a single subnet. Only fields specified in update_mask are applied. *Note*: This API is synchronous and always returns a successful google.longrunning.Operation (LRO). The returned LRO will only have done and response fields.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_subnets_patch_execute()` or `vmwareengine_projects_locations_private_clouds_subnets_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_subnets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
+/// Updates the parameters of a single subnet. Only fields specified in update_mask are applied. *Note*: This API is synchronous and always returns a successful google.longrunning.Operation (LRO). The returned LRO will only have done and response fields.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_subnets_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_subnets_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_subnets_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_subnets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_subnets_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_subnets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsSubnetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/subnets/{subnetsId}
+/// Updates the parameters of a single subnet. Only fields specified in update_mask are applied. *Note*: This API is synchronous and always returns a successful google.longrunning.Operation (LRO). The returned LRO will only have done and response fields.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_subnets_patch_builder()` + `vmwareengine_projects_locations_private_clouds_subnets_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_subnets_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_subnets_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsSubnetsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_subnets_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    vmwareengine_projects_locations_private_clouds_subnets_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
+/// Retrieves a private cloud Upgrade resource by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_upgrades_get_execute()` to send, or `vmwareengine_projects_locations_private_clouds_upgrades_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
+/// Retrieves a private cloud Upgrade resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_upgrades_get_execute()` or `vmwareengine_projects_locations_private_clouds_upgrades_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_upgrades_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Upgrade>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Upgrade = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
+/// Retrieves a private cloud Upgrade resource by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_upgrades_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_upgrades_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_upgrades_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_upgrades_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Upgrade>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_upgrades_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_upgrades_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsUpgradesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
+/// Retrieves a private cloud Upgrade resource by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_upgrades_get_builder()` + `vmwareengine_projects_locations_private_clouds_upgrades_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_upgrades_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsUpgradesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Upgrade>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_clouds_upgrades_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_private_clouds_upgrades_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades
+/// Lists past, ongoing and upcoming Upgrades for the given private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_upgrades_list_execute()` to send, or `vmwareengine_projects_locations_private_clouds_upgrades_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades
+/// Lists past, ongoing and upcoming Upgrades for the given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_upgrades_list_execute()` or `vmwareengine_projects_locations_private_clouds_upgrades_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_upgrades_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUpgradesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUpgradesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades
+/// Lists past, ongoing and upcoming Upgrades for the given private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_upgrades_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_upgrades_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_upgrades_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_upgrades_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUpgradesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_upgrades_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_upgrades_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsUpgradesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades
+/// Lists past, ongoing and upcoming Upgrades for the given private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_upgrades_list_builder()` + `vmwareengine_projects_locations_private_clouds_upgrades_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_upgrades_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsUpgradesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUpgradesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_upgrades_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_private_clouds_upgrades_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
+/// Update the private cloud Upgrade resource. Only schedule field can updated. The schedule can only be updated when the upgrade has not started and schedule edit window is open. Only fields specified in update_mask are considered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_clouds_upgrades_patch_execute()` to send, or `vmwareengine_projects_locations_private_clouds_upgrades_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
+/// Update the private cloud Upgrade resource. Only schedule field can updated. The schedule can only be updated when the upgrade has not started and schedule edit window is open. Only fields specified in update_mask are considered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_clouds_upgrades_patch_execute()` or `vmwareengine_projects_locations_private_clouds_upgrades_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_upgrades_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
+/// Update the private cloud Upgrade resource. Only schedule field can updated. The schedule can only be updated when the upgrade has not started and schedule edit window is open. Only fields specified in update_mask are considered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_clouds_upgrades_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_upgrades_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_clouds_upgrades_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_clouds_upgrades_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_clouds_upgrades_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_clouds_upgrades_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateCloudsUpgradesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateClouds/{privateCloudsId}/upgrades/{upgradesId}
+/// Update the private cloud Upgrade resource. Only schedule field can updated. The schedule can only be updated when the upgrade has not started and schedule edit window is open. Only fields specified in update_mask are considered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_clouds_upgrades_patch_builder()` + `vmwareengine_projects_locations_private_clouds_upgrades_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_clouds_upgrades_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_clouds_upgrades_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateCloudsUpgradesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_clouds_upgrades_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    vmwareengine_projects_locations_private_clouds_upgrades_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateConnections
+/// Creates a new private connection that can be used for accessing private Clouds.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_connections_create_execute()` to send, or `vmwareengine_projects_locations_private_connections_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_connections_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    privateConnectionId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = privateConnectionId.as_ref() {
+        query_parts.push(format!("privateConnectionId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateConnections
+/// Creates a new private connection that can be used for accessing private Clouds.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_connections_create_execute()` or `vmwareengine_projects_locations_private_connections_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateConnections
+/// Creates a new private connection that can be used for accessing private Clouds.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_connections_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_connections_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_connections_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_connections_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: privateConnectionId
+    pub privateConnectionId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/privateConnections
+/// Creates a new private connection that can be used for accessing private Clouds.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_connections_create_builder()` + `vmwareengine_projects_locations_private_connections_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_connections_create_builder(
+        client,
+        &args.parent,
+        &args.privateConnectionId,
+        &args.requestId,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_private_connections_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Deletes a PrivateConnection resource. When a private connection is deleted for a VMware Engine network, the connected network becomes inaccessible to that VMware Engine network.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_connections_delete_execute()` to send, or `vmwareengine_projects_locations_private_connections_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_connections_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Deletes a PrivateConnection resource. When a private connection is deleted for a VMware Engine network, the connected network becomes inaccessible to that VMware Engine network.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_connections_delete_execute()` or `vmwareengine_projects_locations_private_connections_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Deletes a PrivateConnection resource. When a private connection is deleted for a VMware Engine network, the connected network becomes inaccessible to that VMware Engine network.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_connections_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_connections_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_connections_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_connections_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Deletes a PrivateConnection resource. When a private connection is deleted for a VMware Engine network, the connected network becomes inaccessible to that VMware Engine network.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_connections_delete_builder()` + `vmwareengine_projects_locations_private_connections_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_connections_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_private_connections_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Retrieves a PrivateConnection resource by its resource name. The resource contains details of the private connection, such as connected network, routing mode and state.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_connections_get_execute()` to send, or `vmwareengine_projects_locations_private_connections_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_connections_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Retrieves a PrivateConnection resource by its resource name. The resource contains details of the private connection, such as connected network, routing mode and state.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_connections_get_execute()` or `vmwareengine_projects_locations_private_connections_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PrivateConnection>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PrivateConnection = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Retrieves a PrivateConnection resource by its resource name. The resource contains details of the private connection, such as connected network, routing mode and state.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_connections_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_connections_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_connections_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PrivateConnection>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_connections_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Retrieves a PrivateConnection resource by its resource name. The resource contains details of the private connection, such as connected network, routing mode and state.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_connections_get_builder()` + `vmwareengine_projects_locations_private_connections_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PrivateConnection>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_private_connections_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_private_connections_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
+/// Lists PrivateConnection resources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_connections_list_execute()` to send, or `vmwareengine_projects_locations_private_connections_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_connections_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
+/// Lists PrivateConnection resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_connections_list_execute()` or `vmwareengine_projects_locations_private_connections_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPrivateConnectionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPrivateConnectionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
+/// Lists PrivateConnection resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_connections_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_connections_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_connections_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPrivateConnectionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_connections_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
+/// Lists PrivateConnection resources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_connections_list_builder()` + `vmwareengine_projects_locations_private_connections_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPrivateConnectionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_connections_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_private_connections_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Modifies a PrivateConnection resource. Only description and routing_mode fields can be updated. Only fields specified in `updateMask` are applied.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_connections_patch_execute()` to send, or `vmwareengine_projects_locations_private_connections_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_connections_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Modifies a PrivateConnection resource. Only description and routing_mode fields can be updated. Only fields specified in `updateMask` are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_connections_patch_execute()` or `vmwareengine_projects_locations_private_connections_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Modifies a PrivateConnection resource. Only description and routing_mode fields can be updated. Only fields specified in `updateMask` are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_connections_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_connections_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_connections_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_private_connections_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
+/// Modifies a PrivateConnection resource. Only description and routing_mode fields can be updated. Only fields specified in `updateMask` are applied.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_connections_patch_builder()` + `vmwareengine_projects_locations_private_connections_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_connections_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_private_connections_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}/peeringRoutes
+/// Lists the private connection routes exchanged over a peering connection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_private_connections_peering_routes_list_execute()` to send, or `vmwareengine_projects_locations_private_connections_peering_routes_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_private_connections_peering_routes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/privateConnections/{privateConnectionsId}/peeringRoutes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}/peeringRoutes
+/// Lists the private connection routes exchanged over a peering connection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_private_connections_peering_routes_list_execute()` or `vmwareengine_projects_locations_private_connections_peering_routes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_peering_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_peering_routes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPrivateConnectionPeeringRoutesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPrivateConnectionPeeringRoutesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}/peeringRoutes
+/// Lists the private connection routes exchanged over a peering connection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_private_connections_peering_routes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_peering_routes_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_private_connections_peering_routes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_private_connections_peering_routes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_private_connections_peering_routes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPrivateConnectionPeeringRoutesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        vmwareengine_projects_locations_private_connections_peering_routes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_private_connections_peering_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsPrivateConnectionsPeeringRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}/peeringRoutes
+/// Lists the private connection routes exchanged over a peering connection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_private_connections_peering_routes_list_builder()` + `vmwareengine_projects_locations_private_connections_peering_routes_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_private_connections_peering_routes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_private_connections_peering_routes_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsPrivateConnectionsPeeringRoutesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPrivateConnectionPeeringRoutesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_private_connections_peering_routes_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_private_connections_peering_routes_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
+/// Creates a new VMware Engine network that can be used by a private cloud.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_vmware_engine_networks_create_execute()` to send, or `vmwareengine_projects_locations_vmware_engine_networks_create` for simplest API.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+    vmwareEngineNetworkId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareEngineNetworks",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+    if let Some(val) = vmwareEngineNetworkId.as_ref() {
+        query_parts.push(format!("vmwareEngineNetworkId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
+/// Creates a new VMware Engine network that can be used by a private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_vmware_engine_networks_create_execute()` or `vmwareengine_projects_locations_vmware_engine_networks_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_vmware_engine_networks_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
+/// Creates a new VMware Engine network that can be used by a private cloud.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_vmware_engine_networks_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_vmware_engine_networks_create_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_vmware_engine_networks_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_vmware_engine_networks_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_vmware_engine_networks_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_vmware_engine_networks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsVmwareEngineNetworksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+    /// Query parameter: vmwareEngineNetworkId
+    pub vmwareEngineNetworkId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
+/// Creates a new VMware Engine network that can be used by a private cloud.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_vmware_engine_networks_create_builder()` + `vmwareengine_projects_locations_vmware_engine_networks_create_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_vmware_engine_networks_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_create(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsVmwareEngineNetworksCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_vmware_engine_networks_create_builder(
+        client,
+        &args.parent,
+        &args.requestId,
+        &args.validateOnly,
+        &args.vmwareEngineNetworkId,
+    )?;
+    vmwareengine_projects_locations_vmware_engine_networks_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Deletes a VmwareEngineNetwork resource. You can only delete a VMware Engine network after all resources that refer to it are deleted. For example, a private cloud, a network peering, and a network policy can all refer to the same VMware Engine network.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_vmware_engine_networks_delete_execute()` to send, or `vmwareengine_projects_locations_vmware_engine_networks_delete` for simplest API.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Deletes a VmwareEngineNetwork resource. You can only delete a VMware Engine network after all resources that refer to it are deleted. For example, a private cloud, a network peering, and a network policy can all refer to the same VMware Engine network.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_vmware_engine_networks_delete_execute()` or `vmwareengine_projects_locations_vmware_engine_networks_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_vmware_engine_networks_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Deletes a VmwareEngineNetwork resource. You can only delete a VMware Engine network after all resources that refer to it are deleted. For example, a private cloud, a network peering, and a network policy can all refer to the same VMware Engine network.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_vmware_engine_networks_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_vmware_engine_networks_delete_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_vmware_engine_networks_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_vmware_engine_networks_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_vmware_engine_networks_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_vmware_engine_networks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsVmwareEngineNetworksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Deletes a VmwareEngineNetwork resource. You can only delete a VMware Engine network after all resources that refer to it are deleted. For example, a private cloud, a network peering, and a network policy can all refer to the same VMware Engine network.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_vmware_engine_networks_delete_builder()` + `vmwareengine_projects_locations_vmware_engine_networks_delete_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_vmware_engine_networks_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_delete(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsVmwareEngineNetworksDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_vmware_engine_networks_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+    )?;
+    vmwareengine_projects_locations_vmware_engine_networks_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Retrieves a VmwareEngineNetwork resource by its resource name. The resource contains details of the VMware Engine network, such as its VMware Engine network type, peered networks in a service project, and state (for example, CREATING, `ACTIVE`, DELETING).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_vmware_engine_networks_get_execute()` to send, or `vmwareengine_projects_locations_vmware_engine_networks_get` for simplest API.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Retrieves a VmwareEngineNetwork resource by its resource name. The resource contains details of the VMware Engine network, such as its VMware Engine network type, peered networks in a service project, and state (for example, CREATING, `ACTIVE`, DELETING).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_vmware_engine_networks_get_execute()` or `vmwareengine_projects_locations_vmware_engine_networks_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_vmware_engine_networks_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VmwareEngineNetwork>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VmwareEngineNetwork = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Retrieves a VmwareEngineNetwork resource by its resource name. The resource contains details of the VMware Engine network, such as its VMware Engine network type, peered networks in a service project, and state (for example, CREATING, `ACTIVE`, DELETING).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_vmware_engine_networks_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_vmware_engine_networks_get_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_vmware_engine_networks_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_vmware_engine_networks_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VmwareEngineNetwork>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_vmware_engine_networks_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_vmware_engine_networks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsVmwareEngineNetworksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Retrieves a VmwareEngineNetwork resource by its resource name. The resource contains details of the VMware Engine network, such as its VMware Engine network type, peered networks in a service project, and state (for example, CREATING, `ACTIVE`, DELETING).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_vmware_engine_networks_get_builder()` + `vmwareengine_projects_locations_vmware_engine_networks_get_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_vmware_engine_networks_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_get(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsVmwareEngineNetworksGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VmwareEngineNetwork>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        vmwareengine_projects_locations_vmware_engine_networks_get_builder(client, &args.name)?;
+    vmwareengine_projects_locations_vmware_engine_networks_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
+/// Lists VmwareEngineNetwork resources in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_vmware_engine_networks_list_execute()` to send, or `vmwareengine_projects_locations_vmware_engine_networks_list` for simplest API.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareEngineNetworks",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
+/// Lists VmwareEngineNetwork resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_vmware_engine_networks_list_execute()` or `vmwareengine_projects_locations_vmware_engine_networks_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_vmware_engine_networks_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListVmwareEngineNetworksResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListVmwareEngineNetworksResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
+/// Lists VmwareEngineNetwork resources in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_vmware_engine_networks_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_vmware_engine_networks_list_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_vmware_engine_networks_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_vmware_engine_networks_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListVmwareEngineNetworksResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_vmware_engine_networks_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_vmware_engine_networks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsVmwareEngineNetworksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks
+/// Lists VmwareEngineNetwork resources in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_vmware_engine_networks_list_builder()` + `vmwareengine_projects_locations_vmware_engine_networks_list_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_vmware_engine_networks_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_list(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsVmwareEngineNetworksListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListVmwareEngineNetworksResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_vmware_engine_networks_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    vmwareengine_projects_locations_vmware_engine_networks_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Modifies a VMware Engine network resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `vmwareengine_projects_locations_vmware_engine_networks_patch_execute()` to send, or `vmwareengine_projects_locations_vmware_engine_networks_patch` for simplest API.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://vmwareengine.googleapis.com/v1/projects/{}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Modifies a VMware Engine network resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `vmwareengine_projects_locations_vmware_engine_networks_patch_execute()` or `vmwareengine_projects_locations_vmware_engine_networks_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_vmware_engine_networks_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Modifies a VMware Engine network resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `vmwareengine_projects_locations_vmware_engine_networks_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `vmwareengine_projects_locations_vmware_engine_networks_patch_task()`.
+/// For the simplest API, use `vmwareengine_projects_locations_vmware_engine_networks_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `vmwareengine_projects_locations_vmware_engine_networks_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = vmwareengine_projects_locations_vmware_engine_networks_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`vmwareengine_projects_locations_vmware_engine_networks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmwareengineProjectsLocationsVmwareEngineNetworksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/vmwareEngineNetworks/{vmwareEngineNetworksId}
+/// Modifies a VMware Engine network resource. Only the following fields can be updated: description. Only fields specified in `updateMask` are applied.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `vmwareengine_projects_locations_vmware_engine_networks_patch_builder()` + `vmwareengine_projects_locations_vmware_engine_networks_patch_execute()`.
+/// For task-level control, use `vmwareengine_projects_locations_vmware_engine_networks_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn vmwareengine_projects_locations_vmware_engine_networks_patch(
+    client: &SimpleHttpClient,
+    args: &VmwareengineProjectsLocationsVmwareEngineNetworksPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = vmwareengine_projects_locations_vmware_engine_networks_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    vmwareengine_projects_locations_vmware_engine_networks_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with VmwareengineProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &VmwareengineProjectsLocationsGetArgs) -> String {
+        format!("gcp::vmwareengine::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DnsBindPermission
+// =============================================================================
+
+/// ResourceIdentifier implementation for DnsBindPermission with VmwareengineProjectsLocationsGetDnsBindPermissionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsGetDnsBindPermissionArgs>
+    for DnsBindPermission
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsGetDnsBindPermissionArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::DnsBindPermission/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::DnsBindPermission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with VmwareengineProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &VmwareengineProjectsLocationsListArgs) -> String {
+        format!("gcp::vmwareengine::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Announcement
+// =============================================================================
+
+/// ResourceIdentifier implementation for Announcement with VmwareengineProjectsLocationsAnnouncementsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsAnnouncementsGetArgs> for Announcement {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsAnnouncementsGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Announcement/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Announcement"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAnnouncementsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAnnouncementsResponse with VmwareengineProjectsLocationsAnnouncementsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsAnnouncementsListArgs>
+    for ListAnnouncementsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsAnnouncementsListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListAnnouncementsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListAnnouncementsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsDatastoresCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsDatastoresCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsDatastoresCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsDatastoresDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsDatastoresDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsDatastoresDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Datastore
+// =============================================================================
+
+/// ResourceIdentifier implementation for Datastore with VmwareengineProjectsLocationsDatastoresGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsDatastoresGetArgs> for Datastore {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsDatastoresGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Datastore/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Datastore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDatastoresResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDatastoresResponse with VmwareengineProjectsLocationsDatastoresListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsDatastoresListArgs>
+    for ListDatastoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsDatastoresListArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::ListDatastoresResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListDatastoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsDatastoresPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsDatastoresPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsDatastoresPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsDnsBindPermissionGrantArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsDnsBindPermissionGrantArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsDnsBindPermissionGrantArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsDnsBindPermissionRevokeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsDnsBindPermissionRevokeArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsDnsBindPermissionRevokeArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsNetworkPeeringsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPeeringsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPeeringsCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsNetworkPeeringsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPeeringsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPeeringsDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NetworkPeering
+// =============================================================================
+
+/// ResourceIdentifier implementation for NetworkPeering with VmwareengineProjectsLocationsNetworkPeeringsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPeeringsGetArgs> for NetworkPeering {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPeeringsGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::NetworkPeering/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::NetworkPeering"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNetworkPeeringsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNetworkPeeringsResponse with VmwareengineProjectsLocationsNetworkPeeringsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPeeringsListArgs>
+    for ListNetworkPeeringsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPeeringsListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListNetworkPeeringsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListNetworkPeeringsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsNetworkPeeringsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPeeringsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPeeringsPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPeeringRoutesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPeeringRoutesResponse with VmwareengineProjectsLocationsNetworkPeeringsPeeringRoutesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPeeringsPeeringRoutesListArgs>
+    for ListPeeringRoutesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPeeringsPeeringRoutesListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListPeeringRoutesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListPeeringRoutesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsNetworkPoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsNetworkPoliciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FetchNetworkPolicyExternalAddressesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchNetworkPolicyExternalAddressesResponse with VmwareengineProjectsLocationsNetworkPoliciesFetchExternalAddressesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesFetchExternalAddressesArgs>
+    for FetchNetworkPolicyExternalAddressesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesFetchExternalAddressesArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::FetchNetworkPolicyExternalAddressesResponse/{}",
+            input.networkPolicy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::FetchNetworkPolicyExternalAddressesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NetworkPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for NetworkPolicy with VmwareengineProjectsLocationsNetworkPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesGetArgs> for NetworkPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::NetworkPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::NetworkPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNetworkPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNetworkPoliciesResponse with VmwareengineProjectsLocationsNetworkPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesListArgs>
+    for ListNetworkPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListNetworkPoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListNetworkPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsNetworkPoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExternalAccessRule
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExternalAccessRule with VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesGetArgs>
+    for ExternalAccessRule
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::ExternalAccessRule/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ExternalAccessRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListExternalAccessRulesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListExternalAccessRulesResponse with VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesListArgs>
+    for ListExternalAccessRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListExternalAccessRulesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListExternalAccessRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNetworkPoliciesExternalAccessRulesPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NodeType
+// =============================================================================
+
+/// ResourceIdentifier implementation for NodeType with VmwareengineProjectsLocationsNodeTypesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNodeTypesGetArgs> for NodeType {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNodeTypesGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::NodeType/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::NodeType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNodeTypesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNodeTypesResponse with VmwareengineProjectsLocationsNodeTypesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsNodeTypesListArgs> for ListNodeTypesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsNodeTypesListArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::ListNodeTypesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListNodeTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with VmwareengineProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with VmwareengineProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PrivateCloud
+// =============================================================================
+
+/// ResourceIdentifier implementation for PrivateCloud with VmwareengineProjectsLocationsPrivateCloudsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsGetArgs> for PrivateCloud {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::PrivateCloud/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::PrivateCloud"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DnsForwarding
+// =============================================================================
+
+/// ResourceIdentifier implementation for DnsForwarding with VmwareengineProjectsLocationsPrivateCloudsGetDnsForwardingArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsGetDnsForwardingArgs>
+    for DnsForwarding
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsGetDnsForwardingArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::DnsForwarding/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::DnsForwarding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with VmwareengineProjectsLocationsPrivateCloudsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPrivateCloudsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPrivateCloudsResponse with VmwareengineProjectsLocationsPrivateCloudsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsListArgs>
+    for ListPrivateCloudsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListPrivateCloudsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListPrivateCloudsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsPrivateCloudDeletionNowArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsPrivateCloudDeletionNowArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsPrivateCloudDeletionNowArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsResetNsxCredentialsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsResetNsxCredentialsArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsResetNsxCredentialsArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.privateCloud)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsResetVcenterCredentialsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsResetVcenterCredentialsArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsResetVcenterCredentialsArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.privateCloud)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with VmwareengineProjectsLocationsPrivateCloudsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Credentials
+// =============================================================================
+
+/// ResourceIdentifier implementation for Credentials with VmwareengineProjectsLocationsPrivateCloudsShowNsxCredentialsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsShowNsxCredentialsArgs>
+    for Credentials
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsShowNsxCredentialsArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Credentials/{}", input.privateCloud)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Credentials"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Credentials
+// =============================================================================
+
+/// ResourceIdentifier implementation for Credentials with VmwareengineProjectsLocationsPrivateCloudsShowVcenterCredentialsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsShowVcenterCredentialsArgs>
+    for Credentials
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsShowVcenterCredentialsArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Credentials/{}", input.privateCloud)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Credentials"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with VmwareengineProjectsLocationsPrivateCloudsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsUndeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsUndeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsUndeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsUpdateDnsForwardingArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsUpdateDnsForwardingArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsUpdateDnsForwardingArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsClustersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsClustersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Cluster
+// =============================================================================
+
+/// ResourceIdentifier implementation for Cluster with VmwareengineProjectsLocationsPrivateCloudsClustersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersGetArgs> for Cluster {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Cluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Cluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with VmwareengineProjectsLocationsPrivateCloudsClustersGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListClustersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListClustersResponse with VmwareengineProjectsLocationsPrivateCloudsClustersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersListArgs>
+    for ListClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersListArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::ListClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsClustersMountDatastoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersMountDatastoreArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersMountDatastoreArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsClustersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with VmwareengineProjectsLocationsPrivateCloudsClustersSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with VmwareengineProjectsLocationsPrivateCloudsClustersTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsClustersUnmountDatastoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersUnmountDatastoreArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersUnmountDatastoreArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Node
+// =============================================================================
+
+/// ResourceIdentifier implementation for Node with VmwareengineProjectsLocationsPrivateCloudsClustersNodesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersNodesGetArgs> for Node {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersNodesGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Node/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Node"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNodesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNodesResponse with VmwareengineProjectsLocationsPrivateCloudsClustersNodesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsClustersNodesListArgs>
+    for ListNodesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsClustersNodesListArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::ListNodesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListNodesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsExternalAddressesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsExternalAddressesCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsExternalAddressesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsExternalAddressesDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExternalAddress
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExternalAddress with VmwareengineProjectsLocationsPrivateCloudsExternalAddressesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsExternalAddressesGetArgs>
+    for ExternalAddress
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::ExternalAddress/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ExternalAddress"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListExternalAddressesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListExternalAddressesResponse with VmwareengineProjectsLocationsPrivateCloudsExternalAddressesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsExternalAddressesListArgs>
+    for ListExternalAddressesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListExternalAddressesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListExternalAddressesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsExternalAddressesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsExternalAddressesPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsExternalAddressesPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HcxActivationKey
+// =============================================================================
+
+/// ResourceIdentifier implementation for HcxActivationKey with VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetArgs>
+    for HcxActivationKey
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::HcxActivationKey/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::HcxActivationKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListHcxActivationKeysResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListHcxActivationKeysResponse with VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysListArgs>
+    for ListHcxActivationKeysResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListHcxActivationKeysResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListHcxActivationKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysTestIamPermissionsArgs,
+    > for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsHcxActivationKeysTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsLoggingServersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsLoggingServersCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsLoggingServersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsLoggingServersDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoggingServer
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoggingServer with VmwareengineProjectsLocationsPrivateCloudsLoggingServersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsLoggingServersGetArgs>
+    for LoggingServer
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::LoggingServer/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::LoggingServer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLoggingServersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLoggingServersResponse with VmwareengineProjectsLocationsPrivateCloudsLoggingServersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsLoggingServersListArgs>
+    for ListLoggingServersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListLoggingServersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListLoggingServersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsLoggingServersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsLoggingServersPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsLoggingServersPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsCreateArgs,
+    > for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsDeleteArgs,
+    > for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ManagementDnsZoneBinding
+// =============================================================================
+
+/// ResourceIdentifier implementation for ManagementDnsZoneBinding with VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsGetArgs>
+    for ManagementDnsZoneBinding
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::ManagementDnsZoneBinding/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ManagementDnsZoneBinding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListManagementDnsZoneBindingsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListManagementDnsZoneBindingsResponse with VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsListArgs>
+    for ListManagementDnsZoneBindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListManagementDnsZoneBindingsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListManagementDnsZoneBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsRepairArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsRepairArgs,
+    > for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsManagementDnsZoneBindingsRepairArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subnet
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subnet with VmwareengineProjectsLocationsPrivateCloudsSubnetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsSubnetsGetArgs> for Subnet {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsSubnetsGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Subnet/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Subnet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSubnetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSubnetsResponse with VmwareengineProjectsLocationsPrivateCloudsSubnetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsSubnetsListArgs>
+    for ListSubnetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsSubnetsListArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::ListSubnetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListSubnetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsSubnetsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsSubnetsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsSubnetsPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Upgrade
+// =============================================================================
+
+/// ResourceIdentifier implementation for Upgrade with VmwareengineProjectsLocationsPrivateCloudsUpgradesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsUpgradesGetArgs> for Upgrade {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsUpgradesGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Upgrade/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Upgrade"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUpgradesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUpgradesResponse with VmwareengineProjectsLocationsPrivateCloudsUpgradesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsUpgradesListArgs>
+    for ListUpgradesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsUpgradesListArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::ListUpgradesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListUpgradesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateCloudsUpgradesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateCloudsUpgradesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateCloudsUpgradesPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateConnectionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateConnectionsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateConnectionsCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateConnectionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateConnectionsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateConnectionsDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PrivateConnection
+// =============================================================================
+
+/// ResourceIdentifier implementation for PrivateConnection with VmwareengineProjectsLocationsPrivateConnectionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateConnectionsGetArgs>
+    for PrivateConnection
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateConnectionsGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::PrivateConnection/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::PrivateConnection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPrivateConnectionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPrivateConnectionsResponse with VmwareengineProjectsLocationsPrivateConnectionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateConnectionsListArgs>
+    for ListPrivateConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateConnectionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListPrivateConnectionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListPrivateConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsPrivateConnectionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateConnectionsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateConnectionsPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPrivateConnectionPeeringRoutesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPrivateConnectionPeeringRoutesResponse with VmwareengineProjectsLocationsPrivateConnectionsPeeringRoutesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsPrivateConnectionsPeeringRoutesListArgs>
+    for ListPrivateConnectionPeeringRoutesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsPrivateConnectionsPeeringRoutesListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListPrivateConnectionPeeringRoutesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListPrivateConnectionPeeringRoutesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsVmwareEngineNetworksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsVmwareEngineNetworksCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsVmwareEngineNetworksCreateArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsVmwareEngineNetworksDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsVmwareEngineNetworksDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsVmwareEngineNetworksDeleteArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VmwareEngineNetwork
+// =============================================================================
+
+/// ResourceIdentifier implementation for VmwareEngineNetwork with VmwareengineProjectsLocationsVmwareEngineNetworksGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsVmwareEngineNetworksGetArgs>
+    for VmwareEngineNetwork
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsVmwareEngineNetworksGetArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::VmwareEngineNetwork/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::VmwareEngineNetwork"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListVmwareEngineNetworksResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListVmwareEngineNetworksResponse with VmwareengineProjectsLocationsVmwareEngineNetworksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsVmwareEngineNetworksListArgs>
+    for ListVmwareEngineNetworksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsVmwareEngineNetworksListArgs,
+    ) -> String {
+        format!(
+            "gcp::vmwareengine::ListVmwareEngineNetworksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::ListVmwareEngineNetworksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with VmwareengineProjectsLocationsVmwareEngineNetworksPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VmwareengineProjectsLocationsVmwareEngineNetworksPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &VmwareengineProjectsLocationsVmwareEngineNetworksPatchArgs,
+    ) -> String {
+        format!("gcp::vmwareengine::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::vmwareengine::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

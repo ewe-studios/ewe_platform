@@ -12,9 +12,14 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::privateca::{
+    privateca_projects_locations_get_builder, privateca_projects_locations_get_task,
+    privateca_projects_locations_list_builder, privateca_projects_locations_list_task,
     privateca_projects_locations_ca_pools_create_builder, privateca_projects_locations_ca_pools_create_task,
     privateca_projects_locations_ca_pools_delete_builder, privateca_projects_locations_ca_pools_delete_task,
     privateca_projects_locations_ca_pools_fetch_ca_certs_builder, privateca_projects_locations_ca_pools_fetch_ca_certs_task,
+    privateca_projects_locations_ca_pools_get_builder, privateca_projects_locations_ca_pools_get_task,
+    privateca_projects_locations_ca_pools_get_iam_policy_builder, privateca_projects_locations_ca_pools_get_iam_policy_task,
+    privateca_projects_locations_ca_pools_list_builder, privateca_projects_locations_ca_pools_list_task,
     privateca_projects_locations_ca_pools_patch_builder, privateca_projects_locations_ca_pools_patch_task,
     privateca_projects_locations_ca_pools_set_iam_policy_builder, privateca_projects_locations_ca_pools_set_iam_policy_task,
     privateca_projects_locations_ca_pools_test_iam_permissions_builder, privateca_projects_locations_ca_pools_test_iam_permissions_task,
@@ -23,30 +28,59 @@ use crate::providers::gcp::clients::privateca::{
     privateca_projects_locations_ca_pools_certificate_authorities_delete_builder, privateca_projects_locations_ca_pools_certificate_authorities_delete_task,
     privateca_projects_locations_ca_pools_certificate_authorities_disable_builder, privateca_projects_locations_ca_pools_certificate_authorities_disable_task,
     privateca_projects_locations_ca_pools_certificate_authorities_enable_builder, privateca_projects_locations_ca_pools_certificate_authorities_enable_task,
+    privateca_projects_locations_ca_pools_certificate_authorities_fetch_builder, privateca_projects_locations_ca_pools_certificate_authorities_fetch_task,
+    privateca_projects_locations_ca_pools_certificate_authorities_get_builder, privateca_projects_locations_ca_pools_certificate_authorities_get_task,
+    privateca_projects_locations_ca_pools_certificate_authorities_list_builder, privateca_projects_locations_ca_pools_certificate_authorities_list_task,
     privateca_projects_locations_ca_pools_certificate_authorities_patch_builder, privateca_projects_locations_ca_pools_certificate_authorities_patch_task,
     privateca_projects_locations_ca_pools_certificate_authorities_undelete_builder, privateca_projects_locations_ca_pools_certificate_authorities_undelete_task,
+    privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_builder, privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_task,
+    privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy_builder, privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy_task,
+    privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list_builder, privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list_task,
     privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch_builder, privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch_task,
     privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy_builder, privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy_task,
     privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions_builder, privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions_task,
     privateca_projects_locations_ca_pools_certificates_create_builder, privateca_projects_locations_ca_pools_certificates_create_task,
+    privateca_projects_locations_ca_pools_certificates_get_builder, privateca_projects_locations_ca_pools_certificates_get_task,
+    privateca_projects_locations_ca_pools_certificates_list_builder, privateca_projects_locations_ca_pools_certificates_list_task,
     privateca_projects_locations_ca_pools_certificates_patch_builder, privateca_projects_locations_ca_pools_certificates_patch_task,
     privateca_projects_locations_ca_pools_certificates_revoke_builder, privateca_projects_locations_ca_pools_certificates_revoke_task,
     privateca_projects_locations_certificate_templates_create_builder, privateca_projects_locations_certificate_templates_create_task,
     privateca_projects_locations_certificate_templates_delete_builder, privateca_projects_locations_certificate_templates_delete_task,
+    privateca_projects_locations_certificate_templates_get_builder, privateca_projects_locations_certificate_templates_get_task,
+    privateca_projects_locations_certificate_templates_get_iam_policy_builder, privateca_projects_locations_certificate_templates_get_iam_policy_task,
+    privateca_projects_locations_certificate_templates_list_builder, privateca_projects_locations_certificate_templates_list_task,
     privateca_projects_locations_certificate_templates_patch_builder, privateca_projects_locations_certificate_templates_patch_task,
     privateca_projects_locations_certificate_templates_set_iam_policy_builder, privateca_projects_locations_certificate_templates_set_iam_policy_task,
     privateca_projects_locations_certificate_templates_test_iam_permissions_builder, privateca_projects_locations_certificate_templates_test_iam_permissions_task,
     privateca_projects_locations_operations_cancel_builder, privateca_projects_locations_operations_cancel_task,
     privateca_projects_locations_operations_delete_builder, privateca_projects_locations_operations_delete_task,
+    privateca_projects_locations_operations_get_builder, privateca_projects_locations_operations_get_task,
+    privateca_projects_locations_operations_list_builder, privateca_projects_locations_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::privateca::CaPool;
 use crate::providers::gcp::clients::privateca::Certificate;
+use crate::providers::gcp::clients::privateca::CertificateAuthority;
+use crate::providers::gcp::clients::privateca::CertificateRevocationList;
+use crate::providers::gcp::clients::privateca::CertificateTemplate;
 use crate::providers::gcp::clients::privateca::Empty;
 use crate::providers::gcp::clients::privateca::FetchCaCertsResponse;
+use crate::providers::gcp::clients::privateca::FetchCertificateAuthorityCsrResponse;
+use crate::providers::gcp::clients::privateca::ListCaPoolsResponse;
+use crate::providers::gcp::clients::privateca::ListCertificateAuthoritiesResponse;
+use crate::providers::gcp::clients::privateca::ListCertificateRevocationListsResponse;
+use crate::providers::gcp::clients::privateca::ListCertificateTemplatesResponse;
+use crate::providers::gcp::clients::privateca::ListCertificatesResponse;
+use crate::providers::gcp::clients::privateca::ListLocationsResponse;
+use crate::providers::gcp::clients::privateca::ListOperationsResponse;
+use crate::providers::gcp::clients::privateca::Location;
 use crate::providers::gcp::clients::privateca::Operation;
 use crate::providers::gcp::clients::privateca::Policy;
 use crate::providers::gcp::clients::privateca::TestIamPermissionsResponse;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesActivateArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsGetArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsGetIamPolicyArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsListArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsPatchArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsSetIamPolicyArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsTestIamPermissionsArgs;
@@ -54,24 +88,39 @@ use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPools
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesDeleteArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesDisableArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesEnableArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesFetchArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesGetArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesListArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesPatchArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesUndeleteArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificatesCreateArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificatesGetArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificatesListArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificatesPatchArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCertificatesRevokeArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsCreateArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsDeleteArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsFetchCaCertsArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsGetArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsGetIamPolicyArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsListArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsPatchArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsSetIamPolicyArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCaPoolsTestIamPermissionsArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCertificateTemplatesCreateArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCertificateTemplatesDeleteArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCertificateTemplatesGetArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCertificateTemplatesGetIamPolicyArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCertificateTemplatesListArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCertificateTemplatesPatchArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCertificateTemplatesSetIamPolicyArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsCertificateTemplatesTestIamPermissionsArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsListArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::privateca::PrivatecaProjectsLocationsOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -111,6 +160,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Privateca projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_get(
+        &self,
+        args: &PrivatecaProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_list(
+        &self,
+        args: &PrivatecaProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Privateca projects locations ca pools create.
@@ -205,7 +334,7 @@ where
 
     /// Privateca projects locations ca pools fetch ca certs.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -217,7 +346,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn privateca_projects_locations_ca_pools_fetch_ca_certs(
         &self,
         args: &PrivatecaProjectsLocationsCaPoolsFetchCaCertsArgs,
@@ -238,12 +367,126 @@ where
         let task = privateca_projects_locations_ca_pools_fetch_ca_certs_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Privateca projects locations ca pools get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CaPool result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_get(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CaPool, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = privateca_projects_locations_ca_pools_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations ca pools get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_get_iam_policy(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_ca_pools_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations ca pools list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCaPoolsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_list(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCaPoolsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_ca_pools_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Privateca projects locations ca pools patch.
@@ -336,7 +579,7 @@ where
 
     /// Privateca projects locations ca pools test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -348,7 +591,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn privateca_projects_locations_ca_pools_test_iam_permissions(
         &self,
         args: &PrivatecaProjectsLocationsCaPoolsTestIamPermissionsArgs,
@@ -369,12 +612,7 @@ where
         let task = privateca_projects_locations_ca_pools_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Privateca projects locations ca pools certificate authorities activate.
@@ -598,6 +836,124 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Privateca projects locations ca pools certificate authorities fetch.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the FetchCertificateAuthorityCsrResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_certificate_authorities_fetch(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesFetchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<FetchCertificateAuthorityCsrResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_certificate_authorities_fetch_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_ca_pools_certificate_authorities_fetch_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations ca pools certificate authorities get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CertificateAuthority result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_certificate_authorities_get(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CertificateAuthority, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_certificate_authorities_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_ca_pools_certificate_authorities_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations ca pools certificate authorities list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCertificateAuthoritiesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_certificate_authorities_list(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCertificateAuthoritiesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_certificate_authorities_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_ca_pools_certificate_authorities_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Privateca projects locations ca pools certificate authorities patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -686,9 +1042,128 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Privateca projects locations ca pools certificate authorities certificate revocation lists get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CertificateRevocationList result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CertificateRevocationList, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations ca pools certificate authorities certificate revocation lists get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations ca pools certificate authorities certificate revocation lists list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCertificateRevocationListsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCertificateRevocationListsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Privateca projects locations ca pools certificate authorities certificate revocation lists patch.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -700,7 +1175,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch(
         &self,
         args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsPatchArgs,
@@ -723,17 +1198,12 @@ where
         let task = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Privateca projects locations ca pools certificate authorities certificate revocation lists set iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -745,7 +1215,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy(
         &self,
         args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsSetIamPolicyArgs,
@@ -766,17 +1236,12 @@ where
         let task = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Privateca projects locations ca pools certificate authorities certificate revocation lists test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -788,7 +1253,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions(
         &self,
         args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsTestIamPermissionsArgs,
@@ -809,12 +1274,7 @@ where
         let task = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Privateca projects locations ca pools certificates create.
@@ -862,6 +1322,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations ca pools certificates get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Certificate result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_certificates_get(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsCertificatesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Certificate, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_certificates_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_ca_pools_certificates_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations ca pools certificates list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCertificatesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_ca_pools_certificates_list(
+        &self,
+        args: &PrivatecaProjectsLocationsCaPoolsCertificatesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCertificatesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_ca_pools_certificates_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_ca_pools_certificates_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Privateca projects locations ca pools certificates patch.
@@ -1041,6 +1581,125 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Privateca projects locations certificate templates get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CertificateTemplate result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_certificate_templates_get(
+        &self,
+        args: &PrivatecaProjectsLocationsCertificateTemplatesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CertificateTemplate, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_certificate_templates_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_certificate_templates_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations certificate templates get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_certificate_templates_get_iam_policy(
+        &self,
+        args: &PrivatecaProjectsLocationsCertificateTemplatesGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_certificate_templates_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_certificate_templates_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations certificate templates list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCertificateTemplatesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_certificate_templates_list(
+        &self,
+        args: &PrivatecaProjectsLocationsCertificateTemplatesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCertificateTemplatesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_certificate_templates_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_certificate_templates_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Privateca projects locations certificate templates patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1131,7 +1790,7 @@ where
 
     /// Privateca projects locations certificate templates test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1143,7 +1802,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn privateca_projects_locations_certificate_templates_test_iam_permissions(
         &self,
         args: &PrivatecaProjectsLocationsCertificateTemplatesTestIamPermissionsArgs,
@@ -1164,12 +1823,7 @@ where
         let task = privateca_projects_locations_certificate_templates_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Privateca projects locations operations cancel.
@@ -1256,6 +1910,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_operations_get(
+        &self,
+        args: &PrivatecaProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Privateca projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn privateca_projects_locations_operations_list(
+        &self,
+        args: &PrivatecaProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = privateca_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = privateca_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

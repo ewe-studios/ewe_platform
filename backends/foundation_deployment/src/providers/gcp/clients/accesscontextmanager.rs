@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/accessPolicies
+/// POST v1/accessPolicies
 /// Creates an access policy. This method fails if the organization already has an access policy. The long-running operation has a successful status after the access policy propagates to long-lasting storage. Syntactic and basic semantic errors are returned in metadata as a BadRequest proto.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn accesscontextmanager_access_policies_create_builder(
     client: &SimpleHttpClient,
-    body: &AccessPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/accessPolicies",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessPolicies
+/// POST v1/accessPolicies
 /// Creates an access policy. This method fails if the organization already has an access policy. The long-running operation has a successful status after the access policy propagates to long-lasting storage. Syntactic and basic semantic errors are returned in metadata as a BadRequest proto.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn accesscontextmanager_access_policies_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies
+/// POST v1/accessPolicies
 /// Creates an access policy. This method fails if the organization already has an access policy. The long-running operation has a successful status after the access policy propagates to long-lasting storage. Syntactic and basic semantic errors are returned in metadata as a BadRequest proto.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -147,14 +144,7 @@ pub fn accesscontextmanager_access_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`accesscontextmanager_access_policies_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AccesscontextmanagerAccessPoliciesCreateArgs {
-    /// Request body.
-    pub body: AccessPolicy,
-}
-
-/// GET v1/accessPolicies
+/// POST v1/accessPolicies
 /// Creates an access policy. This method fails if the organization already has an access policy. The long-running operation has a successful status after the access policy propagates to long-lasting storage. Syntactic and basic semantic errors are returned in metadata as a BadRequest proto.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -167,16 +157,15 @@ pub struct AccesscontextmanagerAccessPoliciesCreateArgs {
 
 pub fn accesscontextmanager_access_policies_create(
     client: &SimpleHttpClient,
-    args: &AccesscontextmanagerAccessPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_access_policies_create_builder(client, &args.body)?;
+    let builder = accesscontextmanager_access_policies_create_builder(client)?;
     accesscontextmanager_access_policies_create_execute(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}
+/// DELETE v1/accessPolicies/{accessPoliciesId}
 /// Deletes an access policy based on the resource name. The long-running operation has a successful status after the access policy is removed from long-lasting storage.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -187,17 +176,20 @@ pub fn accesscontextmanager_access_policies_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}",);
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}
+/// DELETE v1/accessPolicies/{accessPoliciesId}
 /// Deletes an access policy based on the resource name. The long-running operation has a successful status after the access policy is removed from long-lasting storage.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -271,7 +263,7 @@ pub fn accesscontextmanager_access_policies_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}
+/// DELETE v1/accessPolicies/{accessPoliciesId}
 /// Deletes an access policy based on the resource name. The long-running operation has a successful status after the access policy is removed from long-lasting storage.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -308,7 +300,7 @@ pub struct AccesscontextmanagerAccessPoliciesDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}
+/// DELETE v1/accessPolicies/{accessPoliciesId}
 /// Deletes an access policy based on the resource name. The long-running operation has a successful status after the access policy is removed from long-lasting storage.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -330,7 +322,168 @@ pub fn accesscontextmanager_access_policies_delete(
     accesscontextmanager_access_policies_delete_execute(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:getIamPolicy
+/// GET v1/accessPolicies/{accessPoliciesId}
+/// Returns an access policy based on the name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_get_execute()` to send, or `accesscontextmanager_access_policies_get` for simplest API.
+
+pub fn accesscontextmanager_access_policies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}
+/// Returns an access policy based on the name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_get_execute()` or `accesscontextmanager_access_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccessPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AccessPolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}
+/// Returns an access policy based on the name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_get_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccessPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}
+/// Returns an access policy based on the name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_get_builder()` + `accesscontextmanager_access_policies_get_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_get(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccessPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_get_builder(client, &args.name)?;
+    accesscontextmanager_access_policies_get_execute(builder)
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}:getIamPolicy
 /// Gets the IAM policy for the specified Access Context Manager access policy.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -339,23 +492,22 @@ pub fn accesscontextmanager_access_policies_delete(
 pub fn accesscontextmanager_access_policies_get_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}:getIamPolicy",);
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}:getIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:getIamPolicy
+/// POST v1/accessPolicies/{accessPoliciesId}:getIamPolicy
 /// Gets the IAM policy for the specified Access Context Manager access policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -429,7 +581,7 @@ pub fn accesscontextmanager_access_policies_get_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:getIamPolicy
+/// POST v1/accessPolicies/{accessPoliciesId}:getIamPolicy
 /// Gets the IAM policy for the specified Access Context Manager access policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -464,11 +616,9 @@ pub fn accesscontextmanager_access_policies_get_iam_policy_execute(
 pub struct AccesscontextmanagerAccessPoliciesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:getIamPolicy
+/// POST v1/accessPolicies/{accessPoliciesId}:getIamPolicy
 /// Gets the IAM policy for the specified Access Context Manager access policy.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -486,15 +636,374 @@ pub fn accesscontextmanager_access_policies_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_access_policies_get_iam_policy_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        accesscontextmanager_access_policies_get_iam_policy_builder(client, &args.resource)?;
     accesscontextmanager_access_policies_get_iam_policy_execute(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:setIamPolicy
+/// GET v1/accessPolicies
+/// Lists all access policies in an organization.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_list_execute()` to send, or `accesscontextmanager_access_policies_list` for simplest API.
+
+pub fn accesscontextmanager_access_policies_list_builder(
+    client: &SimpleHttpClient,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/accessPolicies",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accessPolicies
+/// Lists all access policies in an organization.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_list_execute()` or `accesscontextmanager_access_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAccessPoliciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAccessPoliciesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accessPolicies
+/// Lists all access policies in an organization.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_list_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAccessPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+}
+
+/// GET v1/accessPolicies
+/// Lists all access policies in an organization.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_list_builder()` + `accesscontextmanager_access_policies_list_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_list(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAccessPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_list_builder(
+        client,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
+    )?;
+    accesscontextmanager_access_policies_list_execute(builder)
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}
+/// Updates an access policy. The long-running operation from this RPC has a successful status after the changes to the access policy propagate to long-lasting storage.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_patch_execute()` to send, or `accesscontextmanager_access_policies_patch` for simplest API.
+
+pub fn accesscontextmanager_access_policies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}
+/// Updates an access policy. The long-running operation from this RPC has a successful status after the changes to the access policy propagate to long-lasting storage.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_patch_execute()` or `accesscontextmanager_access_policies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}
+/// Updates an access policy. The long-running operation from this RPC has a successful status after the changes to the access policy propagate to long-lasting storage.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_patch_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}
+/// Updates an access policy. The long-running operation from this RPC has a successful status after the changes to the access policy propagate to long-lasting storage.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_patch_builder()` + `accesscontextmanager_access_policies_patch_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_patch(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        accesscontextmanager_access_policies_patch_builder(client, &args.name, &args.updateMask)?;
+    accesscontextmanager_access_policies_patch_execute(builder)
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}:setIamPolicy
 /// Sets the IAM policy for the specified Access Context Manager access policy. This method replaces the existing IAM policy on the access policy. The IAM policy controls the set of users who can perform specific operations on the Access Context Manager access policy.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -503,23 +1012,22 @@ pub fn accesscontextmanager_access_policies_get_iam_policy(
 pub fn accesscontextmanager_access_policies_set_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}:setIamPolicy",);
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}:setIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:setIamPolicy
+/// POST v1/accessPolicies/{accessPoliciesId}:setIamPolicy
 /// Sets the IAM policy for the specified Access Context Manager access policy. This method replaces the existing IAM policy on the access policy. The IAM policy controls the set of users who can perform specific operations on the Access Context Manager access policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -593,7 +1101,7 @@ pub fn accesscontextmanager_access_policies_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:setIamPolicy
+/// POST v1/accessPolicies/{accessPoliciesId}:setIamPolicy
 /// Sets the IAM policy for the specified Access Context Manager access policy. This method replaces the existing IAM policy on the access policy. The IAM policy controls the set of users who can perform specific operations on the Access Context Manager access policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -628,11 +1136,9 @@ pub fn accesscontextmanager_access_policies_set_iam_policy_execute(
 pub struct AccesscontextmanagerAccessPoliciesSetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:setIamPolicy
+/// POST v1/accessPolicies/{accessPoliciesId}:setIamPolicy
 /// Sets the IAM policy for the specified Access Context Manager access policy. This method replaces the existing IAM policy on the access policy. The IAM policy controls the set of users who can perform specific operations on the Access Context Manager access policy.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -650,15 +1156,12 @@ pub fn accesscontextmanager_access_policies_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_access_policies_set_iam_policy_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        accesscontextmanager_access_policies_set_iam_policy_builder(client, &args.resource)?;
     accesscontextmanager_access_policies_set_iam_policy_execute(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:testIamPermissions
+/// POST v1/accessPolicies/{accessPoliciesId}:testIamPermissions
 /// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -667,24 +1170,22 @@ pub fn accesscontextmanager_access_policies_set_iam_policy(
 pub fn accesscontextmanager_access_policies_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}:testIamPermissions",
+        resource,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:testIamPermissions
+/// POST v1/accessPolicies/{accessPoliciesId}:testIamPermissions
 /// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -758,7 +1259,7 @@ pub fn accesscontextmanager_access_policies_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:testIamPermissions
+/// POST v1/accessPolicies/{accessPoliciesId}:testIamPermissions
 /// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -797,11 +1298,9 @@ pub fn accesscontextmanager_access_policies_test_iam_permissions_execute(
 pub struct AccesscontextmanagerAccessPoliciesTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}:testIamPermissions
+/// POST v1/accessPolicies/{accessPoliciesId}:testIamPermissions
 /// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -823,15 +1322,12 @@ pub fn accesscontextmanager_access_policies_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_access_policies_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        accesscontextmanager_access_policies_test_iam_permissions_builder(client, &args.resource)?;
     accesscontextmanager_access_policies_test_iam_permissions_execute(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels
 /// Creates an access level. The long-running operation from this RPC has a successful status after the access level propagates to long-lasting storage. If access levels contain errors, an error response is returned for the first error encountered.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -840,23 +1336,22 @@ pub fn accesscontextmanager_access_policies_test_iam_permissions(
 pub fn accesscontextmanager_access_policies_access_levels_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &AccessLevel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels",);
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels
 /// Creates an access level. The long-running operation from this RPC has a successful status after the access level propagates to long-lasting storage. If access levels contain errors, an error response is returned for the first error encountered.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -930,7 +1425,7 @@ pub fn accesscontextmanager_access_policies_access_levels_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels
 /// Creates an access level. The long-running operation from this RPC has a successful status after the access level propagates to long-lasting storage. If access levels contain errors, an error response is returned for the first error encountered.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -965,11 +1460,9 @@ pub fn accesscontextmanager_access_policies_access_levels_create_execute(
 pub struct AccesscontextmanagerAccessPoliciesAccessLevelsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: AccessLevel,
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels
 /// Creates an access level. The long-running operation from this RPC has a successful status after the access level propagates to long-lasting storage. If access levels contain errors, an error response is returned for the first error encountered.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -987,15 +1480,713 @@ pub fn accesscontextmanager_access_policies_access_levels_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_access_policies_access_levels_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder =
+        accesscontextmanager_access_policies_access_levels_create_builder(client, &args.parent)?;
     accesscontextmanager_access_policies_access_levels_create_execute(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels:replaceAll
+/// DELETE v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Deletes an access level based on the resource name. The long-running operation from this RPC has a successful status after the access level has been removed from long-lasting storage.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_access_levels_delete_execute()` to send, or `accesscontextmanager_access_policies_access_levels_delete` for simplest API.
+
+pub fn accesscontextmanager_access_policies_access_levels_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels/{accessLevelsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Deletes an access level based on the resource name. The long-running operation from this RPC has a successful status after the access level has been removed from long-lasting storage.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_access_levels_delete_execute()` or `accesscontextmanager_access_policies_access_levels_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_access_levels_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_access_levels_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Deletes an access level based on the resource name. The long-running operation from this RPC has a successful status after the access level has been removed from long-lasting storage.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_access_levels_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_access_levels_delete_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_access_levels_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_access_levels_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_access_levels_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_access_levels_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Deletes an access level based on the resource name. The long-running operation from this RPC has a successful status after the access level has been removed from long-lasting storage.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_access_levels_delete_builder()` + `accesscontextmanager_access_policies_access_levels_delete_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_access_levels_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_access_levels_delete(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        accesscontextmanager_access_policies_access_levels_delete_builder(client, &args.name)?;
+    accesscontextmanager_access_policies_access_levels_delete_execute(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Gets an access level based on the resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_access_levels_get_execute()` to send, or `accesscontextmanager_access_policies_access_levels_get` for simplest API.
+
+pub fn accesscontextmanager_access_policies_access_levels_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    accessLevelFormat: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels/{accessLevelsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = accessLevelFormat.as_ref() {
+        query_parts.push(format!("accessLevelFormat={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Gets an access level based on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_access_levels_get_execute()` or `accesscontextmanager_access_policies_access_levels_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_access_levels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_access_levels_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AccessLevel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AccessLevel = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Gets an access level based on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_access_levels_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_access_levels_get_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_access_levels_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_access_levels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_access_levels_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccessLevel>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_access_levels_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: accessLevelFormat
+    pub accessLevelFormat: Option<Option<String>>,
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Gets an access level based on the resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_access_levels_get_builder()` + `accesscontextmanager_access_policies_access_levels_get_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_access_levels_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_access_levels_get(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AccessLevel>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_access_levels_get_builder(
+        client,
+        &args.name,
+        &args.accessLevelFormat,
+    )?;
+    accesscontextmanager_access_policies_access_levels_get_execute(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
+/// Lists all access levels for an access policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_access_levels_list_execute()` to send, or `accesscontextmanager_access_policies_access_levels_list` for simplest API.
+
+pub fn accesscontextmanager_access_policies_access_levels_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    accessLevelFormat: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = accessLevelFormat.as_ref() {
+        query_parts.push(format!("accessLevelFormat={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
+/// Lists all access levels for an access policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_access_levels_list_execute()` or `accesscontextmanager_access_policies_access_levels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_access_levels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_access_levels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAccessLevelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAccessLevelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
+/// Lists all access levels for an access policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_access_levels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_access_levels_list_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_access_levels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_access_levels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_access_levels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAccessLevelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_access_levels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: accessLevelFormat
+    pub accessLevelFormat: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels
+/// Lists all access levels for an access policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_access_levels_list_builder()` + `accesscontextmanager_access_policies_access_levels_list_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_access_levels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_access_levels_list(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAccessLevelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_access_levels_list_builder(
+        client,
+        &args.parent,
+        &args.accessLevelFormat,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    accesscontextmanager_access_policies_access_levels_list_execute(builder)
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Updates an access level. The long-running operation from this RPC has a successful status after the changes to the access level propagate to long-lasting storage. If access levels contain errors, an error response is returned for the first error encountered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_access_levels_patch_execute()` to send, or `accesscontextmanager_access_policies_access_levels_patch` for simplest API.
+
+pub fn accesscontextmanager_access_policies_access_levels_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels/{accessLevelsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Updates an access level. The long-running operation from this RPC has a successful status after the changes to the access level propagate to long-lasting storage. If access levels contain errors, an error response is returned for the first error encountered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_access_levels_patch_execute()` or `accesscontextmanager_access_policies_access_levels_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_access_levels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_access_levels_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Updates an access level. The long-running operation from this RPC has a successful status after the changes to the access level propagate to long-lasting storage. If access levels contain errors, an error response is returned for the first error encountered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_access_levels_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_access_levels_patch_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_access_levels_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_access_levels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_access_levels_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_access_levels_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}
+/// Updates an access level. The long-running operation from this RPC has a successful status after the changes to the access level propagate to long-lasting storage. If access levels contain errors, an error response is returned for the first error encountered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_access_levels_patch_builder()` + `accesscontextmanager_access_policies_access_levels_patch_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_access_levels_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_access_levels_patch(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_access_levels_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    accesscontextmanager_access_policies_access_levels_patch_execute(builder)
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels:replaceAll
 /// Replaces all existing access levels in an access policy with the access levels provided. This is done atomically. The long-running operation from this RPC has a successful status after all replacements propagate to long-lasting storage. If the replacement contains errors, an error response is returned for the first error encountered. Upon error, the replacement is cancelled, and existing access levels are not affected. The Operation.response field contains ReplaceAccessLevelsResponse. Removing access levels contained in existing service perimeters result in an error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1004,24 +2195,22 @@ pub fn accesscontextmanager_access_policies_access_levels_create(
 pub fn accesscontextmanager_access_policies_access_levels_replace_all_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &ReplaceAccessLevelsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels:replaceAll",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels:replaceAll
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels:replaceAll
 /// Replaces all existing access levels in an access policy with the access levels provided. This is done atomically. The long-running operation from this RPC has a successful status after all replacements propagate to long-lasting storage. If the replacement contains errors, an error response is returned for the first error encountered. Upon error, the replacement is cancelled, and existing access levels are not affected. The Operation.response field contains ReplaceAccessLevelsResponse. Removing access levels contained in existing service perimeters result in an error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1095,7 +2284,7 @@ pub fn accesscontextmanager_access_policies_access_levels_replace_all_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels:replaceAll
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels:replaceAll
 /// Replaces all existing access levels in an access policy with the access levels provided. This is done atomically. The long-running operation from this RPC has a successful status after all replacements propagate to long-lasting storage. If the replacement contains errors, an error response is returned for the first error encountered. Upon error, the replacement is cancelled, and existing access levels are not affected. The Operation.response field contains ReplaceAccessLevelsResponse. Removing access levels contained in existing service perimeters result in an error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1130,11 +2319,9 @@ pub fn accesscontextmanager_access_policies_access_levels_replace_all_execute(
 pub struct AccesscontextmanagerAccessPoliciesAccessLevelsReplaceAllArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: ReplaceAccessLevelsRequest,
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/accessLevels:replaceAll
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels:replaceAll
 /// Replaces all existing access levels in an access policy with the access levels provided. This is done atomically. The long-running operation from this RPC has a successful status after all replacements propagate to long-lasting storage. If the replacement contains errors, an error response is returned for the first error encountered. Upon error, the replacement is cancelled, and existing access levels are not affected. The Operation.response field contains ReplaceAccessLevelsResponse. Removing access levels contained in existing service perimeters result in an error.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1155,12 +2342,180 @@ pub fn accesscontextmanager_access_policies_access_levels_replace_all(
     let builder = accesscontextmanager_access_policies_access_levels_replace_all_builder(
         client,
         &args.parent,
-        &args.body,
     )?;
     accesscontextmanager_access_policies_access_levels_replace_all_execute(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}:testIamPermissions
+/// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_access_levels_test_iam_permissions_execute()` to send, or `accesscontextmanager_access_policies_access_levels_test_iam_permissions` for simplest API.
+
+pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/accessLevels/{accessLevelsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}:testIamPermissions
+/// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_access_levels_test_iam_permissions_execute()` or `accesscontextmanager_access_policies_access_levels_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_access_levels_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}:testIamPermissions
+/// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_access_levels_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_access_levels_test_iam_permissions_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_access_levels_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_access_levels_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        accesscontextmanager_access_policies_access_levels_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_access_levels_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAccessLevelsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}/accessLevels/{accessLevelsId}:testIamPermissions
+/// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_access_levels_test_iam_permissions_builder()` + `accesscontextmanager_access_policies_access_levels_test_iam_permissions_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_access_levels_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesAccessLevelsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_access_levels_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    accesscontextmanager_access_policies_access_levels_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
 /// Creates an authorized orgs desc. The long-running operation from this RPC has a successful status after the authorized orgs desc propagates to long-lasting storage. If a authorized orgs desc contains errors, an error response is returned for the first error encountered. The name of this AuthorizedOrgsDesc will be assigned during creation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1169,24 +2524,22 @@ pub fn accesscontextmanager_access_policies_access_levels_replace_all(
 pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &AuthorizedOrgsDesc,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/authorizedOrgsDescs",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
+/// POST v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
 /// Creates an authorized orgs desc. The long-running operation from this RPC has a successful status after the authorized orgs desc propagates to long-lasting storage. If a authorized orgs desc contains errors, an error response is returned for the first error encountered. The name of this AuthorizedOrgsDesc will be assigned during creation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1260,7 +2613,7 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
+/// POST v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
 /// Creates an authorized orgs desc. The long-running operation from this RPC has a successful status after the authorized orgs desc propagates to long-lasting storage. If a authorized orgs desc contains errors, an error response is returned for the first error encountered. The name of this AuthorizedOrgsDesc will be assigned during creation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1295,11 +2648,9 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create_execute
 pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: AuthorizedOrgsDesc,
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
+/// POST v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
 /// Creates an authorized orgs desc. The long-running operation from this RPC has a successful status after the authorized orgs desc propagates to long-lasting storage. If a authorized orgs desc contains errors, an error response is returned for the first error encountered. The name of this AuthorizedOrgsDesc will be assigned during creation.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1320,12 +2671,697 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create(
     let builder = accesscontextmanager_access_policies_authorized_orgs_descs_create_builder(
         client,
         &args.parent,
-        &args.body,
     )?;
     accesscontextmanager_access_policies_authorized_orgs_descs_create_execute(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters:commit
+/// DELETE v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Deletes an authorized orgs desc based on the resource name. The long-running operation from this RPC has a successful status after the authorized orgs desc is removed from long-lasting storage.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_authorized_orgs_descs_delete_execute()` to send, or `accesscontextmanager_access_policies_authorized_orgs_descs_delete` for simplest API.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/authorizedOrgsDescs/{authorizedOrgsDescsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Deletes an authorized orgs desc based on the resource name. The long-running operation from this RPC has a successful status after the authorized orgs desc is removed from long-lasting storage.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_authorized_orgs_descs_delete_execute()` or `accesscontextmanager_access_policies_authorized_orgs_descs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Deletes an authorized orgs desc based on the resource name. The long-running operation from this RPC has a successful status after the authorized orgs desc is removed from long-lasting storage.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_authorized_orgs_descs_delete_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_authorized_orgs_descs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_authorized_orgs_descs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_authorized_orgs_descs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Deletes an authorized orgs desc based on the resource name. The long-running operation from this RPC has a successful status after the authorized orgs desc is removed from long-lasting storage.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder()` + `accesscontextmanager_access_policies_authorized_orgs_descs_delete_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_authorized_orgs_descs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_delete(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder(
+        client, &args.name,
+    )?;
+    accesscontextmanager_access_policies_authorized_orgs_descs_delete_execute(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Gets an authorized orgs desc based on the resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_authorized_orgs_descs_get_execute()` to send, or `accesscontextmanager_access_policies_authorized_orgs_descs_get` for simplest API.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/authorizedOrgsDescs/{authorizedOrgsDescsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Gets an authorized orgs desc based on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_authorized_orgs_descs_get_execute()` or `accesscontextmanager_access_policies_authorized_orgs_descs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_authorized_orgs_descs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AuthorizedOrgsDesc>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AuthorizedOrgsDesc = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Gets an authorized orgs desc based on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_authorized_orgs_descs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_authorized_orgs_descs_get_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_authorized_orgs_descs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_authorized_orgs_descs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AuthorizedOrgsDesc>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_authorized_orgs_descs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_authorized_orgs_descs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Gets an authorized orgs desc based on the resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_authorized_orgs_descs_get_builder()` + `accesscontextmanager_access_policies_authorized_orgs_descs_get_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_authorized_orgs_descs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AuthorizedOrgsDesc>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        accesscontextmanager_access_policies_authorized_orgs_descs_get_builder(client, &args.name)?;
+    accesscontextmanager_access_policies_authorized_orgs_descs_get_execute(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
+/// Lists all authorized orgs descs for an access policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_authorized_orgs_descs_list_execute()` to send, or `accesscontextmanager_access_policies_authorized_orgs_descs_list` for simplest API.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/authorizedOrgsDescs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
+/// Lists all authorized orgs descs for an access policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_authorized_orgs_descs_list_execute()` or `accesscontextmanager_access_policies_authorized_orgs_descs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_authorized_orgs_descs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAuthorizedOrgsDescsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAuthorizedOrgsDescsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
+/// Lists all authorized orgs descs for an access policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_authorized_orgs_descs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_authorized_orgs_descs_list_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_authorized_orgs_descs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_authorized_orgs_descs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAuthorizedOrgsDescsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_authorized_orgs_descs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_authorized_orgs_descs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs
+/// Lists all authorized orgs descs for an access policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_authorized_orgs_descs_list_builder()` + `accesscontextmanager_access_policies_authorized_orgs_descs_list_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_authorized_orgs_descs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAuthorizedOrgsDescsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_authorized_orgs_descs_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    accesscontextmanager_access_policies_authorized_orgs_descs_list_execute(builder)
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Updates an authorized orgs desc. The long-running operation from this RPC has a successful status after the authorized orgs desc propagates to long-lasting storage. If a authorized orgs desc contains errors, an error response is returned for the first error encountered. Only the organization list in AuthorizedOrgsDesc can be updated. The name, authorization_type, asset_type and authorization_direction cannot be updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_authorized_orgs_descs_patch_execute()` to send, or `accesscontextmanager_access_policies_authorized_orgs_descs_patch` for simplest API.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/authorizedOrgsDescs/{authorizedOrgsDescsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Updates an authorized orgs desc. The long-running operation from this RPC has a successful status after the authorized orgs desc propagates to long-lasting storage. If a authorized orgs desc contains errors, an error response is returned for the first error encountered. Only the organization list in AuthorizedOrgsDesc can be updated. The name, authorization_type, asset_type and authorization_direction cannot be updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_authorized_orgs_descs_patch_execute()` or `accesscontextmanager_access_policies_authorized_orgs_descs_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Updates an authorized orgs desc. The long-running operation from this RPC has a successful status after the authorized orgs desc propagates to long-lasting storage. If a authorized orgs desc contains errors, an error response is returned for the first error encountered. Only the organization list in AuthorizedOrgsDesc can be updated. The name, authorization_type, asset_type and authorization_direction cannot be updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_authorized_orgs_descs_patch_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_authorized_orgs_descs_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_authorized_orgs_descs_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_authorized_orgs_descs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/authorizedOrgsDescs/{authorizedOrgsDescsId}
+/// Updates an authorized orgs desc. The long-running operation from this RPC has a successful status after the authorized orgs desc propagates to long-lasting storage. If a authorized orgs desc contains errors, an error response is returned for the first error encountered. Only the organization list in AuthorizedOrgsDesc can be updated. The name, authorization_type, asset_type and authorization_direction cannot be updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder()` + `accesscontextmanager_access_policies_authorized_orgs_descs_patch_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_authorized_orgs_descs_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_authorized_orgs_descs_patch(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    accesscontextmanager_access_policies_authorized_orgs_descs_patch_execute(builder)
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters:commit
 /// Commits the dry-run specification for all the service perimeters in an access policy. A commit operation on a service perimeter involves copying its spec field to the status field of the service perimeter. Only service perimeters with use_explicit_dry_run_spec field set to `true` are affected by a commit operation. The long-running operation from this RPC has a successful status after the dry-run specifications for all the service perimeters have been committed. If a commit fails, it causes the long-running operation to return an error response and the entire commit operation is cancelled. When successful, the Operation.response field contains CommitServicePerimetersResponse. The dry_run and the spec fields are cleared after a successful commit operation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1334,24 +3370,22 @@ pub fn accesscontextmanager_access_policies_authorized_orgs_descs_create(
 pub fn accesscontextmanager_access_policies_service_perimeters_commit_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &CommitServicePerimetersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters:commit",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters:commit
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters:commit
 /// Commits the dry-run specification for all the service perimeters in an access policy. A commit operation on a service perimeter involves copying its spec field to the status field of the service perimeter. Only service perimeters with use_explicit_dry_run_spec field set to `true` are affected by a commit operation. The long-running operation from this RPC has a successful status after the dry-run specifications for all the service perimeters have been committed. If a commit fails, it causes the long-running operation to return an error response and the entire commit operation is cancelled. When successful, the Operation.response field contains CommitServicePerimetersResponse. The dry_run and the spec fields are cleared after a successful commit operation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1425,7 +3459,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_commit_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters:commit
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters:commit
 /// Commits the dry-run specification for all the service perimeters in an access policy. A commit operation on a service perimeter involves copying its spec field to the status field of the service perimeter. Only service perimeters with use_explicit_dry_run_spec field set to `true` are affected by a commit operation. The long-running operation from this RPC has a successful status after the dry-run specifications for all the service perimeters have been committed. If a commit fails, it causes the long-running operation to return an error response and the entire commit operation is cancelled. When successful, the Operation.response field contains CommitServicePerimetersResponse. The dry_run and the spec fields are cleared after a successful commit operation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1460,11 +3494,9 @@ pub fn accesscontextmanager_access_policies_service_perimeters_commit_execute(
 pub struct AccesscontextmanagerAccessPoliciesServicePerimetersCommitArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: CommitServicePerimetersRequest,
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters:commit
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters:commit
 /// Commits the dry-run specification for all the service perimeters in an access policy. A commit operation on a service perimeter involves copying its spec field to the status field of the service perimeter. Only service perimeters with use_explicit_dry_run_spec field set to `true` are affected by a commit operation. The long-running operation from this RPC has a successful status after the dry-run specifications for all the service perimeters have been committed. If a commit fails, it causes the long-running operation to return an error response and the entire commit operation is cancelled. When successful, the Operation.response field contains CommitServicePerimetersResponse. The dry_run and the spec fields are cleared after a successful commit operation.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1485,12 +3517,11 @@ pub fn accesscontextmanager_access_policies_service_perimeters_commit(
     let builder = accesscontextmanager_access_policies_service_perimeters_commit_builder(
         client,
         &args.parent,
-        &args.body,
     )?;
     accesscontextmanager_access_policies_service_perimeters_commit_execute(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters
 /// Creates a service perimeter. The long-running operation from this RPC has a successful status after the service perimeter propagates to long-lasting storage. If a service perimeter contains errors, an error response is returned for the first error encountered.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1499,24 +3530,22 @@ pub fn accesscontextmanager_access_policies_service_perimeters_commit(
 pub fn accesscontextmanager_access_policies_service_perimeters_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &ServicePerimeter,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters
 /// Creates a service perimeter. The long-running operation from this RPC has a successful status after the service perimeter propagates to long-lasting storage. If a service perimeter contains errors, an error response is returned for the first error encountered.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1590,7 +3619,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters
 /// Creates a service perimeter. The long-running operation from this RPC has a successful status after the service perimeter propagates to long-lasting storage. If a service perimeter contains errors, an error response is returned for the first error encountered.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1625,11 +3654,9 @@ pub fn accesscontextmanager_access_policies_service_perimeters_create_execute(
 pub struct AccesscontextmanagerAccessPoliciesServicePerimetersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: ServicePerimeter,
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters
 /// Creates a service perimeter. The long-running operation from this RPC has a successful status after the service perimeter propagates to long-lasting storage. If a service perimeter contains errors, an error response is returned for the first error encountered.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1650,12 +3677,696 @@ pub fn accesscontextmanager_access_policies_service_perimeters_create(
     let builder = accesscontextmanager_access_policies_service_perimeters_create_builder(
         client,
         &args.parent,
-        &args.body,
     )?;
     accesscontextmanager_access_policies_service_perimeters_create_execute(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters:replaceAll
+/// DELETE v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Deletes a service perimeter based on the resource name. The long-running operation from this RPC has a successful status after the service perimeter is removed from long-lasting storage.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_service_perimeters_delete_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_delete` for simplest API.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters/{servicePerimetersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Deletes a service perimeter based on the resource name. The long-running operation from this RPC has a successful status after the service perimeter is removed from long-lasting storage.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_service_perimeters_delete_execute()` or `accesscontextmanager_access_policies_service_perimeters_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_service_perimeters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Deletes a service perimeter based on the resource name. The long-running operation from this RPC has a successful status after the service perimeter is removed from long-lasting storage.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_service_perimeters_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_service_perimeters_delete_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_service_perimeters_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_service_perimeters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_service_perimeters_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Deletes a service perimeter based on the resource name. The long-running operation from this RPC has a successful status after the service perimeter is removed from long-lasting storage.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_service_perimeters_delete_builder()` + `accesscontextmanager_access_policies_service_perimeters_delete_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_service_perimeters_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_delete(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        accesscontextmanager_access_policies_service_perimeters_delete_builder(client, &args.name)?;
+    accesscontextmanager_access_policies_service_perimeters_delete_execute(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Gets a service perimeter based on the resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_service_perimeters_get_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_get` for simplest API.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters/{servicePerimetersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Gets a service perimeter based on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_service_perimeters_get_execute()` or `accesscontextmanager_access_policies_service_perimeters_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_service_perimeters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ServicePerimeter>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ServicePerimeter = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Gets a service perimeter based on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_service_perimeters_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_service_perimeters_get_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_service_perimeters_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_service_perimeters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ServicePerimeter>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_service_perimeters_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Gets a service perimeter based on the resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_service_perimeters_get_builder()` + `accesscontextmanager_access_policies_service_perimeters_get_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_service_perimeters_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_get(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ServicePerimeter>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        accesscontextmanager_access_policies_service_perimeters_get_builder(client, &args.name)?;
+    accesscontextmanager_access_policies_service_perimeters_get_execute(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
+/// Lists all service perimeters for an access policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_service_perimeters_list_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_list` for simplest API.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
+/// Lists all service perimeters for an access policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_service_perimeters_list_execute()` or `accesscontextmanager_access_policies_service_perimeters_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_service_perimeters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListServicePerimetersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListServicePerimetersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
+/// Lists all service perimeters for an access policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_service_perimeters_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_service_perimeters_list_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_service_perimeters_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_service_perimeters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListServicePerimetersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_service_perimeters_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters
+/// Lists all service perimeters for an access policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_service_perimeters_list_builder()` + `accesscontextmanager_access_policies_service_perimeters_list_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_service_perimeters_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_list(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListServicePerimetersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_service_perimeters_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    accesscontextmanager_access_policies_service_perimeters_list_execute(builder)
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Updates a service perimeter. The long-running operation from this RPC has a successful status after the service perimeter propagates to long-lasting storage. If a service perimeter contains errors, an error response is returned for the first error encountered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_service_perimeters_patch_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_patch` for simplest API.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters/{servicePerimetersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Updates a service perimeter. The long-running operation from this RPC has a successful status after the service perimeter propagates to long-lasting storage. If a service perimeter contains errors, an error response is returned for the first error encountered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_service_perimeters_patch_execute()` or `accesscontextmanager_access_policies_service_perimeters_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_service_perimeters_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Updates a service perimeter. The long-running operation from this RPC has a successful status after the service perimeter propagates to long-lasting storage. If a service perimeter contains errors, an error response is returned for the first error encountered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_service_perimeters_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_service_perimeters_patch_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_service_perimeters_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_service_perimeters_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_access_policies_service_perimeters_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}
+/// Updates a service perimeter. The long-running operation from this RPC has a successful status after the service perimeter propagates to long-lasting storage. If a service perimeter contains errors, an error response is returned for the first error encountered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_service_perimeters_patch_builder()` + `accesscontextmanager_access_policies_service_perimeters_patch_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_service_perimeters_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_patch(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_access_policies_service_perimeters_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    accesscontextmanager_access_policies_service_perimeters_patch_execute(builder)
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters:replaceAll
 /// Replace all existing service perimeters in an access policy with the service perimeters provided. This is done atomically. The long-running operation from this RPC has a successful status after all replacements propagate to long-lasting storage. Replacements containing errors result in an error response for the first error encountered. Upon an error, replacement are cancelled and existing service perimeters are not affected. The Operation.response field contains ReplaceServicePerimetersResponse.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1664,24 +4375,22 @@ pub fn accesscontextmanager_access_policies_service_perimeters_create(
 pub fn accesscontextmanager_access_policies_service_perimeters_replace_all_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &ReplaceServicePerimetersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters:replaceAll",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters:replaceAll
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters:replaceAll
 /// Replace all existing service perimeters in an access policy with the service perimeters provided. This is done atomically. The long-running operation from this RPC has a successful status after all replacements propagate to long-lasting storage. Replacements containing errors result in an error response for the first error encountered. Upon an error, replacement are cancelled and existing service perimeters are not affected. The Operation.response field contains ReplaceServicePerimetersResponse.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1755,7 +4464,7 @@ pub fn accesscontextmanager_access_policies_service_perimeters_replace_all_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters:replaceAll
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters:replaceAll
 /// Replace all existing service perimeters in an access policy with the service perimeters provided. This is done atomically. The long-running operation from this RPC has a successful status after all replacements propagate to long-lasting storage. Replacements containing errors result in an error response for the first error encountered. Upon an error, replacement are cancelled and existing service perimeters are not affected. The Operation.response field contains ReplaceServicePerimetersResponse.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1790,11 +4499,9 @@ pub fn accesscontextmanager_access_policies_service_perimeters_replace_all_execu
 pub struct AccesscontextmanagerAccessPoliciesServicePerimetersReplaceAllArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: ReplaceServicePerimetersRequest,
 }
 
-/// GET v1/accessPolicies/{accessPoliciesId}/servicePerimeters:replaceAll
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters:replaceAll
 /// Replace all existing service perimeters in an access policy with the service perimeters provided. This is done atomically. The long-running operation from this RPC has a successful status after all replacements propagate to long-lasting storage. Replacements containing errors result in an error response for the first error encountered. Upon an error, replacement are cancelled and existing service perimeters are not affected. The Operation.response field contains ReplaceServicePerimetersResponse.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1815,12 +4522,181 @@ pub fn accesscontextmanager_access_policies_service_perimeters_replace_all(
     let builder = accesscontextmanager_access_policies_service_perimeters_replace_all_builder(
         client,
         &args.parent,
-        &args.body,
     )?;
     accesscontextmanager_access_policies_service_perimeters_replace_all_execute(builder)
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}:testIamPermissions
+/// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_execute()` to send, or `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions` for simplest API.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/accessPolicies/{}/servicePerimeters/{servicePerimetersId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}:testIamPermissions
+/// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_execute()` or `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}:testIamPermissions
+/// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_task()`.
+/// For the simplest API, use `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_access_policies_service_perimeters_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerAccessPoliciesServicePerimetersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/accessPolicies/{accessPoliciesId}/servicePerimeters/{servicePerimetersId}:testIamPermissions
+/// Returns the IAM permissions that the caller has on the specified Access Context Manager resource. The resource can be an AccessPolicy, AccessLevel, or ServicePerimeter. This method does not support other resources.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_builder()` + `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_execute()`.
+/// For task-level control, use `accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerAccessPoliciesServicePerimetersTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1829,23 +4705,22 @@ pub fn accesscontextmanager_access_policies_service_perimeters_replace_all(
 pub fn accesscontextmanager_operations_cancel_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://accesscontextmanager.googleapis.com/v1/operations/{}:cancel",);
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/operations/{}:cancel",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1919,7 +4794,7 @@ pub fn accesscontextmanager_operations_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1954,11 +4829,9 @@ pub fn accesscontextmanager_operations_cancel_execute(
 pub struct AccesscontextmanagerOperationsCancelArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: CancelOperationRequest,
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1976,11 +4849,11 @@ pub fn accesscontextmanager_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = accesscontextmanager_operations_cancel_builder(client, &args.name, &args.body)?;
+    let builder = accesscontextmanager_operations_cancel_builder(client, &args.name)?;
     accesscontextmanager_operations_cancel_execute(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1991,17 +4864,20 @@ pub fn accesscontextmanager_operations_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/operations/{}",);
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/operations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2075,7 +4951,7 @@ pub fn accesscontextmanager_operations_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2112,7 +4988,7 @@ pub struct AccesscontextmanagerOperationsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2134,7 +5010,357 @@ pub fn accesscontextmanager_operations_delete(
     accesscontextmanager_operations_delete_execute(builder)
 }
 
-/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_operations_get_execute()` to send, or `accesscontextmanager_operations_get` for simplest API.
+
+pub fn accesscontextmanager_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/operations/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_operations_get_execute()` or `accesscontextmanager_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_operations_get_task()`.
+/// For the simplest API, use `accesscontextmanager_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_operations_get_builder()` + `accesscontextmanager_operations_get_execute()`.
+/// For task-level control, use `accesscontextmanager_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_operations_get(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_operations_get_builder(client, &args.name)?;
+    accesscontextmanager_operations_get_execute(builder)
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_operations_list_execute()` to send, or `accesscontextmanager_operations_list` for simplest API.
+
+pub fn accesscontextmanager_operations_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/operations",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_operations_list_execute()` or `accesscontextmanager_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_operations_list_task()`.
+/// For the simplest API, use `accesscontextmanager_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOperationsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_operations_list_builder()` + `accesscontextmanager_operations_list_execute()`.
+/// For task-level control, use `accesscontextmanager_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_operations_list(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_operations_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    accesscontextmanager_operations_list_execute(builder)
+}
+
+/// POST v1/organizations/{organizationsId}/gcpUserAccessBindings
 /// Creates a GcpUserAccessBinding. If the client specifies a name, the server ignores it. Fails if a resource already exists with the same group_key. Completion of this long-running operation does not necessarily signify that the new binding is deployed onto all affected users, which may take more time.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2143,24 +5369,22 @@ pub fn accesscontextmanager_operations_delete(
 pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GcpUserAccessBinding,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://accesscontextmanager.googleapis.com/v1/organizations/{}/gcpUserAccessBindings",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
+/// POST v1/organizations/{organizationsId}/gcpUserAccessBindings
 /// Creates a GcpUserAccessBinding. If the client specifies a name, the server ignores it. Fails if a resource already exists with the same group_key. Completion of this long-running operation does not necessarily signify that the new binding is deployed onto all affected users, which may take more time.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2234,7 +5458,7 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
+/// POST v1/organizations/{organizationsId}/gcpUserAccessBindings
 /// Creates a GcpUserAccessBinding. If the client specifies a name, the server ignores it. Fails if a resource already exists with the same group_key. Completion of this long-running operation does not necessarily signify that the new binding is deployed onto all affected users, which may take more time.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2269,11 +5493,9 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create_execut
 pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GcpUserAccessBinding,
 }
 
-/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
+/// POST v1/organizations/{organizationsId}/gcpUserAccessBindings
 /// Creates a GcpUserAccessBinding. If the client specifies a name, the server ignores it. Fails if a resource already exists with the same group_key. Completion of this long-running operation does not necessarily signify that the new binding is deployed onto all affected users, which may take more time.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2294,9 +5516,702 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create(
     let builder = accesscontextmanager_organizations_gcp_user_access_bindings_create_builder(
         client,
         &args.parent,
-        &args.body,
     )?;
     accesscontextmanager_organizations_gcp_user_access_bindings_create_execute(builder)
+}
+
+/// DELETE v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Deletes a GcpUserAccessBinding. Completion of this long-running operation does not necessarily signify that the binding deletion is deployed onto all affected users, which may take more time.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_organizations_gcp_user_access_bindings_delete_execute()` to send, or `accesscontextmanager_organizations_gcp_user_access_bindings_delete` for simplest API.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/organizations/{}/gcpUserAccessBindings/{gcpUserAccessBindingsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Deletes a GcpUserAccessBinding. Completion of this long-running operation does not necessarily signify that the binding deletion is deployed onto all affected users, which may take more time.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_organizations_gcp_user_access_bindings_delete_execute()` or `accesscontextmanager_organizations_gcp_user_access_bindings_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Deletes a GcpUserAccessBinding. Completion of this long-running operation does not necessarily signify that the binding deletion is deployed onto all affected users, which may take more time.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_organizations_gcp_user_access_bindings_delete_task()`.
+/// For the simplest API, use `accesscontextmanager_organizations_gcp_user_access_bindings_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_organizations_gcp_user_access_bindings_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_organizations_gcp_user_access_bindings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Deletes a GcpUserAccessBinding. Completion of this long-running operation does not necessarily signify that the binding deletion is deployed onto all affected users, which may take more time.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder()` + `accesscontextmanager_organizations_gcp_user_access_bindings_delete_execute()`.
+/// For task-level control, use `accesscontextmanager_organizations_gcp_user_access_bindings_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_delete(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder(
+        client, &args.name,
+    )?;
+    accesscontextmanager_organizations_gcp_user_access_bindings_delete_execute(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Gets the GcpUserAccessBinding with the given name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_organizations_gcp_user_access_bindings_get_execute()` to send, or `accesscontextmanager_organizations_gcp_user_access_bindings_get` for simplest API.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/organizations/{}/gcpUserAccessBindings/{gcpUserAccessBindingsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Gets the GcpUserAccessBinding with the given name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_organizations_gcp_user_access_bindings_get_execute()` or `accesscontextmanager_organizations_gcp_user_access_bindings_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_organizations_gcp_user_access_bindings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GcpUserAccessBinding>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GcpUserAccessBinding = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Gets the GcpUserAccessBinding with the given name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_organizations_gcp_user_access_bindings_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_organizations_gcp_user_access_bindings_get_task()`.
+/// For the simplest API, use `accesscontextmanager_organizations_gcp_user_access_bindings_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_organizations_gcp_user_access_bindings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GcpUserAccessBinding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_organizations_gcp_user_access_bindings_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_organizations_gcp_user_access_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Gets the GcpUserAccessBinding with the given name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_organizations_gcp_user_access_bindings_get_builder()` + `accesscontextmanager_organizations_gcp_user_access_bindings_get_execute()`.
+/// For task-level control, use `accesscontextmanager_organizations_gcp_user_access_bindings_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GcpUserAccessBinding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_organizations_gcp_user_access_bindings_get_builder(
+        client, &args.name,
+    )?;
+    accesscontextmanager_organizations_gcp_user_access_bindings_get_execute(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
+/// Lists all GcpUserAccessBindings for a Google Cloud organization.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_organizations_gcp_user_access_bindings_list_execute()` to send, or `accesscontextmanager_organizations_gcp_user_access_bindings_list` for simplest API.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/organizations/{}/gcpUserAccessBindings",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
+/// Lists all GcpUserAccessBindings for a Google Cloud organization.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_organizations_gcp_user_access_bindings_list_execute()` or `accesscontextmanager_organizations_gcp_user_access_bindings_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_organizations_gcp_user_access_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGcpUserAccessBindingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGcpUserAccessBindingsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
+/// Lists all GcpUserAccessBindings for a Google Cloud organization.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_organizations_gcp_user_access_bindings_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_organizations_gcp_user_access_bindings_list_task()`.
+/// For the simplest API, use `accesscontextmanager_organizations_gcp_user_access_bindings_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_organizations_gcp_user_access_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListGcpUserAccessBindingsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_organizations_gcp_user_access_bindings_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_organizations_gcp_user_access_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/organizations/{organizationsId}/gcpUserAccessBindings
+/// Lists all GcpUserAccessBindings for a Google Cloud organization.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_organizations_gcp_user_access_bindings_list_builder()` + `accesscontextmanager_organizations_gcp_user_access_bindings_list_execute()`.
+/// For task-level control, use `accesscontextmanager_organizations_gcp_user_access_bindings_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListGcpUserAccessBindingsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_organizations_gcp_user_access_bindings_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    accesscontextmanager_organizations_gcp_user_access_bindings_list_execute(builder)
+}
+
+/// PATCH v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Updates a GcpUserAccessBinding. Completion of this long-running operation does not necessarily signify that the changed binding is deployed onto all affected users, which may take more time.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `accesscontextmanager_organizations_gcp_user_access_bindings_patch_execute()` to send, or `accesscontextmanager_organizations_gcp_user_access_bindings_patch` for simplest API.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    append: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://accesscontextmanager.googleapis.com/v1/organizations/{}/gcpUserAccessBindings/{gcpUserAccessBindingsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = append.as_ref() {
+        query_parts.push(format!("append={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Updates a GcpUserAccessBinding. Completion of this long-running operation does not necessarily signify that the changed binding is deployed onto all affected users, which may take more time.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `accesscontextmanager_organizations_gcp_user_access_bindings_patch_execute()` or `accesscontextmanager_organizations_gcp_user_access_bindings_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Updates a GcpUserAccessBinding. Completion of this long-running operation does not necessarily signify that the changed binding is deployed onto all affected users, which may take more time.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `accesscontextmanager_organizations_gcp_user_access_bindings_patch_task()`.
+/// For the simplest API, use `accesscontextmanager_organizations_gcp_user_access_bindings_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = accesscontextmanager_organizations_gcp_user_access_bindings_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`accesscontextmanager_organizations_gcp_user_access_bindings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AccesscontextmanagerOrganizationsGcpUserAccessBindingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: append
+    pub append: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/organizations/{organizationsId}/gcpUserAccessBindings/{gcpUserAccessBindingsId}
+/// Updates a GcpUserAccessBinding. Completion of this long-running operation does not necessarily signify that the changed binding is deployed onto all affected users, which may take more time.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder()` + `accesscontextmanager_organizations_gcp_user_access_bindings_patch_execute()`.
+/// For task-level control, use `accesscontextmanager_organizations_gcp_user_access_bindings_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn accesscontextmanager_organizations_gcp_user_access_bindings_patch(
+    client: &SimpleHttpClient,
+    args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder(
+        client,
+        &args.name,
+        &args.append,
+        &args.updateMask,
+    )?;
+    accesscontextmanager_organizations_gcp_user_access_bindings_patch_execute(builder)
 }
 
 /// GET v1/permissions
@@ -2307,8 +6222,8 @@ pub fn accesscontextmanager_organizations_gcp_user_access_bindings_create(
 
 pub fn accesscontextmanager_permissions_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/permissions",);
@@ -2447,9 +6362,9 @@ pub fn accesscontextmanager_permissions_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccesscontextmanagerPermissionsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/permissions
@@ -2648,8 +6563,8 @@ pub fn accesscontextmanager_services_get(
 
 pub fn accesscontextmanager_services_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://accesscontextmanager.googleapis.com/v1/services",);
@@ -2788,9 +6703,9 @@ pub fn accesscontextmanager_services_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AccesscontextmanagerServicesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/services
@@ -2818,4 +6733,1081 @@ pub fn accesscontextmanager_services_list(
     let builder =
         accesscontextmanager_services_list_builder(client, &args.pageSize, &args.pageToken)?;
     accesscontextmanager_services_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerAccessPoliciesCreateArgs) -> String {
+        "gcp::accesscontextmanager::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerAccessPoliciesDeleteArgs) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccessPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccessPolicy with AccesscontextmanagerAccessPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesGetArgs> for AccessPolicy {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerAccessPoliciesGetArgs) -> String {
+        format!("gcp::accesscontextmanager::AccessPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::AccessPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with AccesscontextmanagerAccessPoliciesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAccessPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAccessPoliciesResponse with AccesscontextmanagerAccessPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesListArgs> for ListAccessPoliciesResponse {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerAccessPoliciesListArgs) -> String {
+        "gcp::accesscontextmanager::ListAccessPoliciesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::ListAccessPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerAccessPoliciesPatchArgs) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with AccesscontextmanagerAccessPoliciesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with AccesscontextmanagerAccessPoliciesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::accesscontextmanager::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesAccessLevelsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAccessLevelsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAccessLevelsCreateArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesAccessLevelsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAccessLevelsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAccessLevelsDeleteArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AccessLevel
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccessLevel with AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs> for AccessLevel {
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::AccessLevel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::AccessLevel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAccessLevelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAccessLevelsResponse with AccesscontextmanagerAccessPoliciesAccessLevelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAccessLevelsListArgs>
+    for ListAccessLevelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAccessLevelsListArgs,
+    ) -> String {
+        format!(
+            "gcp::accesscontextmanager::ListAccessLevelsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::ListAccessLevelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesAccessLevelsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAccessLevelsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAccessLevelsPatchArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesAccessLevelsReplaceAllArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAccessLevelsReplaceAllArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAccessLevelsReplaceAllArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with AccesscontextmanagerAccessPoliciesAccessLevelsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAccessLevelsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAccessLevelsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::accesscontextmanager::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsCreateArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsDeleteArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AuthorizedOrgsDesc
+// =============================================================================
+
+/// ResourceIdentifier implementation for AuthorizedOrgsDesc with AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs>
+    for AuthorizedOrgsDesc
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::accesscontextmanager::AuthorizedOrgsDesc/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::AuthorizedOrgsDesc"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAuthorizedOrgsDescsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAuthorizedOrgsDescsResponse with AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs>
+    for ListAuthorizedOrgsDescsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs,
+    ) -> String {
+        format!(
+            "gcp::accesscontextmanager::ListAuthorizedOrgsDescsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::ListAuthorizedOrgsDescsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsPatchArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesServicePerimetersCommitArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesServicePerimetersCommitArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesServicePerimetersCommitArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesServicePerimetersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesServicePerimetersCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesServicePerimetersCreateArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesServicePerimetersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesServicePerimetersDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesServicePerimetersDeleteArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ServicePerimeter
+// =============================================================================
+
+/// ResourceIdentifier implementation for ServicePerimeter with AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs>
+    for ServicePerimeter
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::ServicePerimeter/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::ServicePerimeter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListServicePerimetersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListServicePerimetersResponse with AccesscontextmanagerAccessPoliciesServicePerimetersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesServicePerimetersListArgs>
+    for ListServicePerimetersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesServicePerimetersListArgs,
+    ) -> String {
+        format!(
+            "gcp::accesscontextmanager::ListServicePerimetersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::ListServicePerimetersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesServicePerimetersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesServicePerimetersPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesServicePerimetersPatchArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerAccessPoliciesServicePerimetersReplaceAllArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesServicePerimetersReplaceAllArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesServicePerimetersReplaceAllArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with AccesscontextmanagerAccessPoliciesServicePerimetersTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesServicePerimetersTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesServicePerimetersTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::accesscontextmanager::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with AccesscontextmanagerOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerOperationsCancelArgs) -> String {
+        format!("gcp::accesscontextmanager::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with AccesscontextmanagerOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerOperationsDeleteArgs) -> String {
+        format!("gcp::accesscontextmanager::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerOperationsGetArgs) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with AccesscontextmanagerOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerOperationsListArgs) -> String {
+        "gcp::accesscontextmanager::ListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerOrganizationsGcpUserAccessBindingsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOrganizationsGcpUserAccessBindingsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsCreateArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerOrganizationsGcpUserAccessBindingsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOrganizationsGcpUserAccessBindingsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsDeleteArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GcpUserAccessBinding
+// =============================================================================
+
+/// ResourceIdentifier implementation for GcpUserAccessBinding with AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs>
+    for GcpUserAccessBinding
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::accesscontextmanager::GcpUserAccessBinding/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::GcpUserAccessBinding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGcpUserAccessBindingsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGcpUserAccessBindingsResponse with AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs>
+    for ListGcpUserAccessBindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs,
+    ) -> String {
+        format!(
+            "gcp::accesscontextmanager::ListGcpUserAccessBindingsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::ListGcpUserAccessBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AccesscontextmanagerOrganizationsGcpUserAccessBindingsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOrganizationsGcpUserAccessBindingsPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsPatchArgs,
+    ) -> String {
+        format!("gcp::accesscontextmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSupportedPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSupportedPermissionsResponse with AccesscontextmanagerPermissionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerPermissionsListArgs>
+    for ListSupportedPermissionsResponse
+{
+    fn generate_resource_id(&self, input: &AccesscontextmanagerPermissionsListArgs) -> String {
+        "gcp::accesscontextmanager::ListSupportedPermissionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::ListSupportedPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SupportedService
+// =============================================================================
+
+/// ResourceIdentifier implementation for SupportedService with AccesscontextmanagerServicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerServicesGetArgs> for SupportedService {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerServicesGetArgs) -> String {
+        format!("gcp::accesscontextmanager::SupportedService/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::SupportedService"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSupportedServicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSupportedServicesResponse with AccesscontextmanagerServicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerServicesListArgs> for ListSupportedServicesResponse {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerServicesListArgs) -> String {
+        "gcp::accesscontextmanager::ListSupportedServicesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::accesscontextmanager::ListSupportedServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

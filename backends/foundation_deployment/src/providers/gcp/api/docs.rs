@@ -14,12 +14,14 @@
 use crate::providers::gcp::clients::docs::{
     docs_documents_batch_update_builder, docs_documents_batch_update_task,
     docs_documents_create_builder, docs_documents_create_task,
+    docs_documents_get_builder, docs_documents_get_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::docs::BatchUpdateDocumentResponse;
 use crate::providers::gcp::clients::docs::Document;
 use crate::providers::gcp::clients::docs::DocsDocumentsBatchUpdateArgs;
 use crate::providers::gcp::clients::docs::DocsDocumentsCreateArgs;
+use crate::providers::gcp::clients::docs::DocsDocumentsGetArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -144,6 +146,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Docs documents get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Document result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn docs_documents_get(
+        &self,
+        args: &DocsDocumentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Document, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = docs_documents_get_builder(
+            &self.http_client,
+            &args.documentId,
+            &args.includeTabsContent,
+            &args.suggestionsViewMode,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = docs_documents_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

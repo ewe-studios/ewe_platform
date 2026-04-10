@@ -12,20 +12,37 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::blockchainnodeengine::{
+    blockchainnodeengine_projects_locations_get_builder, blockchainnodeengine_projects_locations_get_task,
+    blockchainnodeengine_projects_locations_list_builder, blockchainnodeengine_projects_locations_list_task,
     blockchainnodeengine_projects_locations_blockchain_nodes_create_builder, blockchainnodeengine_projects_locations_blockchain_nodes_create_task,
     blockchainnodeengine_projects_locations_blockchain_nodes_delete_builder, blockchainnodeengine_projects_locations_blockchain_nodes_delete_task,
+    blockchainnodeengine_projects_locations_blockchain_nodes_get_builder, blockchainnodeengine_projects_locations_blockchain_nodes_get_task,
+    blockchainnodeengine_projects_locations_blockchain_nodes_list_builder, blockchainnodeengine_projects_locations_blockchain_nodes_list_task,
     blockchainnodeengine_projects_locations_blockchain_nodes_patch_builder, blockchainnodeengine_projects_locations_blockchain_nodes_patch_task,
     blockchainnodeengine_projects_locations_operations_cancel_builder, blockchainnodeengine_projects_locations_operations_cancel_task,
     blockchainnodeengine_projects_locations_operations_delete_builder, blockchainnodeengine_projects_locations_operations_delete_task,
+    blockchainnodeengine_projects_locations_operations_get_builder, blockchainnodeengine_projects_locations_operations_get_task,
+    blockchainnodeengine_projects_locations_operations_list_builder, blockchainnodeengine_projects_locations_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::blockchainnodeengine::BlockchainNode;
 use crate::providers::gcp::clients::blockchainnodeengine::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::blockchainnodeengine::ListBlockchainNodesResponse;
+use crate::providers::gcp::clients::blockchainnodeengine::ListLocationsResponse;
+use crate::providers::gcp::clients::blockchainnodeengine::ListOperationsResponse;
+use crate::providers::gcp::clients::blockchainnodeengine::Location;
 use crate::providers::gcp::clients::blockchainnodeengine::Operation;
 use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsBlockchainNodesCreateArgs;
 use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsBlockchainNodesDeleteArgs;
+use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsBlockchainNodesGetArgs;
+use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsBlockchainNodesListArgs;
 use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsBlockchainNodesPatchArgs;
+use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsListArgs;
 use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::blockchainnodeengine::BlockchainnodeengineProjectsLocationsOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -65,6 +82,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Blockchainnodeengine projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn blockchainnodeengine_projects_locations_get(
+        &self,
+        args: &BlockchainnodeengineProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = blockchainnodeengine_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = blockchainnodeengine_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Blockchainnodeengine projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn blockchainnodeengine_projects_locations_list(
+        &self,
+        args: &BlockchainnodeengineProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = blockchainnodeengine_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = blockchainnodeengine_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Blockchainnodeengine projects locations blockchain nodes create.
@@ -154,6 +251,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Blockchainnodeengine projects locations blockchain nodes get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the BlockchainNode result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn blockchainnodeengine_projects_locations_blockchain_nodes_get(
+        &self,
+        args: &BlockchainnodeengineProjectsLocationsBlockchainNodesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<BlockchainNode, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = blockchainnodeengine_projects_locations_blockchain_nodes_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = blockchainnodeengine_projects_locations_blockchain_nodes_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Blockchainnodeengine projects locations blockchain nodes list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListBlockchainNodesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn blockchainnodeengine_projects_locations_blockchain_nodes_list(
+        &self,
+        args: &BlockchainnodeengineProjectsLocationsBlockchainNodesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListBlockchainNodesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = blockchainnodeengine_projects_locations_blockchain_nodes_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = blockchainnodeengine_projects_locations_blockchain_nodes_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Blockchainnodeengine projects locations blockchain nodes patch.
@@ -285,6 +462,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Blockchainnodeengine projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn blockchainnodeengine_projects_locations_operations_get(
+        &self,
+        args: &BlockchainnodeengineProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = blockchainnodeengine_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = blockchainnodeengine_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Blockchainnodeengine projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn blockchainnodeengine_projects_locations_operations_list(
+        &self,
+        args: &BlockchainnodeengineProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = blockchainnodeengine_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = blockchainnodeengine_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

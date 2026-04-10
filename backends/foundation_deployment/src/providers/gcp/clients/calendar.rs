@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET calendars/{calendarId}/acl/{ruleId}
+/// DELETE calendars/{calendarId}/acl/{ruleId}
 /// Deletes an access control rule.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -39,13 +39,13 @@ pub fn calendar_acl_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET calendars/{calendarId}/acl/{ruleId}
+/// DELETE calendars/{calendarId}/acl/{ruleId}
 /// Deletes an access control rule.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -116,7 +116,7 @@ pub fn calendar_acl_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET calendars/{calendarId}/acl/{ruleId}
+/// DELETE calendars/{calendarId}/acl/{ruleId}
 /// Deletes an access control rule.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -155,7 +155,7 @@ pub struct CalendarAclDeleteArgs {
     pub ruleId: String,
 }
 
-/// GET calendars/{calendarId}/acl/{ruleId}
+/// DELETE calendars/{calendarId}/acl/{ruleId}
 /// Deletes an access control rule.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -177,7 +177,167 @@ pub fn calendar_acl_delete(
     calendar_acl_delete_execute(builder)
 }
 
-/// GET calendars/{calendarId}/acl
+/// GET calendars/{calendarId}/acl/{ruleId}
+/// Returns an access control rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_acl_get_execute()` to send, or `calendar_acl_get` for simplest API.
+
+pub fn calendar_acl_get_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    ruleId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
+        calendarId, ruleId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET calendars/{calendarId}/acl/{ruleId}
+/// Returns an access control rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_acl_get_execute()` or `calendar_acl_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_acl_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AclRule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AclRule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET calendars/{calendarId}/acl/{ruleId}
+/// Returns an access control rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_acl_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_acl_get_task()`.
+/// For the simplest API, use `calendar_acl_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_acl_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_acl_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_acl_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclGetArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: ruleId
+    pub ruleId: String,
+}
+
+/// GET calendars/{calendarId}/acl/{ruleId}
+/// Returns an access control rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_acl_get_builder()` + `calendar_acl_get_execute()`.
+/// For task-level control, use `calendar_acl_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_acl_get(
+    client: &SimpleHttpClient,
+    args: &CalendarAclGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_acl_get_builder(client, &args.calendarId, &args.ruleId)?;
+    calendar_acl_get_execute(builder)
+}
+
+/// POST calendars/{calendarId}/acl
 /// Creates an access control rule.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -186,8 +346,7 @@ pub fn calendar_acl_delete(
 pub fn calendar_acl_insert_builder(
     client: &SimpleHttpClient,
     calendarId: &String,
-    sendNotifications: &Option<bool>,
-    body: &AclRule,
+    sendNotifications: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -208,15 +367,13 @@ pub fn calendar_acl_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET calendars/{calendarId}/acl
+/// POST calendars/{calendarId}/acl
 /// Creates an access control rule.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -290,7 +447,7 @@ pub fn calendar_acl_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET calendars/{calendarId}/acl
+/// POST calendars/{calendarId}/acl
 /// Creates an access control rule.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -326,12 +483,10 @@ pub struct CalendarAclInsertArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<bool>,
-    /// Request body.
-    pub body: AclRule,
+    pub sendNotifications: Option<Option<String>>,
 }
 
-/// GET calendars/{calendarId}/acl
+/// POST calendars/{calendarId}/acl
 /// Creates an access control rule.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -349,16 +504,565 @@ pub fn calendar_acl_insert(
     impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_acl_insert_builder(
-        client,
-        &args.calendarId,
-        &args.sendNotifications,
-        &args.body,
-    )?;
+    let builder = calendar_acl_insert_builder(client, &args.calendarId, &args.sendNotifications)?;
     calendar_acl_insert_execute(builder)
 }
 
-/// GET calendars/{calendarId}/acl/watch
+/// GET calendars/{calendarId}/acl
+/// Returns the rules in the access control list for the calendar.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_acl_list_execute()` to send, or `calendar_acl_list` for simplest API.
+
+pub fn calendar_acl_list_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}/acl",
+        calendarId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = showDeleted.as_ref() {
+        query_parts.push(format!("showDeleted={}", val));
+    }
+    if let Some(val) = syncToken.as_ref() {
+        query_parts.push(format!("syncToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET calendars/{calendarId}/acl
+/// Returns the rules in the access control list for the calendar.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_acl_list_execute()` or `calendar_acl_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_acl_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Acl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Acl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET calendars/{calendarId}/acl
+/// Returns the rules in the access control list for the calendar.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_acl_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_acl_list_task()`.
+/// For the simplest API, use `calendar_acl_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_acl_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_acl_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_acl_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclListArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<Option<String>>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<Option<String>>,
+}
+
+/// GET calendars/{calendarId}/acl
+/// Returns the rules in the access control list for the calendar.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_acl_list_builder()` + `calendar_acl_list_execute()`.
+/// For task-level control, use `calendar_acl_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_acl_list(
+    client: &SimpleHttpClient,
+    args: &CalendarAclListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_acl_list_builder(
+        client,
+        &args.calendarId,
+        &args.maxResults,
+        &args.pageToken,
+        &args.showDeleted,
+        &args.syncToken,
+    )?;
+    calendar_acl_list_execute(builder)
+}
+
+/// PATCH calendars/{calendarId}/acl/{ruleId}
+/// Updates an access control rule. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_acl_patch_execute()` to send, or `calendar_acl_patch` for simplest API.
+
+pub fn calendar_acl_patch_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    ruleId: &String,
+    sendNotifications: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
+        calendarId, ruleId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = sendNotifications.as_ref() {
+        query_parts.push(format!("sendNotifications={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH calendars/{calendarId}/acl/{ruleId}
+/// Updates an access control rule. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_acl_patch_execute()` or `calendar_acl_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_acl_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AclRule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AclRule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH calendars/{calendarId}/acl/{ruleId}
+/// Updates an access control rule. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_acl_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_acl_patch_task()`.
+/// For the simplest API, use `calendar_acl_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_acl_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_acl_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_acl_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclPatchArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: ruleId
+    pub ruleId: String,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<Option<String>>,
+}
+
+/// PATCH calendars/{calendarId}/acl/{ruleId}
+/// Updates an access control rule. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_acl_patch_builder()` + `calendar_acl_patch_execute()`.
+/// For task-level control, use `calendar_acl_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_acl_patch(
+    client: &SimpleHttpClient,
+    args: &CalendarAclPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_acl_patch_builder(
+        client,
+        &args.calendarId,
+        &args.ruleId,
+        &args.sendNotifications,
+    )?;
+    calendar_acl_patch_execute(builder)
+}
+
+/// PUT calendars/{calendarId}/acl/{ruleId}
+/// Updates an access control rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_acl_update_execute()` to send, or `calendar_acl_update` for simplest API.
+
+pub fn calendar_acl_update_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    ruleId: &String,
+    sendNotifications: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}/acl/{}",
+        calendarId, ruleId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = sendNotifications.as_ref() {
+        query_parts.push(format!("sendNotifications={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT calendars/{calendarId}/acl/{ruleId}
+/// Updates an access control rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_acl_update_execute()` or `calendar_acl_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_acl_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AclRule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AclRule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT calendars/{calendarId}/acl/{ruleId}
+/// Updates an access control rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_acl_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_acl_update_task()`.
+/// For the simplest API, use `calendar_acl_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_acl_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_acl_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_acl_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_acl_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclUpdateArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: ruleId
+    pub ruleId: String,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<Option<String>>,
+}
+
+/// PUT calendars/{calendarId}/acl/{ruleId}
+/// Updates an access control rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_acl_update_builder()` + `calendar_acl_update_execute()`.
+/// For task-level control, use `calendar_acl_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_acl_update(
+    client: &SimpleHttpClient,
+    args: &CalendarAclUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_acl_update_builder(
+        client,
+        &args.calendarId,
+        &args.ruleId,
+        &args.sendNotifications,
+    )?;
+    calendar_acl_update_execute(builder)
+}
+
+/// POST calendars/{calendarId}/acl/watch
 /// Watch for changes to ACL resources.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -367,11 +1071,10 @@ pub fn calendar_acl_insert(
 pub fn calendar_acl_watch_builder(
     client: &SimpleHttpClient,
     calendarId: &String,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    showDeleted: &Option<bool>,
-    syncToken: &Option<String>,
-    body: &Channel,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -401,15 +1104,13 @@ pub fn calendar_acl_watch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET calendars/{calendarId}/acl/watch
+/// POST calendars/{calendarId}/acl/watch
 /// Watch for changes to ACL resources.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -483,7 +1184,7 @@ pub fn calendar_acl_watch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET calendars/{calendarId}/acl/watch
+/// POST calendars/{calendarId}/acl/watch
 /// Watch for changes to ACL resources.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -519,18 +1220,16 @@ pub struct CalendarAclWatchArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
+    pub showDeleted: Option<Option<String>>,
     /// Query parameter: syncToken
-    pub syncToken: Option<String>,
-    /// Request body.
-    pub body: Channel,
+    pub syncToken: Option<Option<String>>,
 }
 
-/// GET calendars/{calendarId}/acl/watch
+/// POST calendars/{calendarId}/acl/watch
 /// Watch for changes to ACL resources.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -555,12 +1254,11 @@ pub fn calendar_acl_watch(
         &args.pageToken,
         &args.showDeleted,
         &args.syncToken,
-        &args.body,
     )?;
     calendar_acl_watch_execute(builder)
 }
 
-/// GET users/me/calendarList/{calendarId}
+/// DELETE users/me/calendarList/{calendarId}
 /// Removes a calendar from the user's calendar list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -578,13 +1276,13 @@ pub fn calendar_calendar_list_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET users/me/calendarList/{calendarId}
+/// DELETE users/me/calendarList/{calendarId}
 /// Removes a calendar from the user's calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -655,7 +1353,7 @@ pub fn calendar_calendar_list_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET users/me/calendarList/{calendarId}
+/// DELETE users/me/calendarList/{calendarId}
 /// Removes a calendar from the user's calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -692,7 +1390,7 @@ pub struct CalendarCalendarListDeleteArgs {
     pub calendarId: String,
 }
 
-/// GET users/me/calendarList/{calendarId}
+/// DELETE users/me/calendarList/{calendarId}
 /// Removes a calendar from the user's calendar list.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -714,7 +1412,168 @@ pub fn calendar_calendar_list_delete(
     calendar_calendar_list_delete_execute(builder)
 }
 
-/// GET users/me/calendarList
+/// GET users/me/calendarList/{calendarId}
+/// Returns a calendar from the user's calendar list.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_calendar_list_get_execute()` to send, or `calendar_calendar_list_get` for simplest API.
+
+pub fn calendar_calendar_list_get_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
+        calendarId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET users/me/calendarList/{calendarId}
+/// Returns a calendar from the user's calendar list.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_calendar_list_get_execute()` or `calendar_calendar_list_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendar_list_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CalendarListEntry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CalendarListEntry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET users/me/calendarList/{calendarId}
+/// Returns a calendar from the user's calendar list.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_calendar_list_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_calendar_list_get_task()`.
+/// For the simplest API, use `calendar_calendar_list_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_calendar_list_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = calendar_calendar_list_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_calendar_list_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListGetArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+}
+
+/// GET users/me/calendarList/{calendarId}
+/// Returns a calendar from the user's calendar list.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_calendar_list_get_builder()` + `calendar_calendar_list_get_execute()`.
+/// For task-level control, use `calendar_calendar_list_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendar_list_get(
+    client: &SimpleHttpClient,
+    args: &CalendarCalendarListGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = calendar_calendar_list_get_builder(client, &args.calendarId)?;
+    calendar_calendar_list_get_execute(builder)
+}
+
+/// POST users/me/calendarList
 /// Inserts an existing calendar into the user's calendar list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -722,8 +1581,7 @@ pub fn calendar_calendar_list_delete(
 
 pub fn calendar_calendar_list_insert_builder(
     client: &SimpleHttpClient,
-    colorRgbFormat: &Option<bool>,
-    body: &CalendarListEntry,
+    colorRgbFormat: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/calendarList",);
@@ -741,15 +1599,13 @@ pub fn calendar_calendar_list_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET users/me/calendarList
+/// POST users/me/calendarList
 /// Inserts an existing calendar into the user's calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -823,7 +1679,7 @@ pub fn calendar_calendar_list_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET users/me/calendarList
+/// POST users/me/calendarList
 /// Inserts an existing calendar into the user's calendar list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -859,12 +1715,10 @@ pub fn calendar_calendar_list_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CalendarCalendarListInsertArgs {
     /// Query parameter: colorRgbFormat
-    pub colorRgbFormat: Option<bool>,
-    /// Request body.
-    pub body: CalendarListEntry,
+    pub colorRgbFormat: Option<Option<String>>,
 }
 
-/// GET users/me/calendarList
+/// POST users/me/calendarList
 /// Inserts an existing calendar into the user's calendar list.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -884,11 +1738,570 @@ pub fn calendar_calendar_list_insert(
         + 'static,
     ApiError,
 > {
-    let builder = calendar_calendar_list_insert_builder(client, &args.colorRgbFormat, &args.body)?;
+    let builder = calendar_calendar_list_insert_builder(client, &args.colorRgbFormat)?;
     calendar_calendar_list_insert_execute(builder)
 }
 
-/// GET users/me/calendarList/watch
+/// GET users/me/calendarList
+/// Returns the calendars on the user's calendar list.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_calendar_list_list_execute()` to send, or `calendar_calendar_list_list` for simplest API.
+
+pub fn calendar_calendar_list_list_builder(
+    client: &SimpleHttpClient,
+    maxResults: &Option<Option<String>>,
+    minAccessRole: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+    showHidden: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/calendarList",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = minAccessRole.as_ref() {
+        query_parts.push(format!("minAccessRole={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = showDeleted.as_ref() {
+        query_parts.push(format!("showDeleted={}", val));
+    }
+    if let Some(val) = showHidden.as_ref() {
+        query_parts.push(format!("showHidden={}", val));
+    }
+    if let Some(val) = syncToken.as_ref() {
+        query_parts.push(format!("syncToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET users/me/calendarList
+/// Returns the calendars on the user's calendar list.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_calendar_list_list_execute()` or `calendar_calendar_list_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendar_list_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CalendarList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CalendarList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET users/me/calendarList
+/// Returns the calendars on the user's calendar list.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_calendar_list_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_calendar_list_list_task()`.
+/// For the simplest API, use `calendar_calendar_list_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_calendar_list_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CalendarList>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = calendar_calendar_list_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_calendar_list_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListListArgs {
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: minAccessRole
+    pub minAccessRole: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<Option<String>>,
+    /// Query parameter: showHidden
+    pub showHidden: Option<Option<String>>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<Option<String>>,
+}
+
+/// GET users/me/calendarList
+/// Returns the calendars on the user's calendar list.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_calendar_list_list_builder()` + `calendar_calendar_list_list_execute()`.
+/// For task-level control, use `calendar_calendar_list_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendar_list_list(
+    client: &SimpleHttpClient,
+    args: &CalendarCalendarListListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CalendarList>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = calendar_calendar_list_list_builder(
+        client,
+        &args.maxResults,
+        &args.minAccessRole,
+        &args.pageToken,
+        &args.showDeleted,
+        &args.showHidden,
+        &args.syncToken,
+    )?;
+    calendar_calendar_list_list_execute(builder)
+}
+
+/// PATCH users/me/calendarList/{calendarId}
+/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_calendar_list_patch_execute()` to send, or `calendar_calendar_list_patch` for simplest API.
+
+pub fn calendar_calendar_list_patch_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    colorRgbFormat: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
+        calendarId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = colorRgbFormat.as_ref() {
+        query_parts.push(format!("colorRgbFormat={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH users/me/calendarList/{calendarId}
+/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_calendar_list_patch_execute()` or `calendar_calendar_list_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendar_list_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CalendarListEntry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CalendarListEntry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH users/me/calendarList/{calendarId}
+/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_calendar_list_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_calendar_list_patch_task()`.
+/// For the simplest API, use `calendar_calendar_list_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_calendar_list_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = calendar_calendar_list_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_calendar_list_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListPatchArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: colorRgbFormat
+    pub colorRgbFormat: Option<Option<String>>,
+}
+
+/// PATCH users/me/calendarList/{calendarId}
+/// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_calendar_list_patch_builder()` + `calendar_calendar_list_patch_execute()`.
+/// For task-level control, use `calendar_calendar_list_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendar_list_patch(
+    client: &SimpleHttpClient,
+    args: &CalendarCalendarListPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        calendar_calendar_list_patch_builder(client, &args.calendarId, &args.colorRgbFormat)?;
+    calendar_calendar_list_patch_execute(builder)
+}
+
+/// PUT users/me/calendarList/{calendarId}
+/// Updates an existing calendar on the user's calendar list.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_calendar_list_update_execute()` to send, or `calendar_calendar_list_update` for simplest API.
+
+pub fn calendar_calendar_list_update_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    colorRgbFormat: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/users/me/calendarList/{}",
+        calendarId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = colorRgbFormat.as_ref() {
+        query_parts.push(format!("colorRgbFormat={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT users/me/calendarList/{calendarId}
+/// Updates an existing calendar on the user's calendar list.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_calendar_list_update_execute()` or `calendar_calendar_list_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendar_list_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CalendarListEntry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CalendarListEntry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT users/me/calendarList/{calendarId}
+/// Updates an existing calendar on the user's calendar list.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_calendar_list_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_calendar_list_update_task()`.
+/// For the simplest API, use `calendar_calendar_list_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendar_list_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_calendar_list_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = calendar_calendar_list_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_calendar_list_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListUpdateArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: colorRgbFormat
+    pub colorRgbFormat: Option<Option<String>>,
+}
+
+/// PUT users/me/calendarList/{calendarId}
+/// Updates an existing calendar on the user's calendar list.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_calendar_list_update_builder()` + `calendar_calendar_list_update_execute()`.
+/// For task-level control, use `calendar_calendar_list_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendar_list_update(
+    client: &SimpleHttpClient,
+    args: &CalendarCalendarListUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        calendar_calendar_list_update_builder(client, &args.calendarId, &args.colorRgbFormat)?;
+    calendar_calendar_list_update_execute(builder)
+}
+
+/// POST users/me/calendarList/watch
 /// Watch for changes to CalendarList resources.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -896,13 +2309,12 @@ pub fn calendar_calendar_list_insert(
 
 pub fn calendar_calendar_list_watch_builder(
     client: &SimpleHttpClient,
-    maxResults: &Option<i32>,
-    minAccessRole: &Option<String>,
-    pageToken: &Option<String>,
-    showDeleted: &Option<bool>,
-    showHidden: &Option<bool>,
-    syncToken: &Option<String>,
-    body: &Channel,
+    maxResults: &Option<Option<String>>,
+    minAccessRole: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+    showHidden: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -936,15 +2348,13 @@ pub fn calendar_calendar_list_watch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET users/me/calendarList/watch
+/// POST users/me/calendarList/watch
 /// Watch for changes to CalendarList resources.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1018,7 +2428,7 @@ pub fn calendar_calendar_list_watch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET users/me/calendarList/watch
+/// POST users/me/calendarList/watch
 /// Watch for changes to CalendarList resources.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1052,22 +2462,20 @@ pub fn calendar_calendar_list_watch_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CalendarCalendarListWatchArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: minAccessRole
-    pub minAccessRole: Option<String>,
+    pub minAccessRole: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
+    pub showDeleted: Option<Option<String>>,
     /// Query parameter: showHidden
-    pub showHidden: Option<bool>,
+    pub showHidden: Option<Option<String>>,
     /// Query parameter: syncToken
-    pub syncToken: Option<String>,
-    /// Request body.
-    pub body: Channel,
+    pub syncToken: Option<Option<String>>,
 }
 
-/// GET users/me/calendarList/watch
+/// POST users/me/calendarList/watch
 /// Watch for changes to CalendarList resources.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1093,12 +2501,11 @@ pub fn calendar_calendar_list_watch(
         &args.showDeleted,
         &args.showHidden,
         &args.syncToken,
-        &args.body,
     )?;
     calendar_calendar_list_watch_execute(builder)
 }
 
-/// GET calendars/{calendarId}/clear
+/// POST calendars/{calendarId}/clear
 /// Clears a primary calendar. This operation deletes all events associated with the primary calendar of an account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1116,13 +2523,13 @@ pub fn calendar_calendars_clear_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET calendars/{calendarId}/clear
+/// POST calendars/{calendarId}/clear
 /// Clears a primary calendar. This operation deletes all events associated with the primary calendar of an account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1193,7 +2600,7 @@ pub fn calendar_calendars_clear_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET calendars/{calendarId}/clear
+/// POST calendars/{calendarId}/clear
 /// Clears a primary calendar. This operation deletes all events associated with the primary calendar of an account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1230,7 +2637,7 @@ pub struct CalendarCalendarsClearArgs {
     pub calendarId: String,
 }
 
-/// GET calendars/{calendarId}/clear
+/// POST calendars/{calendarId}/clear
 /// Clears a primary calendar. This operation deletes all events associated with the primary calendar of an account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1252,7 +2659,7 @@ pub fn calendar_calendars_clear(
     calendar_calendars_clear_execute(builder)
 }
 
-/// GET calendars/{calendarId}
+/// DELETE calendars/{calendarId}
 /// Deletes a secondary calendar. Use calendars.clear for clearing all events on primary calendars.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1270,13 +2677,13 @@ pub fn calendar_calendars_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET calendars/{calendarId}
+/// DELETE calendars/{calendarId}
 /// Deletes a secondary calendar. Use calendars.clear for clearing all events on primary calendars.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1347,7 +2754,7 @@ pub fn calendar_calendars_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET calendars/{calendarId}
+/// DELETE calendars/{calendarId}
 /// Deletes a secondary calendar. Use calendars.clear for clearing all events on primary calendars.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1384,7 +2791,7 @@ pub struct CalendarCalendarsDeleteArgs {
     pub calendarId: String,
 }
 
-/// GET calendars/{calendarId}
+/// DELETE calendars/{calendarId}
 /// Deletes a secondary calendar. Use calendars.clear for clearing all events on primary calendars.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1406,7 +2813,164 @@ pub fn calendar_calendars_delete(
     calendar_calendars_delete_execute(builder)
 }
 
-/// GET calendars
+/// GET calendars/{calendarId}
+/// Returns metadata for a calendar.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_calendars_get_execute()` to send, or `calendar_calendars_get` for simplest API.
+
+pub fn calendar_calendars_get_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}",
+        calendarId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET calendars/{calendarId}
+/// Returns metadata for a calendar.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_calendars_get_execute()` or `calendar_calendars_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendars_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Calendar>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Calendar = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET calendars/{calendarId}
+/// Returns metadata for a calendar.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_calendars_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_calendars_get_task()`.
+/// For the simplest API, use `calendar_calendars_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_calendars_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_calendars_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_calendars_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarsGetArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+}
+
+/// GET calendars/{calendarId}
+/// Returns metadata for a calendar.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_calendars_get_builder()` + `calendar_calendars_get_execute()`.
+/// For task-level control, use `calendar_calendars_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendars_get(
+    client: &SimpleHttpClient,
+    args: &CalendarCalendarsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_calendars_get_builder(client, &args.calendarId)?;
+    calendar_calendars_get_execute(builder)
+}
+
+/// POST calendars
 /// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don't use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1414,22 +2978,19 @@ pub fn calendar_calendars_delete(
 
 pub fn calendar_calendars_insert_builder(
     client: &SimpleHttpClient,
-    body: &Calendar,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/calendars",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET calendars
+/// POST calendars
 /// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don't use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1503,7 +3064,7 @@ pub fn calendar_calendars_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET calendars
+/// POST calendars
 /// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don't use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1533,14 +3094,7 @@ pub fn calendar_calendars_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`calendar_calendars_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarCalendarsInsertArgs {
-    /// Request body.
-    pub body: Calendar,
-}
-
-/// GET calendars
+/// POST calendars
 /// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don't use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1553,16 +3107,329 @@ pub struct CalendarCalendarsInsertArgs {
 
 pub fn calendar_calendars_insert(
     client: &SimpleHttpClient,
-    args: &CalendarCalendarsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_insert_builder(client, &args.body)?;
+    let builder = calendar_calendars_insert_builder(client)?;
     calendar_calendars_insert_execute(builder)
 }
 
-/// GET channels/stop
+/// PATCH calendars/{calendarId}
+/// Updates metadata for a calendar. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_calendars_patch_execute()` to send, or `calendar_calendars_patch` for simplest API.
+
+pub fn calendar_calendars_patch_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}",
+        calendarId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH calendars/{calendarId}
+/// Updates metadata for a calendar. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_calendars_patch_execute()` or `calendar_calendars_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendars_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Calendar>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Calendar = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH calendars/{calendarId}
+/// Updates metadata for a calendar. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_calendars_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_calendars_patch_task()`.
+/// For the simplest API, use `calendar_calendars_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_calendars_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_calendars_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_calendars_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarsPatchArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+}
+
+/// PATCH calendars/{calendarId}
+/// Updates metadata for a calendar. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_calendars_patch_builder()` + `calendar_calendars_patch_execute()`.
+/// For task-level control, use `calendar_calendars_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendars_patch(
+    client: &SimpleHttpClient,
+    args: &CalendarCalendarsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_calendars_patch_builder(client, &args.calendarId)?;
+    calendar_calendars_patch_execute(builder)
+}
+
+/// PUT calendars/{calendarId}
+/// Updates metadata for a calendar.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_calendars_update_execute()` to send, or `calendar_calendars_update` for simplest API.
+
+pub fn calendar_calendars_update_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}",
+        calendarId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT calendars/{calendarId}
+/// Updates metadata for a calendar.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_calendars_update_execute()` or `calendar_calendars_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendars_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Calendar>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Calendar = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT calendars/{calendarId}
+/// Updates metadata for a calendar.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_calendars_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_calendars_update_task()`.
+/// For the simplest API, use `calendar_calendars_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_calendars_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_calendars_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_calendars_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_calendars_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarsUpdateArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+}
+
+/// PUT calendars/{calendarId}
+/// Updates metadata for a calendar.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_calendars_update_builder()` + `calendar_calendars_update_execute()`.
+/// For task-level control, use `calendar_calendars_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_calendars_update(
+    client: &SimpleHttpClient,
+    args: &CalendarCalendarsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_calendars_update_builder(client, &args.calendarId)?;
+    calendar_calendars_update_execute(builder)
+}
+
+/// POST channels/stop
 /// Stop watching resources through this channel
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1570,22 +3437,19 @@ pub fn calendar_calendars_insert(
 
 pub fn calendar_channels_stop_builder(
     client: &SimpleHttpClient,
-    body: &Channel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/channels/stop",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET channels/stop
+/// POST channels/stop
 /// Stop watching resources through this channel
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1656,7 +3520,7 @@ pub fn calendar_channels_stop_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET channels/stop
+/// POST channels/stop
 /// Stop watching resources through this channel
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1686,14 +3550,7 @@ pub fn calendar_channels_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`calendar_channels_stop`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarChannelsStopArgs {
-    /// Request body.
-    pub body: Channel,
-}
-
-/// GET channels/stop
+/// POST channels/stop
 /// Stop watching resources through this channel
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1706,12 +3563,11 @@ pub struct CalendarChannelsStopArgs {
 
 pub fn calendar_channels_stop(
     client: &SimpleHttpClient,
-    args: &CalendarChannelsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_channels_stop_builder(client, &args.body)?;
+    let builder = calendar_channels_stop_builder(client)?;
     calendar_channels_stop_execute(builder)
 }
 
@@ -1860,7 +3716,7 @@ pub fn calendar_colors_get(
     calendar_colors_get_execute(builder)
 }
 
-/// GET calendars/{calendarId}/events/{eventId}
+/// DELETE calendars/{calendarId}/events/{eventId}
 /// Deletes an event.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1870,8 +3726,8 @@ pub fn calendar_events_delete_builder(
     client: &SimpleHttpClient,
     calendarId: &String,
     eventId: &String,
-    sendNotifications: &Option<bool>,
-    sendUpdates: &Option<String>,
+    sendNotifications: &Option<Option<String>>,
+    sendUpdates: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1895,13 +3751,13 @@ pub fn calendar_events_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET calendars/{calendarId}/events/{eventId}
+/// DELETE calendars/{calendarId}/events/{eventId}
 /// Deletes an event.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1972,7 +3828,7 @@ pub fn calendar_events_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET calendars/{calendarId}/events/{eventId}
+/// DELETE calendars/{calendarId}/events/{eventId}
 /// Deletes an event.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2010,12 +3866,12 @@ pub struct CalendarEventsDeleteArgs {
     /// Path parameter: eventId
     pub eventId: String,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<bool>,
+    pub sendNotifications: Option<Option<String>>,
     /// Query parameter: sendUpdates
-    pub sendUpdates: Option<String>,
+    pub sendUpdates: Option<Option<String>>,
 }
 
-/// GET calendars/{calendarId}/events/{eventId}
+/// DELETE calendars/{calendarId}/events/{eventId}
 /// Deletes an event.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2043,7 +3899,200 @@ pub fn calendar_events_delete(
     calendar_events_delete_execute(builder)
 }
 
-/// GET calendars/{calendarId}/events/import
+/// GET calendars/{calendarId}/events/{eventId}
+/// Returns an event based on its Google Calendar ID. To retrieve an event using its iCalendar ID, call the events.list method using the `iCalUID` parameter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_events_get_execute()` to send, or `calendar_events_get` for simplest API.
+
+pub fn calendar_events_get_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    eventId: &String,
+    alwaysIncludeEmail: &Option<Option<String>>,
+    maxAttendees: &Option<Option<String>>,
+    timeZone: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
+        calendarId, eventId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = alwaysIncludeEmail.as_ref() {
+        query_parts.push(format!("alwaysIncludeEmail={}", val));
+    }
+    if let Some(val) = maxAttendees.as_ref() {
+        query_parts.push(format!("maxAttendees={}", val));
+    }
+    if let Some(val) = timeZone.as_ref() {
+        query_parts.push(format!("timeZone={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET calendars/{calendarId}/events/{eventId}
+/// Returns an event based on its Google Calendar ID. To retrieve an event using its iCalendar ID, call the events.list method using the `iCalUID` parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_events_get_execute()` or `calendar_events_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Event = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET calendars/{calendarId}/events/{eventId}
+/// Returns an event based on its Google Calendar ID. To retrieve an event using its iCalendar ID, call the events.list method using the `iCalUID` parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_events_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_events_get_task()`.
+/// For the simplest API, use `calendar_events_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_events_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_events_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_events_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsGetArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: eventId
+    pub eventId: String,
+    /// Query parameter: alwaysIncludeEmail
+    pub alwaysIncludeEmail: Option<Option<String>>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<Option<String>>,
+    /// Query parameter: timeZone
+    pub timeZone: Option<Option<String>>,
+}
+
+/// GET calendars/{calendarId}/events/{eventId}
+/// Returns an event based on its Google Calendar ID. To retrieve an event using its iCalendar ID, call the events.list method using the `iCalUID` parameter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_events_get_builder()` + `calendar_events_get_execute()`.
+/// For task-level control, use `calendar_events_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_get(
+    client: &SimpleHttpClient,
+    args: &CalendarEventsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_events_get_builder(
+        client,
+        &args.calendarId,
+        &args.eventId,
+        &args.alwaysIncludeEmail,
+        &args.maxAttendees,
+        &args.timeZone,
+    )?;
+    calendar_events_get_execute(builder)
+}
+
+/// POST calendars/{calendarId}/events/import
 /// Imports an event. This operation is used to add a private copy of an existing event to a calendar. Only events with an `eventType` of default may be imported. Deprecated behavior: If a non-default event is imported, its type will be changed to default and any event-type-specific properties it may have will be dropped.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2052,9 +4101,8 @@ pub fn calendar_events_delete(
 pub fn calendar_events_import_builder(
     client: &SimpleHttpClient,
     calendarId: &String,
-    conferenceDataVersion: &Option<i32>,
-    supportsAttachments: &Option<bool>,
-    body: &Event,
+    conferenceDataVersion: &Option<Option<String>>,
+    supportsAttachments: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2078,15 +4126,13 @@ pub fn calendar_events_import_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET calendars/{calendarId}/events/import
+/// POST calendars/{calendarId}/events/import
 /// Imports an event. This operation is used to add a private copy of an existing event to a calendar. Only events with an `eventType` of default may be imported. Deprecated behavior: If a non-default event is imported, its type will be changed to default and any event-type-specific properties it may have will be dropped.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2160,7 +4206,7 @@ pub fn calendar_events_import_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET calendars/{calendarId}/events/import
+/// POST calendars/{calendarId}/events/import
 /// Imports an event. This operation is used to add a private copy of an existing event to a calendar. Only events with an `eventType` of default may be imported. Deprecated behavior: If a non-default event is imported, its type will be changed to default and any event-type-specific properties it may have will be dropped.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2196,14 +4242,12 @@ pub struct CalendarEventsImportArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: conferenceDataVersion
-    pub conferenceDataVersion: Option<i32>,
+    pub conferenceDataVersion: Option<Option<String>>,
     /// Query parameter: supportsAttachments
-    pub supportsAttachments: Option<bool>,
-    /// Request body.
-    pub body: Event,
+    pub supportsAttachments: Option<Option<String>>,
 }
 
-/// GET calendars/{calendarId}/events/import
+/// POST calendars/{calendarId}/events/import
 /// Imports an event. This operation is used to add a private copy of an existing event to a calendar. Only events with an `eventType` of default may be imported. Deprecated behavior: If a non-default event is imported, its type will be changed to default and any event-type-specific properties it may have will be dropped.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2226,12 +4270,11 @@ pub fn calendar_events_import(
         &args.calendarId,
         &args.conferenceDataVersion,
         &args.supportsAttachments,
-        &args.body,
     )?;
     calendar_events_import_execute(builder)
 }
 
-/// GET calendars/{calendarId}/events
+/// POST calendars/{calendarId}/events
 /// Creates an event.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2240,12 +4283,11 @@ pub fn calendar_events_import(
 pub fn calendar_events_insert_builder(
     client: &SimpleHttpClient,
     calendarId: &String,
-    conferenceDataVersion: &Option<i32>,
-    maxAttendees: &Option<i32>,
-    sendNotifications: &Option<bool>,
-    sendUpdates: &Option<String>,
-    supportsAttachments: &Option<bool>,
-    body: &Event,
+    conferenceDataVersion: &Option<Option<String>>,
+    maxAttendees: &Option<Option<String>>,
+    sendNotifications: &Option<Option<String>>,
+    sendUpdates: &Option<Option<String>>,
+    supportsAttachments: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2278,15 +4320,13 @@ pub fn calendar_events_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET calendars/{calendarId}/events
+/// POST calendars/{calendarId}/events
 /// Creates an event.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2360,7 +4400,7 @@ pub fn calendar_events_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET calendars/{calendarId}/events
+/// POST calendars/{calendarId}/events
 /// Creates an event.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2396,20 +4436,18 @@ pub struct CalendarEventsInsertArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: conferenceDataVersion
-    pub conferenceDataVersion: Option<i32>,
+    pub conferenceDataVersion: Option<Option<String>>,
     /// Query parameter: maxAttendees
-    pub maxAttendees: Option<i32>,
+    pub maxAttendees: Option<Option<String>>,
     /// Query parameter: sendNotifications
-    pub sendNotifications: Option<bool>,
+    pub sendNotifications: Option<Option<String>>,
     /// Query parameter: sendUpdates
-    pub sendUpdates: Option<String>,
+    pub sendUpdates: Option<Option<String>>,
     /// Query parameter: supportsAttachments
-    pub supportsAttachments: Option<bool>,
-    /// Request body.
-    pub body: Event,
+    pub supportsAttachments: Option<Option<String>>,
 }
 
-/// GET calendars/{calendarId}/events
+/// POST calendars/{calendarId}/events
 /// Creates an event.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2435,7 +4473,6 @@ pub fn calendar_events_insert(
         &args.sendNotifications,
         &args.sendUpdates,
         &args.supportsAttachments,
-        &args.body,
     )?;
     calendar_events_insert_execute(builder)
 }
@@ -2450,15 +4487,15 @@ pub fn calendar_events_instances_builder(
     client: &SimpleHttpClient,
     calendarId: &String,
     eventId: &String,
-    alwaysIncludeEmail: &Option<bool>,
-    maxAttendees: &Option<i32>,
-    maxResults: &Option<i32>,
-    originalStart: &Option<String>,
-    pageToken: &Option<String>,
-    showDeleted: &Option<bool>,
-    timeMax: &Option<String>,
-    timeMin: &Option<String>,
-    timeZone: &Option<String>,
+    alwaysIncludeEmail: &Option<Option<String>>,
+    maxAttendees: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    originalStart: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+    timeMax: &Option<Option<String>>,
+    timeMin: &Option<Option<String>>,
+    timeZone: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2621,23 +4658,23 @@ pub struct CalendarEventsInstancesArgs {
     /// Path parameter: eventId
     pub eventId: String,
     /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<bool>,
+    pub alwaysIncludeEmail: Option<Option<String>>,
     /// Query parameter: maxAttendees
-    pub maxAttendees: Option<i32>,
+    pub maxAttendees: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: originalStart
-    pub originalStart: Option<String>,
+    pub originalStart: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
+    pub showDeleted: Option<Option<String>>,
     /// Query parameter: timeMax
-    pub timeMax: Option<String>,
+    pub timeMax: Option<Option<String>>,
     /// Query parameter: timeMin
-    pub timeMin: Option<String>,
+    pub timeMin: Option<Option<String>>,
     /// Query parameter: timeZone
-    pub timeZone: Option<String>,
+    pub timeZone: Option<Option<String>>,
 }
 
 /// GET calendars/{calendarId}/events/{eventId}/instances
@@ -2675,7 +4712,1111 @@ pub fn calendar_events_instances(
     calendar_events_instances_execute(builder)
 }
 
-/// GET calendars/{calendarId}/events/watch
+/// GET calendars/{calendarId}/events
+/// Returns events on the specified calendar.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_events_list_execute()` to send, or `calendar_events_list` for simplest API.
+
+pub fn calendar_events_list_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    alwaysIncludeEmail: &Option<Option<String>>,
+    eventTypes: &Option<Option<String>>,
+    iCalUID: &Option<Option<String>>,
+    maxAttendees: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    privateExtendedProperty: &Option<Option<String>>,
+    q: &Option<Option<String>>,
+    sharedExtendedProperty: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+    showHiddenInvitations: &Option<Option<String>>,
+    singleEvents: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
+    timeMax: &Option<Option<String>>,
+    timeMin: &Option<Option<String>>,
+    timeZone: &Option<Option<String>>,
+    updatedMin: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}/events",
+        calendarId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = alwaysIncludeEmail.as_ref() {
+        query_parts.push(format!("alwaysIncludeEmail={}", val));
+    }
+    if let Some(val) = eventTypes.as_ref() {
+        query_parts.push(format!("eventTypes={}", val));
+    }
+    if let Some(val) = iCalUID.as_ref() {
+        query_parts.push(format!("iCalUID={}", val));
+    }
+    if let Some(val) = maxAttendees.as_ref() {
+        query_parts.push(format!("maxAttendees={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = privateExtendedProperty.as_ref() {
+        query_parts.push(format!("privateExtendedProperty={}", val));
+    }
+    if let Some(val) = q.as_ref() {
+        query_parts.push(format!("q={}", val));
+    }
+    if let Some(val) = sharedExtendedProperty.as_ref() {
+        query_parts.push(format!("sharedExtendedProperty={}", val));
+    }
+    if let Some(val) = showDeleted.as_ref() {
+        query_parts.push(format!("showDeleted={}", val));
+    }
+    if let Some(val) = showHiddenInvitations.as_ref() {
+        query_parts.push(format!("showHiddenInvitations={}", val));
+    }
+    if let Some(val) = singleEvents.as_ref() {
+        query_parts.push(format!("singleEvents={}", val));
+    }
+    if let Some(val) = syncToken.as_ref() {
+        query_parts.push(format!("syncToken={}", val));
+    }
+    if let Some(val) = timeMax.as_ref() {
+        query_parts.push(format!("timeMax={}", val));
+    }
+    if let Some(val) = timeMin.as_ref() {
+        query_parts.push(format!("timeMin={}", val));
+    }
+    if let Some(val) = timeZone.as_ref() {
+        query_parts.push(format!("timeZone={}", val));
+    }
+    if let Some(val) = updatedMin.as_ref() {
+        query_parts.push(format!("updatedMin={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET calendars/{calendarId}/events
+/// Returns events on the specified calendar.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_events_list_execute()` or `calendar_events_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Events>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Events = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET calendars/{calendarId}/events
+/// Returns events on the specified calendar.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_events_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_events_list_task()`.
+/// For the simplest API, use `calendar_events_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_events_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Events>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_events_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsListArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: alwaysIncludeEmail
+    pub alwaysIncludeEmail: Option<Option<String>>,
+    /// Query parameter: eventTypes
+    pub eventTypes: Option<Option<String>>,
+    /// Query parameter: iCalUID
+    pub iCalUID: Option<Option<String>>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: privateExtendedProperty
+    pub privateExtendedProperty: Option<Option<String>>,
+    /// Query parameter: q
+    pub q: Option<Option<String>>,
+    /// Query parameter: sharedExtendedProperty
+    pub sharedExtendedProperty: Option<Option<String>>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<Option<String>>,
+    /// Query parameter: showHiddenInvitations
+    pub showHiddenInvitations: Option<Option<String>>,
+    /// Query parameter: singleEvents
+    pub singleEvents: Option<Option<String>>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<Option<String>>,
+    /// Query parameter: timeMax
+    pub timeMax: Option<Option<String>>,
+    /// Query parameter: timeMin
+    pub timeMin: Option<Option<String>>,
+    /// Query parameter: timeZone
+    pub timeZone: Option<Option<String>>,
+    /// Query parameter: updatedMin
+    pub updatedMin: Option<Option<String>>,
+}
+
+/// GET calendars/{calendarId}/events
+/// Returns events on the specified calendar.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_events_list_builder()` + `calendar_events_list_execute()`.
+/// For task-level control, use `calendar_events_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_list(
+    client: &SimpleHttpClient,
+    args: &CalendarEventsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Events>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_events_list_builder(
+        client,
+        &args.calendarId,
+        &args.alwaysIncludeEmail,
+        &args.eventTypes,
+        &args.iCalUID,
+        &args.maxAttendees,
+        &args.maxResults,
+        &args.orderBy,
+        &args.pageToken,
+        &args.privateExtendedProperty,
+        &args.q,
+        &args.sharedExtendedProperty,
+        &args.showDeleted,
+        &args.showHiddenInvitations,
+        &args.singleEvents,
+        &args.syncToken,
+        &args.timeMax,
+        &args.timeMin,
+        &args.timeZone,
+        &args.updatedMin,
+    )?;
+    calendar_events_list_execute(builder)
+}
+
+/// POST calendars/{calendarId}/events/{eventId}/move
+/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_events_move_execute()` to send, or `calendar_events_move` for simplest API.
+
+pub fn calendar_events_move_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    eventId: &String,
+    destination: &Option<Option<String>>,
+    sendNotifications: &Option<Option<String>>,
+    sendUpdates: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}/move",
+        calendarId, eventId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = destination.as_ref() {
+        query_parts.push(format!("destination={}", val));
+    }
+    if let Some(val) = sendNotifications.as_ref() {
+        query_parts.push(format!("sendNotifications={}", val));
+    }
+    if let Some(val) = sendUpdates.as_ref() {
+        query_parts.push(format!("sendUpdates={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST calendars/{calendarId}/events/{eventId}/move
+/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_events_move_execute()` or `calendar_events_move`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_move_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Event = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST calendars/{calendarId}/events/{eventId}/move
+/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_events_move_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_events_move_task()`.
+/// For the simplest API, use `calendar_events_move()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_events_move_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_events_move_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_events_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsMoveArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: eventId
+    pub eventId: String,
+    /// Query parameter: destination
+    pub destination: Option<Option<String>>,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<Option<String>>,
+    /// Query parameter: sendUpdates
+    pub sendUpdates: Option<Option<String>>,
+}
+
+/// POST calendars/{calendarId}/events/{eventId}/move
+/// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_events_move_builder()` + `calendar_events_move_execute()`.
+/// For task-level control, use `calendar_events_move_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_move(
+    client: &SimpleHttpClient,
+    args: &CalendarEventsMoveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_events_move_builder(
+        client,
+        &args.calendarId,
+        &args.eventId,
+        &args.destination,
+        &args.sendNotifications,
+        &args.sendUpdates,
+    )?;
+    calendar_events_move_execute(builder)
+}
+
+/// PATCH calendars/{calendarId}/events/{eventId}
+/// Updates an event. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_events_patch_execute()` to send, or `calendar_events_patch` for simplest API.
+
+pub fn calendar_events_patch_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    eventId: &String,
+    alwaysIncludeEmail: &Option<Option<String>>,
+    conferenceDataVersion: &Option<Option<String>>,
+    maxAttendees: &Option<Option<String>>,
+    sendNotifications: &Option<Option<String>>,
+    sendUpdates: &Option<Option<String>>,
+    supportsAttachments: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
+        calendarId, eventId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = alwaysIncludeEmail.as_ref() {
+        query_parts.push(format!("alwaysIncludeEmail={}", val));
+    }
+    if let Some(val) = conferenceDataVersion.as_ref() {
+        query_parts.push(format!("conferenceDataVersion={}", val));
+    }
+    if let Some(val) = maxAttendees.as_ref() {
+        query_parts.push(format!("maxAttendees={}", val));
+    }
+    if let Some(val) = sendNotifications.as_ref() {
+        query_parts.push(format!("sendNotifications={}", val));
+    }
+    if let Some(val) = sendUpdates.as_ref() {
+        query_parts.push(format!("sendUpdates={}", val));
+    }
+    if let Some(val) = supportsAttachments.as_ref() {
+        query_parts.push(format!("supportsAttachments={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH calendars/{calendarId}/events/{eventId}
+/// Updates an event. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_events_patch_execute()` or `calendar_events_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Event = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH calendars/{calendarId}/events/{eventId}
+/// Updates an event. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_events_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_events_patch_task()`.
+/// For the simplest API, use `calendar_events_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_events_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_events_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_events_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsPatchArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: eventId
+    pub eventId: String,
+    /// Query parameter: alwaysIncludeEmail
+    pub alwaysIncludeEmail: Option<Option<String>>,
+    /// Query parameter: conferenceDataVersion
+    pub conferenceDataVersion: Option<Option<String>>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<Option<String>>,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<Option<String>>,
+    /// Query parameter: sendUpdates
+    pub sendUpdates: Option<Option<String>>,
+    /// Query parameter: supportsAttachments
+    pub supportsAttachments: Option<Option<String>>,
+}
+
+/// PATCH calendars/{calendarId}/events/{eventId}
+/// Updates an event. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_events_patch_builder()` + `calendar_events_patch_execute()`.
+/// For task-level control, use `calendar_events_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_patch(
+    client: &SimpleHttpClient,
+    args: &CalendarEventsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_events_patch_builder(
+        client,
+        &args.calendarId,
+        &args.eventId,
+        &args.alwaysIncludeEmail,
+        &args.conferenceDataVersion,
+        &args.maxAttendees,
+        &args.sendNotifications,
+        &args.sendUpdates,
+        &args.supportsAttachments,
+    )?;
+    calendar_events_patch_execute(builder)
+}
+
+/// POST calendars/{calendarId}/events/quickAdd
+/// Creates an event based on a simple text string.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_events_quick_add_execute()` to send, or `calendar_events_quick_add` for simplest API.
+
+pub fn calendar_events_quick_add_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    sendNotifications: &Option<Option<String>>,
+    sendUpdates: &Option<Option<String>>,
+    text: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}/events/quickAdd",
+        calendarId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = sendNotifications.as_ref() {
+        query_parts.push(format!("sendNotifications={}", val));
+    }
+    if let Some(val) = sendUpdates.as_ref() {
+        query_parts.push(format!("sendUpdates={}", val));
+    }
+    if let Some(val) = text.as_ref() {
+        query_parts.push(format!("text={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST calendars/{calendarId}/events/quickAdd
+/// Creates an event based on a simple text string.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_events_quick_add_execute()` or `calendar_events_quick_add`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_quick_add_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_quick_add_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Event = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST calendars/{calendarId}/events/quickAdd
+/// Creates an event based on a simple text string.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_events_quick_add_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_events_quick_add_task()`.
+/// For the simplest API, use `calendar_events_quick_add()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_quick_add_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_events_quick_add_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_events_quick_add_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_events_quick_add`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsQuickAddArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<Option<String>>,
+    /// Query parameter: sendUpdates
+    pub sendUpdates: Option<Option<String>>,
+    /// Query parameter: text
+    pub text: Option<Option<String>>,
+}
+
+/// POST calendars/{calendarId}/events/quickAdd
+/// Creates an event based on a simple text string.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_events_quick_add_builder()` + `calendar_events_quick_add_execute()`.
+/// For task-level control, use `calendar_events_quick_add_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_quick_add(
+    client: &SimpleHttpClient,
+    args: &CalendarEventsQuickAddArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_events_quick_add_builder(
+        client,
+        &args.calendarId,
+        &args.sendNotifications,
+        &args.sendUpdates,
+        &args.text,
+    )?;
+    calendar_events_quick_add_execute(builder)
+}
+
+/// PUT calendars/{calendarId}/events/{eventId}
+/// Updates an event.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `calendar_events_update_execute()` to send, or `calendar_events_update` for simplest API.
+
+pub fn calendar_events_update_builder(
+    client: &SimpleHttpClient,
+    calendarId: &String,
+    eventId: &String,
+    alwaysIncludeEmail: &Option<Option<String>>,
+    conferenceDataVersion: &Option<Option<String>>,
+    maxAttendees: &Option<Option<String>>,
+    sendNotifications: &Option<Option<String>>,
+    sendUpdates: &Option<Option<String>>,
+    supportsAttachments: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://www.googleapis.com/calendar/v3/calendars/{}/events/{}",
+        calendarId, eventId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = alwaysIncludeEmail.as_ref() {
+        query_parts.push(format!("alwaysIncludeEmail={}", val));
+    }
+    if let Some(val) = conferenceDataVersion.as_ref() {
+        query_parts.push(format!("conferenceDataVersion={}", val));
+    }
+    if let Some(val) = maxAttendees.as_ref() {
+        query_parts.push(format!("maxAttendees={}", val));
+    }
+    if let Some(val) = sendNotifications.as_ref() {
+        query_parts.push(format!("sendNotifications={}", val));
+    }
+    if let Some(val) = sendUpdates.as_ref() {
+        query_parts.push(format!("sendUpdates={}", val));
+    }
+    if let Some(val) = supportsAttachments.as_ref() {
+        query_parts.push(format!("supportsAttachments={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT calendars/{calendarId}/events/{eventId}
+/// Updates an event.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `calendar_events_update_execute()` or `calendar_events_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Event>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Event = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT calendars/{calendarId}/events/{eventId}
+/// Updates an event.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `calendar_events_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `calendar_events_update_task()`.
+/// For the simplest API, use `calendar_events_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `calendar_events_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn calendar_events_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = calendar_events_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`calendar_events_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsUpdateArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: eventId
+    pub eventId: String,
+    /// Query parameter: alwaysIncludeEmail
+    pub alwaysIncludeEmail: Option<Option<String>>,
+    /// Query parameter: conferenceDataVersion
+    pub conferenceDataVersion: Option<Option<String>>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<Option<String>>,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<Option<String>>,
+    /// Query parameter: sendUpdates
+    pub sendUpdates: Option<Option<String>>,
+    /// Query parameter: supportsAttachments
+    pub supportsAttachments: Option<Option<String>>,
+}
+
+/// PUT calendars/{calendarId}/events/{eventId}
+/// Updates an event.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `calendar_events_update_builder()` + `calendar_events_update_execute()`.
+/// For task-level control, use `calendar_events_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn calendar_events_update(
+    client: &SimpleHttpClient,
+    args: &CalendarEventsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = calendar_events_update_builder(
+        client,
+        &args.calendarId,
+        &args.eventId,
+        &args.alwaysIncludeEmail,
+        &args.conferenceDataVersion,
+        &args.maxAttendees,
+        &args.sendNotifications,
+        &args.sendUpdates,
+        &args.supportsAttachments,
+    )?;
+    calendar_events_update_execute(builder)
+}
+
+/// POST calendars/{calendarId}/events/watch
 /// Watch for changes to Events resources.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2684,25 +5825,24 @@ pub fn calendar_events_instances(
 pub fn calendar_events_watch_builder(
     client: &SimpleHttpClient,
     calendarId: &String,
-    alwaysIncludeEmail: &Option<bool>,
-    eventTypes: &Option<String>,
-    iCalUID: &Option<String>,
-    maxAttendees: &Option<i32>,
-    maxResults: &Option<i32>,
-    orderBy: &Option<String>,
-    pageToken: &Option<String>,
-    privateExtendedProperty: &Option<String>,
-    q: &Option<String>,
-    sharedExtendedProperty: &Option<String>,
-    showDeleted: &Option<bool>,
-    showHiddenInvitations: &Option<bool>,
-    singleEvents: &Option<bool>,
-    syncToken: &Option<String>,
-    timeMax: &Option<String>,
-    timeMin: &Option<String>,
-    timeZone: &Option<String>,
-    updatedMin: &Option<String>,
-    body: &Channel,
+    alwaysIncludeEmail: &Option<Option<String>>,
+    eventTypes: &Option<Option<String>>,
+    iCalUID: &Option<Option<String>>,
+    maxAttendees: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    privateExtendedProperty: &Option<Option<String>>,
+    q: &Option<Option<String>>,
+    sharedExtendedProperty: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+    showHiddenInvitations: &Option<Option<String>>,
+    singleEvents: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
+    timeMax: &Option<Option<String>>,
+    timeMin: &Option<Option<String>>,
+    timeZone: &Option<Option<String>>,
+    updatedMin: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2774,15 +5914,13 @@ pub fn calendar_events_watch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET calendars/{calendarId}/events/watch
+/// POST calendars/{calendarId}/events/watch
 /// Watch for changes to Events resources.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2856,7 +5994,7 @@ pub fn calendar_events_watch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET calendars/{calendarId}/events/watch
+/// POST calendars/{calendarId}/events/watch
 /// Watch for changes to Events resources.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2892,46 +6030,44 @@ pub struct CalendarEventsWatchArgs {
     /// Path parameter: calendarId
     pub calendarId: String,
     /// Query parameter: alwaysIncludeEmail
-    pub alwaysIncludeEmail: Option<bool>,
+    pub alwaysIncludeEmail: Option<Option<String>>,
     /// Query parameter: eventTypes
-    pub eventTypes: Option<String>,
+    pub eventTypes: Option<Option<String>>,
     /// Query parameter: iCalUID
-    pub iCalUID: Option<String>,
+    pub iCalUID: Option<Option<String>>,
     /// Query parameter: maxAttendees
-    pub maxAttendees: Option<i32>,
+    pub maxAttendees: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: privateExtendedProperty
-    pub privateExtendedProperty: Option<String>,
+    pub privateExtendedProperty: Option<Option<String>>,
     /// Query parameter: q
-    pub q: Option<String>,
+    pub q: Option<Option<String>>,
     /// Query parameter: sharedExtendedProperty
-    pub sharedExtendedProperty: Option<String>,
+    pub sharedExtendedProperty: Option<Option<String>>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
+    pub showDeleted: Option<Option<String>>,
     /// Query parameter: showHiddenInvitations
-    pub showHiddenInvitations: Option<bool>,
+    pub showHiddenInvitations: Option<Option<String>>,
     /// Query parameter: singleEvents
-    pub singleEvents: Option<bool>,
+    pub singleEvents: Option<Option<String>>,
     /// Query parameter: syncToken
-    pub syncToken: Option<String>,
+    pub syncToken: Option<Option<String>>,
     /// Query parameter: timeMax
-    pub timeMax: Option<String>,
+    pub timeMax: Option<Option<String>>,
     /// Query parameter: timeMin
-    pub timeMin: Option<String>,
+    pub timeMin: Option<Option<String>>,
     /// Query parameter: timeZone
-    pub timeZone: Option<String>,
+    pub timeZone: Option<Option<String>>,
     /// Query parameter: updatedMin
-    pub updatedMin: Option<String>,
-    /// Request body.
-    pub body: Channel,
+    pub updatedMin: Option<Option<String>>,
 }
 
-/// GET calendars/{calendarId}/events/watch
+/// POST calendars/{calendarId}/events/watch
 /// Watch for changes to Events resources.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2970,12 +6106,11 @@ pub fn calendar_events_watch(
         &args.timeMin,
         &args.timeZone,
         &args.updatedMin,
-        &args.body,
     )?;
     calendar_events_watch_execute(builder)
 }
 
-/// GET freeBusy
+/// POST freeBusy
 /// Returns `free/busy` information for a set of calendars.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2983,22 +6118,19 @@ pub fn calendar_events_watch(
 
 pub fn calendar_freebusy_query_builder(
     client: &SimpleHttpClient,
-    body: &FreeBusyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/freeBusy",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET freeBusy
+/// POST freeBusy
 /// Returns `free/busy` information for a set of calendars.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3072,7 +6204,7 @@ pub fn calendar_freebusy_query_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET freeBusy
+/// POST freeBusy
 /// Returns `free/busy` information for a set of calendars.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3104,14 +6236,7 @@ pub fn calendar_freebusy_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`calendar_freebusy_query`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CalendarFreebusyQueryArgs {
-    /// Request body.
-    pub body: FreeBusyRequest,
-}
-
-/// GET freeBusy
+/// POST freeBusy
 /// Returns `free/busy` information for a set of calendars.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3124,14 +6249,13 @@ pub struct CalendarFreebusyQueryArgs {
 
 pub fn calendar_freebusy_query(
     client: &SimpleHttpClient,
-    args: &CalendarFreebusyQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FreeBusyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = calendar_freebusy_query_builder(client, &args.body)?;
+    let builder = calendar_freebusy_query_builder(client)?;
     calendar_freebusy_query_execute(builder)
 }
 
@@ -3300,9 +6424,9 @@ pub fn calendar_settings_get(
 
 pub fn calendar_settings_list_builder(
     client: &SimpleHttpClient,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    syncToken: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/settings",);
@@ -3440,11 +6564,11 @@ pub fn calendar_settings_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CalendarSettingsListArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: syncToken
-    pub syncToken: Option<String>,
+    pub syncToken: Option<Option<String>>,
 }
 
 /// GET users/me/settings
@@ -3470,7 +6594,7 @@ pub fn calendar_settings_list(
     calendar_settings_list_execute(builder)
 }
 
-/// GET users/me/settings/watch
+/// POST users/me/settings/watch
 /// Watch for changes to Settings resources.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3478,10 +6602,9 @@ pub fn calendar_settings_list(
 
 pub fn calendar_settings_watch_builder(
     client: &SimpleHttpClient,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    syncToken: &Option<String>,
-    body: &Channel,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    syncToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/calendar/v3/users/me/settings/watch",);
@@ -3505,15 +6628,13 @@ pub fn calendar_settings_watch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET users/me/settings/watch
+/// POST users/me/settings/watch
 /// Watch for changes to Settings resources.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3587,7 +6708,7 @@ pub fn calendar_settings_watch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET users/me/settings/watch
+/// POST users/me/settings/watch
 /// Watch for changes to Settings resources.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3621,16 +6742,14 @@ pub fn calendar_settings_watch_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CalendarSettingsWatchArgs {
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: syncToken
-    pub syncToken: Option<String>,
-    /// Request body.
-    pub body: Channel,
+    pub syncToken: Option<Option<String>>,
 }
 
-/// GET users/me/settings/watch
+/// POST users/me/settings/watch
 /// Watch for changes to Settings resources.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3653,7 +6772,743 @@ pub fn calendar_settings_watch(
         &args.maxResults,
         &args.pageToken,
         &args.syncToken,
-        &args.body,
     )?;
     calendar_settings_watch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AclRule
+// =============================================================================
+
+/// ResourceIdentifier implementation for AclRule with CalendarAclGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarAclGetArgs> for AclRule {
+    fn generate_resource_id(&self, input: &CalendarAclGetArgs) -> String {
+        format!(
+            "gcp::calendar::AclRule/{}/{}",
+            input.calendarId, input.ruleId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::AclRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AclRule
+// =============================================================================
+
+/// ResourceIdentifier implementation for AclRule with CalendarAclInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarAclInsertArgs> for AclRule {
+    fn generate_resource_id(&self, input: &CalendarAclInsertArgs) -> String {
+        format!("gcp::calendar::AclRule/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::AclRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Acl
+// =============================================================================
+
+/// ResourceIdentifier implementation for Acl with CalendarAclListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarAclListArgs> for Acl {
+    fn generate_resource_id(&self, input: &CalendarAclListArgs) -> String {
+        format!("gcp::calendar::Acl/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Acl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AclRule
+// =============================================================================
+
+/// ResourceIdentifier implementation for AclRule with CalendarAclPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarAclPatchArgs> for AclRule {
+    fn generate_resource_id(&self, input: &CalendarAclPatchArgs) -> String {
+        format!(
+            "gcp::calendar::AclRule/{}/{}",
+            input.calendarId, input.ruleId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::AclRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AclRule
+// =============================================================================
+
+/// ResourceIdentifier implementation for AclRule with CalendarAclUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarAclUpdateArgs> for AclRule {
+    fn generate_resource_id(&self, input: &CalendarAclUpdateArgs) -> String {
+        format!(
+            "gcp::calendar::AclRule/{}/{}",
+            input.calendarId, input.ruleId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::AclRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with CalendarAclWatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarAclWatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &CalendarAclWatchArgs) -> String {
+        format!("gcp::calendar::Channel/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CalendarListEntry
+// =============================================================================
+
+/// ResourceIdentifier implementation for CalendarListEntry with CalendarCalendarListGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarListGetArgs> for CalendarListEntry {
+    fn generate_resource_id(&self, input: &CalendarCalendarListGetArgs) -> String {
+        format!("gcp::calendar::CalendarListEntry/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::CalendarListEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CalendarListEntry
+// =============================================================================
+
+/// ResourceIdentifier implementation for CalendarListEntry with CalendarCalendarListInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarListInsertArgs> for CalendarListEntry {
+    fn generate_resource_id(&self, input: &CalendarCalendarListInsertArgs) -> String {
+        "gcp::calendar::CalendarListEntry".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::CalendarListEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CalendarList
+// =============================================================================
+
+/// ResourceIdentifier implementation for CalendarList with CalendarCalendarListListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarListListArgs> for CalendarList {
+    fn generate_resource_id(&self, input: &CalendarCalendarListListArgs) -> String {
+        "gcp::calendar::CalendarList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::CalendarList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CalendarListEntry
+// =============================================================================
+
+/// ResourceIdentifier implementation for CalendarListEntry with CalendarCalendarListPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarListPatchArgs> for CalendarListEntry {
+    fn generate_resource_id(&self, input: &CalendarCalendarListPatchArgs) -> String {
+        format!("gcp::calendar::CalendarListEntry/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::CalendarListEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CalendarListEntry
+// =============================================================================
+
+/// ResourceIdentifier implementation for CalendarListEntry with CalendarCalendarListUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarListUpdateArgs> for CalendarListEntry {
+    fn generate_resource_id(&self, input: &CalendarCalendarListUpdateArgs) -> String {
+        format!("gcp::calendar::CalendarListEntry/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::CalendarListEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with CalendarCalendarListWatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarListWatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &CalendarCalendarListWatchArgs) -> String {
+        "gcp::calendar::Channel".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Calendar
+// =============================================================================
+
+/// ResourceIdentifier implementation for Calendar with CalendarCalendarsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarsGetArgs> for Calendar {
+    fn generate_resource_id(&self, input: &CalendarCalendarsGetArgs) -> String {
+        format!("gcp::calendar::Calendar/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Calendar"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Calendar
+// =============================================================================
+
+/// ResourceIdentifier implementation for Calendar with CalendarCalendarsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarsInsertArgs> for Calendar {
+    fn generate_resource_id(&self, input: &CalendarCalendarsInsertArgs) -> String {
+        "gcp::calendar::Calendar".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Calendar"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Calendar
+// =============================================================================
+
+/// ResourceIdentifier implementation for Calendar with CalendarCalendarsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarsPatchArgs> for Calendar {
+    fn generate_resource_id(&self, input: &CalendarCalendarsPatchArgs) -> String {
+        format!("gcp::calendar::Calendar/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Calendar"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Calendar
+// =============================================================================
+
+/// ResourceIdentifier implementation for Calendar with CalendarCalendarsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarCalendarsUpdateArgs> for Calendar {
+    fn generate_resource_id(&self, input: &CalendarCalendarsUpdateArgs) -> String {
+        format!("gcp::calendar::Calendar/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Calendar"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Colors
+// =============================================================================
+
+/// ResourceIdentifier implementation for Colors with CalendarColorsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarColorsGetArgs> for Colors {
+    fn generate_resource_id(&self, input: &CalendarColorsGetArgs) -> String {
+        "gcp::calendar::Colors".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Colors"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Event
+// =============================================================================
+
+/// ResourceIdentifier implementation for Event with CalendarEventsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsGetArgs> for Event {
+    fn generate_resource_id(&self, input: &CalendarEventsGetArgs) -> String {
+        format!(
+            "gcp::calendar::Event/{}/{}",
+            input.calendarId, input.eventId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Event"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Event
+// =============================================================================
+
+/// ResourceIdentifier implementation for Event with CalendarEventsImportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsImportArgs> for Event {
+    fn generate_resource_id(&self, input: &CalendarEventsImportArgs) -> String {
+        format!("gcp::calendar::Event/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Event"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Event
+// =============================================================================
+
+/// ResourceIdentifier implementation for Event with CalendarEventsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsInsertArgs> for Event {
+    fn generate_resource_id(&self, input: &CalendarEventsInsertArgs) -> String {
+        format!("gcp::calendar::Event/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Event"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Events
+// =============================================================================
+
+/// ResourceIdentifier implementation for Events with CalendarEventsInstancesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsInstancesArgs> for Events {
+    fn generate_resource_id(&self, input: &CalendarEventsInstancesArgs) -> String {
+        format!(
+            "gcp::calendar::Events/{}/{}",
+            input.calendarId, input.eventId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Events"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Events
+// =============================================================================
+
+/// ResourceIdentifier implementation for Events with CalendarEventsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsListArgs> for Events {
+    fn generate_resource_id(&self, input: &CalendarEventsListArgs) -> String {
+        format!("gcp::calendar::Events/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Events"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Event
+// =============================================================================
+
+/// ResourceIdentifier implementation for Event with CalendarEventsMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsMoveArgs> for Event {
+    fn generate_resource_id(&self, input: &CalendarEventsMoveArgs) -> String {
+        format!(
+            "gcp::calendar::Event/{}/{}",
+            input.calendarId, input.eventId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Event"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Event
+// =============================================================================
+
+/// ResourceIdentifier implementation for Event with CalendarEventsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsPatchArgs> for Event {
+    fn generate_resource_id(&self, input: &CalendarEventsPatchArgs) -> String {
+        format!(
+            "gcp::calendar::Event/{}/{}",
+            input.calendarId, input.eventId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Event"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Event
+// =============================================================================
+
+/// ResourceIdentifier implementation for Event with CalendarEventsQuickAddArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsQuickAddArgs> for Event {
+    fn generate_resource_id(&self, input: &CalendarEventsQuickAddArgs) -> String {
+        format!("gcp::calendar::Event/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Event"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Event
+// =============================================================================
+
+/// ResourceIdentifier implementation for Event with CalendarEventsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsUpdateArgs> for Event {
+    fn generate_resource_id(&self, input: &CalendarEventsUpdateArgs) -> String {
+        format!(
+            "gcp::calendar::Event/{}/{}",
+            input.calendarId, input.eventId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Event"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with CalendarEventsWatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarEventsWatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &CalendarEventsWatchArgs) -> String {
+        format!("gcp::calendar::Channel/{}", input.calendarId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FreeBusyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FreeBusyResponse with CalendarFreebusyQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarFreebusyQueryArgs> for FreeBusyResponse {
+    fn generate_resource_id(&self, input: &CalendarFreebusyQueryArgs) -> String {
+        "gcp::calendar::FreeBusyResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::FreeBusyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Setting
+// =============================================================================
+
+/// ResourceIdentifier implementation for Setting with CalendarSettingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarSettingsGetArgs> for Setting {
+    fn generate_resource_id(&self, input: &CalendarSettingsGetArgs) -> String {
+        format!("gcp::calendar::Setting/{}", input.setting)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Setting"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Settings
+// =============================================================================
+
+/// ResourceIdentifier implementation for Settings with CalendarSettingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarSettingsListArgs> for Settings {
+    fn generate_resource_id(&self, input: &CalendarSettingsListArgs) -> String {
+        "gcp::calendar::Settings".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Settings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with CalendarSettingsWatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CalendarSettingsWatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &CalendarSettingsWatchArgs) -> String {
+        "gcp::calendar::Channel".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::calendar::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

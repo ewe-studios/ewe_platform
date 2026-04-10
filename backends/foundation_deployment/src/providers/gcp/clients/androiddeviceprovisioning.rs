@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -28,8 +28,8 @@ use serde::Serialize;
 
 pub fn androiddeviceprovisioning_customers_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://androiddeviceprovisioning.googleapis.com/v1/customers",);
@@ -168,9 +168,9 @@ pub fn androiddeviceprovisioning_customers_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AndroiddeviceprovisioningCustomersListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers
@@ -200,7 +200,7 @@ pub fn androiddeviceprovisioning_customers_list(
     androiddeviceprovisioning_customers_list_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/configurations
+/// POST v1/customers/{customersId}/configurations
 /// Creates a new configuration. Once created, a customer can apply the configuration to devices.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -209,23 +209,22 @@ pub fn androiddeviceprovisioning_customers_list(
 pub fn androiddeviceprovisioning_customers_configurations_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &Configuration,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations",);
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/configurations
+/// POST v1/customers/{customersId}/configurations
 /// Creates a new configuration. Once created, a customer can apply the configuration to devices.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -299,7 +298,7 @@ pub fn androiddeviceprovisioning_customers_configurations_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/configurations
+/// POST v1/customers/{customersId}/configurations
 /// Creates a new configuration. Once created, a customer can apply the configuration to devices.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -336,11 +335,9 @@ pub fn androiddeviceprovisioning_customers_configurations_create_execute(
 pub struct AndroiddeviceprovisioningCustomersConfigurationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: Configuration,
 }
 
-/// GET v1/customers/{customersId}/configurations
+/// POST v1/customers/{customersId}/configurations
 /// Creates a new configuration. Once created, a customer can apply the configuration to devices.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -360,15 +357,677 @@ pub fn androiddeviceprovisioning_customers_configurations_create(
         + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_customers_configurations_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder =
+        androiddeviceprovisioning_customers_configurations_create_builder(client, &args.parent)?;
     androiddeviceprovisioning_customers_configurations_create_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/devices:applyConfiguration
+/// DELETE v1/customers/{customersId}/configurations/{configurationsId}
+/// Deletes an unused configuration. The API call fails if the customer has devices with the configuration applied.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androiddeviceprovisioning_customers_configurations_delete_execute()` to send, or `androiddeviceprovisioning_customers_configurations_delete` for simplest API.
+
+pub fn androiddeviceprovisioning_customers_configurations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations/{configurationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/customers/{customersId}/configurations/{configurationsId}
+/// Deletes an unused configuration. The API call fails if the customer has devices with the configuration applied.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androiddeviceprovisioning_customers_configurations_delete_execute()` or `androiddeviceprovisioning_customers_configurations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_customers_configurations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_customers_configurations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/customers/{customersId}/configurations/{configurationsId}
+/// Deletes an unused configuration. The API call fails if the customer has devices with the configuration applied.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androiddeviceprovisioning_customers_configurations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androiddeviceprovisioning_customers_configurations_delete_task()`.
+/// For the simplest API, use `androiddeviceprovisioning_customers_configurations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_customers_configurations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androiddeviceprovisioning_customers_configurations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androiddeviceprovisioning_customers_configurations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androiddeviceprovisioning_customers_configurations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersConfigurationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/customers/{customersId}/configurations/{configurationsId}
+/// Deletes an unused configuration. The API call fails if the customer has devices with the configuration applied.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androiddeviceprovisioning_customers_configurations_delete_builder()` + `androiddeviceprovisioning_customers_configurations_delete_execute()`.
+/// For task-level control, use `androiddeviceprovisioning_customers_configurations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_customers_configurations_delete(
+    client: &SimpleHttpClient,
+    args: &AndroiddeviceprovisioningCustomersConfigurationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        androiddeviceprovisioning_customers_configurations_delete_builder(client, &args.name)?;
+    androiddeviceprovisioning_customers_configurations_delete_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/configurations/{configurationsId}
+/// Gets the details of a configuration.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androiddeviceprovisioning_customers_configurations_get_execute()` to send, or `androiddeviceprovisioning_customers_configurations_get` for simplest API.
+
+pub fn androiddeviceprovisioning_customers_configurations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations/{configurationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/configurations/{configurationsId}
+/// Gets the details of a configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androiddeviceprovisioning_customers_configurations_get_execute()` or `androiddeviceprovisioning_customers_configurations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_customers_configurations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_customers_configurations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Configuration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Configuration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/configurations/{configurationsId}
+/// Gets the details of a configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androiddeviceprovisioning_customers_configurations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androiddeviceprovisioning_customers_configurations_get_task()`.
+/// For the simplest API, use `androiddeviceprovisioning_customers_configurations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_customers_configurations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androiddeviceprovisioning_customers_configurations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androiddeviceprovisioning_customers_configurations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androiddeviceprovisioning_customers_configurations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersConfigurationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/configurations/{configurationsId}
+/// Gets the details of a configuration.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androiddeviceprovisioning_customers_configurations_get_builder()` + `androiddeviceprovisioning_customers_configurations_get_execute()`.
+/// For task-level control, use `androiddeviceprovisioning_customers_configurations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_customers_configurations_get(
+    client: &SimpleHttpClient,
+    args: &AndroiddeviceprovisioningCustomersConfigurationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        androiddeviceprovisioning_customers_configurations_get_builder(client, &args.name)?;
+    androiddeviceprovisioning_customers_configurations_get_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/configurations
+/// Lists a customer's configurations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androiddeviceprovisioning_customers_configurations_list_execute()` to send, or `androiddeviceprovisioning_customers_configurations_list` for simplest API.
+
+pub fn androiddeviceprovisioning_customers_configurations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/configurations
+/// Lists a customer's configurations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androiddeviceprovisioning_customers_configurations_list_execute()` or `androiddeviceprovisioning_customers_configurations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_customers_configurations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_customers_configurations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomerListConfigurationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CustomerListConfigurationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/configurations
+/// Lists a customer's configurations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androiddeviceprovisioning_customers_configurations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androiddeviceprovisioning_customers_configurations_list_task()`.
+/// For the simplest API, use `androiddeviceprovisioning_customers_configurations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_customers_configurations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androiddeviceprovisioning_customers_configurations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CustomerListConfigurationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androiddeviceprovisioning_customers_configurations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androiddeviceprovisioning_customers_configurations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersConfigurationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/customers/{customersId}/configurations
+/// Lists a customer's configurations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androiddeviceprovisioning_customers_configurations_list_builder()` + `androiddeviceprovisioning_customers_configurations_list_execute()`.
+/// For task-level control, use `androiddeviceprovisioning_customers_configurations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_customers_configurations_list(
+    client: &SimpleHttpClient,
+    args: &AndroiddeviceprovisioningCustomersConfigurationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CustomerListConfigurationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        androiddeviceprovisioning_customers_configurations_list_builder(client, &args.parent)?;
+    androiddeviceprovisioning_customers_configurations_list_execute(builder)
+}
+
+/// PATCH v1/customers/{customersId}/configurations/{configurationsId}
+/// Updates a configuration's field values.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androiddeviceprovisioning_customers_configurations_patch_execute()` to send, or `androiddeviceprovisioning_customers_configurations_patch` for simplest API.
+
+pub fn androiddeviceprovisioning_customers_configurations_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/configurations/{configurationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/customers/{customersId}/configurations/{configurationsId}
+/// Updates a configuration's field values.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androiddeviceprovisioning_customers_configurations_patch_execute()` or `androiddeviceprovisioning_customers_configurations_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_customers_configurations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_customers_configurations_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Configuration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Configuration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/customers/{customersId}/configurations/{configurationsId}
+/// Updates a configuration's field values.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androiddeviceprovisioning_customers_configurations_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androiddeviceprovisioning_customers_configurations_patch_task()`.
+/// For the simplest API, use `androiddeviceprovisioning_customers_configurations_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_customers_configurations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androiddeviceprovisioning_customers_configurations_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androiddeviceprovisioning_customers_configurations_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androiddeviceprovisioning_customers_configurations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersConfigurationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/customers/{customersId}/configurations/{configurationsId}
+/// Updates a configuration's field values.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androiddeviceprovisioning_customers_configurations_patch_builder()` + `androiddeviceprovisioning_customers_configurations_patch_execute()`.
+/// For task-level control, use `androiddeviceprovisioning_customers_configurations_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_customers_configurations_patch(
+    client: &SimpleHttpClient,
+    args: &AndroiddeviceprovisioningCustomersConfigurationsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androiddeviceprovisioning_customers_configurations_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    androiddeviceprovisioning_customers_configurations_patch_execute(builder)
+}
+
+/// POST v1/customers/{customersId}/devices:applyConfiguration
 /// Applies a Configuration to the device to register the device for zero-touch enrollment. After applying a configuration to a device, the device automatically provisions itself on first boot, or next factory reset.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -377,24 +1036,22 @@ pub fn androiddeviceprovisioning_customers_configurations_create(
 pub fn androiddeviceprovisioning_customers_devices_apply_configuration_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &CustomerApplyConfigurationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices:applyConfiguration",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/devices:applyConfiguration
+/// POST v1/customers/{customersId}/devices:applyConfiguration
 /// Applies a Configuration to the device to register the device for zero-touch enrollment. After applying a configuration to a device, the device automatically provisions itself on first boot, or next factory reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -468,7 +1125,7 @@ pub fn androiddeviceprovisioning_customers_devices_apply_configuration_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/devices:applyConfiguration
+/// POST v1/customers/{customersId}/devices:applyConfiguration
 /// Applies a Configuration to the device to register the device for zero-touch enrollment. After applying a configuration to a device, the device automatically provisions itself on first boot, or next factory reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -503,11 +1160,9 @@ pub fn androiddeviceprovisioning_customers_devices_apply_configuration_execute(
 pub struct AndroiddeviceprovisioningCustomersDevicesApplyConfigurationArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: CustomerApplyConfigurationRequest,
 }
 
-/// GET v1/customers/{customersId}/devices:applyConfiguration
+/// POST v1/customers/{customersId}/devices:applyConfiguration
 /// Applies a Configuration to the device to register the device for zero-touch enrollment. After applying a configuration to a device, the device automatically provisions itself on first boot, or next factory reset.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -528,9 +1183,165 @@ pub fn androiddeviceprovisioning_customers_devices_apply_configuration(
     let builder = androiddeviceprovisioning_customers_devices_apply_configuration_builder(
         client,
         &args.parent,
-        &args.body,
     )?;
     androiddeviceprovisioning_customers_devices_apply_configuration_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/devices/{devicesId}
+/// Gets the details of a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androiddeviceprovisioning_customers_devices_get_execute()` to send, or `androiddeviceprovisioning_customers_devices_get` for simplest API.
+
+pub fn androiddeviceprovisioning_customers_devices_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/devices/{devicesId}
+/// Gets the details of a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androiddeviceprovisioning_customers_devices_get_execute()` or `androiddeviceprovisioning_customers_devices_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_customers_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_customers_devices_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Device>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Device = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/devices/{devicesId}
+/// Gets the details of a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androiddeviceprovisioning_customers_devices_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androiddeviceprovisioning_customers_devices_get_task()`.
+/// For the simplest API, use `androiddeviceprovisioning_customers_devices_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_customers_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androiddeviceprovisioning_customers_devices_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androiddeviceprovisioning_customers_devices_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androiddeviceprovisioning_customers_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/devices/{devicesId}
+/// Gets the details of a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androiddeviceprovisioning_customers_devices_get_builder()` + `androiddeviceprovisioning_customers_devices_get_execute()`.
+/// For task-level control, use `androiddeviceprovisioning_customers_devices_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_customers_devices_get(
+    client: &SimpleHttpClient,
+    args: &AndroiddeviceprovisioningCustomersDevicesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androiddeviceprovisioning_customers_devices_get_builder(client, &args.name)?;
+    androiddeviceprovisioning_customers_devices_get_execute(builder)
 }
 
 /// GET v1/customers/{customersId}/devices
@@ -542,12 +1353,14 @@ pub fn androiddeviceprovisioning_customers_devices_apply_configuration(
 pub fn androiddeviceprovisioning_customers_devices_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<String>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices",);
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -685,9 +1498,9 @@ pub struct AndroiddeviceprovisioningCustomersDevicesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<String>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/devices
@@ -721,7 +1534,7 @@ pub fn androiddeviceprovisioning_customers_devices_list(
     androiddeviceprovisioning_customers_devices_list_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/devices:removeConfiguration
+/// POST v1/customers/{customersId}/devices:removeConfiguration
 /// Removes a configuration from device.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -730,24 +1543,22 @@ pub fn androiddeviceprovisioning_customers_devices_list(
 pub fn androiddeviceprovisioning_customers_devices_remove_configuration_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &CustomerRemoveConfigurationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices:removeConfiguration",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/devices:removeConfiguration
+/// POST v1/customers/{customersId}/devices:removeConfiguration
 /// Removes a configuration from device.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -821,7 +1632,7 @@ pub fn androiddeviceprovisioning_customers_devices_remove_configuration_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/devices:removeConfiguration
+/// POST v1/customers/{customersId}/devices:removeConfiguration
 /// Removes a configuration from device.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -856,11 +1667,9 @@ pub fn androiddeviceprovisioning_customers_devices_remove_configuration_execute(
 pub struct AndroiddeviceprovisioningCustomersDevicesRemoveConfigurationArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: CustomerRemoveConfigurationRequest,
 }
 
-/// GET v1/customers/{customersId}/devices:removeConfiguration
+/// POST v1/customers/{customersId}/devices:removeConfiguration
 /// Removes a configuration from device.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -881,12 +1690,11 @@ pub fn androiddeviceprovisioning_customers_devices_remove_configuration(
     let builder = androiddeviceprovisioning_customers_devices_remove_configuration_builder(
         client,
         &args.parent,
-        &args.body,
     )?;
     androiddeviceprovisioning_customers_devices_remove_configuration_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/devices:unclaim
+/// POST v1/customers/{customersId}/devices:unclaim
 /// Unclaims a device from a customer and removes it from zero-touch enrollment. After removing a device, a customer must contact their reseller to register the device into zero-touch enrollment again.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -895,24 +1703,22 @@ pub fn androiddeviceprovisioning_customers_devices_remove_configuration(
 pub fn androiddeviceprovisioning_customers_devices_unclaim_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &CustomerUnclaimDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/devices:unclaim",
+        parent,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/devices:unclaim
+/// POST v1/customers/{customersId}/devices:unclaim
 /// Unclaims a device from a customer and removes it from zero-touch enrollment. After removing a device, a customer must contact their reseller to register the device into zero-touch enrollment again.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -986,7 +1792,7 @@ pub fn androiddeviceprovisioning_customers_devices_unclaim_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/devices:unclaim
+/// POST v1/customers/{customersId}/devices:unclaim
 /// Unclaims a device from a customer and removes it from zero-touch enrollment. After removing a device, a customer must contact their reseller to register the device into zero-touch enrollment again.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1021,11 +1827,9 @@ pub fn androiddeviceprovisioning_customers_devices_unclaim_execute(
 pub struct AndroiddeviceprovisioningCustomersDevicesUnclaimArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: CustomerUnclaimDeviceRequest,
 }
 
-/// GET v1/customers/{customersId}/devices:unclaim
+/// POST v1/customers/{customersId}/devices:unclaim
 /// Unclaims a device from a customer and removes it from zero-touch enrollment. After removing a device, a customer must contact their reseller to register the device into zero-touch enrollment again.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1043,11 +1847,8 @@ pub fn androiddeviceprovisioning_customers_devices_unclaim(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_customers_devices_unclaim_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder =
+        androiddeviceprovisioning_customers_devices_unclaim_builder(client, &args.parent)?;
     androiddeviceprovisioning_customers_devices_unclaim_execute(builder)
 }
 
@@ -1062,8 +1863,10 @@ pub fn androiddeviceprovisioning_customers_dpcs_list_builder(
     parent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/dpcs",);
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/customers/{}/dpcs",
+        parent,
+    );
 
     // Build request
     let builder = client
@@ -1221,8 +2024,10 @@ pub fn androiddeviceprovisioning_operations_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://androiddeviceprovisioning.googleapis.com/v1/operations/{}",);
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/operations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -1365,7 +2170,7 @@ pub fn androiddeviceprovisioning_operations_get(
     androiddeviceprovisioning_operations_get_execute(builder)
 }
 
-/// GET v1/partners/{partnersId}/customers
+/// POST v1/partners/{partnersId}/customers
 /// Creates a customer for zero-touch enrollment. After the method returns successfully, admin and owner roles can manage devices and EMM configs by calling API methods or using their zero-touch enrollment portal. The customer receives an email that welcomes them to zero-touch enrollment and explains how to sign into the portal.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1374,23 +2179,22 @@ pub fn androiddeviceprovisioning_operations_get(
 pub fn androiddeviceprovisioning_partners_customers_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &CreateCustomerRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/customers",);
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/customers",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/partners/{partnersId}/customers
+/// POST v1/partners/{partnersId}/customers
 /// Creates a customer for zero-touch enrollment. After the method returns successfully, admin and owner roles can manage devices and EMM configs by calling API methods or using their zero-touch enrollment portal. The customer receives an email that welcomes them to zero-touch enrollment and explains how to sign into the portal.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1464,7 +2268,7 @@ pub fn androiddeviceprovisioning_partners_customers_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/partners/{partnersId}/customers
+/// POST v1/partners/{partnersId}/customers
 /// Creates a customer for zero-touch enrollment. After the method returns successfully, admin and owner roles can manage devices and EMM configs by calling API methods or using their zero-touch enrollment portal. The customer receives an email that welcomes them to zero-touch enrollment and explains how to sign into the portal.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1499,11 +2303,9 @@ pub fn androiddeviceprovisioning_partners_customers_create_execute(
 pub struct AndroiddeviceprovisioningPartnersCustomersCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: CreateCustomerRequest,
 }
 
-/// GET v1/partners/{partnersId}/customers
+/// POST v1/partners/{partnersId}/customers
 /// Creates a customer for zero-touch enrollment. After the method returns successfully, admin and owner roles can manage devices and EMM configs by calling API methods or using their zero-touch enrollment portal. The customer receives an email that welcomes them to zero-touch enrollment and explains how to sign into the portal.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1521,15 +2323,198 @@ pub fn androiddeviceprovisioning_partners_customers_create(
     impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_partners_customers_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder =
+        androiddeviceprovisioning_partners_customers_create_builder(client, &args.parent)?;
     androiddeviceprovisioning_partners_customers_create_execute(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:claim
+/// GET v1/partners/{partnersId}/customers
+/// Lists the customers that are enrolled to the reseller identified by the `partnerId` argument. This list includes customers that the reseller created and customers that enrolled themselves using the portal.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androiddeviceprovisioning_partners_customers_list_execute()` to send, or `androiddeviceprovisioning_partners_customers_list` for simplest API.
+
+pub fn androiddeviceprovisioning_partners_customers_list_builder(
+    client: &SimpleHttpClient,
+    partnerId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/customers",
+        partnerId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/partners/{partnersId}/customers
+/// Lists the customers that are enrolled to the reseller identified by the `partnerId` argument. This list includes customers that the reseller created and customers that enrolled themselves using the portal.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androiddeviceprovisioning_partners_customers_list_execute()` or `androiddeviceprovisioning_partners_customers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_partners_customers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_partners_customers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCustomersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCustomersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/partners/{partnersId}/customers
+/// Lists the customers that are enrolled to the reseller identified by the `partnerId` argument. This list includes customers that the reseller created and customers that enrolled themselves using the portal.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androiddeviceprovisioning_partners_customers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androiddeviceprovisioning_partners_customers_list_task()`.
+/// For the simplest API, use `androiddeviceprovisioning_partners_customers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_partners_customers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androiddeviceprovisioning_partners_customers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCustomersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androiddeviceprovisioning_partners_customers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androiddeviceprovisioning_partners_customers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersCustomersListArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/partners/{partnersId}/customers
+/// Lists the customers that are enrolled to the reseller identified by the `partnerId` argument. This list includes customers that the reseller created and customers that enrolled themselves using the portal.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androiddeviceprovisioning_partners_customers_list_builder()` + `androiddeviceprovisioning_partners_customers_list_execute()`.
+/// For task-level control, use `androiddeviceprovisioning_partners_customers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_partners_customers_list(
+    client: &SimpleHttpClient,
+    args: &AndroiddeviceprovisioningPartnersCustomersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCustomersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androiddeviceprovisioning_partners_customers_list_builder(
+        client,
+        &args.partnerId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    androiddeviceprovisioning_partners_customers_list_execute(builder)
+}
+
+/// POST v1/partners/{partnersId}/devices:claim
 /// Claims a device for a customer and adds it to zero-touch enrollment. If the device is already claimed by another customer, the call returns an error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1538,23 +2523,22 @@ pub fn androiddeviceprovisioning_partners_customers_create(
 pub fn androiddeviceprovisioning_partners_devices_claim_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
-    body: &ClaimDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:claim",);
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:claim",
+        partnerId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:claim
+/// POST v1/partners/{partnersId}/devices:claim
 /// Claims a device for a customer and adds it to zero-touch enrollment. If the device is already claimed by another customer, the call returns an error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1628,7 +2612,7 @@ pub fn androiddeviceprovisioning_partners_devices_claim_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/partners/{partnersId}/devices:claim
+/// POST v1/partners/{partnersId}/devices:claim
 /// Claims a device for a customer and adds it to zero-touch enrollment. If the device is already claimed by another customer, the call returns an error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1665,11 +2649,9 @@ pub fn androiddeviceprovisioning_partners_devices_claim_execute(
 pub struct AndroiddeviceprovisioningPartnersDevicesClaimArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
-    /// Request body.
-    pub body: ClaimDeviceRequest,
 }
 
-/// GET v1/partners/{partnersId}/devices:claim
+/// POST v1/partners/{partnersId}/devices:claim
 /// Claims a device for a customer and adds it to zero-touch enrollment. If the device is already claimed by another customer, the call returns an error.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1689,15 +2671,12 @@ pub fn androiddeviceprovisioning_partners_devices_claim(
         + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_partners_devices_claim_builder(
-        client,
-        &args.partnerId,
-        &args.body,
-    )?;
+    let builder =
+        androiddeviceprovisioning_partners_devices_claim_builder(client, &args.partnerId)?;
     androiddeviceprovisioning_partners_devices_claim_execute(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:claimAsync
+/// POST v1/partners/{partnersId}/devices:claimAsync
 /// Claims a batch of devices for a customer asynchronously. Adds the devices to zero-touch enrollment. To learn more, read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1706,24 +2685,22 @@ pub fn androiddeviceprovisioning_partners_devices_claim(
 pub fn androiddeviceprovisioning_partners_devices_claim_async_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
-    body: &ClaimDevicesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:claimAsync",
+        partnerId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:claimAsync
+/// POST v1/partners/{partnersId}/devices:claimAsync
 /// Claims a batch of devices for a customer asynchronously. Adds the devices to zero-touch enrollment. To learn more, read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1797,7 +2774,7 @@ pub fn androiddeviceprovisioning_partners_devices_claim_async_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/partners/{partnersId}/devices:claimAsync
+/// POST v1/partners/{partnersId}/devices:claimAsync
 /// Claims a batch of devices for a customer asynchronously. Adds the devices to zero-touch enrollment. To learn more, read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1832,11 +2809,9 @@ pub fn androiddeviceprovisioning_partners_devices_claim_async_execute(
 pub struct AndroiddeviceprovisioningPartnersDevicesClaimAsyncArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
-    /// Request body.
-    pub body: ClaimDevicesRequest,
 }
 
-/// GET v1/partners/{partnersId}/devices:claimAsync
+/// POST v1/partners/{partnersId}/devices:claimAsync
 /// Claims a batch of devices for a customer asynchronously. Adds the devices to zero-touch enrollment. To learn more, read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1854,15 +2829,12 @@ pub fn androiddeviceprovisioning_partners_devices_claim_async(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_partners_devices_claim_async_builder(
-        client,
-        &args.partnerId,
-        &args.body,
-    )?;
+    let builder =
+        androiddeviceprovisioning_partners_devices_claim_async_builder(client, &args.partnerId)?;
     androiddeviceprovisioning_partners_devices_claim_async_execute(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:findByIdentifier
+/// POST v1/partners/{partnersId}/devices:findByIdentifier
 /// Finds devices by hardware identifiers, such as IMEI.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1871,24 +2843,22 @@ pub fn androiddeviceprovisioning_partners_devices_claim_async(
 pub fn androiddeviceprovisioning_partners_devices_find_by_identifier_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
-    body: &FindDevicesByDeviceIdentifierRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:findByIdentifier",
+        partnerId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:findByIdentifier
+/// POST v1/partners/{partnersId}/devices:findByIdentifier
 /// Finds devices by hardware identifiers, such as IMEI.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1962,7 +2932,7 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/partners/{partnersId}/devices:findByIdentifier
+/// POST v1/partners/{partnersId}/devices:findByIdentifier
 /// Finds devices by hardware identifiers, such as IMEI.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2001,11 +2971,9 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier_execute(
 pub struct AndroiddeviceprovisioningPartnersDevicesFindByIdentifierArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
-    /// Request body.
-    pub body: FindDevicesByDeviceIdentifierRequest,
 }
 
-/// GET v1/partners/{partnersId}/devices:findByIdentifier
+/// POST v1/partners/{partnersId}/devices:findByIdentifier
 /// Finds devices by hardware identifiers, such as IMEI.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2030,12 +2998,11 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier(
     let builder = androiddeviceprovisioning_partners_devices_find_by_identifier_builder(
         client,
         &args.partnerId,
-        &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_find_by_identifier_execute(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:findByOwner
+/// POST v1/partners/{partnersId}/devices:findByOwner
 /// Finds devices claimed for customers. The results only contain devices registered to the reseller that's identified by the `partnerId` argument. The customer's devices purchased from other resellers don't appear in the results.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2044,24 +3011,22 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier(
 pub fn androiddeviceprovisioning_partners_devices_find_by_owner_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
-    body: &FindDevicesByOwnerRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:findByOwner",
+        partnerId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:findByOwner
+/// POST v1/partners/{partnersId}/devices:findByOwner
 /// Finds devices claimed for customers. The results only contain devices registered to the reseller that's identified by the `partnerId` argument. The customer's devices purchased from other resellers don't appear in the results.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2135,7 +3100,7 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/partners/{partnersId}/devices:findByOwner
+/// POST v1/partners/{partnersId}/devices:findByOwner
 /// Finds devices claimed for customers. The results only contain devices registered to the reseller that's identified by the `partnerId` argument. The customer's devices purchased from other resellers don't appear in the results.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2174,11 +3139,9 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner_execute(
 pub struct AndroiddeviceprovisioningPartnersDevicesFindByOwnerArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
-    /// Request body.
-    pub body: FindDevicesByOwnerRequest,
 }
 
-/// GET v1/partners/{partnersId}/devices:findByOwner
+/// POST v1/partners/{partnersId}/devices:findByOwner
 /// Finds devices claimed for customers. The results only contain devices registered to the reseller that's identified by the `partnerId` argument. The customer's devices purchased from other resellers don't appear in the results.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2200,15 +3163,169 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner(
         + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_partners_devices_find_by_owner_builder(
-        client,
-        &args.partnerId,
-        &args.body,
-    )?;
+    let builder =
+        androiddeviceprovisioning_partners_devices_find_by_owner_builder(client, &args.partnerId)?;
     androiddeviceprovisioning_partners_devices_find_by_owner_execute(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:getSimLockState
+/// GET v1/partners/{partnersId}/devices/{devicesId}
+/// Gets a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androiddeviceprovisioning_partners_devices_get_execute()` to send, or `androiddeviceprovisioning_partners_devices_get` for simplest API.
+
+pub fn androiddeviceprovisioning_partners_devices_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/partners/{partnersId}/devices/{devicesId}
+/// Gets a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androiddeviceprovisioning_partners_devices_get_execute()` or `androiddeviceprovisioning_partners_devices_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_partners_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_partners_devices_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Device>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Device = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/partners/{partnersId}/devices/{devicesId}
+/// Gets a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androiddeviceprovisioning_partners_devices_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androiddeviceprovisioning_partners_devices_get_task()`.
+/// For the simplest API, use `androiddeviceprovisioning_partners_devices_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_partners_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androiddeviceprovisioning_partners_devices_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = androiddeviceprovisioning_partners_devices_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androiddeviceprovisioning_partners_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/partners/{partnersId}/devices/{devicesId}
+/// Gets a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androiddeviceprovisioning_partners_devices_get_builder()` + `androiddeviceprovisioning_partners_devices_get_execute()`.
+/// For task-level control, use `androiddeviceprovisioning_partners_devices_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_partners_devices_get(
+    client: &SimpleHttpClient,
+    args: &AndroiddeviceprovisioningPartnersDevicesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = androiddeviceprovisioning_partners_devices_get_builder(client, &args.name)?;
+    androiddeviceprovisioning_partners_devices_get_execute(builder)
+}
+
+/// POST v1/partners/{partnersId}/devices:getSimLockState
 /// Gets a device's SIM lock state.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2217,24 +3334,22 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner(
 pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
-    body: &GetDeviceSimLockStateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:getSimLockState",
+        partnerId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:getSimLockState
+/// POST v1/partners/{partnersId}/devices:getSimLockState
 /// Gets a device's SIM lock state.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2308,7 +3423,7 @@ pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/partners/{partnersId}/devices:getSimLockState
+/// POST v1/partners/{partnersId}/devices:getSimLockState
 /// Gets a device's SIM lock state.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2347,11 +3462,9 @@ pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state_execute(
 pub struct AndroiddeviceprovisioningPartnersDevicesGetSimLockStateArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
-    /// Request body.
-    pub body: GetDeviceSimLockStateRequest,
 }
 
-/// GET v1/partners/{partnersId}/devices:getSimLockState
+/// POST v1/partners/{partnersId}/devices:getSimLockState
 /// Gets a device's SIM lock state.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2376,12 +3489,11 @@ pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state(
     let builder = androiddeviceprovisioning_partners_devices_get_sim_lock_state_builder(
         client,
         &args.partnerId,
-        &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_get_sim_lock_state_execute(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices/{devicesId}/metadata
+/// POST v1/partners/{partnersId}/devices/{devicesId}/metadata
 /// Updates reseller metadata associated with the device. Android devices only.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2391,24 +3503,22 @@ pub fn androiddeviceprovisioning_partners_devices_metadata_builder(
     client: &SimpleHttpClient,
     metadataOwnerId: &String,
     deviceId: &String,
-    body: &UpdateDeviceMetadataRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices/{}/metadata",
+        metadataOwnerId, deviceId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices/{devicesId}/metadata
+/// POST v1/partners/{partnersId}/devices/{devicesId}/metadata
 /// Updates reseller metadata associated with the device. Android devices only.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2482,7 +3592,7 @@ pub fn androiddeviceprovisioning_partners_devices_metadata_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/partners/{partnersId}/devices/{devicesId}/metadata
+/// POST v1/partners/{partnersId}/devices/{devicesId}/metadata
 /// Updates reseller metadata associated with the device. Android devices only.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2521,11 +3631,9 @@ pub struct AndroiddeviceprovisioningPartnersDevicesMetadataArgs {
     pub metadataOwnerId: String,
     /// Path parameter: deviceId
     pub deviceId: String,
-    /// Request body.
-    pub body: UpdateDeviceMetadataRequest,
 }
 
-/// GET v1/partners/{partnersId}/devices/{devicesId}/metadata
+/// POST v1/partners/{partnersId}/devices/{devicesId}/metadata
 /// Updates reseller metadata associated with the device. Android devices only.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2549,12 +3657,11 @@ pub fn androiddeviceprovisioning_partners_devices_metadata(
         client,
         &args.metadataOwnerId,
         &args.deviceId,
-        &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_metadata_execute(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:unclaim
+/// POST v1/partners/{partnersId}/devices:unclaim
 /// Unclaims a device from a customer and removes it from zero-touch enrollment.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2563,23 +3670,22 @@ pub fn androiddeviceprovisioning_partners_devices_metadata(
 pub fn androiddeviceprovisioning_partners_devices_unclaim_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
-    body: &UnclaimDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:unclaim",);
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:unclaim",
+        partnerId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:unclaim
+/// POST v1/partners/{partnersId}/devices:unclaim
 /// Unclaims a device from a customer and removes it from zero-touch enrollment.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2653,7 +3759,7 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/partners/{partnersId}/devices:unclaim
+/// POST v1/partners/{partnersId}/devices:unclaim
 /// Unclaims a device from a customer and removes it from zero-touch enrollment.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2688,11 +3794,9 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_execute(
 pub struct AndroiddeviceprovisioningPartnersDevicesUnclaimArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
-    /// Request body.
-    pub body: UnclaimDeviceRequest,
 }
 
-/// GET v1/partners/{partnersId}/devices:unclaim
+/// POST v1/partners/{partnersId}/devices:unclaim
 /// Unclaims a device from a customer and removes it from zero-touch enrollment.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2710,15 +3814,12 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_partners_devices_unclaim_builder(
-        client,
-        &args.partnerId,
-        &args.body,
-    )?;
+    let builder =
+        androiddeviceprovisioning_partners_devices_unclaim_builder(client, &args.partnerId)?;
     androiddeviceprovisioning_partners_devices_unclaim_execute(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:unclaimAsync
+/// POST v1/partners/{partnersId}/devices:unclaimAsync
 /// Unclaims a batch of devices for a customer asynchronously. Removes the devices from zero-touch enrollment. To learn more, read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2727,24 +3828,22 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim(
 pub fn androiddeviceprovisioning_partners_devices_unclaim_async_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
-    body: &UnclaimDevicesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:unclaimAsync",
+        partnerId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:unclaimAsync
+/// POST v1/partners/{partnersId}/devices:unclaimAsync
 /// Unclaims a batch of devices for a customer asynchronously. Removes the devices from zero-touch enrollment. To learn more, read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2818,7 +3917,7 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_async_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/partners/{partnersId}/devices:unclaimAsync
+/// POST v1/partners/{partnersId}/devices:unclaimAsync
 /// Unclaims a batch of devices for a customer asynchronously. Removes the devices from zero-touch enrollment. To learn more, read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2853,11 +3952,9 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_async_execute(
 pub struct AndroiddeviceprovisioningPartnersDevicesUnclaimAsyncArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
-    /// Request body.
-    pub body: UnclaimDevicesRequest,
 }
 
-/// GET v1/partners/{partnersId}/devices:unclaimAsync
+/// POST v1/partners/{partnersId}/devices:unclaimAsync
 /// Unclaims a batch of devices for a customer asynchronously. Removes the devices from zero-touch enrollment. To learn more, read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2875,15 +3972,12 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_async(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_partners_devices_unclaim_async_builder(
-        client,
-        &args.partnerId,
-        &args.body,
-    )?;
+    let builder =
+        androiddeviceprovisioning_partners_devices_unclaim_async_builder(client, &args.partnerId)?;
     androiddeviceprovisioning_partners_devices_unclaim_async_execute(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:updateMetadataAsync
+/// POST v1/partners/{partnersId}/devices:updateMetadataAsync
 /// Updates the reseller metadata attached to a batch of devices. This method updates devices asynchronously and returns an Operation that can be used to track progress. Read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations). Android Devices only.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2892,24 +3986,22 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_async(
 pub fn androiddeviceprovisioning_partners_devices_update_metadata_async_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
-    body: &UpdateDeviceMetadataInBatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/devices:updateMetadataAsync",
+        partnerId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/partners/{partnersId}/devices:updateMetadataAsync
+/// POST v1/partners/{partnersId}/devices:updateMetadataAsync
 /// Updates the reseller metadata attached to a batch of devices. This method updates devices asynchronously and returns an Operation that can be used to track progress. Read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations). Android Devices only.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2983,7 +4075,7 @@ pub fn androiddeviceprovisioning_partners_devices_update_metadata_async_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/partners/{partnersId}/devices:updateMetadataAsync
+/// POST v1/partners/{partnersId}/devices:updateMetadataAsync
 /// Updates the reseller metadata attached to a batch of devices. This method updates devices asynchronously and returns an Operation that can be used to track progress. Read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations). Android Devices only.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3018,11 +4110,9 @@ pub fn androiddeviceprovisioning_partners_devices_update_metadata_async_execute(
 pub struct AndroiddeviceprovisioningPartnersDevicesUpdateMetadataAsyncArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
-    /// Request body.
-    pub body: UpdateDeviceMetadataInBatchRequest,
 }
 
-/// GET v1/partners/{partnersId}/devices:updateMetadataAsync
+/// POST v1/partners/{partnersId}/devices:updateMetadataAsync
 /// Updates the reseller metadata attached to a batch of devices. This method updates devices asynchronously and returns an Operation that can be used to track progress. Read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations). Android Devices only.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3043,7 +4133,6 @@ pub fn androiddeviceprovisioning_partners_devices_update_metadata_async(
     let builder = androiddeviceprovisioning_partners_devices_update_metadata_async_builder(
         client,
         &args.partnerId,
-        &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_update_metadata_async_execute(builder)
 }
@@ -3057,12 +4146,14 @@ pub fn androiddeviceprovisioning_partners_devices_update_metadata_async(
 pub fn androiddeviceprovisioning_partners_vendors_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/vendors",);
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/vendors",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3198,9 +4289,9 @@ pub struct AndroiddeviceprovisioningPartnersVendorsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/partners/{partnersId}/vendors
@@ -3230,4 +4321,967 @@ pub fn androiddeviceprovisioning_partners_vendors_list(
         &args.pageToken,
     )?;
     androiddeviceprovisioning_partners_vendors_list_execute(builder)
+}
+
+/// GET v1/partners/{partnersId}/vendors/{vendorsId}/customers
+/// Lists the customers of the vendor.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `androiddeviceprovisioning_partners_vendors_customers_list_execute()` to send, or `androiddeviceprovisioning_partners_vendors_customers_list` for simplest API.
+
+pub fn androiddeviceprovisioning_partners_vendors_customers_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://androiddeviceprovisioning.googleapis.com/v1/partners/{}/vendors/{vendorsId}/customers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/partners/{partnersId}/vendors/{vendorsId}/customers
+/// Lists the customers of the vendor.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `androiddeviceprovisioning_partners_vendors_customers_list_execute()` or `androiddeviceprovisioning_partners_vendors_customers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_partners_vendors_customers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_partners_vendors_customers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListVendorCustomersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListVendorCustomersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/partners/{partnersId}/vendors/{vendorsId}/customers
+/// Lists the customers of the vendor.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `androiddeviceprovisioning_partners_vendors_customers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `androiddeviceprovisioning_partners_vendors_customers_list_task()`.
+/// For the simplest API, use `androiddeviceprovisioning_partners_vendors_customers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `androiddeviceprovisioning_partners_vendors_customers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn androiddeviceprovisioning_partners_vendors_customers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListVendorCustomersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = androiddeviceprovisioning_partners_vendors_customers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`androiddeviceprovisioning_partners_vendors_customers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersVendorsCustomersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/partners/{partnersId}/vendors/{vendorsId}/customers
+/// Lists the customers of the vendor.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `androiddeviceprovisioning_partners_vendors_customers_list_builder()` + `androiddeviceprovisioning_partners_vendors_customers_list_execute()`.
+/// For task-level control, use `androiddeviceprovisioning_partners_vendors_customers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn androiddeviceprovisioning_partners_vendors_customers_list(
+    client: &SimpleHttpClient,
+    args: &AndroiddeviceprovisioningPartnersVendorsCustomersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListVendorCustomersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = androiddeviceprovisioning_partners_vendors_customers_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    androiddeviceprovisioning_partners_vendors_customers_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomerListCustomersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomerListCustomersResponse with AndroiddeviceprovisioningCustomersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersListArgs>
+    for CustomerListCustomersResponse
+{
+    fn generate_resource_id(&self, input: &AndroiddeviceprovisioningCustomersListArgs) -> String {
+        "gcp::androiddeviceprovisioning::CustomerListCustomersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::CustomerListCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Configuration
+// =============================================================================
+
+/// ResourceIdentifier implementation for Configuration with AndroiddeviceprovisioningCustomersConfigurationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersConfigurationsCreateArgs>
+    for Configuration
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersConfigurationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::Configuration/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Configuration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with AndroiddeviceprovisioningCustomersConfigurationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersConfigurationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersConfigurationsDeleteArgs,
+    ) -> String {
+        format!("gcp::androiddeviceprovisioning::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Configuration
+// =============================================================================
+
+/// ResourceIdentifier implementation for Configuration with AndroiddeviceprovisioningCustomersConfigurationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersConfigurationsGetArgs> for Configuration {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersConfigurationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::Configuration/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Configuration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomerListConfigurationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomerListConfigurationsResponse with AndroiddeviceprovisioningCustomersConfigurationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersConfigurationsListArgs>
+    for CustomerListConfigurationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersConfigurationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::CustomerListConfigurationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::CustomerListConfigurationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Configuration
+// =============================================================================
+
+/// ResourceIdentifier implementation for Configuration with AndroiddeviceprovisioningCustomersConfigurationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersConfigurationsPatchArgs>
+    for Configuration
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersConfigurationsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::Configuration/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Configuration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with AndroiddeviceprovisioningCustomersDevicesApplyConfigurationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersDevicesApplyConfigurationArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersDevicesApplyConfigurationArgs,
+    ) -> String {
+        format!("gcp::androiddeviceprovisioning::Empty/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Device
+// =============================================================================
+
+/// ResourceIdentifier implementation for Device with AndroiddeviceprovisioningCustomersDevicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersDevicesGetArgs> for Device {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersDevicesGetArgs,
+    ) -> String {
+        format!("gcp::androiddeviceprovisioning::Device/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Device"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomerListDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomerListDevicesResponse with AndroiddeviceprovisioningCustomersDevicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersDevicesListArgs>
+    for CustomerListDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersDevicesListArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::CustomerListDevicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::CustomerListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with AndroiddeviceprovisioningCustomersDevicesRemoveConfigurationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersDevicesRemoveConfigurationArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersDevicesRemoveConfigurationArgs,
+    ) -> String {
+        format!("gcp::androiddeviceprovisioning::Empty/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with AndroiddeviceprovisioningCustomersDevicesUnclaimArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersDevicesUnclaimArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersDevicesUnclaimArgs,
+    ) -> String {
+        format!("gcp::androiddeviceprovisioning::Empty/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomerListDpcsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomerListDpcsResponse with AndroiddeviceprovisioningCustomersDpcsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersDpcsListArgs>
+    for CustomerListDpcsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersDpcsListArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::CustomerListDpcsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::CustomerListDpcsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AndroiddeviceprovisioningOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &AndroiddeviceprovisioningOperationsGetArgs) -> String {
+        format!("gcp::androiddeviceprovisioning::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Company
+// =============================================================================
+
+/// ResourceIdentifier implementation for Company with AndroiddeviceprovisioningPartnersCustomersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersCustomersCreateArgs> for Company {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersCustomersCreateArgs,
+    ) -> String {
+        format!("gcp::androiddeviceprovisioning::Company/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Company"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCustomersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCustomersResponse with AndroiddeviceprovisioningPartnersCustomersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersCustomersListArgs>
+    for ListCustomersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersCustomersListArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::ListCustomersResponse/{}",
+            input.partnerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::ListCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ClaimDeviceResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ClaimDeviceResponse with AndroiddeviceprovisioningPartnersDevicesClaimArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesClaimArgs> for ClaimDeviceResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesClaimArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::ClaimDeviceResponse/{}",
+            input.partnerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::ClaimDeviceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AndroiddeviceprovisioningPartnersDevicesClaimAsyncArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesClaimAsyncArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesClaimAsyncArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::Operation/{}",
+            input.partnerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FindDevicesByDeviceIdentifierResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FindDevicesByDeviceIdentifierResponse with AndroiddeviceprovisioningPartnersDevicesFindByIdentifierArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesFindByIdentifierArgs>
+    for FindDevicesByDeviceIdentifierResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesFindByIdentifierArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::FindDevicesByDeviceIdentifierResponse/{}",
+            input.partnerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::FindDevicesByDeviceIdentifierResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FindDevicesByOwnerResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FindDevicesByOwnerResponse with AndroiddeviceprovisioningPartnersDevicesFindByOwnerArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesFindByOwnerArgs>
+    for FindDevicesByOwnerResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesFindByOwnerArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::FindDevicesByOwnerResponse/{}",
+            input.partnerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::FindDevicesByOwnerResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Device
+// =============================================================================
+
+/// ResourceIdentifier implementation for Device with AndroiddeviceprovisioningPartnersDevicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesGetArgs> for Device {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesGetArgs,
+    ) -> String {
+        format!("gcp::androiddeviceprovisioning::Device/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Device"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetDeviceSimLockStateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetDeviceSimLockStateResponse with AndroiddeviceprovisioningPartnersDevicesGetSimLockStateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesGetSimLockStateArgs>
+    for GetDeviceSimLockStateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesGetSimLockStateArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::GetDeviceSimLockStateResponse/{}",
+            input.partnerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::GetDeviceSimLockStateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DeviceMetadata
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeviceMetadata with AndroiddeviceprovisioningPartnersDevicesMetadataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesMetadataArgs> for DeviceMetadata {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesMetadataArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::DeviceMetadata/{}/{}",
+            input.metadataOwnerId, input.deviceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::DeviceMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with AndroiddeviceprovisioningPartnersDevicesUnclaimArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesUnclaimArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesUnclaimArgs,
+    ) -> String {
+        format!("gcp::androiddeviceprovisioning::Empty/{}", input.partnerId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AndroiddeviceprovisioningPartnersDevicesUnclaimAsyncArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesUnclaimAsyncArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesUnclaimAsyncArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::Operation/{}",
+            input.partnerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with AndroiddeviceprovisioningPartnersDevicesUpdateMetadataAsyncArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesUpdateMetadataAsyncArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesUpdateMetadataAsyncArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::Operation/{}",
+            input.partnerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListVendorsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListVendorsResponse with AndroiddeviceprovisioningPartnersVendorsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersVendorsListArgs> for ListVendorsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersVendorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::ListVendorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::ListVendorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListVendorCustomersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListVendorCustomersResponse with AndroiddeviceprovisioningPartnersVendorsCustomersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersVendorsCustomersListArgs>
+    for ListVendorCustomersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersVendorsCustomersListArgs,
+    ) -> String {
+        format!(
+            "gcp::androiddeviceprovisioning::ListVendorCustomersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::androiddeviceprovisioning::ListVendorCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

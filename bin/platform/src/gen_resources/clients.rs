@@ -495,6 +495,7 @@ impl ClientGenerator {
         // For each placeholder in order, replace its first occurrence with {}
         // and track which param to pass for it
         let mut params_to_pass: Vec<&str> = Vec::new();
+        let mut used_params: std::collections::HashSet<&str> = std::collections::HashSet::new();
 
         for placeholder in endpoint.path_placeholders.iter() {
             let placeholder_pattern = format!("{{{}}}", placeholder);
@@ -503,11 +504,56 @@ impl ClientGenerator {
                 let after = &url_format[pos + placeholder_pattern.len()..];
                 url_format = format!("{}{{}}{}", before, after);
 
-                // Find the matching param and add it to the list
-                if let Some(param) = endpoint.path_params.iter()
-                    .find(|p| &p.name == placeholder || &p.original_name == placeholder)
-                {
+                // Find the matching param - try exact match first, then substring match
+                let matched_param = endpoint.path_params.iter()
+                    .find(|p| {
+                        // Skip already used params
+                        if used_params.contains(p.name.as_str()) {
+                            return false;
+                        }
+                        // Exact match
+                        &p.name == placeholder || &p.original_name == placeholder
+                    })
+                    .or_else(|| {
+                        // Substring match - check if placeholder is contained in param name or vice versa
+                        endpoint.path_params.iter().find(|p| {
+                            if used_params.contains(p.name.as_str()) {
+                                return false;
+                            }
+                            let placeholder_lower = placeholder.to_lowercase();
+                            let name_lower = p.name.to_lowercase();
+                            let original_lower = p.original_name.to_lowercase();
+                            placeholder_lower.contains(&name_lower)
+                                || name_lower.contains(&placeholder_lower)
+                                || placeholder_lower.contains(&original_lower)
+                                || original_lower.contains(&placeholder_lower)
+                        })
+                    });
+
+                if let Some(param) = matched_param {
                     params_to_pass.push(&param.name);
+                    used_params.insert(param.name.as_str());
+                }
+            }
+        }
+
+        // Fallback: if we still have placeholders but no params matched, use positional matching
+        // This handles cases where placeholder names don't match param names at all
+        let placeholder_count = url_format.matches("{}").count();
+        if placeholder_count > params_to_pass.len() {
+            // Reset and use simple positional matching
+            url_format = endpoint.path.clone();
+            params_to_pass.clear();
+            used_params.clear();
+
+            // Count placeholders in path and match params positionally
+            let placeholder_re = Regex::new(r"\{[^}]+\}").unwrap();
+            let placeholder_positions: Vec<_> = placeholder_re.find_iter(&endpoint.path).collect();
+
+            for (i, param) in endpoint.path_params.iter().enumerate() {
+                if i < placeholder_positions.len() {
+                    params_to_pass.push(&param.name);
+                    url_format = placeholder_re.replace(url_format.as_str(), "{}").to_string();
                 }
             }
         }

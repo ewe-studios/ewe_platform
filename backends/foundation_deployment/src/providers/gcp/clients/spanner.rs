@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -29,13 +29,15 @@ use serde::Serialize;
 pub fn spanner_projects_instance_config_operations_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://spanner.googleapis.com/v1/projects/{}/instanceConfigOperations",);
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigOperations",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -176,11 +178,11 @@ pub struct SpannerProjectsInstanceConfigOperationsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/instanceConfigOperations
@@ -215,7 +217,7 @@ pub fn spanner_projects_instance_config_operations_list(
     spanner_projects_instance_config_operations_list_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/instanceConfigs
+/// POST v1/projects/{projectsId}/instanceConfigs
 /// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration's reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration's reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -224,22 +226,22 @@ pub fn spanner_projects_instance_config_operations_list(
 pub fn spanner_projects_instance_configs_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &CreateInstanceConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://spanner.googleapis.com/v1/projects/{}/instanceConfigs",);
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/instanceConfigs
+/// POST v1/projects/{projectsId}/instanceConfigs
 /// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration's reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration's reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -313,7 +315,7 @@ pub fn spanner_projects_instance_configs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/instanceConfigs
+/// POST v1/projects/{projectsId}/instanceConfigs
 /// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration's reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration's reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -348,11 +350,9 @@ pub fn spanner_projects_instance_configs_create_execute(
 pub struct SpannerProjectsInstanceConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: CreateInstanceConfigRequest,
 }
 
-/// GET v1/projects/{projectsId}/instanceConfigs
+/// POST v1/projects/{projectsId}/instanceConfigs
 /// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration's reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration's reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -370,12 +370,2046 @@ pub fn spanner_projects_instance_configs_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instance_configs_create_builder(client, &args.parent, &args.body)?;
+    let builder = spanner_projects_instance_configs_create_builder(client, &args.parent)?;
     spanner_projects_instance_configs_create_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/instances
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Deletes the instance configuration. Deletion is only allowed when no instances are using the configuration. If any instances are using the configuration, returns FAILED_PRECONDITION. Only user-managed configurations can be deleted. Authorization requires spanner.`instanceConfigs`.delete permission on the resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_delete_execute()` to send, or `spanner_projects_instance_configs_delete` for simplest API.
+
+pub fn spanner_projects_instance_configs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Deletes the instance configuration. Deletion is only allowed when no instances are using the configuration. If any instances are using the configuration, returns FAILED_PRECONDITION. Only user-managed configurations can be deleted. Authorization requires spanner.`instanceConfigs`.delete permission on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_delete_execute()` or `spanner_projects_instance_configs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Deletes the instance configuration. Deletion is only allowed when no instances are using the configuration. If any instances are using the configuration, returns FAILED_PRECONDITION. Only user-managed configurations can be deleted. Authorization requires spanner.`instanceConfigs`.delete permission on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_delete_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Deletes the instance configuration. Deletion is only allowed when no instances are using the configuration. If any instances are using the configuration, returns FAILED_PRECONDITION. Only user-managed configurations can be deleted. Authorization requires spanner.`instanceConfigs`.delete permission on the resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_delete_builder()` + `spanner_projects_instance_configs_delete_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instance_configs_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.validateOnly,
+    )?;
+    spanner_projects_instance_configs_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Gets information about a particular instance configuration.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_get_execute()` to send, or `spanner_projects_instance_configs_get` for simplest API.
+
+pub fn spanner_projects_instance_configs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Gets information about a particular instance configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_get_execute()` or `spanner_projects_instance_configs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InstanceConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InstanceConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Gets information about a particular instance configuration.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_get_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InstanceConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Gets information about a particular instance configuration.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_get_builder()` + `spanner_projects_instance_configs_get_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InstanceConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instance_configs_get_builder(client, &args.name)?;
+    spanner_projects_instance_configs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs
+/// Lists the supported instance configurations for a given project. Returns both Google-managed configurations and user-managed configurations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_list_execute()` to send, or `spanner_projects_instance_configs_list` for simplest API.
+
+pub fn spanner_projects_instance_configs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs
+/// Lists the supported instance configurations for a given project. Returns both Google-managed configurations and user-managed configurations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_list_execute()` or `spanner_projects_instance_configs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInstanceConfigsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInstanceConfigsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs
+/// Lists the supported instance configurations for a given project. Returns both Google-managed configurations and user-managed configurations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_list_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInstanceConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs
+/// Lists the supported instance configurations for a given project. Returns both Google-managed configurations and user-managed configurations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_list_builder()` + `spanner_projects_instance_configs_list_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInstanceConfigsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instance_configs_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instance_configs_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration's reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata's cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration's reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_patch_execute()` to send, or `spanner_projects_instance_configs_patch` for simplest API.
+
+pub fn spanner_projects_instance_configs_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration's reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata's cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration's reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_patch_execute()` or `spanner_projects_instance_configs_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration's reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata's cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration's reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_patch_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
+/// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration's reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata's cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration's reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_patch_builder()` + `spanner_projects_instance_configs_patch_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_patch(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instance_configs_patch_builder(client, &args.name)?;
+    spanner_projects_instance_configs_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_operations_cancel_execute()` to send, or `spanner_projects_instance_configs_operations_cancel` for simplest API.
+
+pub fn spanner_projects_instance_configs_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_operations_cancel_execute()` or `spanner_projects_instance_configs_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_operations_cancel_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_operations_cancel_builder()` + `spanner_projects_instance_configs_operations_cancel_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instance_configs_operations_cancel_builder(client, &args.name)?;
+    spanner_projects_instance_configs_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_operations_delete_execute()` to send, or `spanner_projects_instance_configs_operations_delete` for simplest API.
+
+pub fn spanner_projects_instance_configs_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_operations_delete_execute()` or `spanner_projects_instance_configs_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_operations_delete_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_operations_delete_builder()` + `spanner_projects_instance_configs_operations_delete_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_operations_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instance_configs_operations_delete_builder(client, &args.name)?;
+    spanner_projects_instance_configs_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_operations_get_execute()` to send, or `spanner_projects_instance_configs_operations_get` for simplest API.
+
+pub fn spanner_projects_instance_configs_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_operations_get_execute()` or `spanner_projects_instance_configs_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_operations_get_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_operations_get_builder()` + `spanner_projects_instance_configs_operations_get_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_operations_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instance_configs_operations_get_builder(client, &args.name)?;
+    spanner_projects_instance_configs_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_operations_list_execute()` to send, or `spanner_projects_instance_configs_operations_list` for simplest API.
+
+pub fn spanner_projects_instance_configs_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_operations_list_execute()` or `spanner_projects_instance_configs_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_operations_list_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_operations_list_builder()` + `spanner_projects_instance_configs_operations_list_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_operations_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instance_configs_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    spanner_projects_instance_configs_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_ssd_caches_operations_cancel_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_cancel` for simplest API.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_ssd_caches_operations_cancel_execute()` or `spanner_projects_instance_configs_ssd_caches_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_ssd_caches_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_ssd_caches_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_ssd_caches_operations_cancel_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_ssd_caches_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_ssd_caches_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_ssd_caches_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_ssd_caches_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_ssd_caches_operations_cancel_builder()` + `spanner_projects_instance_configs_ssd_caches_operations_cancel_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_ssd_caches_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsSsdCachesOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instance_configs_ssd_caches_operations_cancel_builder(client, &args.name)?;
+    spanner_projects_instance_configs_ssd_caches_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_ssd_caches_operations_delete_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_delete` for simplest API.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_ssd_caches_operations_delete_execute()` or `spanner_projects_instance_configs_ssd_caches_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_ssd_caches_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_ssd_caches_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_ssd_caches_operations_delete_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_ssd_caches_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_ssd_caches_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_ssd_caches_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_ssd_caches_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_ssd_caches_operations_delete_builder()` + `spanner_projects_instance_configs_ssd_caches_operations_delete_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_ssd_caches_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsSsdCachesOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instance_configs_ssd_caches_operations_delete_builder(client, &args.name)?;
+    spanner_projects_instance_configs_ssd_caches_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_ssd_caches_operations_get_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_get` for simplest API.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_ssd_caches_operations_get_execute()` or `spanner_projects_instance_configs_ssd_caches_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_ssd_caches_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_ssd_caches_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_ssd_caches_operations_get_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_ssd_caches_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_ssd_caches_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_ssd_caches_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_ssd_caches_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_ssd_caches_operations_get_builder()` + `spanner_projects_instance_configs_ssd_caches_operations_get_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_ssd_caches_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsSsdCachesOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instance_configs_ssd_caches_operations_get_builder(client, &args.name)?;
+    spanner_projects_instance_configs_ssd_caches_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instance_configs_ssd_caches_operations_list_execute()` to send, or `spanner_projects_instance_configs_ssd_caches_operations_list` for simplest API.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instance_configs_ssd_caches_operations_list_execute()` or `spanner_projects_instance_configs_ssd_caches_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_ssd_caches_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instance_configs_ssd_caches_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instance_configs_ssd_caches_operations_list_task()`.
+/// For the simplest API, use `spanner_projects_instance_configs_ssd_caches_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instance_configs_ssd_caches_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instance_configs_ssd_caches_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instance_configs_ssd_caches_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instance_configs_ssd_caches_operations_list_builder()` + `spanner_projects_instance_configs_ssd_caches_operations_list_execute()`.
+/// For task-level control, use `spanner_projects_instance_configs_ssd_caches_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instance_configs_ssd_caches_operations_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instance_configs_ssd_caches_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    spanner_projects_instance_configs_ssd_caches_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances
 /// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance's allocated resource levels are readable via the API. * The instance's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -384,22 +2418,22 @@ pub fn spanner_projects_instance_configs_create(
 pub fn spanner_projects_instances_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &CreateInstanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://spanner.googleapis.com/v1/projects/{}/instances",);
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/instances
+/// POST v1/projects/{projectsId}/instances
 /// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance's allocated resource levels are readable via the API. * The instance's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -473,7 +2507,7 @@ pub fn spanner_projects_instances_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/instances
+/// POST v1/projects/{projectsId}/instances
 /// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance's allocated resource levels are readable via the API. * The instance's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -508,11 +2542,9 @@ pub fn spanner_projects_instances_create_execute(
 pub struct SpannerProjectsInstancesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: CreateInstanceRequest,
 }
 
-/// GET v1/projects/{projectsId}/instances
+/// POST v1/projects/{projectsId}/instances
 /// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance's allocated resource levels are readable via the API. * The instance's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -530,6 +2562,16694 @@ pub fn spanner_projects_instances_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_create_builder(client, &args.parent, &args.body)?;
+    let builder = spanner_projects_instances_create_builder(client, &args.parent)?;
     spanner_projects_instances_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}
+/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance's reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_delete_execute()` to send, or `spanner_projects_instances_delete` for simplest API.
+
+pub fn spanner_projects_instances_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}
+/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance's reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_delete_execute()` or `spanner_projects_instances_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}
+/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance's reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_delete_task()`.
+/// For the simplest API, use `spanner_projects_instances_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}
+/// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance's reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_delete_builder()` + `spanner_projects_instances_delete_execute()`.
+/// For task-level control, use `spanner_projects_instances_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_delete_builder(client, &args.name)?;
+    spanner_projects_instances_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}
+/// Gets information about a particular instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_get_execute()` to send, or `spanner_projects_instances_get` for simplest API.
+
+pub fn spanner_projects_instances_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    fieldMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = fieldMask.as_ref() {
+        query_parts.push(format!("fieldMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}
+/// Gets information about a particular instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_get_execute()` or `spanner_projects_instances_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Instance>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Instance = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}
+/// Gets information about a particular instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_get_task()`.
+/// For the simplest API, use `spanner_projects_instances_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: fieldMask
+    pub fieldMask: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}
+/// Gets information about a particular instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_get_builder()` + `spanner_projects_instances_get_execute()`.
+/// For task-level control, use `spanner_projects_instances_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_get_builder(client, &args.name, &args.fieldMask)?;
+    spanner_projects_instances_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set. Authorization requires spanner.instances.`getIamPolicy` on resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_get_iam_policy_execute()` to send, or `spanner_projects_instances_get_iam_policy` for simplest API.
+
+pub fn spanner_projects_instances_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set. Authorization requires spanner.instances.`getIamPolicy` on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_get_iam_policy_execute()` or `spanner_projects_instances_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set. Authorization requires spanner.instances.`getIamPolicy` on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_get_iam_policy_task()`.
+/// For the simplest API, use `spanner_projects_instances_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set. Authorization requires spanner.instances.`getIamPolicy` on resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_get_iam_policy_builder()` + `spanner_projects_instances_get_iam_policy_execute()`.
+/// For task-level control, use `spanner_projects_instances_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_get_iam_policy_builder(client, &args.resource)?;
+    spanner_projects_instances_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances
+/// Lists all instances in the given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_list_execute()` to send, or `spanner_projects_instances_list` for simplest API.
+
+pub fn spanner_projects_instances_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    instanceDeadline: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = instanceDeadline.as_ref() {
+        query_parts.push(format!("instanceDeadline={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances
+/// Lists all instances in the given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_list_execute()` or `spanner_projects_instances_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInstancesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInstancesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances
+/// Lists all instances in the given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: instanceDeadline
+    pub instanceDeadline: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances
+/// Lists all instances in the given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_list_builder()` + `spanner_projects_instances_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.instanceDeadline,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instances_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:move
+/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn't cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata's cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_move_execute()` to send, or `spanner_projects_instances_move` for simplest API.
+
+pub fn spanner_projects_instances_move_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}:move",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:move
+/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn't cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata's cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_move_execute()` or `spanner_projects_instances_move`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_move_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:move
+/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn't cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata's cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_move_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_move_task()`.
+/// For the simplest API, use `spanner_projects_instances_move()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_move_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_move_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:move
+/// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn't cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata's cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_move_builder()` + `spanner_projects_instances_move_execute()`.
+/// For task-level control, use `spanner_projects_instances_move_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_move(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesMoveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_move_builder(client, &args.name)?;
+    spanner_projects_instances_move_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}
+/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance's tables. * The instance's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_patch_execute()` to send, or `spanner_projects_instances_patch` for simplest API.
+
+pub fn spanner_projects_instances_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}
+/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance's tables. * The instance's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_patch_execute()` or `spanner_projects_instances_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}
+/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance's tables. * The instance's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_patch_task()`.
+/// For the simplest API, use `spanner_projects_instances_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}
+/// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance's tables. * The instance's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_patch_builder()` + `spanner_projects_instances_patch_execute()`.
+/// For task-level control, use `spanner_projects_instances_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_patch(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_patch_builder(client, &args.name)?;
+    spanner_projects_instances_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy. Authorization requires spanner.instances.`setIamPolicy` on resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_set_iam_policy_execute()` to send, or `spanner_projects_instances_set_iam_policy` for simplest API.
+
+pub fn spanner_projects_instances_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy. Authorization requires spanner.instances.`setIamPolicy` on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_set_iam_policy_execute()` or `spanner_projects_instances_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy. Authorization requires spanner.instances.`setIamPolicy` on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_set_iam_policy_task()`.
+/// For the simplest API, use `spanner_projects_instances_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on an instance resource. Replaces any existing policy. Authorization requires spanner.instances.`setIamPolicy` on resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_set_iam_policy_builder()` + `spanner_projects_instances_set_iam_policy_execute()`.
+/// For task-level control, use `spanner_projects_instances_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_set_iam_policy_builder(client, &args.resource)?;
+    spanner_projects_instances_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource. Attempting this RPC on a non-existent Cloud Spanner instance resource will result in a NOT_FOUND error if the user has spanner.instances.list permission on the containing Google Cloud Project. Otherwise returns an empty set of permissions.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_test_iam_permissions_execute()` to send, or `spanner_projects_instances_test_iam_permissions` for simplest API.
+
+pub fn spanner_projects_instances_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource. Attempting this RPC on a non-existent Cloud Spanner instance resource will result in a NOT_FOUND error if the user has spanner.instances.list permission on the containing Google Cloud Project. Otherwise returns an empty set of permissions.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_test_iam_permissions_execute()` or `spanner_projects_instances_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource. Attempting this RPC on a non-existent Cloud Spanner instance resource will result in a NOT_FOUND error if the user has spanner.instances.list permission on the containing Google Cloud Project. Otherwise returns an empty set of permissions.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_test_iam_permissions_task()`.
+/// For the simplest API, use `spanner_projects_instances_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified instance resource. Attempting this RPC on a non-existent Cloud Spanner instance resource will result in a NOT_FOUND error if the user has spanner.instances.list permission on the containing Google Cloud Project. Otherwise returns an empty set of permissions.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_test_iam_permissions_builder()` + `spanner_projects_instances_test_iam_permissions_execute()`.
+/// For task-level control, use `spanner_projects_instances_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_test_iam_permissions_builder(client, &args.resource)?;
+    spanner_projects_instances_test_iam_permissions_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backupOperations
+/// Lists the backup long-running operations in the given instance. A backup operation has a name of the form `projects//instances//backups//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.progress.start_time in descending order starting from the most recently started operation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backup_operations_list_execute()` to send, or `spanner_projects_instances_backup_operations_list` for simplest API.
+
+pub fn spanner_projects_instances_backup_operations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backupOperations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backupOperations
+/// Lists the backup long-running operations in the given instance. A backup operation has a name of the form `projects//instances//backups//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.progress.start_time in descending order starting from the most recently started operation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backup_operations_list_execute()` or `spanner_projects_instances_backup_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backup_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backup_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backupOperations
+/// Lists the backup long-running operations in the given instance. A backup operation has a name of the form `projects//instances//backups//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.progress.start_time in descending order starting from the most recently started operation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backup_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backup_operations_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_backup_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backup_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backup_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backup_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backup_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backupOperations
+/// Lists the backup long-running operations in the given instance. A backup operation has a name of the form `projects//instances//backups//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.progress.start_time in descending order starting from the most recently started operation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backup_operations_list_builder()` + `spanner_projects_instances_backup_operations_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_backup_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backup_operations_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_backup_operations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instances_backup_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups:copy
+/// Starts copying a Cloud Spanner Backup. The returned backup long-running operation will have a name of the format `projects//instances//backups//operations/` and can be used to track copying of the backup. The operation is associated with the destination backup. The metadata field type is CopyBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the copying and delete the destination backup. Concurrent CopyBackup requests can run on the same source backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_copy_execute()` to send, or `spanner_projects_instances_backups_copy` for simplest API.
+
+pub fn spanner_projects_instances_backups_copy_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups:copy",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups:copy
+/// Starts copying a Cloud Spanner Backup. The returned backup long-running operation will have a name of the format `projects//instances//backups//operations/` and can be used to track copying of the backup. The operation is associated with the destination backup. The metadata field type is CopyBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the copying and delete the destination backup. Concurrent CopyBackup requests can run on the same source backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_copy_execute()` or `spanner_projects_instances_backups_copy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_copy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_copy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups:copy
+/// Starts copying a Cloud Spanner Backup. The returned backup long-running operation will have a name of the format `projects//instances//backups//operations/` and can be used to track copying of the backup. The operation is associated with the destination backup. The metadata field type is CopyBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the copying and delete the destination backup. Concurrent CopyBackup requests can run on the same source backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_copy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_copy_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_copy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_copy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_copy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_copy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_copy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsCopyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups:copy
+/// Starts copying a Cloud Spanner Backup. The returned backup long-running operation will have a name of the format `projects//instances//backups//operations/` and can be used to track copying of the backup. The operation is associated with the destination backup. The metadata field type is CopyBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the copying and delete the destination backup. Concurrent CopyBackup requests can run on the same source backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_copy_builder()` + `spanner_projects_instances_backups_copy_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_copy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_copy(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsCopyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_backups_copy_builder(client, &args.parent)?;
+    spanner_projects_instances_backups_copy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups
+/// Starts creating a new Cloud Spanner Backup. The returned backup long-running operation will have a name of the format `projects//instances//backups//operations/` and can be used to track creation of the backup. The metadata field type is CreateBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the creation and delete the backup. There can be only one pending backup creation per database. Backup creation of different databases can run concurrently.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_create_execute()` to send, or `spanner_projects_instances_backups_create` for simplest API.
+
+pub fn spanner_projects_instances_backups_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupId: &Option<Option<String>>,
+    encryptionConfig_encryptionType: &Option<Option<String>>,
+    encryptionConfig_kmsKeyName: &Option<Option<String>>,
+    encryptionConfig_kmsKeyNames: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupId.as_ref() {
+        query_parts.push(format!("backupId={}", val));
+    }
+    if let Some(val) = encryptionConfig_encryptionType.as_ref() {
+        query_parts.push(format!("encryptionConfig.encryptionType={}", val));
+    }
+    if let Some(val) = encryptionConfig_kmsKeyName.as_ref() {
+        query_parts.push(format!("encryptionConfig.kmsKeyName={}", val));
+    }
+    if let Some(val) = encryptionConfig_kmsKeyNames.as_ref() {
+        query_parts.push(format!("encryptionConfig.kmsKeyNames={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups
+/// Starts creating a new Cloud Spanner Backup. The returned backup long-running operation will have a name of the format `projects//instances//backups//operations/` and can be used to track creation of the backup. The metadata field type is CreateBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the creation and delete the backup. There can be only one pending backup creation per database. Backup creation of different databases can run concurrently.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_create_execute()` or `spanner_projects_instances_backups_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups
+/// Starts creating a new Cloud Spanner Backup. The returned backup long-running operation will have a name of the format `projects//instances//backups//operations/` and can be used to track creation of the backup. The metadata field type is CreateBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the creation and delete the backup. There can be only one pending backup creation per database. Backup creation of different databases can run concurrently.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_create_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<Option<String>>,
+    /// Query parameter: encryptionConfig_encryptionType
+    pub encryptionConfig_encryptionType: Option<Option<String>>,
+    /// Query parameter: encryptionConfig_kmsKeyName
+    pub encryptionConfig_kmsKeyName: Option<Option<String>>,
+    /// Query parameter: encryptionConfig_kmsKeyNames
+    pub encryptionConfig_kmsKeyNames: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups
+/// Starts creating a new Cloud Spanner Backup. The returned backup long-running operation will have a name of the format `projects//instances//backups//operations/` and can be used to track creation of the backup. The metadata field type is CreateBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the creation and delete the backup. There can be only one pending backup creation per database. Backup creation of different databases can run concurrently.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_create_builder()` + `spanner_projects_instances_backups_create_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_create(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_backups_create_builder(
+        client,
+        &args.parent,
+        &args.backupId,
+        &args.encryptionConfig_encryptionType,
+        &args.encryptionConfig_kmsKeyName,
+        &args.encryptionConfig_kmsKeyNames,
+    )?;
+    spanner_projects_instances_backups_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Deletes a pending or completed Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_delete_execute()` to send, or `spanner_projects_instances_backups_delete` for simplest API.
+
+pub fn spanner_projects_instances_backups_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Deletes a pending or completed Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_delete_execute()` or `spanner_projects_instances_backups_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Deletes a pending or completed Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_delete_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Deletes a pending or completed Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_delete_builder()` + `spanner_projects_instances_backups_delete_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_backups_delete_builder(client, &args.name)?;
+    spanner_projects_instances_backups_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Gets metadata on a pending or completed Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_get_execute()` to send, or `spanner_projects_instances_backups_get` for simplest API.
+
+pub fn spanner_projects_instances_backups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Gets metadata on a pending or completed Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_get_execute()` or `spanner_projects_instances_backups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Backup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Backup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Gets metadata on a pending or completed Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_get_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Gets metadata on a pending or completed Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_get_builder()` + `spanner_projects_instances_backups_get_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_backups_get_builder(client, &args.name)?;
+    spanner_projects_instances_backups_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_get_iam_policy_execute()` to send, or `spanner_projects_instances_backups_get_iam_policy` for simplest API.
+
+pub fn spanner_projects_instances_backups_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_get_iam_policy_execute()` or `spanner_projects_instances_backups_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_get_iam_policy_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_get_iam_policy_builder()` + `spanner_projects_instances_backups_get_iam_policy_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_backups_get_iam_policy_builder(client, &args.resource)?;
+    spanner_projects_instances_backups_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups
+/// Lists completed and pending backups. Backups returned are ordered by create_time in descending order, starting from the most recent create_time.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_list_execute()` to send, or `spanner_projects_instances_backups_list` for simplest API.
+
+pub fn spanner_projects_instances_backups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups
+/// Lists completed and pending backups. Backups returned are ordered by create_time in descending order, starting from the most recent create_time.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_list_execute()` or `spanner_projects_instances_backups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups
+/// Lists completed and pending backups. Backups returned are ordered by create_time in descending order, starting from the most recent create_time.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups
+/// Lists completed and pending backups. Backups returned are ordered by create_time in descending order, starting from the most recent create_time.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_list_builder()` + `spanner_projects_instances_backups_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_backups_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instances_backups_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Updates a pending or completed Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_patch_execute()` to send, or `spanner_projects_instances_backups_patch` for simplest API.
+
+pub fn spanner_projects_instances_backups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Updates a pending or completed Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_patch_execute()` or `spanner_projects_instances_backups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Backup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Backup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Updates a pending or completed Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_patch_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
+/// Updates a pending or completed Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_patch_builder()` + `spanner_projects_instances_backups_patch_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_patch(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_backups_patch_builder(client, &args.name, &args.updateMask)?;
+    spanner_projects_instances_backups_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_set_iam_policy_execute()` to send, or `spanner_projects_instances_backups_set_iam_policy` for simplest API.
+
+pub fn spanner_projects_instances_backups_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_set_iam_policy_execute()` or `spanner_projects_instances_backups_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_set_iam_policy_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_set_iam_policy_builder()` + `spanner_projects_instances_backups_set_iam_policy_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_backups_set_iam_policy_builder(client, &args.resource)?;
+    spanner_projects_instances_backups_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_test_iam_permissions_execute()` to send, or `spanner_projects_instances_backups_test_iam_permissions` for simplest API.
+
+pub fn spanner_projects_instances_backups_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_test_iam_permissions_execute()` or `spanner_projects_instances_backups_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_test_iam_permissions_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_test_iam_permissions_builder()` + `spanner_projects_instances_backups_test_iam_permissions_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_backups_test_iam_permissions_builder(client, &args.resource)?;
+    spanner_projects_instances_backups_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_operations_cancel_execute()` to send, or `spanner_projects_instances_backups_operations_cancel` for simplest API.
+
+pub fn spanner_projects_instances_backups_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_operations_cancel_execute()` or `spanner_projects_instances_backups_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_operations_cancel_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_operations_cancel_builder()` + `spanner_projects_instances_backups_operations_cancel_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_backups_operations_cancel_builder(client, &args.name)?;
+    spanner_projects_instances_backups_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_operations_delete_execute()` to send, or `spanner_projects_instances_backups_operations_delete` for simplest API.
+
+pub fn spanner_projects_instances_backups_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_operations_delete_execute()` or `spanner_projects_instances_backups_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_operations_delete_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_operations_delete_builder()` + `spanner_projects_instances_backups_operations_delete_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_operations_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_backups_operations_delete_builder(client, &args.name)?;
+    spanner_projects_instances_backups_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_operations_get_execute()` to send, or `spanner_projects_instances_backups_operations_get` for simplest API.
+
+pub fn spanner_projects_instances_backups_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_operations_get_execute()` or `spanner_projects_instances_backups_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_operations_get_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_operations_get_builder()` + `spanner_projects_instances_backups_operations_get_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_operations_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_backups_operations_get_builder(client, &args.name)?;
+    spanner_projects_instances_backups_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_backups_operations_list_execute()` to send, or `spanner_projects_instances_backups_operations_list` for simplest API.
+
+pub fn spanner_projects_instances_backups_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/backups/{backupsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_backups_operations_list_execute()` or `spanner_projects_instances_backups_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_backups_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_backups_operations_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_backups_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_backups_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_backups_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_backups_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_backups_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_backups_operations_list_builder()` + `spanner_projects_instances_backups_operations_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_backups_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_backups_operations_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesBackupsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_backups_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    spanner_projects_instances_backups_operations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databaseOperations
+/// Lists database longrunning-operations. A database operation has a name of the form `projects//instances//databases//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_database_operations_list_execute()` to send, or `spanner_projects_instances_database_operations_list` for simplest API.
+
+pub fn spanner_projects_instances_database_operations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databaseOperations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databaseOperations
+/// Lists database longrunning-operations. A database operation has a name of the form `projects//instances//databases//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_database_operations_list_execute()` or `spanner_projects_instances_database_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_database_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_database_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDatabaseOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDatabaseOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databaseOperations
+/// Lists database longrunning-operations. A database operation has a name of the form `projects//instances//databases//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_database_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_database_operations_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_database_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_database_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_database_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDatabaseOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_database_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_database_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabaseOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databaseOperations
+/// Lists database longrunning-operations. A database operation has a name of the form `projects//instances//databases//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_database_operations_list_builder()` + `spanner_projects_instances_database_operations_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_database_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_database_operations_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabaseOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDatabaseOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_database_operations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instances_database_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:addSplitPoints
+/// Adds split points to specified tables and indexes of a database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_add_split_points_execute()` to send, or `spanner_projects_instances_databases_add_split_points` for simplest API.
+
+pub fn spanner_projects_instances_databases_add_split_points_builder(
+    client: &SimpleHttpClient,
+    database: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}:addSplitPoints",
+        database,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:addSplitPoints
+/// Adds split points to specified tables and indexes of a database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_add_split_points_execute()` or `spanner_projects_instances_databases_add_split_points`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_add_split_points_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_add_split_points_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddSplitPointsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AddSplitPointsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:addSplitPoints
+/// Adds split points to specified tables and indexes of a database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_add_split_points_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_add_split_points_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_add_split_points()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_add_split_points_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_add_split_points_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AddSplitPointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_add_split_points_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_add_split_points`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesAddSplitPointsArgs {
+    /// Path parameter: database
+    pub database: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:addSplitPoints
+/// Adds split points to specified tables and indexes of a database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_add_split_points_builder()` + `spanner_projects_instances_databases_add_split_points_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_add_split_points_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_add_split_points(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesAddSplitPointsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AddSplitPointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_add_split_points_builder(client, &args.database)?;
+    spanner_projects_instances_databases_add_split_points_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:changequorum
+/// ChangeQuorum is strictly restricted to databases that use dual-region instance configurations. Initiates a background operation to change the quorum of a database from dual-region mode to single-region mode or vice versa. The returned long-running operation has a name of the format `projects//instances//databases//operations/` and can be used to track execution of the ChangeQuorum. The metadata field type is ChangeQuorumMetadata. Authorization requires spanner.databases.changequorum permission on the resource database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_changequorum_execute()` to send, or `spanner_projects_instances_databases_changequorum` for simplest API.
+
+pub fn spanner_projects_instances_databases_changequorum_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}:changequorum",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:changequorum
+/// ChangeQuorum is strictly restricted to databases that use dual-region instance configurations. Initiates a background operation to change the quorum of a database from dual-region mode to single-region mode or vice versa. The returned long-running operation has a name of the format `projects//instances//databases//operations/` and can be used to track execution of the ChangeQuorum. The metadata field type is ChangeQuorumMetadata. Authorization requires spanner.databases.changequorum permission on the resource database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_changequorum_execute()` or `spanner_projects_instances_databases_changequorum`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_changequorum_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_changequorum_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:changequorum
+/// ChangeQuorum is strictly restricted to databases that use dual-region instance configurations. Initiates a background operation to change the quorum of a database from dual-region mode to single-region mode or vice versa. The returned long-running operation has a name of the format `projects//instances//databases//operations/` and can be used to track execution of the ChangeQuorum. The metadata field type is ChangeQuorumMetadata. Authorization requires spanner.databases.changequorum permission on the resource database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_changequorum_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_changequorum_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_changequorum()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_changequorum_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_changequorum_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_changequorum_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_changequorum`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesChangequorumArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:changequorum
+/// ChangeQuorum is strictly restricted to databases that use dual-region instance configurations. Initiates a background operation to change the quorum of a database from dual-region mode to single-region mode or vice versa. The returned long-running operation has a name of the format `projects//instances//databases//operations/` and can be used to track execution of the ChangeQuorum. The metadata field type is ChangeQuorumMetadata. Authorization requires spanner.databases.changequorum permission on the resource database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_changequorum_builder()` + `spanner_projects_instances_databases_changequorum_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_changequorum_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_changequorum(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesChangequorumArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_changequorum_builder(client, &args.name)?;
+    spanner_projects_instances_databases_changequorum_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases
+/// Creates a new Spanner database and starts to prepare it for serving. The returned long-running operation will have a name of the format /operations/ and can be used to track preparation of the database. The metadata field type is CreateDatabaseMetadata. The response field type is Database, if successful.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_create_execute()` to send, or `spanner_projects_instances_databases_create` for simplest API.
+
+pub fn spanner_projects_instances_databases_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases
+/// Creates a new Spanner database and starts to prepare it for serving. The returned long-running operation will have a name of the format /operations/ and can be used to track preparation of the database. The metadata field type is CreateDatabaseMetadata. The response field type is Database, if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_create_execute()` or `spanner_projects_instances_databases_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases
+/// Creates a new Spanner database and starts to prepare it for serving. The returned long-running operation will have a name of the format /operations/ and can be used to track preparation of the database. The metadata field type is CreateDatabaseMetadata. The response field type is Database, if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_create_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases
+/// Creates a new Spanner database and starts to prepare it for serving. The returned long-running operation will have a name of the format /operations/ and can be used to track preparation of the database. The metadata field type is CreateDatabaseMetadata. The response field type is Database, if successful.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_create_builder()` + `spanner_projects_instances_databases_create_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_create(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_create_builder(client, &args.parent)?;
+    spanner_projects_instances_databases_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Drops (aka deletes) a Cloud Spanner database. Completed backups for the database will be retained according to their expire_time. Note: Cloud Spanner might continue to accept requests for a few seconds after the database has been deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_drop_database_execute()` to send, or `spanner_projects_instances_databases_drop_database` for simplest API.
+
+pub fn spanner_projects_instances_databases_drop_database_builder(
+    client: &SimpleHttpClient,
+    database: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}",
+        database,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Drops (aka deletes) a Cloud Spanner database. Completed backups for the database will be retained according to their expire_time. Note: Cloud Spanner might continue to accept requests for a few seconds after the database has been deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_drop_database_execute()` or `spanner_projects_instances_databases_drop_database`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_drop_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_drop_database_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Drops (aka deletes) a Cloud Spanner database. Completed backups for the database will be retained according to their expire_time. Note: Cloud Spanner might continue to accept requests for a few seconds after the database has been deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_drop_database_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_drop_database_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_drop_database()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_drop_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_drop_database_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_drop_database_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_drop_database`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesDropDatabaseArgs {
+    /// Path parameter: database
+    pub database: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Drops (aka deletes) a Cloud Spanner database. Completed backups for the database will be retained according to their expire_time. Note: Cloud Spanner might continue to accept requests for a few seconds after the database has been deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_drop_database_builder()` + `spanner_projects_instances_databases_drop_database_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_drop_database_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_drop_database(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesDropDatabaseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_drop_database_builder(client, &args.database)?;
+    spanner_projects_instances_databases_drop_database_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Gets the state of a Cloud Spanner database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_get_execute()` to send, or `spanner_projects_instances_databases_get` for simplest API.
+
+pub fn spanner_projects_instances_databases_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Gets the state of a Cloud Spanner database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_get_execute()` or `spanner_projects_instances_databases_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Database>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Database = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Gets the state of a Cloud Spanner database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_get_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Gets the state of a Cloud Spanner database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_get_builder()` + `spanner_projects_instances_databases_get_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_get_builder(client, &args.name)?;
+    spanner_projects_instances_databases_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/ddl
+/// Returns the schema of a Cloud Spanner database as a list of formatted DDL statements. This method does not show pending schema updates, those may be queried using the Operations API.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_get_ddl_execute()` to send, or `spanner_projects_instances_databases_get_ddl` for simplest API.
+
+pub fn spanner_projects_instances_databases_get_ddl_builder(
+    client: &SimpleHttpClient,
+    database: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/ddl",
+        database,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/ddl
+/// Returns the schema of a Cloud Spanner database as a list of formatted DDL statements. This method does not show pending schema updates, those may be queried using the Operations API.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_get_ddl_execute()` or `spanner_projects_instances_databases_get_ddl`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_get_ddl_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_get_ddl_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetDatabaseDdlResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GetDatabaseDdlResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/ddl
+/// Returns the schema of a Cloud Spanner database as a list of formatted DDL statements. This method does not show pending schema updates, those may be queried using the Operations API.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_get_ddl_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_get_ddl_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_get_ddl()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_get_ddl_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_get_ddl_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GetDatabaseDdlResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_get_ddl_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_get_ddl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesGetDdlArgs {
+    /// Path parameter: database
+    pub database: String,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/ddl
+/// Returns the schema of a Cloud Spanner database as a list of formatted DDL statements. This method does not show pending schema updates, those may be queried using the Operations API.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_get_ddl_builder()` + `spanner_projects_instances_databases_get_ddl_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_get_ddl_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_get_ddl(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesGetDdlArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GetDatabaseDdlResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_get_ddl_builder(client, &args.database)?;
+    spanner_projects_instances_databases_get_ddl_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_get_iam_policy_execute()` to send, or `spanner_projects_instances_databases_get_iam_policy` for simplest API.
+
+pub fn spanner_projects_instances_databases_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_get_iam_policy_execute()` or `spanner_projects_instances_databases_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_get_iam_policy_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_get_iam_policy_builder()` + `spanner_projects_instances_databases_get_iam_policy_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_get_iam_policy_builder(client, &args.resource)?;
+    spanner_projects_instances_databases_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/scans
+/// Request a specific scan with Database-specific data for Cloud Key Visualizer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_get_scans_execute()` to send, or `spanner_projects_instances_databases_get_scans` for simplest API.
+
+pub fn spanner_projects_instances_databases_get_scans_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    endTime: &Option<Option<String>>,
+    startTime: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/scans",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = endTime.as_ref() {
+        query_parts.push(format!("endTime={}", val));
+    }
+    if let Some(val) = startTime.as_ref() {
+        query_parts.push(format!("startTime={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/scans
+/// Request a specific scan with Database-specific data for Cloud Key Visualizer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_get_scans_execute()` or `spanner_projects_instances_databases_get_scans`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_get_scans_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_get_scans_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Scan>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Scan = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/scans
+/// Request a specific scan with Database-specific data for Cloud Key Visualizer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_get_scans_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_get_scans_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_get_scans()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_get_scans_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_get_scans_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Scan>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_get_scans_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_get_scans`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesGetScansArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: endTime
+    pub endTime: Option<Option<String>>,
+    /// Query parameter: startTime
+    pub startTime: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/scans
+/// Request a specific scan with Database-specific data for Cloud Key Visualizer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_get_scans_builder()` + `spanner_projects_instances_databases_get_scans_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_get_scans_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_get_scans(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesGetScansArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Scan>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_get_scans_builder(
+        client,
+        &args.name,
+        &args.endTime,
+        &args.startTime,
+        &args.view,
+    )?;
+    spanner_projects_instances_databases_get_scans_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases
+/// Lists Cloud Spanner databases.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_list_execute()` to send, or `spanner_projects_instances_databases_list` for simplest API.
+
+pub fn spanner_projects_instances_databases_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases
+/// Lists Cloud Spanner databases.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_list_execute()` or `spanner_projects_instances_databases_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDatabasesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDatabasesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases
+/// Lists Cloud Spanner databases.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDatabasesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases
+/// Lists Cloud Spanner databases.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_list_builder()` + `spanner_projects_instances_databases_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDatabasesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instances_databases_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database's reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata's cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database's reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_patch_execute()` to send, or `spanner_projects_instances_databases_patch` for simplest API.
+
+pub fn spanner_projects_instances_databases_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database's reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata's cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database's reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_patch_execute()` or `spanner_projects_instances_databases_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database's reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata's cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database's reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_patch_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
+/// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database's reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata's cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database's reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_patch_builder()` + `spanner_projects_instances_databases_patch_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_patch(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_patch_builder(client, &args.name, &args.updateMask)?;
+    spanner_projects_instances_databases_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases:restore
+/// Create a new database by restoring from a completed backup. The new database must be in the same project and in an instance with the same instance configuration as the instance containing the backup. The returned database long-running operation has a name of the format `projects//instances//databases//operations/`, and can be used to track the progress of the operation, and to cancel it. The metadata field type is RestoreDatabaseMetadata. The response type is Database, if successful. Cancelling the returned operation will stop the restore and delete the database. There can be only one database being restored into an instance at a time. Once the restore operation completes, a new restore operation can be initiated, without waiting for the optimize operation associated with the first restore to complete.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_restore_execute()` to send, or `spanner_projects_instances_databases_restore` for simplest API.
+
+pub fn spanner_projects_instances_databases_restore_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases:restore",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases:restore
+/// Create a new database by restoring from a completed backup. The new database must be in the same project and in an instance with the same instance configuration as the instance containing the backup. The returned database long-running operation has a name of the format `projects//instances//databases//operations/`, and can be used to track the progress of the operation, and to cancel it. The metadata field type is RestoreDatabaseMetadata. The response type is Database, if successful. Cancelling the returned operation will stop the restore and delete the database. There can be only one database being restored into an instance at a time. Once the restore operation completes, a new restore operation can be initiated, without waiting for the optimize operation associated with the first restore to complete.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_restore_execute()` or `spanner_projects_instances_databases_restore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_restore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases:restore
+/// Create a new database by restoring from a completed backup. The new database must be in the same project and in an instance with the same instance configuration as the instance containing the backup. The returned database long-running operation has a name of the format `projects//instances//databases//operations/`, and can be used to track the progress of the operation, and to cancel it. The metadata field type is RestoreDatabaseMetadata. The response type is Database, if successful. Cancelling the returned operation will stop the restore and delete the database. There can be only one database being restored into an instance at a time. Once the restore operation completes, a new restore operation can be initiated, without waiting for the optimize operation associated with the first restore to complete.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_restore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_restore_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_restore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_restore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_restore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesRestoreArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases:restore
+/// Create a new database by restoring from a completed backup. The new database must be in the same project and in an instance with the same instance configuration as the instance containing the backup. The returned database long-running operation has a name of the format `projects//instances//databases//operations/`, and can be used to track the progress of the operation, and to cancel it. The metadata field type is RestoreDatabaseMetadata. The response type is Database, if successful. Cancelling the returned operation will stop the restore and delete the database. There can be only one database being restored into an instance at a time. Once the restore operation completes, a new restore operation can be initiated, without waiting for the optimize operation associated with the first restore to complete.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_restore_builder()` + `spanner_projects_instances_databases_restore_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_restore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_restore(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesRestoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_restore_builder(client, &args.parent)?;
+    spanner_projects_instances_databases_restore_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_set_iam_policy_execute()` to send, or `spanner_projects_instances_databases_set_iam_policy` for simplest API.
+
+pub fn spanner_projects_instances_databases_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_set_iam_policy_execute()` or `spanner_projects_instances_databases_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_set_iam_policy_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_set_iam_policy_builder()` + `spanner_projects_instances_databases_set_iam_policy_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_set_iam_policy_builder(client, &args.resource)?;
+    spanner_projects_instances_databases_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_test_iam_permissions_execute()` to send, or `spanner_projects_instances_databases_test_iam_permissions` for simplest API.
+
+pub fn spanner_projects_instances_databases_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_test_iam_permissions_execute()` or `spanner_projects_instances_databases_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_test_iam_permissions_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_test_iam_permissions_builder()` + `spanner_projects_instances_databases_test_iam_permissions_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_test_iam_permissions_builder(client, &args.resource)?;
+    spanner_projects_instances_databases_test_iam_permissions_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/ddl
+/// Updates the schema of a Cloud Spanner database by `creating/altering/dropping` tables, columns, indexes, etc. The returned long-running operation will have a name of the format /operations/ and can be used to track execution of the schema changes. The metadata field type is UpdateDatabaseDdlMetadata. The operation has no response.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_update_ddl_execute()` to send, or `spanner_projects_instances_databases_update_ddl` for simplest API.
+
+pub fn spanner_projects_instances_databases_update_ddl_builder(
+    client: &SimpleHttpClient,
+    database: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/ddl",
+        database,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/ddl
+/// Updates the schema of a Cloud Spanner database by `creating/altering/dropping` tables, columns, indexes, etc. The returned long-running operation will have a name of the format /operations/ and can be used to track execution of the schema changes. The metadata field type is UpdateDatabaseDdlMetadata. The operation has no response.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_update_ddl_execute()` or `spanner_projects_instances_databases_update_ddl`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_update_ddl_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_update_ddl_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/ddl
+/// Updates the schema of a Cloud Spanner database by `creating/altering/dropping` tables, columns, indexes, etc. The returned long-running operation will have a name of the format /operations/ and can be used to track execution of the schema changes. The metadata field type is UpdateDatabaseDdlMetadata. The operation has no response.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_update_ddl_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_update_ddl_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_update_ddl()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_update_ddl_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_update_ddl_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_update_ddl_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_update_ddl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesUpdateDdlArgs {
+    /// Path parameter: database
+    pub database: String,
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/ddl
+/// Updates the schema of a Cloud Spanner database by `creating/altering/dropping` tables, columns, indexes, etc. The returned long-running operation will have a name of the format /operations/ and can be used to track execution of the schema changes. The metadata field type is UpdateDatabaseDdlMetadata. The operation has no response.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_update_ddl_builder()` + `spanner_projects_instances_databases_update_ddl_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_update_ddl_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_update_ddl(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesUpdateDdlArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_update_ddl_builder(client, &args.database)?;
+    spanner_projects_instances_databases_update_ddl_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
+/// Creates a new backup schedule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_backup_schedules_create_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_create` for simplest API.
+
+pub fn spanner_projects_instances_databases_backup_schedules_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupScheduleId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupScheduleId.as_ref() {
+        query_parts.push(format!("backupScheduleId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
+/// Creates a new backup schedule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_backup_schedules_create_execute()` or `spanner_projects_instances_databases_backup_schedules_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupSchedule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupSchedule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
+/// Creates a new backup schedule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_backup_schedules_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_create_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_backup_schedules_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_backup_schedules_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupSchedule>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_backup_schedules_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupScheduleId
+    pub backupScheduleId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
+/// Creates a new backup schedule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_backup_schedules_create_builder()` + `spanner_projects_instances_databases_backup_schedules_create_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_create(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupSchedule>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_backup_schedules_create_builder(
+        client,
+        &args.parent,
+        &args.backupScheduleId,
+    )?;
+    spanner_projects_instances_databases_backup_schedules_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Deletes a backup schedule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_backup_schedules_delete_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_delete` for simplest API.
+
+pub fn spanner_projects_instances_databases_backup_schedules_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Deletes a backup schedule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_backup_schedules_delete_execute()` or `spanner_projects_instances_databases_backup_schedules_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Deletes a backup schedule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_backup_schedules_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_delete_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_backup_schedules_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_backup_schedules_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_backup_schedules_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Deletes a backup schedule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_backup_schedules_delete_builder()` + `spanner_projects_instances_databases_backup_schedules_delete_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_backup_schedules_delete_builder(client, &args.name)?;
+    spanner_projects_instances_databases_backup_schedules_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Gets backup schedule for the input schedule name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_backup_schedules_get_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_get` for simplest API.
+
+pub fn spanner_projects_instances_databases_backup_schedules_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Gets backup schedule for the input schedule name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_backup_schedules_get_execute()` or `spanner_projects_instances_databases_backup_schedules_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupSchedule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupSchedule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Gets backup schedule for the input schedule name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_backup_schedules_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_get_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_backup_schedules_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_backup_schedules_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupSchedule>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_backup_schedules_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Gets backup schedule for the input schedule name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_backup_schedules_get_builder()` + `spanner_projects_instances_databases_backup_schedules_get_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupSchedule>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_backup_schedules_get_builder(client, &args.name)?;
+    spanner_projects_instances_databases_backup_schedules_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_backup_schedules_get_iam_policy_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_get_iam_policy` for simplest API.
+
+pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_backup_schedules_get_iam_policy_execute()` or `spanner_projects_instances_databases_backup_schedules_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_backup_schedules_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_get_iam_policy_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_backup_schedules_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_backup_schedules_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:getIamPolicy
+/// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_backup_schedules_get_iam_policy_builder()` + `spanner_projects_instances_databases_backup_schedules_get_iam_policy_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_backup_schedules_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    spanner_projects_instances_databases_backup_schedules_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
+/// Lists all the backup schedules for the database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_backup_schedules_list_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_list` for simplest API.
+
+pub fn spanner_projects_instances_databases_backup_schedules_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
+/// Lists all the backup schedules for the database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_backup_schedules_list_execute()` or `spanner_projects_instances_databases_backup_schedules_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupSchedulesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupSchedulesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
+/// Lists all the backup schedules for the database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_backup_schedules_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_backup_schedules_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_backup_schedules_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupSchedulesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_backup_schedules_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
+/// Lists all the backup schedules for the database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_backup_schedules_list_builder()` + `spanner_projects_instances_databases_backup_schedules_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupSchedulesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_backup_schedules_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instances_databases_backup_schedules_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Updates a backup schedule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_backup_schedules_patch_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_patch` for simplest API.
+
+pub fn spanner_projects_instances_databases_backup_schedules_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Updates a backup schedule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_backup_schedules_patch_execute()` or `spanner_projects_instances_databases_backup_schedules_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupSchedule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupSchedule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Updates a backup schedule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_backup_schedules_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_patch_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_backup_schedules_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_backup_schedules_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupSchedule>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_backup_schedules_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
+/// Updates a backup schedule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_backup_schedules_patch_builder()` + `spanner_projects_instances_databases_backup_schedules_patch_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_patch(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupSchedule>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_backup_schedules_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    spanner_projects_instances_databases_backup_schedules_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_backup_schedules_set_iam_policy_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_set_iam_policy` for simplest API.
+
+pub fn spanner_projects_instances_databases_backup_schedules_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_backup_schedules_set_iam_policy_execute()` or `spanner_projects_instances_databases_backup_schedules_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_backup_schedules_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_set_iam_policy_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_backup_schedules_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_backup_schedules_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_backup_schedules_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:setIamPolicy
+/// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_backup_schedules_set_iam_policy_builder()` + `spanner_projects_instances_databases_backup_schedules_set_iam_policy_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_backup_schedules_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    spanner_projects_instances_databases_backup_schedules_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_backup_schedules_test_iam_permissions_execute()` to send, or `spanner_projects_instances_databases_backup_schedules_test_iam_permissions` for simplest API.
+
+pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_backup_schedules_test_iam_permissions_execute()` or `spanner_projects_instances_databases_backup_schedules_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_backup_schedules_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_test_iam_permissions_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_backup_schedules_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_backup_schedules_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        spanner_projects_instances_databases_backup_schedules_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_backup_schedules_test_iam_permissions_builder()` + `spanner_projects_instances_databases_backup_schedules_test_iam_permissions_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_backup_schedules_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_backup_schedules_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    spanner_projects_instances_databases_backup_schedules_test_iam_permissions_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles
+/// Lists Cloud Spanner database roles.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_database_roles_list_execute()` to send, or `spanner_projects_instances_databases_database_roles_list` for simplest API.
+
+pub fn spanner_projects_instances_databases_database_roles_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/databaseRoles",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles
+/// Lists Cloud Spanner database roles.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_database_roles_list_execute()` or `spanner_projects_instances_databases_database_roles_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_database_roles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_database_roles_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDatabaseRolesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDatabaseRolesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles
+/// Lists Cloud Spanner database roles.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_database_roles_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_database_roles_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_database_roles_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_database_roles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_database_roles_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDatabaseRolesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_database_roles_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_database_roles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesDatabaseRolesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles
+/// Lists Cloud Spanner database roles.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_database_roles_list_builder()` + `spanner_projects_instances_databases_database_roles_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_database_roles_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_database_roles_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesDatabaseRolesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDatabaseRolesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_database_roles_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instances_databases_database_roles_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles/{databaseRolesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_database_roles_test_iam_permissions_execute()` to send, or `spanner_projects_instances_databases_database_roles_test_iam_permissions` for simplest API.
+
+pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/databaseRoles/{databaseRolesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles/{databaseRolesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_database_roles_test_iam_permissions_execute()` or `spanner_projects_instances_databases_database_roles_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_database_roles_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles/{databaseRolesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_database_roles_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_database_roles_test_iam_permissions_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_database_roles_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_database_roles_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        spanner_projects_instances_databases_database_roles_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_database_roles_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesDatabaseRolesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles/{databaseRolesId}:testIamPermissions
+/// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_database_roles_test_iam_permissions_builder()` + `spanner_projects_instances_databases_database_roles_test_iam_permissions_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_database_roles_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesDatabaseRolesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_database_roles_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    spanner_projects_instances_databases_database_roles_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_operations_cancel_execute()` to send, or `spanner_projects_instances_databases_operations_cancel` for simplest API.
+
+pub fn spanner_projects_instances_databases_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_operations_cancel_execute()` or `spanner_projects_instances_databases_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_operations_cancel_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_operations_cancel_builder()` + `spanner_projects_instances_databases_operations_cancel_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_operations_cancel_builder(client, &args.name)?;
+    spanner_projects_instances_databases_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_operations_delete_execute()` to send, or `spanner_projects_instances_databases_operations_delete` for simplest API.
+
+pub fn spanner_projects_instances_databases_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_operations_delete_execute()` or `spanner_projects_instances_databases_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_operations_delete_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_operations_delete_builder()` + `spanner_projects_instances_databases_operations_delete_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_operations_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_operations_delete_builder(client, &args.name)?;
+    spanner_projects_instances_databases_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_operations_get_execute()` to send, or `spanner_projects_instances_databases_operations_get` for simplest API.
+
+pub fn spanner_projects_instances_databases_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_operations_get_execute()` or `spanner_projects_instances_databases_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_operations_get_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_operations_get_builder()` + `spanner_projects_instances_databases_operations_get_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_operations_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_operations_get_builder(client, &args.name)?;
+    spanner_projects_instances_databases_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_operations_list_execute()` to send, or `spanner_projects_instances_databases_operations_list` for simplest API.
+
+pub fn spanner_projects_instances_databases_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_operations_list_execute()` or `spanner_projects_instances_databases_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_operations_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_operations_list_builder()` + `spanner_projects_instances_databases_operations_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_operations_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    spanner_projects_instances_databases_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:adaptMessage
+/// Handles a single message from the client and returns the result as a stream. The server will interpret the message frame and respond with message frames to the client.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_adapt_message_execute()` to send, or `spanner_projects_instances_databases_sessions_adapt_message` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_adapt_message_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:adaptMessage",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:adaptMessage
+/// Handles a single message from the client and returns the result as a stream. The server will interpret the message frame and respond with message frames to the client.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_adapt_message_execute()` or `spanner_projects_instances_databases_sessions_adapt_message`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_adapt_message_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_adapt_message_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdaptMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdaptMessageResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:adaptMessage
+/// Handles a single message from the client and returns the result as a stream. The server will interpret the message frame and respond with message frames to the client.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_adapt_message_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_adapt_message_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_adapt_message()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_adapt_message_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_adapt_message_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdaptMessageResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_adapt_message_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_adapt_message`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsAdaptMessageArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:adaptMessage
+/// Handles a single message from the client and returns the result as a stream. The server will interpret the message frame and respond with message frames to the client.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_adapt_message_builder()` + `spanner_projects_instances_databases_sessions_adapt_message_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_adapt_message_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_adapt_message(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsAdaptMessageArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdaptMessageResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_sessions_adapt_message_builder(client, &args.name)?;
+    spanner_projects_instances_databases_sessions_adapt_message_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions:adapter
+/// Creates a new session to be used for requests made by the adapter. A session identifies a specific incarnation of a database resource and is meant to be reused across many AdaptMessage calls.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_adapter_execute()` to send, or `spanner_projects_instances_databases_sessions_adapter` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_adapter_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions:adapter",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions:adapter
+/// Creates a new session to be used for requests made by the adapter. A session identifies a specific incarnation of a database resource and is meant to be reused across many AdaptMessage calls.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_adapter_execute()` or `spanner_projects_instances_databases_sessions_adapter`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_adapter_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_adapter_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdapterSession>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdapterSession = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions:adapter
+/// Creates a new session to be used for requests made by the adapter. A session identifies a specific incarnation of a database resource and is meant to be reused across many AdaptMessage calls.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_adapter_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_adapter_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_adapter()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_adapter_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_adapter_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdapterSession>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_adapter_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_adapter`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsAdapterArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions:adapter
+/// Creates a new session to be used for requests made by the adapter. A session identifies a specific incarnation of a database resource and is meant to be reused across many AdaptMessage calls.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_adapter_builder()` + `spanner_projects_instances_databases_sessions_adapter_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_adapter_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_adapter(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsAdapterArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdapterSession>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_sessions_adapter_builder(client, &args.parent)?;
+    spanner_projects_instances_databases_sessions_adapter_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions:batchCreate
+/// Creates multiple new sessions. This API can be used to initialize a session cache on the clients. See <https://goo.`gl/TgSFN2`> for best practices on session cache management.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_batch_create_execute()` to send, or `spanner_projects_instances_databases_sessions_batch_create` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_batch_create_builder(
+    client: &SimpleHttpClient,
+    database: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions:batchCreate",
+        database,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions:batchCreate
+/// Creates multiple new sessions. This API can be used to initialize a session cache on the clients. See <https://goo.`gl/TgSFN2`> for best practices on session cache management.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_batch_create_execute()` or `spanner_projects_instances_databases_sessions_batch_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_batch_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_batch_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchCreateSessionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BatchCreateSessionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions:batchCreate
+/// Creates multiple new sessions. This API can be used to initialize a session cache on the clients. See <https://goo.`gl/TgSFN2`> for best practices on session cache management.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_batch_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_batch_create_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_batch_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_batch_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_batch_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<BatchCreateSessionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_batch_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsBatchCreateArgs {
+    /// Path parameter: database
+    pub database: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions:batchCreate
+/// Creates multiple new sessions. This API can be used to initialize a session cache on the clients. See <https://goo.`gl/TgSFN2`> for best practices on session cache management.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_batch_create_builder()` + `spanner_projects_instances_databases_sessions_batch_create_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_batch_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_batch_create(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsBatchCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<BatchCreateSessionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_sessions_batch_create_builder(client, &args.database)?;
+    spanner_projects_instances_databases_sessions_batch_create_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite
+/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation's table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_batch_write_execute()` to send, or `spanner_projects_instances_databases_sessions_batch_write` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_batch_write_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite
+/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation's table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_batch_write_execute()` or `spanner_projects_instances_databases_sessions_batch_write`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_batch_write_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_batch_write_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchWriteResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BatchWriteResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite
+/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation's table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_batch_write_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_batch_write_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_batch_write()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_batch_write_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_batch_write_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BatchWriteResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_batch_write_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_batch_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsBatchWriteArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite
+/// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation's table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_batch_write_builder()` + `spanner_projects_instances_databases_sessions_batch_write_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_batch_write_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_batch_write(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsBatchWriteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BatchWriteResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_sessions_batch_write_builder(client, &args.session)?;
+    spanner_projects_instances_databases_sessions_batch_write_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:beginTransaction
+/// Begins a new transaction. This step can often be skipped: Read, ExecuteSql and Commit can begin a new transaction as a side-effect.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_begin_transaction_execute()` to send, or `spanner_projects_instances_databases_sessions_begin_transaction` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_begin_transaction_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:beginTransaction",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:beginTransaction
+/// Begins a new transaction. This step can often be skipped: Read, ExecuteSql and Commit can begin a new transaction as a side-effect.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_begin_transaction_execute()` or `spanner_projects_instances_databases_sessions_begin_transaction`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_begin_transaction_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_begin_transaction_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Transaction>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Transaction = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:beginTransaction
+/// Begins a new transaction. This step can often be skipped: Read, ExecuteSql and Commit can begin a new transaction as a side-effect.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_begin_transaction_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_begin_transaction_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_begin_transaction()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_begin_transaction_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_begin_transaction_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Transaction>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_begin_transaction_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_begin_transaction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsBeginTransactionArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:beginTransaction
+/// Begins a new transaction. This step can often be skipped: Read, ExecuteSql and Commit can begin a new transaction as a side-effect.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_begin_transaction_builder()` + `spanner_projects_instances_databases_sessions_begin_transaction_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_begin_transaction_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_begin_transaction(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsBeginTransactionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Transaction>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_sessions_begin_transaction_builder(
+        client,
+        &args.session,
+    )?;
+    spanner_projects_instances_databases_sessions_begin_transaction_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:commit
+/// Commits a transaction. The request includes the mutations to be applied to rows in the database. Commit might return an ABORTED error. This can occur at any time; commonly, the cause is conflicts with concurrent transactions. However, it can also happen for a variety of other reasons. If Commit returns ABORTED, the caller should retry the transaction from the beginning, reusing the same session. On very rare occasions, Commit might return UNKNOWN. This can happen, for example, if the client job experiences a 1+ hour networking failure. At that point, Cloud Spanner has lost track of the transaction outcome and we recommend that you perform another read from the database to see the state of things as they are now.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_commit_execute()` to send, or `spanner_projects_instances_databases_sessions_commit` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_commit_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:commit",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:commit
+/// Commits a transaction. The request includes the mutations to be applied to rows in the database. Commit might return an ABORTED error. This can occur at any time; commonly, the cause is conflicts with concurrent transactions. However, it can also happen for a variety of other reasons. If Commit returns ABORTED, the caller should retry the transaction from the beginning, reusing the same session. On very rare occasions, Commit might return UNKNOWN. This can happen, for example, if the client job experiences a 1+ hour networking failure. At that point, Cloud Spanner has lost track of the transaction outcome and we recommend that you perform another read from the database to see the state of things as they are now.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_commit_execute()` or `spanner_projects_instances_databases_sessions_commit`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_commit_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_commit_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CommitResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CommitResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:commit
+/// Commits a transaction. The request includes the mutations to be applied to rows in the database. Commit might return an ABORTED error. This can occur at any time; commonly, the cause is conflicts with concurrent transactions. However, it can also happen for a variety of other reasons. If Commit returns ABORTED, the caller should retry the transaction from the beginning, reusing the same session. On very rare occasions, Commit might return UNKNOWN. This can happen, for example, if the client job experiences a 1+ hour networking failure. At that point, Cloud Spanner has lost track of the transaction outcome and we recommend that you perform another read from the database to see the state of things as they are now.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_commit_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_commit_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_commit()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_commit_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_commit_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CommitResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_commit_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_commit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsCommitArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:commit
+/// Commits a transaction. The request includes the mutations to be applied to rows in the database. Commit might return an ABORTED error. This can occur at any time; commonly, the cause is conflicts with concurrent transactions. However, it can also happen for a variety of other reasons. If Commit returns ABORTED, the caller should retry the transaction from the beginning, reusing the same session. On very rare occasions, Commit might return UNKNOWN. This can happen, for example, if the client job experiences a 1+ hour networking failure. At that point, Cloud Spanner has lost track of the transaction outcome and we recommend that you perform another read from the database to see the state of things as they are now.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_commit_builder()` + `spanner_projects_instances_databases_sessions_commit_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_commit_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_commit(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsCommitArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CommitResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_sessions_commit_builder(client, &args.session)?;
+    spanner_projects_instances_databases_sessions_commit_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
+/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it's a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_create_execute()` to send, or `spanner_projects_instances_databases_sessions_create` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_create_builder(
+    client: &SimpleHttpClient,
+    database: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions",
+        database,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
+/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it's a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_create_execute()` or `spanner_projects_instances_databases_sessions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Session>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Session = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
+/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it's a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_create_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Session>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsCreateArgs {
+    /// Path parameter: database
+    pub database: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
+/// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it's a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_create_builder()` + `spanner_projects_instances_databases_sessions_create_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_create(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Session>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_sessions_create_builder(client, &args.database)?;
+    spanner_projects_instances_databases_sessions_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
+/// Ends a session, releasing server resources associated with it. This asynchronously triggers the cancellation of any operations that are running with this session.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_delete_execute()` to send, or `spanner_projects_instances_databases_sessions_delete` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
+/// Ends a session, releasing server resources associated with it. This asynchronously triggers the cancellation of any operations that are running with this session.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_delete_execute()` or `spanner_projects_instances_databases_sessions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
+/// Ends a session, releasing server resources associated with it. This asynchronously triggers the cancellation of any operations that are running with this session.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_delete_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
+/// Ends a session, releasing server resources associated with it. This asynchronously triggers the cancellation of any operations that are running with this session.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_delete_builder()` + `spanner_projects_instances_databases_sessions_delete_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_sessions_delete_builder(client, &args.name)?;
+    spanner_projects_instances_databases_sessions_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeBatchDml
+/// Executes a batch of SQL DML statements. This method allows many statements to be run with lower latency than submitting them sequentially with ExecuteSql. Statements are executed in sequential order. A request can succeed even if a statement fails. The ExecuteBatchDmlResponse.status field in the response provides information about the statement that failed. Clients must inspect this field to determine whether an error occurred. Execution stops after the first failed statement; the remaining statements are not executed.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_execute_batch_dml_execute()` to send, or `spanner_projects_instances_databases_sessions_execute_batch_dml` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_execute_batch_dml_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeBatchDml",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeBatchDml
+/// Executes a batch of SQL DML statements. This method allows many statements to be run with lower latency than submitting them sequentially with ExecuteSql. Statements are executed in sequential order. A request can succeed even if a statement fails. The ExecuteBatchDmlResponse.status field in the response provides information about the statement that failed. Clients must inspect this field to determine whether an error occurred. Execution stops after the first failed statement; the remaining statements are not executed.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_execute_batch_dml_execute()` or `spanner_projects_instances_databases_sessions_execute_batch_dml`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_execute_batch_dml_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_execute_batch_dml_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExecuteBatchDmlResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExecuteBatchDmlResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeBatchDml
+/// Executes a batch of SQL DML statements. This method allows many statements to be run with lower latency than submitting them sequentially with ExecuteSql. Statements are executed in sequential order. A request can succeed even if a statement fails. The ExecuteBatchDmlResponse.status field in the response provides information about the statement that failed. Clients must inspect this field to determine whether an error occurred. Execution stops after the first failed statement; the remaining statements are not executed.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_execute_batch_dml_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_execute_batch_dml_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_execute_batch_dml()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_execute_batch_dml_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_execute_batch_dml_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExecuteBatchDmlResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_execute_batch_dml_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_execute_batch_dml`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsExecuteBatchDmlArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeBatchDml
+/// Executes a batch of SQL DML statements. This method allows many statements to be run with lower latency than submitting them sequentially with ExecuteSql. Statements are executed in sequential order. A request can succeed even if a statement fails. The ExecuteBatchDmlResponse.status field in the response provides information about the statement that failed. Clients must inspect this field to determine whether an error occurred. Execution stops after the first failed statement; the remaining statements are not executed.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_execute_batch_dml_builder()` + `spanner_projects_instances_databases_sessions_execute_batch_dml_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_execute_batch_dml_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_execute_batch_dml(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsExecuteBatchDmlArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExecuteBatchDmlResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_sessions_execute_batch_dml_builder(
+        client,
+        &args.session,
+    )?;
+    spanner_projects_instances_databases_sessions_execute_batch_dml_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql
+/// Executes an SQL statement, returning all results in a single reply. This method can't be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_execute_sql_execute()` to send, or `spanner_projects_instances_databases_sessions_execute_sql` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_execute_sql_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql
+/// Executes an SQL statement, returning all results in a single reply. This method can't be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_execute_sql_execute()` or `spanner_projects_instances_databases_sessions_execute_sql`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_execute_sql_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_execute_sql_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResultSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResultSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql
+/// Executes an SQL statement, returning all results in a single reply. This method can't be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_execute_sql_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_execute_sql_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_execute_sql()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_execute_sql_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_execute_sql_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResultSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_execute_sql_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_execute_sql`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsExecuteSqlArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql
+/// Executes an SQL statement, returning all results in a single reply. This method can't be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_execute_sql_builder()` + `spanner_projects_instances_databases_sessions_execute_sql_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_execute_sql_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_execute_sql(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsExecuteSqlArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResultSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_sessions_execute_sql_builder(client, &args.session)?;
+    spanner_projects_instances_databases_sessions_execute_sql_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeStreamingSql
+/// Like ExecuteSql, except returns the result set as a stream. Unlike ExecuteSql, there is no limit on the size of the returned result set. However, no individual row in the result set can exceed 100 MiB, and no column value can exceed 10 MiB. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_execute_streaming_sql_execute()` to send, or `spanner_projects_instances_databases_sessions_execute_streaming_sql` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeStreamingSql",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeStreamingSql
+/// Like ExecuteSql, except returns the result set as a stream. Unlike ExecuteSql, there is no limit on the size of the returned result set. However, no individual row in the result set can exceed 100 MiB, and no column value can exceed 10 MiB. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_execute_streaming_sql_execute()` or `spanner_projects_instances_databases_sessions_execute_streaming_sql`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_execute_streaming_sql_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PartialResultSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PartialResultSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeStreamingSql
+/// Like ExecuteSql, except returns the result set as a stream. Unlike ExecuteSql, there is no limit on the size of the returned result set. However, no individual row in the result set can exceed 100 MiB, and no column value can exceed 10 MiB. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_execute_streaming_sql_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_execute_streaming_sql_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_execute_streaming_sql()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_execute_streaming_sql_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PartialResultSet>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_execute_streaming_sql_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_execute_streaming_sql`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsExecuteStreamingSqlArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeStreamingSql
+/// Like ExecuteSql, except returns the result set as a stream. Unlike ExecuteSql, there is no limit on the size of the returned result set. However, no individual row in the result set can exceed 100 MiB, and no column value can exceed 10 MiB. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_execute_streaming_sql_builder()` + `spanner_projects_instances_databases_sessions_execute_streaming_sql_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_execute_streaming_sql_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsExecuteStreamingSqlArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PartialResultSet>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_sessions_execute_streaming_sql_builder(
+        client,
+        &args.session,
+    )?;
+    spanner_projects_instances_databases_sessions_execute_streaming_sql_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
+/// Gets a session. Returns NOT_FOUND if the session doesn't exist. This is mainly useful for determining whether a session is still alive.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_get_execute()` to send, or `spanner_projects_instances_databases_sessions_get` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
+/// Gets a session. Returns NOT_FOUND if the session doesn't exist. This is mainly useful for determining whether a session is still alive.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_get_execute()` or `spanner_projects_instances_databases_sessions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Session>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Session = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
+/// Gets a session. Returns NOT_FOUND if the session doesn't exist. This is mainly useful for determining whether a session is still alive.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_get_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Session>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
+/// Gets a session. Returns NOT_FOUND if the session doesn't exist. This is mainly useful for determining whether a session is still alive.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_get_builder()` + `spanner_projects_instances_databases_sessions_get_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Session>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_sessions_get_builder(client, &args.name)?;
+    spanner_projects_instances_databases_sessions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
+/// Lists all sessions in a given database.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_list_execute()` to send, or `spanner_projects_instances_databases_sessions_list` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_list_builder(
+    client: &SimpleHttpClient,
+    database: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions",
+        database,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
+/// Lists all sessions in a given database.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_list_execute()` or `spanner_projects_instances_databases_sessions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSessionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSessionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
+/// Lists all sessions in a given database.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSessionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsListArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
+/// Lists all sessions in a given database.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_list_builder()` + `spanner_projects_instances_databases_sessions_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSessionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_sessions_list_builder(
+        client,
+        &args.database,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instances_databases_sessions_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery
+/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the query, and the whole operation must be restarted from the beginning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_partition_query_execute()` to send, or `spanner_projects_instances_databases_sessions_partition_query` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_partition_query_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery
+/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the query, and the whole operation must be restarted from the beginning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_partition_query_execute()` or `spanner_projects_instances_databases_sessions_partition_query`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_partition_query_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_partition_query_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PartitionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PartitionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery
+/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the query, and the whole operation must be restarted from the beginning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_partition_query_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_partition_query_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_partition_query()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_partition_query_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_partition_query_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PartitionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_partition_query_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_partition_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsPartitionQueryArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery
+/// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the query, and the whole operation must be restarted from the beginning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_partition_query_builder()` + `spanner_projects_instances_databases_sessions_partition_query_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_partition_query_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_partition_query(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsPartitionQueryArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PartitionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_sessions_partition_query_builder(
+        client,
+        &args.session,
+    )?;
+    spanner_projects_instances_databases_sessions_partition_query_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead
+/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the read, and the whole operation must be restarted from the beginning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_partition_read_execute()` to send, or `spanner_projects_instances_databases_sessions_partition_read` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_partition_read_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead
+/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the read, and the whole operation must be restarted from the beginning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_partition_read_execute()` or `spanner_projects_instances_databases_sessions_partition_read`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_partition_read_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_partition_read_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PartitionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PartitionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead
+/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the read, and the whole operation must be restarted from the beginning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_partition_read_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_partition_read_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_partition_read()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_partition_read_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_partition_read_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PartitionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_partition_read_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_partition_read`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsPartitionReadArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead
+/// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the read, and the whole operation must be restarted from the beginning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_partition_read_builder()` + `spanner_projects_instances_databases_sessions_partition_read_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_partition_read_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_partition_read(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsPartitionReadArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PartitionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_sessions_partition_read_builder(
+        client,
+        &args.session,
+    )?;
+    spanner_projects_instances_databases_sessions_partition_read_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read
+/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can't be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_read_execute()` to send, or `spanner_projects_instances_databases_sessions_read` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_read_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read
+/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can't be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_read_execute()` or `spanner_projects_instances_databases_sessions_read`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_read_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_read_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResultSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResultSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read
+/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can't be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_read_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_read_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_read()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_read_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_read_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResultSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_read_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_read`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsReadArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read
+/// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can't be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_read_builder()` + `spanner_projects_instances_databases_sessions_read_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_read_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_read(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsReadArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResultSet>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_sessions_read_builder(client, &args.session)?;
+    spanner_projects_instances_databases_sessions_read_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback
+/// Rolls back a transaction, releasing any locks it holds. It's a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn't found. Rollback never returns ABORTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_rollback_execute()` to send, or `spanner_projects_instances_databases_sessions_rollback` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_rollback_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback
+/// Rolls back a transaction, releasing any locks it holds. It's a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn't found. Rollback never returns ABORTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_rollback_execute()` or `spanner_projects_instances_databases_sessions_rollback`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_rollback_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_rollback_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback
+/// Rolls back a transaction, releasing any locks it holds. It's a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn't found. Rollback never returns ABORTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_rollback_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_rollback_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_rollback()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_rollback_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_rollback_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_rollback_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsRollbackArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback
+/// Rolls back a transaction, releasing any locks it holds. It's a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn't found. Rollback never returns ABORTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_rollback_builder()` + `spanner_projects_instances_databases_sessions_rollback_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_rollback_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_rollback(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsRollbackArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_databases_sessions_rollback_builder(client, &args.session)?;
+    spanner_projects_instances_databases_sessions_rollback_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:streamingRead
+/// Like Read, except returns the result set as a stream. Unlike Read, there is no limit on the size of the returned result set. However, no individual row in the result set can exceed 100 MiB, and no column value can exceed 10 MiB.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_databases_sessions_streaming_read_execute()` to send, or `spanner_projects_instances_databases_sessions_streaming_read` for simplest API.
+
+pub fn spanner_projects_instances_databases_sessions_streaming_read_builder(
+    client: &SimpleHttpClient,
+    session: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:streamingRead",
+        session,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:streamingRead
+/// Like Read, except returns the result set as a stream. Unlike Read, there is no limit on the size of the returned result set. However, no individual row in the result set can exceed 100 MiB, and no column value can exceed 10 MiB.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_databases_sessions_streaming_read_execute()` or `spanner_projects_instances_databases_sessions_streaming_read`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_streaming_read_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_streaming_read_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PartialResultSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PartialResultSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:streamingRead
+/// Like Read, except returns the result set as a stream. Unlike Read, there is no limit on the size of the returned result set. However, no individual row in the result set can exceed 100 MiB, and no column value can exceed 10 MiB.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_databases_sessions_streaming_read_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_streaming_read_task()`.
+/// For the simplest API, use `spanner_projects_instances_databases_sessions_streaming_read()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_databases_sessions_streaming_read_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_databases_sessions_streaming_read_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PartialResultSet>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_databases_sessions_streaming_read_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_databases_sessions_streaming_read`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsStreamingReadArgs {
+    /// Path parameter: session
+    pub session: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:streamingRead
+/// Like Read, except returns the result set as a stream. Unlike Read, there is no limit on the size of the returned result set. However, no individual row in the result set can exceed 100 MiB, and no column value can exceed 10 MiB.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_databases_sessions_streaming_read_builder()` + `spanner_projects_instances_databases_sessions_streaming_read_execute()`.
+/// For task-level control, use `spanner_projects_instances_databases_sessions_streaming_read_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_databases_sessions_streaming_read(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesDatabasesSessionsStreamingReadArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PartialResultSet>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_databases_sessions_streaming_read_builder(
+        client,
+        &args.session,
+    )?;
+    spanner_projects_instances_databases_sessions_streaming_read_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitionOperations
+/// Lists instance partition long-running operations in the given instance. An instance partition operation has a name of the form `projects//instances//`instancePartitions`//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.start_time in descending order starting from the most recently started operation. Authorization requires spanner.`instancePartitionOperations`.list permission on the resource parent.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_instance_partition_operations_list_execute()` to send, or `spanner_projects_instances_instance_partition_operations_list` for simplest API.
+
+pub fn spanner_projects_instances_instance_partition_operations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    instancePartitionDeadline: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitionOperations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = instancePartitionDeadline.as_ref() {
+        query_parts.push(format!("instancePartitionDeadline={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitionOperations
+/// Lists instance partition long-running operations in the given instance. An instance partition operation has a name of the form `projects//instances//`instancePartitions`//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.start_time in descending order starting from the most recently started operation. Authorization requires spanner.`instancePartitionOperations`.list permission on the resource parent.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_instance_partition_operations_list_execute()` or `spanner_projects_instances_instance_partition_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partition_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partition_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInstancePartitionOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInstancePartitionOperationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitionOperations
+/// Lists instance partition long-running operations in the given instance. An instance partition operation has a name of the form `projects//instances//`instancePartitions`//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.start_time in descending order starting from the most recently started operation. Authorization requires spanner.`instancePartitionOperations`.list permission on the resource parent.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_instance_partition_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_instance_partition_operations_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_instance_partition_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partition_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_instance_partition_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInstancePartitionOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_instance_partition_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_instance_partition_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: instancePartitionDeadline
+    pub instancePartitionDeadline: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitionOperations
+/// Lists instance partition long-running operations in the given instance. An instance partition operation has a name of the form `projects//instances//`instancePartitions`//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.start_time in descending order starting from the most recently started operation. Authorization requires spanner.`instancePartitionOperations`.list permission on the resource parent.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_instance_partition_operations_list_builder()` + `spanner_projects_instances_instance_partition_operations_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_instance_partition_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partition_operations_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesInstancePartitionOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInstancePartitionOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_instance_partition_operations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.instancePartitionDeadline,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instances_instance_partition_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
+/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition's allocated resource levels are readable via the API. * The instance partition's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_instance_partitions_create_execute()` to send, or `spanner_projects_instances_instance_partitions_create` for simplest API.
+
+pub fn spanner_projects_instances_instance_partitions_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
+/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition's allocated resource levels are readable via the API. * The instance partition's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_instance_partitions_create_execute()` or `spanner_projects_instances_instance_partitions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
+/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition's allocated resource levels are readable via the API. * The instance partition's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_instance_partitions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_create_task()`.
+/// For the simplest API, use `spanner_projects_instances_instance_partitions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_instance_partitions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_instance_partitions_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_instance_partitions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
+/// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition's allocated resource levels are readable via the API. * The instance partition's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_instance_partitions_create_builder()` + `spanner_projects_instances_instance_partitions_create_execute()`.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_create(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesInstancePartitionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_instance_partitions_create_builder(client, &args.parent)?;
+    spanner_projects_instances_instance_partitions_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Deletes an existing instance partition. Requires that the instance partition is not used by any database or backup and is not the default instance partition of an instance. Authorization requires spanner.`instancePartitions`.delete permission on the resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_instance_partitions_delete_execute()` to send, or `spanner_projects_instances_instance_partitions_delete` for simplest API.
+
+pub fn spanner_projects_instances_instance_partitions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Deletes an existing instance partition. Requires that the instance partition is not used by any database or backup and is not the default instance partition of an instance. Authorization requires spanner.`instancePartitions`.delete permission on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_instance_partitions_delete_execute()` or `spanner_projects_instances_instance_partitions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Deletes an existing instance partition. Requires that the instance partition is not used by any database or backup and is not the default instance partition of an instance. Authorization requires spanner.`instancePartitions`.delete permission on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_instance_partitions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_delete_task()`.
+/// For the simplest API, use `spanner_projects_instances_instance_partitions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_instance_partitions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_instance_partitions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_instance_partitions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Deletes an existing instance partition. Requires that the instance partition is not used by any database or backup and is not the default instance partition of an instance. Authorization requires spanner.`instancePartitions`.delete permission on the resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_instance_partitions_delete_builder()` + `spanner_projects_instances_instance_partitions_delete_execute()`.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesInstancePartitionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_instance_partitions_delete_builder(
+        client, &args.name, &args.etag,
+    )?;
+    spanner_projects_instances_instance_partitions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Gets information about a particular instance partition.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_instance_partitions_get_execute()` to send, or `spanner_projects_instances_instance_partitions_get` for simplest API.
+
+pub fn spanner_projects_instances_instance_partitions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Gets information about a particular instance partition.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_instance_partitions_get_execute()` or `spanner_projects_instances_instance_partitions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InstancePartition>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InstancePartition = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Gets information about a particular instance partition.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_instance_partitions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_get_task()`.
+/// For the simplest API, use `spanner_projects_instances_instance_partitions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_instance_partitions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InstancePartition>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_instance_partitions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_instance_partitions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Gets information about a particular instance partition.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_instance_partitions_get_builder()` + `spanner_projects_instances_instance_partitions_get_execute()`.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesInstancePartitionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InstancePartition>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_instance_partitions_get_builder(client, &args.name)?;
+    spanner_projects_instances_instance_partitions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
+/// Lists all instance partitions for the given instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_instance_partitions_list_execute()` to send, or `spanner_projects_instances_instance_partitions_list` for simplest API.
+
+pub fn spanner_projects_instances_instance_partitions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    instancePartitionDeadline: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = instancePartitionDeadline.as_ref() {
+        query_parts.push(format!("instancePartitionDeadline={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
+/// Lists all instance partitions for the given instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_instance_partitions_list_execute()` or `spanner_projects_instances_instance_partitions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInstancePartitionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInstancePartitionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
+/// Lists all instance partitions for the given instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_instance_partitions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_instance_partitions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_instance_partitions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInstancePartitionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_instance_partitions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_instance_partitions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instancePartitionDeadline
+    pub instancePartitionDeadline: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
+/// Lists all instance partitions for the given instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_instance_partitions_list_builder()` + `spanner_projects_instances_instance_partitions_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesInstancePartitionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInstancePartitionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_instance_partitions_list_builder(
+        client,
+        &args.parent,
+        &args.instancePartitionDeadline,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    spanner_projects_instances_instance_partitions_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition's tables. * The instance partition's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_instance_partitions_patch_execute()` to send, or `spanner_projects_instances_instance_partitions_patch` for simplest API.
+
+pub fn spanner_projects_instances_instance_partitions_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition's tables. * The instance partition's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_instance_partitions_patch_execute()` or `spanner_projects_instances_instance_partitions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition's tables. * The instance partition's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_instance_partitions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_patch_task()`.
+/// For the simplest API, use `spanner_projects_instances_instance_partitions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_instance_partitions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_instance_partitions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_instance_partitions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
+/// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition's tables. * The instance partition's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_instance_partitions_patch_builder()` + `spanner_projects_instances_instance_partitions_patch_execute()`.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_patch(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesInstancePartitionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_instance_partitions_patch_builder(client, &args.name)?;
+    spanner_projects_instances_instance_partitions_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_instance_partitions_operations_cancel_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_cancel` for simplest API.
+
+pub fn spanner_projects_instances_instance_partitions_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_instance_partitions_operations_cancel_execute()` or `spanner_projects_instances_instance_partitions_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_instance_partitions_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_operations_cancel_task()`.
+/// For the simplest API, use `spanner_projects_instances_instance_partitions_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_instance_partitions_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_instance_partitions_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_instance_partitions_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_instance_partitions_operations_cancel_builder()` + `spanner_projects_instances_instance_partitions_operations_cancel_execute()`.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesInstancePartitionsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_instance_partitions_operations_cancel_builder(
+        client, &args.name,
+    )?;
+    spanner_projects_instances_instance_partitions_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_instance_partitions_operations_delete_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_delete` for simplest API.
+
+pub fn spanner_projects_instances_instance_partitions_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_instance_partitions_operations_delete_execute()` or `spanner_projects_instances_instance_partitions_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_instance_partitions_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_operations_delete_task()`.
+/// For the simplest API, use `spanner_projects_instances_instance_partitions_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_instance_partitions_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_instance_partitions_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_instance_partitions_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_instance_partitions_operations_delete_builder()` + `spanner_projects_instances_instance_partitions_operations_delete_execute()`.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_operations_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesInstancePartitionsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_instance_partitions_operations_delete_builder(
+        client, &args.name,
+    )?;
+    spanner_projects_instances_instance_partitions_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_instance_partitions_operations_get_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_get` for simplest API.
+
+pub fn spanner_projects_instances_instance_partitions_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_instance_partitions_operations_get_execute()` or `spanner_projects_instances_instance_partitions_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_instance_partitions_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_operations_get_task()`.
+/// For the simplest API, use `spanner_projects_instances_instance_partitions_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_instance_partitions_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_instance_partitions_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_instance_partitions_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_instance_partitions_operations_get_builder()` + `spanner_projects_instances_instance_partitions_operations_get_execute()`.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_operations_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesInstancePartitionsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        spanner_projects_instances_instance_partitions_operations_get_builder(client, &args.name)?;
+    spanner_projects_instances_instance_partitions_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_instance_partitions_operations_list_execute()` to send, or `spanner_projects_instances_instance_partitions_operations_list` for simplest API.
+
+pub fn spanner_projects_instances_instance_partitions_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_instance_partitions_operations_list_execute()` or `spanner_projects_instances_instance_partitions_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_instance_partitions_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_operations_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_instance_partitions_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_instance_partitions_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_instance_partitions_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_instance_partitions_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_instance_partitions_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_instance_partitions_operations_list_builder()` + `spanner_projects_instances_instance_partitions_operations_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_instance_partitions_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_instance_partitions_operations_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesInstancePartitionsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_instance_partitions_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    spanner_projects_instances_instance_partitions_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_operations_cancel_execute()` to send, or `spanner_projects_instances_operations_cancel` for simplest API.
+
+pub fn spanner_projects_instances_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_operations_cancel_execute()` or `spanner_projects_instances_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_operations_cancel_task()`.
+/// For the simplest API, use `spanner_projects_instances_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_operations_cancel_builder()` + `spanner_projects_instances_operations_cancel_execute()`.
+/// For task-level control, use `spanner_projects_instances_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_operations_cancel_builder(client, &args.name)?;
+    spanner_projects_instances_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_operations_delete_execute()` to send, or `spanner_projects_instances_operations_delete` for simplest API.
+
+pub fn spanner_projects_instances_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_operations_delete_execute()` or `spanner_projects_instances_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_operations_delete_task()`.
+/// For the simplest API, use `spanner_projects_instances_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_operations_delete_builder()` + `spanner_projects_instances_operations_delete_execute()`.
+/// For task-level control, use `spanner_projects_instances_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_operations_delete(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_operations_delete_builder(client, &args.name)?;
+    spanner_projects_instances_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_operations_get_execute()` to send, or `spanner_projects_instances_operations_get` for simplest API.
+
+pub fn spanner_projects_instances_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_operations_get_execute()` or `spanner_projects_instances_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_operations_get_task()`.
+/// For the simplest API, use `spanner_projects_instances_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_operations_get_builder()` + `spanner_projects_instances_operations_get_execute()`.
+/// For task-level control, use `spanner_projects_instances_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_operations_get(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_operations_get_builder(client, &args.name)?;
+    spanner_projects_instances_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_projects_instances_operations_list_execute()` to send, or `spanner_projects_instances_operations_list` for simplest API.
+
+pub fn spanner_projects_instances_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://spanner.googleapis.com/v1/projects/{}/instances/{instancesId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_projects_instances_operations_list_execute()` or `spanner_projects_instances_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_projects_instances_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_projects_instances_operations_list_task()`.
+/// For the simplest API, use `spanner_projects_instances_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_projects_instances_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_projects_instances_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_projects_instances_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_projects_instances_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/instances/{instancesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_projects_instances_operations_list_builder()` + `spanner_projects_instances_operations_list_execute()`.
+/// For task-level control, use `spanner_projects_instances_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_projects_instances_operations_list(
+    client: &SimpleHttpClient,
+    args: &SpannerProjectsInstancesOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_projects_instances_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    spanner_projects_instances_operations_list_execute(builder)
+}
+
+/// GET v1/scans
+/// Return available scans given a Database-specific resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `spanner_scans_list_execute()` to send, or `spanner_scans_list` for simplest API.
+
+pub fn spanner_scans_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://spanner.googleapis.com/v1/scans",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/scans
+/// Return available scans given a Database-specific resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `spanner_scans_list_execute()` or `spanner_scans_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_scans_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_scans_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListScansResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListScansResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/scans
+/// Return available scans given a Database-specific resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `spanner_scans_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `spanner_scans_list_task()`.
+/// For the simplest API, use `spanner_scans_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `spanner_scans_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn spanner_scans_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListScansResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = spanner_scans_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`spanner_scans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerScansListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/scans
+/// Return available scans given a Database-specific resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `spanner_scans_list_builder()` + `spanner_scans_list_execute()`.
+/// For task-level control, use `spanner_scans_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn spanner_scans_list(
+    client: &SimpleHttpClient,
+    args: &SpannerScansListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListScansResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = spanner_scans_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    spanner_scans_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInstanceConfigOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInstanceConfigOperationsResponse with SpannerProjectsInstanceConfigOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigOperationsListArgs>
+    for ListInstanceConfigOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstanceConfigOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::ListInstanceConfigOperationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListInstanceConfigOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstanceConfigsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstanceConfigsCreateArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstanceConfigsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstanceConfigsDeleteArgs) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InstanceConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for InstanceConfig with SpannerProjectsInstanceConfigsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsGetArgs> for InstanceConfig {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstanceConfigsGetArgs) -> String {
+        format!("gcp::spanner::InstanceConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::InstanceConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInstanceConfigsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInstanceConfigsResponse with SpannerProjectsInstanceConfigsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsListArgs> for ListInstanceConfigsResponse {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstanceConfigsListArgs) -> String {
+        format!("gcp::spanner::ListInstanceConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListInstanceConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstanceConfigsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstanceConfigsPatchArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstanceConfigsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstanceConfigsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstanceConfigsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstanceConfigsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstanceConfigsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstanceConfigsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with SpannerProjectsInstanceConfigsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstanceConfigsOperationsListArgs,
+    ) -> String {
+        format!("gcp::spanner::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstanceConfigsSsdCachesOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsSsdCachesOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstanceConfigsSsdCachesOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstanceConfigsSsdCachesOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsSsdCachesOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstanceConfigsSsdCachesOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstanceConfigsSsdCachesOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsSsdCachesOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstanceConfigsSsdCachesOperationsGetArgs,
+    ) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs,
+    ) -> String {
+        format!("gcp::spanner::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesCreateArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesDeleteArgs) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Instance
+// =============================================================================
+
+/// ResourceIdentifier implementation for Instance with SpannerProjectsInstancesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesGetArgs> for Instance {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesGetArgs) -> String {
+        format!("gcp::spanner::Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SpannerProjectsInstancesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesGetIamPolicyArgs) -> String {
+        format!("gcp::spanner::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInstancesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInstancesResponse with SpannerProjectsInstancesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesListArgs> for ListInstancesResponse {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesListArgs) -> String {
+        format!("gcp::spanner::ListInstancesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesMoveArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesMoveArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesPatchArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SpannerProjectsInstancesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesSetIamPolicyArgs) -> String {
+        format!("gcp::spanner::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with SpannerProjectsInstancesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupOperationsResponse with SpannerProjectsInstancesBackupOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupOperationsListArgs>
+    for ListBackupOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesBackupOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::ListBackupOperationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListBackupOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesBackupsCopyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsCopyArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesBackupsCopyArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesBackupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesBackupsCreateArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesBackupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesBackupsDeleteArgs) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Backup
+// =============================================================================
+
+/// ResourceIdentifier implementation for Backup with SpannerProjectsInstancesBackupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsGetArgs> for Backup {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesBackupsGetArgs) -> String {
+        format!("gcp::spanner::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SpannerProjectsInstancesBackupsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesBackupsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::spanner::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupsResponse with SpannerProjectsInstancesBackupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsListArgs> for ListBackupsResponse {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesBackupsListArgs) -> String {
+        format!("gcp::spanner::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Backup
+// =============================================================================
+
+/// ResourceIdentifier implementation for Backup with SpannerProjectsInstancesBackupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsPatchArgs> for Backup {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesBackupsPatchArgs) -> String {
+        format!("gcp::spanner::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SpannerProjectsInstancesBackupsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesBackupsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::spanner::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with SpannerProjectsInstancesBackupsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesBackupsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesBackupsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesBackupsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesBackupsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesBackupsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesBackupsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesBackupsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with SpannerProjectsInstancesBackupsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesBackupsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesBackupsOperationsListArgs,
+    ) -> String {
+        format!("gcp::spanner::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDatabaseOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDatabaseOperationsResponse with SpannerProjectsInstancesDatabaseOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabaseOperationsListArgs>
+    for ListDatabaseOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabaseOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::ListDatabaseOperationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListDatabaseOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AddSplitPointsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AddSplitPointsResponse with SpannerProjectsInstancesDatabasesAddSplitPointsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesAddSplitPointsArgs>
+    for AddSplitPointsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesAddSplitPointsArgs,
+    ) -> String {
+        format!("gcp::spanner::AddSplitPointsResponse/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::AddSplitPointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesDatabasesChangequorumArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesChangequorumArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesChangequorumArgs,
+    ) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesDatabasesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesDatabasesCreateArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesDatabasesDropDatabaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesDropDatabaseArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesDropDatabaseArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Database
+// =============================================================================
+
+/// ResourceIdentifier implementation for Database with SpannerProjectsInstancesDatabasesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesGetArgs> for Database {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesDatabasesGetArgs) -> String {
+        format!("gcp::spanner::Database/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Database"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetDatabaseDdlResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetDatabaseDdlResponse with SpannerProjectsInstancesDatabasesGetDdlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesGetDdlArgs> for GetDatabaseDdlResponse {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesDatabasesGetDdlArgs) -> String {
+        format!("gcp::spanner::GetDatabaseDdlResponse/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::GetDatabaseDdlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SpannerProjectsInstancesDatabasesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::spanner::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Scan
+// =============================================================================
+
+/// ResourceIdentifier implementation for Scan with SpannerProjectsInstancesDatabasesGetScansArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesGetScansArgs> for Scan {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesGetScansArgs,
+    ) -> String {
+        format!("gcp::spanner::Scan/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Scan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDatabasesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDatabasesResponse with SpannerProjectsInstancesDatabasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesListArgs> for ListDatabasesResponse {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesDatabasesListArgs) -> String {
+        format!("gcp::spanner::ListDatabasesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListDatabasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesDatabasesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesDatabasesPatchArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesDatabasesRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesRestoreArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesDatabasesRestoreArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SpannerProjectsInstancesDatabasesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::spanner::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with SpannerProjectsInstancesDatabasesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesDatabasesUpdateDdlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesUpdateDdlArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesUpdateDdlArgs,
+    ) -> String {
+        format!("gcp::spanner::Operation/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupSchedule
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupSchedule with SpannerProjectsInstancesDatabasesBackupSchedulesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesBackupSchedulesCreateArgs>
+    for BackupSchedule
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesBackupSchedulesCreateArgs,
+    ) -> String {
+        format!("gcp::spanner::BackupSchedule/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::BackupSchedule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesDatabasesBackupSchedulesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesBackupSchedulesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesBackupSchedulesDeleteArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupSchedule
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupSchedule with SpannerProjectsInstancesDatabasesBackupSchedulesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesBackupSchedulesGetArgs>
+    for BackupSchedule
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesBackupSchedulesGetArgs,
+    ) -> String {
+        format!("gcp::spanner::BackupSchedule/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::BackupSchedule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SpannerProjectsInstancesDatabasesBackupSchedulesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesBackupSchedulesGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesBackupSchedulesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::spanner::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupSchedulesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupSchedulesResponse with SpannerProjectsInstancesDatabasesBackupSchedulesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesBackupSchedulesListArgs>
+    for ListBackupSchedulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesBackupSchedulesListArgs,
+    ) -> String {
+        format!("gcp::spanner::ListBackupSchedulesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListBackupSchedulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupSchedule
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupSchedule with SpannerProjectsInstancesDatabasesBackupSchedulesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesBackupSchedulesPatchArgs>
+    for BackupSchedule
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesBackupSchedulesPatchArgs,
+    ) -> String {
+        format!("gcp::spanner::BackupSchedule/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::BackupSchedule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with SpannerProjectsInstancesDatabasesBackupSchedulesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesBackupSchedulesSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesBackupSchedulesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::spanner::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with SpannerProjectsInstancesDatabasesBackupSchedulesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesBackupSchedulesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesBackupSchedulesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDatabaseRolesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDatabaseRolesResponse with SpannerProjectsInstancesDatabasesDatabaseRolesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesDatabaseRolesListArgs>
+    for ListDatabaseRolesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesDatabaseRolesListArgs,
+    ) -> String {
+        format!("gcp::spanner::ListDatabaseRolesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListDatabaseRolesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with SpannerProjectsInstancesDatabasesDatabaseRolesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesDatabaseRolesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesDatabaseRolesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesDatabasesOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesDatabasesOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesDatabasesOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesOperationsGetArgs,
+    ) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with SpannerProjectsInstancesDatabasesOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesOperationsListArgs,
+    ) -> String {
+        format!("gcp::spanner::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdaptMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdaptMessageResponse with SpannerProjectsInstancesDatabasesSessionsAdaptMessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsAdaptMessageArgs>
+    for AdaptMessageResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsAdaptMessageArgs,
+    ) -> String {
+        format!("gcp::spanner::AdaptMessageResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::AdaptMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdapterSession
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdapterSession with SpannerProjectsInstancesDatabasesSessionsAdapterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsAdapterArgs> for AdapterSession {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsAdapterArgs,
+    ) -> String {
+        format!("gcp::spanner::AdapterSession/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::AdapterSession"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchCreateSessionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchCreateSessionsResponse with SpannerProjectsInstancesDatabasesSessionsBatchCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsBatchCreateArgs>
+    for BatchCreateSessionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsBatchCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::BatchCreateSessionsResponse/{}",
+            input.database
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::BatchCreateSessionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchWriteResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchWriteResponse with SpannerProjectsInstancesDatabasesSessionsBatchWriteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsBatchWriteArgs>
+    for BatchWriteResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsBatchWriteArgs,
+    ) -> String {
+        format!("gcp::spanner::BatchWriteResponse/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::BatchWriteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Transaction
+// =============================================================================
+
+/// ResourceIdentifier implementation for Transaction with SpannerProjectsInstancesDatabasesSessionsBeginTransactionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsBeginTransactionArgs>
+    for Transaction
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsBeginTransactionArgs,
+    ) -> String {
+        format!("gcp::spanner::Transaction/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Transaction"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CommitResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CommitResponse with SpannerProjectsInstancesDatabasesSessionsCommitArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsCommitArgs> for CommitResponse {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsCommitArgs,
+    ) -> String {
+        format!("gcp::spanner::CommitResponse/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::CommitResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Session
+// =============================================================================
+
+/// ResourceIdentifier implementation for Session with SpannerProjectsInstancesDatabasesSessionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsCreateArgs> for Session {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsCreateArgs,
+    ) -> String {
+        format!("gcp::spanner::Session/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Session"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesDatabasesSessionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsDeleteArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExecuteBatchDmlResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExecuteBatchDmlResponse with SpannerProjectsInstancesDatabasesSessionsExecuteBatchDmlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsExecuteBatchDmlArgs>
+    for ExecuteBatchDmlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsExecuteBatchDmlArgs,
+    ) -> String {
+        format!("gcp::spanner::ExecuteBatchDmlResponse/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ExecuteBatchDmlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResultSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResultSet with SpannerProjectsInstancesDatabasesSessionsExecuteSqlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsExecuteSqlArgs> for ResultSet {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsExecuteSqlArgs,
+    ) -> String {
+        format!("gcp::spanner::ResultSet/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ResultSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PartialResultSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for PartialResultSet with SpannerProjectsInstancesDatabasesSessionsExecuteStreamingSqlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsExecuteStreamingSqlArgs>
+    for PartialResultSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsExecuteStreamingSqlArgs,
+    ) -> String {
+        format!("gcp::spanner::PartialResultSet/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::PartialResultSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Session
+// =============================================================================
+
+/// ResourceIdentifier implementation for Session with SpannerProjectsInstancesDatabasesSessionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsGetArgs> for Session {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsGetArgs,
+    ) -> String {
+        format!("gcp::spanner::Session/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Session"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSessionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSessionsResponse with SpannerProjectsInstancesDatabasesSessionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsListArgs>
+    for ListSessionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsListArgs,
+    ) -> String {
+        format!("gcp::spanner::ListSessionsResponse/{}", input.database)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListSessionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PartitionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PartitionResponse with SpannerProjectsInstancesDatabasesSessionsPartitionQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsPartitionQueryArgs>
+    for PartitionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsPartitionQueryArgs,
+    ) -> String {
+        format!("gcp::spanner::PartitionResponse/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::PartitionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PartitionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PartitionResponse with SpannerProjectsInstancesDatabasesSessionsPartitionReadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsPartitionReadArgs>
+    for PartitionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsPartitionReadArgs,
+    ) -> String {
+        format!("gcp::spanner::PartitionResponse/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::PartitionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResultSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResultSet with SpannerProjectsInstancesDatabasesSessionsReadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsReadArgs> for ResultSet {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsReadArgs,
+    ) -> String {
+        format!("gcp::spanner::ResultSet/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ResultSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesDatabasesSessionsRollbackArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsRollbackArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsRollbackArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PartialResultSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for PartialResultSet with SpannerProjectsInstancesDatabasesSessionsStreamingReadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesDatabasesSessionsStreamingReadArgs>
+    for PartialResultSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesDatabasesSessionsStreamingReadArgs,
+    ) -> String {
+        format!("gcp::spanner::PartialResultSet/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::PartialResultSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInstancePartitionOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInstancePartitionOperationsResponse with SpannerProjectsInstancesInstancePartitionOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesInstancePartitionOperationsListArgs>
+    for ListInstancePartitionOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesInstancePartitionOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::ListInstancePartitionOperationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListInstancePartitionOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesInstancePartitionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesInstancePartitionsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesInstancePartitionsCreateArgs,
+    ) -> String {
+        format!("gcp::spanner::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesInstancePartitionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesInstancePartitionsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesInstancePartitionsDeleteArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InstancePartition
+// =============================================================================
+
+/// ResourceIdentifier implementation for InstancePartition with SpannerProjectsInstancesInstancePartitionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesInstancePartitionsGetArgs> for InstancePartition {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesInstancePartitionsGetArgs,
+    ) -> String {
+        format!("gcp::spanner::InstancePartition/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::InstancePartition"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInstancePartitionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInstancePartitionsResponse with SpannerProjectsInstancesInstancePartitionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesInstancePartitionsListArgs>
+    for ListInstancePartitionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesInstancePartitionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::spanner::ListInstancePartitionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListInstancePartitionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesInstancePartitionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesInstancePartitionsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesInstancePartitionsPatchArgs,
+    ) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesInstancePartitionsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesInstancePartitionsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesInstancePartitionsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesInstancePartitionsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesInstancePartitionsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesInstancePartitionsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesInstancePartitionsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesInstancePartitionsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesInstancePartitionsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with SpannerProjectsInstancesInstancePartitionsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesInstancePartitionsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpannerProjectsInstancesInstancePartitionsOperationsListArgs,
+    ) -> String {
+        format!("gcp::spanner::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesOperationsCancelArgs) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SpannerProjectsInstancesOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesOperationsDeleteArgs) -> String {
+        format!("gcp::spanner::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SpannerProjectsInstancesOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesOperationsGetArgs) -> String {
+        format!("gcp::spanner::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with SpannerProjectsInstancesOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerProjectsInstancesOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &SpannerProjectsInstancesOperationsListArgs) -> String {
+        format!("gcp::spanner::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListScansResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListScansResponse with SpannerScansListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpannerScansListArgs> for ListScansResponse {
+    fn generate_resource_id(&self, input: &SpannerScansListArgs) -> String {
+        "gcp::spanner::ListScansResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::spanner::ListScansResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

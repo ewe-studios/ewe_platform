@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/message:stream
+/// POST v1/message:stream
 /// SendStreamingMessage is a streaming call that will return a stream of task update events until the Task is in an interrupted or terminal state.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn workspaceevents_message_stream_builder(
     client: &SimpleHttpClient,
-    body: &SendMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/message:stream",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/message:stream
+/// POST v1/message:stream
 /// SendStreamingMessage is a streaming call that will return a stream of task update events until the Task is in an interrupted or terminal state.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn workspaceevents_message_stream_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/message:stream
+/// POST v1/message:stream
 /// SendStreamingMessage is a streaming call that will return a stream of task update events until the Task is in an interrupted or terminal state.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -149,14 +146,7 @@ pub fn workspaceevents_message_stream_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`workspaceevents_message_stream`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WorkspaceeventsMessageStreamArgs {
-    /// Request body.
-    pub body: SendMessageRequest,
-}
-
-/// GET v1/message:stream
+/// POST v1/message:stream
 /// SendStreamingMessage is a streaming call that will return a stream of task update events until the Task is in an interrupted or terminal state.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -169,14 +159,13 @@ pub struct WorkspaceeventsMessageStreamArgs {
 
 pub fn workspaceevents_message_stream(
     client: &SimpleHttpClient,
-    args: &WorkspaceeventsMessageStreamArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StreamResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_message_stream_builder(client, &args.body)?;
+    let builder = workspaceevents_message_stream_builder(client)?;
     workspaceevents_message_stream_execute(builder)
 }
 
@@ -191,7 +180,10 @@ pub fn workspaceevents_operations_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/operations/{}",);
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/operations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -334,7 +326,7 @@ pub fn workspaceevents_operations_get(
     workspaceevents_operations_get_execute(builder)
 }
 
-/// GET v1/subscriptions
+/// POST v1/subscriptions
 /// Creates a Google Workspace subscription. To learn how to use this method, see [Create a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/create-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can create a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app and getting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -342,8 +334,7 @@ pub fn workspaceevents_operations_get(
 
 pub fn workspaceevents_subscriptions_create_builder(
     client: &SimpleHttpClient,
-    validateOnly: &Option<bool>,
-    body: &Subscription,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/subscriptions",);
@@ -361,15 +352,13 @@ pub fn workspaceevents_subscriptions_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/subscriptions
+/// POST v1/subscriptions
 /// Creates a Google Workspace subscription. To learn how to use this method, see [Create a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/create-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can create a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app and getting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -443,7 +432,7 @@ pub fn workspaceevents_subscriptions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/subscriptions
+/// POST v1/subscriptions
 /// Creates a Google Workspace subscription. To learn how to use this method, see [Create a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/create-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can create a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app and getting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -477,12 +466,10 @@ pub fn workspaceevents_subscriptions_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct WorkspaceeventsSubscriptionsCreateArgs {
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
-    /// Request body.
-    pub body: Subscription,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v1/subscriptions
+/// POST v1/subscriptions
 /// Creates a Google Workspace subscription. To learn how to use this method, see [Create a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/create-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can create a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app and getting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -500,12 +487,11 @@ pub fn workspaceevents_subscriptions_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workspaceevents_subscriptions_create_builder(client, &args.validateOnly, &args.body)?;
+    let builder = workspaceevents_subscriptions_create_builder(client, &args.validateOnly)?;
     workspaceevents_subscriptions_create_execute(builder)
 }
 
-/// GET v1/subscriptions/{subscriptionsId}
+/// DELETE v1/subscriptions/{subscriptionsId}
 /// Deletes a Google Workspace subscription. To learn how to use this method, see [Delete a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/delete-subscription`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -514,12 +500,15 @@ pub fn workspaceevents_subscriptions_create(
 pub fn workspaceevents_subscriptions_delete_builder(
     client: &SimpleHttpClient,
     name: &String,
-    allowMissing: &Option<bool>,
-    etag: &Option<String>,
-    validateOnly: &Option<bool>,
+    allowMissing: &Option<Option<String>>,
+    etag: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/subscriptions/{}",);
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/subscriptions/{}",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -540,13 +529,13 @@ pub fn workspaceevents_subscriptions_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/subscriptions/{subscriptionsId}
+/// DELETE v1/subscriptions/{subscriptionsId}
 /// Deletes a Google Workspace subscription. To learn how to use this method, see [Delete a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/delete-subscription`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -620,7 +609,7 @@ pub fn workspaceevents_subscriptions_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/subscriptions/{subscriptionsId}
+/// DELETE v1/subscriptions/{subscriptionsId}
 /// Deletes a Google Workspace subscription. To learn how to use this method, see [Delete a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/delete-subscription`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -656,14 +645,14 @@ pub struct WorkspaceeventsSubscriptionsDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: allowMissing
-    pub allowMissing: Option<bool>,
+    pub allowMissing: Option<Option<String>>,
     /// Query parameter: etag
-    pub etag: Option<String>,
+    pub etag: Option<Option<String>>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v1/subscriptions/{subscriptionsId}
+/// DELETE v1/subscriptions/{subscriptionsId}
 /// Deletes a Google Workspace subscription. To learn how to use this method, see [Delete a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/delete-subscription`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -691,7 +680,536 @@ pub fn workspaceevents_subscriptions_delete(
     workspaceevents_subscriptions_delete_execute(builder)
 }
 
-/// GET v1/subscriptions/{subscriptionsId}:reactivate
+/// GET v1/subscriptions/{subscriptionsId}
+/// Gets details about a Google Workspace subscription. To learn how to use this method, see [Get details about a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/get-subscription`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workspaceevents_subscriptions_get_execute()` to send, or `workspaceevents_subscriptions_get` for simplest API.
+
+pub fn workspaceevents_subscriptions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/subscriptions/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/subscriptions/{subscriptionsId}
+/// Gets details about a Google Workspace subscription. To learn how to use this method, see [Get details about a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/get-subscription`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workspaceevents_subscriptions_get_execute()` or `workspaceevents_subscriptions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_subscriptions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_subscriptions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Subscription = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/subscriptions/{subscriptionsId}
+/// Gets details about a Google Workspace subscription. To learn how to use this method, see [Get details about a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/get-subscription`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workspaceevents_subscriptions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workspaceevents_subscriptions_get_task()`.
+/// For the simplest API, use `workspaceevents_subscriptions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_subscriptions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workspaceevents_subscriptions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workspaceevents_subscriptions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workspaceevents_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsSubscriptionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/subscriptions/{subscriptionsId}
+/// Gets details about a Google Workspace subscription. To learn how to use this method, see [Get details about a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/get-subscription`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workspaceevents_subscriptions_get_builder()` + `workspaceevents_subscriptions_get_execute()`.
+/// For task-level control, use `workspaceevents_subscriptions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_subscriptions_get(
+    client: &SimpleHttpClient,
+    args: &WorkspaceeventsSubscriptionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workspaceevents_subscriptions_get_builder(client, &args.name)?;
+    workspaceevents_subscriptions_get_execute(builder)
+}
+
+/// GET v1/subscriptions
+/// Lists Google Workspace subscriptions. To learn how to use this method, see [List Google Workspace subscriptions](<https://developers.google.`com/workspace/events/guides/list-subscriptions`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workspaceevents_subscriptions_list_execute()` to send, or `workspaceevents_subscriptions_list` for simplest API.
+
+pub fn workspaceevents_subscriptions_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/subscriptions",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/subscriptions
+/// Lists Google Workspace subscriptions. To learn how to use this method, see [List Google Workspace subscriptions](<https://developers.google.`com/workspace/events/guides/list-subscriptions`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workspaceevents_subscriptions_list_execute()` or `workspaceevents_subscriptions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_subscriptions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_subscriptions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSubscriptionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/subscriptions
+/// Lists Google Workspace subscriptions. To learn how to use this method, see [List Google Workspace subscriptions](<https://developers.google.`com/workspace/events/guides/list-subscriptions`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workspaceevents_subscriptions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workspaceevents_subscriptions_list_task()`.
+/// For the simplest API, use `workspaceevents_subscriptions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_subscriptions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workspaceevents_subscriptions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workspaceevents_subscriptions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workspaceevents_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsSubscriptionsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/subscriptions
+/// Lists Google Workspace subscriptions. To learn how to use this method, see [List Google Workspace subscriptions](<https://developers.google.`com/workspace/events/guides/list-subscriptions`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workspaceevents_subscriptions_list_builder()` + `workspaceevents_subscriptions_list_execute()`.
+/// For task-level control, use `workspaceevents_subscriptions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_subscriptions_list(
+    client: &SimpleHttpClient,
+    args: &WorkspaceeventsSubscriptionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workspaceevents_subscriptions_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    workspaceevents_subscriptions_list_execute(builder)
+}
+
+/// PATCH v1/subscriptions/{subscriptionsId}
+/// Updates or renews a Google Workspace subscription. To learn how to use this method, see [Update or renew a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/update-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can update a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app andgetting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workspaceevents_subscriptions_patch_execute()` to send, or `workspaceevents_subscriptions_patch` for simplest API.
+
+pub fn workspaceevents_subscriptions_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/subscriptions/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/subscriptions/{subscriptionsId}
+/// Updates or renews a Google Workspace subscription. To learn how to use this method, see [Update or renew a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/update-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can update a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app andgetting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workspaceevents_subscriptions_patch_execute()` or `workspaceevents_subscriptions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_subscriptions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_subscriptions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/subscriptions/{subscriptionsId}
+/// Updates or renews a Google Workspace subscription. To learn how to use this method, see [Update or renew a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/update-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can update a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app andgetting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workspaceevents_subscriptions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workspaceevents_subscriptions_patch_task()`.
+/// For the simplest API, use `workspaceevents_subscriptions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_subscriptions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workspaceevents_subscriptions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workspaceevents_subscriptions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workspaceevents_subscriptions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsSubscriptionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/subscriptions/{subscriptionsId}
+/// Updates or renews a Google Workspace subscription. To learn how to use this method, see [Update or renew a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/update-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can update a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app andgetting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workspaceevents_subscriptions_patch_builder()` + `workspaceevents_subscriptions_patch_execute()`.
+/// For task-level control, use `workspaceevents_subscriptions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_subscriptions_patch(
+    client: &SimpleHttpClient,
+    args: &WorkspaceeventsSubscriptionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workspaceevents_subscriptions_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    workspaceevents_subscriptions_patch_execute(builder)
+}
+
+/// POST v1/subscriptions/{subscriptionsId}:reactivate
 /// Reactivates a suspended Google Workspace subscription. This method resets your subscription's State field to `ACTIVE`. Before you use this method, you must fix the error that suspended the subscription. This method will ignore or reject any subscription that isn't currently in a suspended state. To learn how to use this method, see [Reactivate a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/reactivate-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can reactivate a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app andgetting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -700,23 +1218,22 @@ pub fn workspaceevents_subscriptions_delete(
 pub fn workspaceevents_subscriptions_reactivate_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &ReactivateSubscriptionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://workspaceevents.googleapis.com/v1/subscriptions/{}:reactivate",);
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/subscriptions/{}:reactivate",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/subscriptions/{subscriptionsId}:reactivate
+/// POST v1/subscriptions/{subscriptionsId}:reactivate
 /// Reactivates a suspended Google Workspace subscription. This method resets your subscription's State field to `ACTIVE`. Before you use this method, you must fix the error that suspended the subscription. This method will ignore or reject any subscription that isn't currently in a suspended state. To learn how to use this method, see [Reactivate a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/reactivate-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can reactivate a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app andgetting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -790,7 +1307,7 @@ pub fn workspaceevents_subscriptions_reactivate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/subscriptions/{subscriptionsId}:reactivate
+/// POST v1/subscriptions/{subscriptionsId}:reactivate
 /// Reactivates a suspended Google Workspace subscription. This method resets your subscription's State field to `ACTIVE`. Before you use this method, you must fix the error that suspended the subscription. This method will ignore or reject any subscription that isn't currently in a suspended state. To learn how to use this method, see [Reactivate a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/reactivate-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can reactivate a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app andgetting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -825,11 +1342,9 @@ pub fn workspaceevents_subscriptions_reactivate_execute(
 pub struct WorkspaceeventsSubscriptionsReactivateArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: ReactivateSubscriptionRequest,
 }
 
-/// GET v1/subscriptions/{subscriptionsId}:reactivate
+/// POST v1/subscriptions/{subscriptionsId}:reactivate
 /// Reactivates a suspended Google Workspace subscription. This method resets your subscription's State field to `ACTIVE`. Before you use this method, you must fix the error that suspended the subscription. This method will ignore or reject any subscription that isn't currently in a suspended state. To learn how to use this method, see [Reactivate a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/reactivate-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can reactivate a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app andgetting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -847,11 +1362,11 @@ pub fn workspaceevents_subscriptions_reactivate(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_subscriptions_reactivate_builder(client, &args.name, &args.body)?;
+    let builder = workspaceevents_subscriptions_reactivate_builder(client, &args.name)?;
     workspaceevents_subscriptions_reactivate_execute(builder)
 }
 
-/// GET v1/tasks/{tasksId}:cancel
+/// POST v1/tasks/{tasksId}:cancel
 /// Cancel a task from the agent. If supported one should expect no more task updates for the task.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -860,22 +1375,22 @@ pub fn workspaceevents_subscriptions_reactivate(
 pub fn workspaceevents_tasks_cancel_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &CancelTaskRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/tasks/{}:cancel",);
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/tasks/{}:cancel",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/tasks/{tasksId}:cancel
+/// POST v1/tasks/{tasksId}:cancel
 /// Cancel a task from the agent. If supported one should expect no more task updates for the task.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -949,7 +1464,7 @@ pub fn workspaceevents_tasks_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/tasks/{tasksId}:cancel
+/// POST v1/tasks/{tasksId}:cancel
 /// Cancel a task from the agent. If supported one should expect no more task updates for the task.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -984,11 +1499,9 @@ pub fn workspaceevents_tasks_cancel_execute(
 pub struct WorkspaceeventsTasksCancelArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: CancelTaskRequest,
 }
 
-/// GET v1/tasks/{tasksId}:cancel
+/// POST v1/tasks/{tasksId}:cancel
 /// Cancel a task from the agent. If supported one should expect no more task updates for the task.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1006,7 +1519,7 @@ pub fn workspaceevents_tasks_cancel(
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_tasks_cancel_builder(client, &args.name, &args.body)?;
+    let builder = workspaceevents_tasks_cancel_builder(client, &args.name)?;
     workspaceevents_tasks_cancel_execute(builder)
 }
 
@@ -1019,11 +1532,11 @@ pub fn workspaceevents_tasks_cancel(
 pub fn workspaceevents_tasks_get_builder(
     client: &SimpleHttpClient,
     name: &String,
-    historyLength: &Option<i32>,
-    tenant: &Option<String>,
+    historyLength: &Option<Option<String>>,
+    tenant: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/tasks/{}",);
+    let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/tasks/{}", name,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1157,9 +1670,9 @@ pub struct WorkspaceeventsTasksGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: historyLength
-    pub historyLength: Option<i32>,
+    pub historyLength: Option<Option<String>>,
     /// Query parameter: tenant
-    pub tenant: Option<String>,
+    pub tenant: Option<Option<String>>,
 }
 
 /// GET v1/tasks/{tasksId}
@@ -1194,10 +1707,13 @@ pub fn workspaceevents_tasks_get(
 pub fn workspaceevents_tasks_subscribe_builder(
     client: &SimpleHttpClient,
     name: &String,
-    tenant: &Option<String>,
+    tenant: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://workspaceevents.googleapis.com/v1/tasks/{}:subscribe",);
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/tasks/{}:subscribe",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1330,7 +1846,7 @@ pub struct WorkspaceeventsTasksSubscribeArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: tenant
-    pub tenant: Option<String>,
+    pub tenant: Option<Option<String>>,
 }
 
 /// GET v1/tasks/{tasksId}:subscribe
@@ -1357,7 +1873,7 @@ pub fn workspaceevents_tasks_subscribe(
     workspaceevents_tasks_subscribe_execute(builder)
 }
 
-/// GET v1/tasks/{tasksId}/pushNotificationConfigs
+/// POST v1/tasks/{tasksId}/pushNotificationConfigs
 /// Set a push notification config for a task.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1366,13 +1882,14 @@ pub fn workspaceevents_tasks_subscribe(
 pub fn workspaceevents_tasks_push_notification_configs_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    configId: &Option<String>,
-    tenant: &Option<String>,
-    body: &TaskPushNotificationConfig,
+    configId: &Option<Option<String>>,
+    tenant: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://workspaceevents.googleapis.com/v1/tasks/{}/pushNotificationConfigs",);
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/tasks/{}/pushNotificationConfigs",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1390,15 +1907,13 @@ pub fn workspaceevents_tasks_push_notification_configs_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/tasks/{tasksId}/pushNotificationConfigs
+/// POST v1/tasks/{tasksId}/pushNotificationConfigs
 /// Set a push notification config for a task.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1472,7 +1987,7 @@ pub fn workspaceevents_tasks_push_notification_configs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/tasks/{tasksId}/pushNotificationConfigs
+/// POST v1/tasks/{tasksId}/pushNotificationConfigs
 /// Set a push notification config for a task.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1512,14 +2027,12 @@ pub struct WorkspaceeventsTasksPushNotificationConfigsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: configId
-    pub configId: Option<String>,
+    pub configId: Option<Option<String>>,
     /// Query parameter: tenant
-    pub tenant: Option<String>,
-    /// Request body.
-    pub body: TaskPushNotificationConfig,
+    pub tenant: Option<Option<String>>,
 }
 
-/// GET v1/tasks/{tasksId}/pushNotificationConfigs
+/// POST v1/tasks/{tasksId}/pushNotificationConfigs
 /// Set a push notification config for a task.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1546,7 +2059,933 @@ pub fn workspaceevents_tasks_push_notification_configs_create(
         &args.parent,
         &args.configId,
         &args.tenant,
-        &args.body,
     )?;
     workspaceevents_tasks_push_notification_configs_create_execute(builder)
+}
+
+/// DELETE v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
+/// Delete a push notification config for a task.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workspaceevents_tasks_push_notification_configs_delete_execute()` to send, or `workspaceevents_tasks_push_notification_configs_delete` for simplest API.
+
+pub fn workspaceevents_tasks_push_notification_configs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    tenant: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/tasks/{}/pushNotificationConfigs/{pushNotificationConfigsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = tenant.as_ref() {
+        query_parts.push(format!("tenant={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
+/// Delete a push notification config for a task.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workspaceevents_tasks_push_notification_configs_delete_execute()` or `workspaceevents_tasks_push_notification_configs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_tasks_push_notification_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_tasks_push_notification_configs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
+/// Delete a push notification config for a task.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workspaceevents_tasks_push_notification_configs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workspaceevents_tasks_push_notification_configs_delete_task()`.
+/// For the simplest API, use `workspaceevents_tasks_push_notification_configs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_tasks_push_notification_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workspaceevents_tasks_push_notification_configs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workspaceevents_tasks_push_notification_configs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workspaceevents_tasks_push_notification_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsTasksPushNotificationConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: tenant
+    pub tenant: Option<Option<String>>,
+}
+
+/// DELETE v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
+/// Delete a push notification config for a task.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workspaceevents_tasks_push_notification_configs_delete_builder()` + `workspaceevents_tasks_push_notification_configs_delete_execute()`.
+/// For task-level control, use `workspaceevents_tasks_push_notification_configs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_tasks_push_notification_configs_delete(
+    client: &SimpleHttpClient,
+    args: &WorkspaceeventsTasksPushNotificationConfigsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workspaceevents_tasks_push_notification_configs_delete_builder(
+        client,
+        &args.name,
+        &args.tenant,
+    )?;
+    workspaceevents_tasks_push_notification_configs_delete_execute(builder)
+}
+
+/// GET v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
+/// Get a push notification config for a task.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workspaceevents_tasks_push_notification_configs_get_execute()` to send, or `workspaceevents_tasks_push_notification_configs_get` for simplest API.
+
+pub fn workspaceevents_tasks_push_notification_configs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    tenant: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/tasks/{}/pushNotificationConfigs/{pushNotificationConfigsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = tenant.as_ref() {
+        query_parts.push(format!("tenant={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
+/// Get a push notification config for a task.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workspaceevents_tasks_push_notification_configs_get_execute()` or `workspaceevents_tasks_push_notification_configs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_tasks_push_notification_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_tasks_push_notification_configs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TaskPushNotificationConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TaskPushNotificationConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
+/// Get a push notification config for a task.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workspaceevents_tasks_push_notification_configs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workspaceevents_tasks_push_notification_configs_get_task()`.
+/// For the simplest API, use `workspaceevents_tasks_push_notification_configs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_tasks_push_notification_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workspaceevents_tasks_push_notification_configs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TaskPushNotificationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workspaceevents_tasks_push_notification_configs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workspaceevents_tasks_push_notification_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsTasksPushNotificationConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: tenant
+    pub tenant: Option<Option<String>>,
+}
+
+/// GET v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
+/// Get a push notification config for a task.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workspaceevents_tasks_push_notification_configs_get_builder()` + `workspaceevents_tasks_push_notification_configs_get_execute()`.
+/// For task-level control, use `workspaceevents_tasks_push_notification_configs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_tasks_push_notification_configs_get(
+    client: &SimpleHttpClient,
+    args: &WorkspaceeventsTasksPushNotificationConfigsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TaskPushNotificationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workspaceevents_tasks_push_notification_configs_get_builder(
+        client,
+        &args.name,
+        &args.tenant,
+    )?;
+    workspaceevents_tasks_push_notification_configs_get_execute(builder)
+}
+
+/// GET v1/tasks/{tasksId}/pushNotificationConfigs
+/// Get a list of push notifications configured for a task.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workspaceevents_tasks_push_notification_configs_list_execute()` to send, or `workspaceevents_tasks_push_notification_configs_list` for simplest API.
+
+pub fn workspaceevents_tasks_push_notification_configs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    tenant: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workspaceevents.googleapis.com/v1/tasks/{}/pushNotificationConfigs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = tenant.as_ref() {
+        query_parts.push(format!("tenant={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/tasks/{tasksId}/pushNotificationConfigs
+/// Get a list of push notifications configured for a task.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workspaceevents_tasks_push_notification_configs_list_execute()` or `workspaceevents_tasks_push_notification_configs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_tasks_push_notification_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_tasks_push_notification_configs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTaskPushNotificationConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTaskPushNotificationConfigResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/tasks/{tasksId}/pushNotificationConfigs
+/// Get a list of push notifications configured for a task.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workspaceevents_tasks_push_notification_configs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workspaceevents_tasks_push_notification_configs_list_task()`.
+/// For the simplest API, use `workspaceevents_tasks_push_notification_configs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workspaceevents_tasks_push_notification_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workspaceevents_tasks_push_notification_configs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTaskPushNotificationConfigResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workspaceevents_tasks_push_notification_configs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workspaceevents_tasks_push_notification_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsTasksPushNotificationConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: tenant
+    pub tenant: Option<Option<String>>,
+}
+
+/// GET v1/tasks/{tasksId}/pushNotificationConfigs
+/// Get a list of push notifications configured for a task.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workspaceevents_tasks_push_notification_configs_list_builder()` + `workspaceevents_tasks_push_notification_configs_list_execute()`.
+/// For task-level control, use `workspaceevents_tasks_push_notification_configs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workspaceevents_tasks_push_notification_configs_list(
+    client: &SimpleHttpClient,
+    args: &WorkspaceeventsTasksPushNotificationConfigsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListTaskPushNotificationConfigResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workspaceevents_tasks_push_notification_configs_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.tenant,
+    )?;
+    workspaceevents_tasks_push_notification_configs_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StreamResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for StreamResponse with WorkspaceeventsMessageStreamArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsMessageStreamArgs> for StreamResponse {
+    fn generate_resource_id(&self, input: &WorkspaceeventsMessageStreamArgs) -> String {
+        "gcp::workspaceevents::StreamResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::StreamResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkspaceeventsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &WorkspaceeventsOperationsGetArgs) -> String {
+        format!("gcp::workspaceevents::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkspaceeventsSubscriptionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsSubscriptionsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &WorkspaceeventsSubscriptionsCreateArgs) -> String {
+        "gcp::workspaceevents::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkspaceeventsSubscriptionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsSubscriptionsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &WorkspaceeventsSubscriptionsDeleteArgs) -> String {
+        format!("gcp::workspaceevents::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with WorkspaceeventsSubscriptionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsSubscriptionsGetArgs> for Subscription {
+    fn generate_resource_id(&self, input: &WorkspaceeventsSubscriptionsGetArgs) -> String {
+        format!("gcp::workspaceevents::Subscription/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSubscriptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSubscriptionsResponse with WorkspaceeventsSubscriptionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsSubscriptionsListArgs> for ListSubscriptionsResponse {
+    fn generate_resource_id(&self, input: &WorkspaceeventsSubscriptionsListArgs) -> String {
+        "gcp::workspaceevents::ListSubscriptionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::ListSubscriptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkspaceeventsSubscriptionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsSubscriptionsPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &WorkspaceeventsSubscriptionsPatchArgs) -> String {
+        format!("gcp::workspaceevents::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkspaceeventsSubscriptionsReactivateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsSubscriptionsReactivateArgs> for Operation {
+    fn generate_resource_id(&self, input: &WorkspaceeventsSubscriptionsReactivateArgs) -> String {
+        format!("gcp::workspaceevents::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Task
+// =============================================================================
+
+/// ResourceIdentifier implementation for Task with WorkspaceeventsTasksCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsTasksCancelArgs> for Task {
+    fn generate_resource_id(&self, input: &WorkspaceeventsTasksCancelArgs) -> String {
+        format!("gcp::workspaceevents::Task/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::Task"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Task
+// =============================================================================
+
+/// ResourceIdentifier implementation for Task with WorkspaceeventsTasksGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsTasksGetArgs> for Task {
+    fn generate_resource_id(&self, input: &WorkspaceeventsTasksGetArgs) -> String {
+        format!("gcp::workspaceevents::Task/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::Task"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StreamResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for StreamResponse with WorkspaceeventsTasksSubscribeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsTasksSubscribeArgs> for StreamResponse {
+    fn generate_resource_id(&self, input: &WorkspaceeventsTasksSubscribeArgs) -> String {
+        format!("gcp::workspaceevents::StreamResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::StreamResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TaskPushNotificationConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for TaskPushNotificationConfig with WorkspaceeventsTasksPushNotificationConfigsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsTasksPushNotificationConfigsCreateArgs>
+    for TaskPushNotificationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkspaceeventsTasksPushNotificationConfigsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::workspaceevents::TaskPushNotificationConfig/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::TaskPushNotificationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with WorkspaceeventsTasksPushNotificationConfigsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsTasksPushNotificationConfigsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &WorkspaceeventsTasksPushNotificationConfigsDeleteArgs,
+    ) -> String {
+        format!("gcp::workspaceevents::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TaskPushNotificationConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for TaskPushNotificationConfig with WorkspaceeventsTasksPushNotificationConfigsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsTasksPushNotificationConfigsGetArgs>
+    for TaskPushNotificationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkspaceeventsTasksPushNotificationConfigsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::workspaceevents::TaskPushNotificationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::TaskPushNotificationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTaskPushNotificationConfigResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTaskPushNotificationConfigResponse with WorkspaceeventsTasksPushNotificationConfigsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkspaceeventsTasksPushNotificationConfigsListArgs>
+    for ListTaskPushNotificationConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkspaceeventsTasksPushNotificationConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::workspaceevents::ListTaskPushNotificationConfigResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workspaceevents::ListTaskPushNotificationConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

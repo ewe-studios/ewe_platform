@@ -12,45 +12,78 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::connectors::{
+    connectors_projects_locations_connections_check_readiness_builder, connectors_projects_locations_connections_check_readiness_task,
+    connectors_projects_locations_connections_check_status_builder, connectors_projects_locations_connections_check_status_task,
     connectors_projects_locations_connections_exchange_auth_code_builder, connectors_projects_locations_connections_exchange_auth_code_task,
     connectors_projects_locations_connections_execute_sql_query_builder, connectors_projects_locations_connections_execute_sql_query_task,
     connectors_projects_locations_connections_generate_connection_toolspec_override_builder, connectors_projects_locations_connections_generate_connection_toolspec_override_task,
+    connectors_projects_locations_connections_list_custom_tool_names_builder, connectors_projects_locations_connections_list_custom_tool_names_task,
     connectors_projects_locations_connections_refresh_access_token_builder, connectors_projects_locations_connections_refresh_access_token_task,
     connectors_projects_locations_connections_tools_builder, connectors_projects_locations_connections_tools_task,
     connectors_projects_locations_connections_actions_execute_builder, connectors_projects_locations_connections_actions_execute_task,
+    connectors_projects_locations_connections_actions_get_builder, connectors_projects_locations_connections_actions_get_task,
+    connectors_projects_locations_connections_actions_list_builder, connectors_projects_locations_connections_actions_list_task,
+    connectors_projects_locations_connections_entity_types_get_builder, connectors_projects_locations_connections_entity_types_get_task,
+    connectors_projects_locations_connections_entity_types_list_builder, connectors_projects_locations_connections_entity_types_list_task,
     connectors_projects_locations_connections_entity_types_entities_create_builder, connectors_projects_locations_connections_entity_types_entities_create_task,
     connectors_projects_locations_connections_entity_types_entities_delete_builder, connectors_projects_locations_connections_entity_types_entities_delete_task,
     connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions_builder, connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions_task,
+    connectors_projects_locations_connections_entity_types_entities_get_builder, connectors_projects_locations_connections_entity_types_entities_get_task,
+    connectors_projects_locations_connections_entity_types_entities_list_builder, connectors_projects_locations_connections_entity_types_entities_list_task,
     connectors_projects_locations_connections_entity_types_entities_patch_builder, connectors_projects_locations_connections_entity_types_entities_patch_task,
     connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions_builder, connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions_task,
+    connectors_projects_locations_connections_resources_get_builder, connectors_projects_locations_connections_resources_get_task,
     connectors_projects_locations_connections_resources_get_resource_post_builder, connectors_projects_locations_connections_resources_get_resource_post_task,
+    connectors_projects_locations_connections_resources_list_builder, connectors_projects_locations_connections_resources_list_task,
     connectors_projects_locations_connections_tools_execute_builder, connectors_projects_locations_connections_tools_execute_task,
+    connectors_projects_locations_connections_tools_list_builder, connectors_projects_locations_connections_tools_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::connectors::Action;
+use crate::providers::gcp::clients::connectors::CheckReadinessResponse;
+use crate::providers::gcp::clients::connectors::CheckStatusResponse;
 use crate::providers::gcp::clients::connectors::Empty;
 use crate::providers::gcp::clients::connectors::Entity;
+use crate::providers::gcp::clients::connectors::EntityType;
 use crate::providers::gcp::clients::connectors::ExchangeAuthCodeResponse;
 use crate::providers::gcp::clients::connectors::ExecuteActionResponse;
 use crate::providers::gcp::clients::connectors::ExecuteSqlQueryResponse;
 use crate::providers::gcp::clients::connectors::ExecuteToolResponse;
 use crate::providers::gcp::clients::connectors::GenerateCustomToolspecResponse;
 use crate::providers::gcp::clients::connectors::GetResourceResponse;
+use crate::providers::gcp::clients::connectors::ListActionsResponse;
+use crate::providers::gcp::clients::connectors::ListCustomToolNamesResponse;
+use crate::providers::gcp::clients::connectors::ListEntitiesResponse;
+use crate::providers::gcp::clients::connectors::ListEntityTypesResponse;
+use crate::providers::gcp::clients::connectors::ListResourcesResponse;
 use crate::providers::gcp::clients::connectors::ListToolsResponse;
 use crate::providers::gcp::clients::connectors::RefreshAccessTokenResponse;
 use crate::providers::gcp::clients::connectors::UpdateEntitiesWithConditionsResponse;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsActionsExecuteArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsActionsGetArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsActionsListArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsCheckReadinessArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsCheckStatusArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesCreateArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesDeleteArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesDeleteEntitiesWithConditionsArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesGetArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesListArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesPatchArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesUpdateEntitiesWithConditionsArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsEntityTypesGetArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsEntityTypesListArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsExchangeAuthCodeArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsExecuteSqlQueryArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsGenerateConnectionToolspecOverrideArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsListCustomToolNamesArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsRefreshAccessTokenArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsResourcesGetArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsResourcesGetResourcePostArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsResourcesListArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsToolsArgs;
 use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsToolsExecuteArgs;
+use crate::providers::gcp::clients::connectors::ConnectorsProjectsLocationsConnectionsToolsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -90,6 +123,83 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Connectors projects locations connections check readiness.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CheckReadinessResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_check_readiness(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsCheckReadinessArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CheckReadinessResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_check_readiness_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_check_readiness_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Connectors projects locations connections check status.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CheckStatusResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_check_status(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsCheckStatusArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CheckStatusResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_check_status_builder(
+            &self.http_client,
+            &args.name,
+            &args.executionConfig.headers,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_check_status_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Connectors projects locations connections exchange auth code.
@@ -137,7 +247,7 @@ where
 
     /// Connectors projects locations connections execute sql query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -149,7 +259,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn connectors_projects_locations_connections_execute_sql_query(
         &self,
         args: &ConnectorsProjectsLocationsConnectionsExecuteSqlQueryArgs,
@@ -170,12 +280,7 @@ where
         let task = connectors_projects_locations_connections_execute_sql_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Connectors projects locations connections generate connection toolspec override.
@@ -219,6 +324,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Connectors projects locations connections list custom tool names.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCustomToolNamesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_list_custom_tool_names(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsListCustomToolNamesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCustomToolNamesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_list_custom_tool_names_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_list_custom_tool_names_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Connectors projects locations connections refresh access token.
@@ -348,6 +491,171 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Connectors projects locations connections actions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Action result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_actions_get(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsActionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Action, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_actions_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.executionConfig.headers,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_actions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Connectors projects locations connections actions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListActionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_actions_list(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsActionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListActionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_actions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.executionConfig.headers,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_actions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Connectors projects locations connections entity types get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the EntityType result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_entity_types_get(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsEntityTypesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<EntityType, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_entity_types_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.contextMetadata,
+            &args.executionConfig.headers,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_entity_types_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Connectors projects locations connections entity types list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListEntityTypesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_entity_types_list(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsEntityTypesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListEntityTypesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_entity_types_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.executionConfig.headers,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_entity_types_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Connectors projects locations connections entity types entities create.
@@ -483,6 +791,89 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Connectors projects locations connections entity types entities get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Entity result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_entity_types_entities_get(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Entity, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_entity_types_entities_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.executionConfig.headers,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_entity_types_entities_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Connectors projects locations connections entity types entities list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListEntitiesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_entity_types_entities_list(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListEntitiesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_entity_types_entities_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.conditions,
+            &args.executionConfig.headers,
+            &args.pageSize,
+            &args.pageToken,
+            &args.sortBy,
+            &args.sortOrder,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_entity_types_entities_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Connectors projects locations connections entity types entities patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -572,9 +963,9 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Connectors projects locations connections resources get resource post.
+    /// Connectors projects locations connections resources get.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -586,7 +977,46 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_resources_get(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsResourcesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GetResourceResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_resources_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.executionConfig.headers,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_resources_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Connectors projects locations connections resources get resource post.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GetResourceResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
     pub fn connectors_projects_locations_connections_resources_get_resource_post(
         &self,
         args: &ConnectorsProjectsLocationsConnectionsResourcesGetResourcePostArgs,
@@ -607,12 +1037,48 @@ where
         let task = connectors_projects_locations_connections_resources_get_resource_post_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Connectors projects locations connections resources list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListResourcesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_resources_list(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsResourcesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListResourcesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_resources_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.executionConfig.headers,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = connectors_projects_locations_connections_resources_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Connectors projects locations connections tools execute.
@@ -656,6 +1122,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Connectors projects locations connections tools list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListToolsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn connectors_projects_locations_connections_tools_list(
+        &self,
+        args: &ConnectorsProjectsLocationsConnectionsToolsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListToolsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = connectors_projects_locations_connections_tools_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.executionConfig.headers,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = connectors_projects_locations_connections_tools_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

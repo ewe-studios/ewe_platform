@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_get_execute()` to send, or `storagebatchoperations_projects_locations_get` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_get_execute()` or `storagebatchoperations_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_get_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_get_builder()` + `storagebatchoperations_projects_locations_get_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storagebatchoperations_projects_locations_get_builder(client, &args.name)?;
+    storagebatchoperations_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,14 +186,16 @@ use serde::Serialize;
 pub fn storagebatchoperations_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://storagebatchoperations.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -178,13 +337,13 @@ pub struct StoragebatchoperationsProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -216,4 +375,2292 @@ pub fn storagebatchoperations_projects_locations_list(
         &args.pageToken,
     )?;
     storagebatchoperations_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}:cancel
+/// Cancels a batch job.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_jobs_cancel_execute()` to send, or `storagebatchoperations_projects_locations_jobs_cancel` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_jobs_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}:cancel
+/// Cancels a batch job.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_jobs_cancel_execute()` or `storagebatchoperations_projects_locations_jobs_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CancelJobResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CancelJobResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}:cancel
+/// Cancels a batch job.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_jobs_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_cancel_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_jobs_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_jobs_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CancelJobResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_jobs_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}:cancel
+/// Cancels a batch job.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_jobs_cancel_builder()` + `storagebatchoperations_projects_locations_jobs_cancel_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_cancel(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsJobsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CancelJobResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        storagebatchoperations_projects_locations_jobs_cancel_builder(client, &args.name)?;
+    storagebatchoperations_projects_locations_jobs_cancel_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/jobs
+/// Creates a batch job.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_jobs_create_execute()` to send, or `storagebatchoperations_projects_locations_jobs_create` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_jobs_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    jobId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = jobId.as_ref() {
+        query_parts.push(format!("jobId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/jobs
+/// Creates a batch job.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_jobs_create_execute()` or `storagebatchoperations_projects_locations_jobs_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/jobs
+/// Creates a batch job.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_jobs_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_create_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_jobs_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_jobs_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_jobs_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: jobId
+    pub jobId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/jobs
+/// Creates a batch job.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_jobs_create_builder()` + `storagebatchoperations_projects_locations_jobs_create_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_create(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsJobsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storagebatchoperations_projects_locations_jobs_create_builder(
+        client,
+        &args.parent,
+        &args.jobId,
+        &args.requestId,
+    )?;
+    storagebatchoperations_projects_locations_jobs_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
+/// Deletes a batch job.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_jobs_delete_execute()` to send, or `storagebatchoperations_projects_locations_jobs_delete` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_jobs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
+/// Deletes a batch job.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_jobs_delete_execute()` or `storagebatchoperations_projects_locations_jobs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
+/// Deletes a batch job.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_jobs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_delete_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_jobs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_jobs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_jobs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
+/// Deletes a batch job.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_jobs_delete_builder()` + `storagebatchoperations_projects_locations_jobs_delete_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_delete(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsJobsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storagebatchoperations_projects_locations_jobs_delete_builder(
+        client,
+        &args.name,
+        &args.force,
+        &args.requestId,
+    )?;
+    storagebatchoperations_projects_locations_jobs_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
+/// Gets a batch job.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_jobs_get_execute()` to send, or `storagebatchoperations_projects_locations_jobs_get` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_jobs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
+/// Gets a batch job.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_jobs_get_execute()` or `storagebatchoperations_projects_locations_jobs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Job = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
+/// Gets a batch job.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_jobs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_get_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_jobs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_jobs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_jobs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
+/// Gets a batch job.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_jobs_get_builder()` + `storagebatchoperations_projects_locations_jobs_get_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_get(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsJobsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storagebatchoperations_projects_locations_jobs_get_builder(client, &args.name)?;
+    storagebatchoperations_projects_locations_jobs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs
+/// Lists Jobs in a given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_jobs_list_execute()` to send, or `storagebatchoperations_projects_locations_jobs_list` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_jobs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs
+/// Lists Jobs in a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_jobs_list_execute()` or `storagebatchoperations_projects_locations_jobs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListJobsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListJobsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs
+/// Lists Jobs in a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_jobs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_list_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_jobs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_jobs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_jobs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs
+/// Lists Jobs in a given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_jobs_list_builder()` + `storagebatchoperations_projects_locations_jobs_list_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_list(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsJobsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storagebatchoperations_projects_locations_jobs_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    storagebatchoperations_projects_locations_jobs_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/bucketOperations/{bucketOperationsId}
+/// Gets a BucketOperation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_jobs_bucket_operations_get_execute()` to send, or `storagebatchoperations_projects_locations_jobs_bucket_operations_get` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_jobs_bucket_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}/bucketOperations/{bucketOperationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/bucketOperations/{bucketOperationsId}
+/// Gets a BucketOperation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_jobs_bucket_operations_get_execute()` or `storagebatchoperations_projects_locations_jobs_bucket_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_bucket_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_bucket_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BucketOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BucketOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/bucketOperations/{bucketOperationsId}
+/// Gets a BucketOperation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_jobs_bucket_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_bucket_operations_get_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_jobs_bucket_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_bucket_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_jobs_bucket_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BucketOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_jobs_bucket_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_jobs_bucket_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsJobsBucketOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/bucketOperations/{bucketOperationsId}
+/// Gets a BucketOperation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_jobs_bucket_operations_get_builder()` + `storagebatchoperations_projects_locations_jobs_bucket_operations_get_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_bucket_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_bucket_operations_get(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsJobsBucketOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BucketOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storagebatchoperations_projects_locations_jobs_bucket_operations_get_builder(
+        client, &args.name,
+    )?;
+    storagebatchoperations_projects_locations_jobs_bucket_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/bucketOperations
+/// Lists BucketOperations in a given project and job.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_jobs_bucket_operations_list_execute()` to send, or `storagebatchoperations_projects_locations_jobs_bucket_operations_list` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_jobs_bucket_operations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/jobs/{jobsId}/bucketOperations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/bucketOperations
+/// Lists BucketOperations in a given project and job.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_jobs_bucket_operations_list_execute()` or `storagebatchoperations_projects_locations_jobs_bucket_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_bucket_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_bucket_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBucketOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBucketOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/bucketOperations
+/// Lists BucketOperations in a given project and job.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_jobs_bucket_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_bucket_operations_list_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_jobs_bucket_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_jobs_bucket_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_jobs_bucket_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBucketOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_jobs_bucket_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_jobs_bucket_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsJobsBucketOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/bucketOperations
+/// Lists BucketOperations in a given project and job.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_jobs_bucket_operations_list_builder()` + `storagebatchoperations_projects_locations_jobs_bucket_operations_list_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_jobs_bucket_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_jobs_bucket_operations_list(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsJobsBucketOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBucketOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storagebatchoperations_projects_locations_jobs_bucket_operations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    storagebatchoperations_projects_locations_jobs_bucket_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_operations_cancel_execute()` to send, or `storagebatchoperations_projects_locations_operations_cancel` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_operations_cancel_execute()` or `storagebatchoperations_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_operations_cancel_builder()` + `storagebatchoperations_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        storagebatchoperations_projects_locations_operations_cancel_builder(client, &args.name)?;
+    storagebatchoperations_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_operations_delete_execute()` to send, or `storagebatchoperations_projects_locations_operations_delete` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_operations_delete_execute()` or `storagebatchoperations_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_operations_delete_builder()` + `storagebatchoperations_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        storagebatchoperations_projects_locations_operations_delete_builder(client, &args.name)?;
+    storagebatchoperations_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_operations_get_execute()` to send, or `storagebatchoperations_projects_locations_operations_get` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_operations_get_execute()` or `storagebatchoperations_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_operations_get_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_operations_get_builder()` + `storagebatchoperations_projects_locations_operations_get_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        storagebatchoperations_projects_locations_operations_get_builder(client, &args.name)?;
+    storagebatchoperations_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagebatchoperations_projects_locations_operations_list_execute()` to send, or `storagebatchoperations_projects_locations_operations_list` for simplest API.
+
+pub fn storagebatchoperations_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagebatchoperations.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagebatchoperations_projects_locations_operations_list_execute()` or `storagebatchoperations_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagebatchoperations_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagebatchoperations_projects_locations_operations_list_task()`.
+/// For the simplest API, use `storagebatchoperations_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagebatchoperations_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagebatchoperations_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storagebatchoperations_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagebatchoperations_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragebatchoperationsProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagebatchoperations_projects_locations_operations_list_builder()` + `storagebatchoperations_projects_locations_operations_list_execute()`.
+/// For task-level control, use `storagebatchoperations_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagebatchoperations_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &StoragebatchoperationsProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storagebatchoperations_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    storagebatchoperations_projects_locations_operations_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with StoragebatchoperationsProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsGetArgs,
+    ) -> String {
+        format!("gcp::storagebatchoperations::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with StoragebatchoperationsProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::storagebatchoperations::ListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CancelJobResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CancelJobResponse with StoragebatchoperationsProjectsLocationsJobsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsJobsCancelArgs>
+    for CancelJobResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsJobsCancelArgs,
+    ) -> String {
+        format!(
+            "gcp::storagebatchoperations::CancelJobResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::CancelJobResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with StoragebatchoperationsProjectsLocationsJobsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsJobsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsJobsCreateArgs,
+    ) -> String {
+        format!("gcp::storagebatchoperations::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with StoragebatchoperationsProjectsLocationsJobsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsJobsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsJobsDeleteArgs,
+    ) -> String {
+        format!("gcp::storagebatchoperations::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with StoragebatchoperationsProjectsLocationsJobsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsJobsGetArgs> for Job {
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsJobsGetArgs,
+    ) -> String {
+        format!("gcp::storagebatchoperations::Job/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListJobsResponse with StoragebatchoperationsProjectsLocationsJobsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsJobsListArgs> for ListJobsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsJobsListArgs,
+    ) -> String {
+        format!(
+            "gcp::storagebatchoperations::ListJobsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BucketOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for BucketOperation with StoragebatchoperationsProjectsLocationsJobsBucketOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsJobsBucketOperationsGetArgs>
+    for BucketOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsJobsBucketOperationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::storagebatchoperations::BucketOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::BucketOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBucketOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBucketOperationsResponse with StoragebatchoperationsProjectsLocationsJobsBucketOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsJobsBucketOperationsListArgs>
+    for ListBucketOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsJobsBucketOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::storagebatchoperations::ListBucketOperationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::ListBucketOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with StoragebatchoperationsProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::storagebatchoperations::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with StoragebatchoperationsProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::storagebatchoperations::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with StoragebatchoperationsProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::storagebatchoperations::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with StoragebatchoperationsProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragebatchoperationsProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &StoragebatchoperationsProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::storagebatchoperations::ListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagebatchoperations::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

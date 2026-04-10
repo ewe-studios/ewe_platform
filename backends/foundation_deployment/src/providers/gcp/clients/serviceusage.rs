@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +29,22 @@ use serde::Serialize;
 pub fn serviceusage_operations_cancel_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://serviceusage.googleapis.com/v1/operations/{}:cancel",);
+    let endpoint_url = format!(
+        "https://serviceusage.googleapis.com/v1/operations/{}:cancel",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +118,7 @@ pub fn serviceusage_operations_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -153,11 +153,9 @@ pub fn serviceusage_operations_cancel_execute(
 pub struct ServiceusageOperationsCancelArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: CancelOperationRequest,
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -175,11 +173,11 @@ pub fn serviceusage_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceusage_operations_cancel_builder(client, &args.name, &args.body)?;
+    let builder = serviceusage_operations_cancel_builder(client, &args.name)?;
     serviceusage_operations_cancel_execute(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -190,17 +188,17 @@ pub fn serviceusage_operations_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://serviceusage.googleapis.com/v1/operations/{}",);
+    let endpoint_url = format!("https://serviceusage.googleapis.com/v1/operations/{}", name,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -274,7 +272,7 @@ pub fn serviceusage_operations_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -311,7 +309,7 @@ pub struct ServiceusageOperationsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -333,6 +331,160 @@ pub fn serviceusage_operations_delete(
     serviceusage_operations_delete_execute(builder)
 }
 
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `serviceusage_operations_get_execute()` to send, or `serviceusage_operations_get` for simplest API.
+
+pub fn serviceusage_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://serviceusage.googleapis.com/v1/operations/{}", name,);
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `serviceusage_operations_get_execute()` or `serviceusage_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `serviceusage_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `serviceusage_operations_get_task()`.
+/// For the simplest API, use `serviceusage_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn serviceusage_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = serviceusage_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`serviceusage_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `serviceusage_operations_get_builder()` + `serviceusage_operations_get_execute()`.
+/// For task-level control, use `serviceusage_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_operations_get(
+    client: &SimpleHttpClient,
+    args: &ServiceusageOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = serviceusage_operations_get_builder(client, &args.name)?;
+    serviceusage_operations_get_execute(builder)
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -341,11 +493,11 @@ pub fn serviceusage_operations_delete(
 
 pub fn serviceusage_operations_list_builder(
     client: &SimpleHttpClient,
-    filter: &Option<String>,
-    name: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    returnPartialSuccess: &Option<bool>,
+    filter: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://serviceusage.googleapis.com/v1/operations",);
@@ -491,15 +643,15 @@ pub fn serviceusage_operations_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct ServiceusageOperationsListArgs {
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: name
-    pub name: Option<String>,
+    pub name: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
+    pub returnPartialSuccess: Option<Option<String>>,
 }
 
 /// GET v1/operations
@@ -531,4 +683,1244 @@ pub fn serviceusage_operations_list(
         &args.returnPartialSuccess,
     )?;
     serviceusage_operations_list_execute(builder)
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services:batchEnable
+/// Enable multiple services on a project. The operation is atomic: if enabling any service fails, then the entire batch fails, and no state changes occur. To enable a single service, use the EnableService method instead.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `serviceusage_services_batch_enable_execute()` to send, or `serviceusage_services_batch_enable` for simplest API.
+
+pub fn serviceusage_services_batch_enable_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services:batchEnable",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services:batchEnable
+/// Enable multiple services on a project. The operation is atomic: if enabling any service fails, then the entire batch fails, and no state changes occur. To enable a single service, use the EnableService method instead.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `serviceusage_services_batch_enable_execute()` or `serviceusage_services_batch_enable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_batch_enable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_batch_enable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services:batchEnable
+/// Enable multiple services on a project. The operation is atomic: if enabling any service fails, then the entire batch fails, and no state changes occur. To enable a single service, use the EnableService method instead.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `serviceusage_services_batch_enable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `serviceusage_services_batch_enable_task()`.
+/// For the simplest API, use `serviceusage_services_batch_enable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_batch_enable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn serviceusage_services_batch_enable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = serviceusage_services_batch_enable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`serviceusage_services_batch_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesBatchEnableArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services:batchEnable
+/// Enable multiple services on a project. The operation is atomic: if enabling any service fails, then the entire batch fails, and no state changes occur. To enable a single service, use the EnableService method instead.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `serviceusage_services_batch_enable_builder()` + `serviceusage_services_batch_enable_execute()`.
+/// For task-level control, use `serviceusage_services_batch_enable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_batch_enable(
+    client: &SimpleHttpClient,
+    args: &ServiceusageServicesBatchEnableArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = serviceusage_services_batch_enable_builder(client, &args.parent)?;
+    serviceusage_services_batch_enable_execute(builder)
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services:batchGet
+/// Returns the service configurations and enabled states for a given list of services.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `serviceusage_services_batch_get_execute()` to send, or `serviceusage_services_batch_get` for simplest API.
+
+pub fn serviceusage_services_batch_get_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    names: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services:batchGet",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = names.as_ref() {
+        query_parts.push(format!("names={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services:batchGet
+/// Returns the service configurations and enabled states for a given list of services.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `serviceusage_services_batch_get_execute()` or `serviceusage_services_batch_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_batch_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_batch_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchGetServicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BatchGetServicesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services:batchGet
+/// Returns the service configurations and enabled states for a given list of services.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `serviceusage_services_batch_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `serviceusage_services_batch_get_task()`.
+/// For the simplest API, use `serviceusage_services_batch_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_batch_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn serviceusage_services_batch_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BatchGetServicesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = serviceusage_services_batch_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`serviceusage_services_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesBatchGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: names
+    pub names: Option<Option<String>>,
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services:batchGet
+/// Returns the service configurations and enabled states for a given list of services.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `serviceusage_services_batch_get_builder()` + `serviceusage_services_batch_get_execute()`.
+/// For task-level control, use `serviceusage_services_batch_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_batch_get(
+    client: &SimpleHttpClient,
+    args: &ServiceusageServicesBatchGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BatchGetServicesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = serviceusage_services_batch_get_builder(client, &args.parent, &args.names)?;
+    serviceusage_services_batch_get_execute(builder)
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services/{servicesId}:disable
+/// Disable a service so that it can no longer be used with a project. This prevents unintended usage that may cause unexpected billing charges or security leaks. It is not valid to call the disable method on a service that is not currently enabled. Callers will receive a FAILED_PRECONDITION status if the target service is not currently enabled.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `serviceusage_services_disable_execute()` to send, or `serviceusage_services_disable` for simplest API.
+
+pub fn serviceusage_services_disable_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services/{servicesId}:disable",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services/{servicesId}:disable
+/// Disable a service so that it can no longer be used with a project. This prevents unintended usage that may cause unexpected billing charges or security leaks. It is not valid to call the disable method on a service that is not currently enabled. Callers will receive a FAILED_PRECONDITION status if the target service is not currently enabled.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `serviceusage_services_disable_execute()` or `serviceusage_services_disable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_disable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_disable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services/{servicesId}:disable
+/// Disable a service so that it can no longer be used with a project. This prevents unintended usage that may cause unexpected billing charges or security leaks. It is not valid to call the disable method on a service that is not currently enabled. Callers will receive a FAILED_PRECONDITION status if the target service is not currently enabled.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `serviceusage_services_disable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `serviceusage_services_disable_task()`.
+/// For the simplest API, use `serviceusage_services_disable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_disable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn serviceusage_services_disable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = serviceusage_services_disable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`serviceusage_services_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services/{servicesId}:disable
+/// Disable a service so that it can no longer be used with a project. This prevents unintended usage that may cause unexpected billing charges or security leaks. It is not valid to call the disable method on a service that is not currently enabled. Callers will receive a FAILED_PRECONDITION status if the target service is not currently enabled.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `serviceusage_services_disable_builder()` + `serviceusage_services_disable_execute()`.
+/// For task-level control, use `serviceusage_services_disable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_disable(
+    client: &SimpleHttpClient,
+    args: &ServiceusageServicesDisableArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = serviceusage_services_disable_builder(client, &args.name)?;
+    serviceusage_services_disable_execute(builder)
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services/{servicesId}:enable
+/// Enable a service so that it can be used with a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `serviceusage_services_enable_execute()` to send, or `serviceusage_services_enable` for simplest API.
+
+pub fn serviceusage_services_enable_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services/{servicesId}:enable",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services/{servicesId}:enable
+/// Enable a service so that it can be used with a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `serviceusage_services_enable_execute()` or `serviceusage_services_enable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_enable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_enable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services/{servicesId}:enable
+/// Enable a service so that it can be used with a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `serviceusage_services_enable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `serviceusage_services_enable_task()`.
+/// For the simplest API, use `serviceusage_services_enable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_enable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn serviceusage_services_enable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = serviceusage_services_enable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`serviceusage_services_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/{v1Id}/{v1Id1}/services/{servicesId}:enable
+/// Enable a service so that it can be used with a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `serviceusage_services_enable_builder()` + `serviceusage_services_enable_execute()`.
+/// For task-level control, use `serviceusage_services_enable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_enable(
+    client: &SimpleHttpClient,
+    args: &ServiceusageServicesEnableArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = serviceusage_services_enable_builder(client, &args.name)?;
+    serviceusage_services_enable_execute(builder)
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services/{servicesId}
+/// Returns the service configuration and enabled state for a given service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `serviceusage_services_get_execute()` to send, or `serviceusage_services_get` for simplest API.
+
+pub fn serviceusage_services_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services/{servicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services/{servicesId}
+/// Returns the service configuration and enabled state for a given service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `serviceusage_services_get_execute()` or `serviceusage_services_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleApiServiceusageV1Service>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleApiServiceusageV1Service = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services/{servicesId}
+/// Returns the service configuration and enabled state for a given service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `serviceusage_services_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `serviceusage_services_get_task()`.
+/// For the simplest API, use `serviceusage_services_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn serviceusage_services_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleApiServiceusageV1Service>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = serviceusage_services_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`serviceusage_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services/{servicesId}
+/// Returns the service configuration and enabled state for a given service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `serviceusage_services_get_builder()` + `serviceusage_services_get_execute()`.
+/// For task-level control, use `serviceusage_services_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_get(
+    client: &SimpleHttpClient,
+    args: &ServiceusageServicesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleApiServiceusageV1Service>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = serviceusage_services_get_builder(client, &args.name)?;
+    serviceusage_services_get_execute(builder)
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services
+/// List all services available to the specified project, and the current state of those services with respect to the project. The list includes all public services, all services for which the calling user has the servicemanagement.services.bind permission, and all services that have already been enabled on the project. The list can be filtered to only include services in a specific state, for example to only include services enabled on the project. WARNING: If you need to query enabled services frequently or across an organization, you should use [Cloud Asset Inventory API](<https://cloud.google.`com/asset-inventory/docs/apis`>), which provides higher throughput and richer filtering capability.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `serviceusage_services_list_execute()` to send, or `serviceusage_services_list` for simplest API.
+
+pub fn serviceusage_services_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://serviceusage.googleapis.com/v1/{}/{v1Id1}/services",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services
+/// List all services available to the specified project, and the current state of those services with respect to the project. The list includes all public services, all services for which the calling user has the servicemanagement.services.bind permission, and all services that have already been enabled on the project. The list can be filtered to only include services in a specific state, for example to only include services enabled on the project. WARNING: If you need to query enabled services frequently or across an organization, you should use [Cloud Asset Inventory API](<https://cloud.google.`com/asset-inventory/docs/apis`>), which provides higher throughput and richer filtering capability.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `serviceusage_services_list_execute()` or `serviceusage_services_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListServicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListServicesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services
+/// List all services available to the specified project, and the current state of those services with respect to the project. The list includes all public services, all services for which the calling user has the servicemanagement.services.bind permission, and all services that have already been enabled on the project. The list can be filtered to only include services in a specific state, for example to only include services enabled on the project. WARNING: If you need to query enabled services frequently or across an organization, you should use [Cloud Asset Inventory API](<https://cloud.google.`com/asset-inventory/docs/apis`>), which provides higher throughput and richer filtering capability.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `serviceusage_services_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `serviceusage_services_list_task()`.
+/// For the simplest API, use `serviceusage_services_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `serviceusage_services_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn serviceusage_services_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = serviceusage_services_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`serviceusage_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/{v1Id}/{v1Id1}/services
+/// List all services available to the specified project, and the current state of those services with respect to the project. The list includes all public services, all services for which the calling user has the servicemanagement.services.bind permission, and all services that have already been enabled on the project. The list can be filtered to only include services in a specific state, for example to only include services enabled on the project. WARNING: If you need to query enabled services frequently or across an organization, you should use [Cloud Asset Inventory API](<https://cloud.google.`com/asset-inventory/docs/apis`>), which provides higher throughput and richer filtering capability.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `serviceusage_services_list_builder()` + `serviceusage_services_list_execute()`.
+/// For task-level control, use `serviceusage_services_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn serviceusage_services_list(
+    client: &SimpleHttpClient,
+    args: &ServiceusageServicesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = serviceusage_services_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    serviceusage_services_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ServiceusageOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServiceusageOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &ServiceusageOperationsCancelArgs) -> String {
+        format!("gcp::serviceusage::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::serviceusage::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ServiceusageOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServiceusageOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ServiceusageOperationsDeleteArgs) -> String {
+        format!("gcp::serviceusage::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::serviceusage::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ServiceusageOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServiceusageOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &ServiceusageOperationsGetArgs) -> String {
+        format!("gcp::serviceusage::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::serviceusage::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with ServiceusageOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServiceusageOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &ServiceusageOperationsListArgs) -> String {
+        "gcp::serviceusage::ListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::serviceusage::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ServiceusageServicesBatchEnableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServiceusageServicesBatchEnableArgs> for Operation {
+    fn generate_resource_id(&self, input: &ServiceusageServicesBatchEnableArgs) -> String {
+        format!("gcp::serviceusage::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::serviceusage::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetServicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetServicesResponse with ServiceusageServicesBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServiceusageServicesBatchGetArgs> for BatchGetServicesResponse {
+    fn generate_resource_id(&self, input: &ServiceusageServicesBatchGetArgs) -> String {
+        format!(
+            "gcp::serviceusage::BatchGetServicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::serviceusage::BatchGetServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ServiceusageServicesDisableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServiceusageServicesDisableArgs> for Operation {
+    fn generate_resource_id(&self, input: &ServiceusageServicesDisableArgs) -> String {
+        format!("gcp::serviceusage::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::serviceusage::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ServiceusageServicesEnableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServiceusageServicesEnableArgs> for Operation {
+    fn generate_resource_id(&self, input: &ServiceusageServicesEnableArgs) -> String {
+        format!("gcp::serviceusage::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::serviceusage::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleApiServiceusageV1Service
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleApiServiceusageV1Service with ServiceusageServicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServiceusageServicesGetArgs> for GoogleApiServiceusageV1Service {
+    fn generate_resource_id(&self, input: &ServiceusageServicesGetArgs) -> String {
+        format!(
+            "gcp::serviceusage::GoogleApiServiceusageV1Service/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::serviceusage::GoogleApiServiceusageV1Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListServicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListServicesResponse with ServiceusageServicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServiceusageServicesListArgs> for ListServicesResponse {
+    fn generate_resource_id(&self, input: &ServiceusageServicesListArgs) -> String {
+        format!("gcp::serviceusage::ListServicesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::serviceusage::ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

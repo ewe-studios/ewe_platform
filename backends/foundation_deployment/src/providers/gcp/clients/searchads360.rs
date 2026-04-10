@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -67,7 +67,7 @@ pub fn searchads360_customers_list_accessible_customers_task(
 ) -> Result<
     impl TaskIterator<
             Ready = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__ListAccessibleCustomersResponse>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse>,
                 ApiError,
             >,
             Pending = ApiPending,
@@ -104,7 +104,7 @@ pub fn searchads360_customers_list_accessible_customers_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: GoogleAdsSearchads360V0Services__ListAccessibleCustomersResponse =
+                let parsed: GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse =
                     serde_json::from_str(&body)
                         .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
 
@@ -144,7 +144,7 @@ pub fn searchads360_customers_list_accessible_customers_execute(
 ) -> Result<
     impl StreamIterator<
             D = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__ListAccessibleCustomersResponse>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse>,
                 ApiError,
             >,
             P = ApiPending,
@@ -172,7 +172,7 @@ pub fn searchads360_customers_list_accessible_customers(
 ) -> Result<
     impl StreamIterator<
             D = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__ListAccessibleCustomersResponse>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse>,
                 ApiError,
             >,
             P = ApiPending,
@@ -182,6 +182,172 @@ pub fn searchads360_customers_list_accessible_customers(
 > {
     let builder = searchads360_customers_list_accessible_customers_builder(client)?;
     searchads360_customers_list_accessible_customers_execute(builder)
+}
+
+/// GET v0/customers/{customersId}/customColumns/{customColumnsId}
+/// Returns the requested custom column in full detail.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `searchads360_customers_custom_columns_get_execute()` to send, or `searchads360_customers_custom_columns_get` for simplest API.
+
+pub fn searchads360_customers_custom_columns_get_builder(
+    client: &SimpleHttpClient,
+    resourceName: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://searchads360.googleapis.com/v0/customers/{}/customColumns/{customColumnsId}",
+        resourceName,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v0/customers/{customersId}/customColumns/{customColumnsId}
+/// Returns the requested custom column in full detail.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `searchads360_customers_custom_columns_get_execute()` or `searchads360_customers_custom_columns_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `searchads360_customers_custom_columns_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn searchads360_customers_custom_columns_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAdsSearchads360V0ResourcesCustomColumn>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAdsSearchads360V0ResourcesCustomColumn =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v0/customers/{customersId}/customColumns/{customColumnsId}
+/// Returns the requested custom column in full detail.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `searchads360_customers_custom_columns_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `searchads360_customers_custom_columns_get_task()`.
+/// For the simplest API, use `searchads360_customers_custom_columns_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `searchads360_customers_custom_columns_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn searchads360_customers_custom_columns_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAdsSearchads360V0ResourcesCustomColumn>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = searchads360_customers_custom_columns_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`searchads360_customers_custom_columns_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct Searchads360CustomersCustomColumnsGetArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+}
+
+/// GET v0/customers/{customersId}/customColumns/{customColumnsId}
+/// Returns the requested custom column in full detail.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `searchads360_customers_custom_columns_get_builder()` + `searchads360_customers_custom_columns_get_execute()`.
+/// For task-level control, use `searchads360_customers_custom_columns_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn searchads360_customers_custom_columns_get(
+    client: &SimpleHttpClient,
+    args: &Searchads360CustomersCustomColumnsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAdsSearchads360V0ResourcesCustomColumn>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = searchads360_customers_custom_columns_get_builder(client, &args.resourceName)?;
+    searchads360_customers_custom_columns_get_execute(builder)
 }
 
 /// GET v0/customers/{customersId}/customColumns
@@ -195,8 +361,10 @@ pub fn searchads360_customers_custom_columns_list_builder(
     customerId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://searchads360.googleapis.com/v0/customers/{}/customColumns",);
+    let endpoint_url = format!(
+        "https://searchads360.googleapis.com/v0/customers/{}/customColumns",
+        customerId,
+    );
 
     // Build request
     let builder = client
@@ -232,7 +400,7 @@ pub fn searchads360_customers_custom_columns_list_task(
 ) -> Result<
     impl TaskIterator<
             Ready = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__ListCustomColumnsResponse>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesListCustomColumnsResponse>,
                 ApiError,
             >,
             Pending = ApiPending,
@@ -269,7 +437,7 @@ pub fn searchads360_customers_custom_columns_list_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: GoogleAdsSearchads360V0Services__ListCustomColumnsResponse =
+                let parsed: GoogleAdsSearchads360V0ServicesListCustomColumnsResponse =
                     serde_json::from_str(&body)
                         .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
 
@@ -309,7 +477,7 @@ pub fn searchads360_customers_custom_columns_list_execute(
 ) -> Result<
     impl StreamIterator<
             D = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__ListCustomColumnsResponse>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesListCustomColumnsResponse>,
                 ApiError,
             >,
             P = ApiPending,
@@ -345,7 +513,7 @@ pub fn searchads360_customers_custom_columns_list(
 ) -> Result<
     impl StreamIterator<
             D = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__ListCustomColumnsResponse>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesListCustomColumnsResponse>,
                 ApiError,
             >,
             P = ApiPending,
@@ -357,7 +525,7 @@ pub fn searchads360_customers_custom_columns_list(
     searchads360_customers_custom_columns_list_execute(builder)
 }
 
-/// GET v0/customers/{customersId}/searchAds360:search
+/// POST v0/customers/{customersId}/searchAds360:search
 /// Returns all rows that match the search query. List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QueryError]() [QuotaError]() [RequestError]()
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -366,23 +534,22 @@ pub fn searchads360_customers_custom_columns_list(
 pub fn searchads360_customers_search_ads360_search_builder(
     client: &SimpleHttpClient,
     customerId: &String,
-    body: &GoogleAdsSearchads360V0Services__SearchSearchAds360Request,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://searchads360.googleapis.com/v0/customers/{}/searchAds360:search",);
+    let endpoint_url = format!(
+        "https://searchads360.googleapis.com/v0/customers/{}/searchAds360:search",
+        customerId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v0/customers/{customersId}/searchAds360:search
+/// POST v0/customers/{customersId}/searchAds360:search
 /// Returns all rows that match the search query. List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QueryError]() [QuotaError]() [RequestError]()
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -408,7 +575,7 @@ pub fn searchads360_customers_search_ads360_search_task(
 ) -> Result<
     impl TaskIterator<
             Ready = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__SearchSearchAds360Response>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesSearchSearchAds360Response>,
                 ApiError,
             >,
             Pending = ApiPending,
@@ -445,7 +612,7 @@ pub fn searchads360_customers_search_ads360_search_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: GoogleAdsSearchads360V0Services__SearchSearchAds360Response =
+                let parsed: GoogleAdsSearchads360V0ServicesSearchSearchAds360Response =
                     serde_json::from_str(&body)
                         .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
 
@@ -460,7 +627,7 @@ pub fn searchads360_customers_search_ads360_search_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v0/customers/{customersId}/searchAds360:search
+/// POST v0/customers/{customersId}/searchAds360:search
 /// Returns all rows that match the search query. List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QueryError]() [QuotaError]() [RequestError]()
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -485,7 +652,7 @@ pub fn searchads360_customers_search_ads360_search_execute(
 ) -> Result<
     impl StreamIterator<
             D = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__SearchSearchAds360Response>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesSearchSearchAds360Response>,
                 ApiError,
             >,
             P = ApiPending,
@@ -502,11 +669,9 @@ pub fn searchads360_customers_search_ads360_search_execute(
 pub struct Searchads360CustomersSearchAds360SearchArgs {
     /// Path parameter: customerId
     pub customerId: String,
-    /// Request body.
-    pub body: GoogleAdsSearchads360V0Services__SearchSearchAds360Request,
 }
 
-/// GET v0/customers/{customersId}/searchAds360:search
+/// POST v0/customers/{customersId}/searchAds360:search
 /// Returns all rows that match the search query. List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QueryError]() [QuotaError]() [RequestError]()
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -523,7 +688,7 @@ pub fn searchads360_customers_search_ads360_search(
 ) -> Result<
     impl StreamIterator<
             D = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__SearchSearchAds360Response>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesSearchSearchAds360Response>,
                 ApiError,
             >,
             P = ApiPending,
@@ -531,8 +696,7 @@ pub fn searchads360_customers_search_ads360_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        searchads360_customers_search_ads360_search_builder(client, &args.customerId, &args.body)?;
+    let builder = searchads360_customers_search_ads360_search_builder(client, &args.customerId)?;
     searchads360_customers_search_ads360_search_execute(builder)
 }
 
@@ -547,7 +711,10 @@ pub fn searchads360_search_ads360_fields_get_builder(
     resourceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://searchads360.googleapis.com/v0/searchAds360Fields/{}",);
+    let endpoint_url = format!(
+        "https://searchads360.googleapis.com/v0/searchAds360Fields/{}",
+        resourceName,
+    );
 
     // Build request
     let builder = client
@@ -583,7 +750,7 @@ pub fn searchads360_search_ads360_fields_get_task(
 ) -> Result<
     impl TaskIterator<
             Ready = Result<
-                ApiResponse<GoogleAdsSearchads360V0Resources__SearchAds360Field>,
+                ApiResponse<GoogleAdsSearchads360V0ResourcesSearchAds360Field>,
                 ApiError,
             >,
             Pending = ApiPending,
@@ -620,7 +787,7 @@ pub fn searchads360_search_ads360_fields_get_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: GoogleAdsSearchads360V0Resources__SearchAds360Field =
+                let parsed: GoogleAdsSearchads360V0ResourcesSearchAds360Field =
                     serde_json::from_str(&body)
                         .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
 
@@ -659,7 +826,7 @@ pub fn searchads360_search_ads360_fields_get_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl StreamIterator<
-            D = Result<ApiResponse<GoogleAdsSearchads360V0Resources__SearchAds360Field>, ApiError>,
+            D = Result<ApiResponse<GoogleAdsSearchads360V0ResourcesSearchAds360Field>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
@@ -692,7 +859,7 @@ pub fn searchads360_search_ads360_fields_get(
     args: &Searchads360SearchAds360FieldsGetArgs,
 ) -> Result<
     impl StreamIterator<
-            D = Result<ApiResponse<GoogleAdsSearchads360V0Resources__SearchAds360Field>, ApiError>,
+            D = Result<ApiResponse<GoogleAdsSearchads360V0ResourcesSearchAds360Field>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
@@ -702,7 +869,7 @@ pub fn searchads360_search_ads360_fields_get(
     searchads360_search_ads360_fields_get_execute(builder)
 }
 
-/// GET v0/searchAds360Fields:search
+/// POST v0/searchAds360Fields:search
 /// Returns all fields that match the search [query](/search-`ads/reporting/concepts/field-service`#use_a_query_to_get_field_details). List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QueryError]() [QuotaError]() [RequestError]()
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -710,22 +877,19 @@ pub fn searchads360_search_ads360_fields_get(
 
 pub fn searchads360_search_ads360_fields_search_builder(
     client: &SimpleHttpClient,
-    body: &GoogleAdsSearchads360V0Services__SearchSearchAds360FieldsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://searchads360.googleapis.com/v0/searchAds360Fields:search",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v0/searchAds360Fields:search
+/// POST v0/searchAds360Fields:search
 /// Returns all fields that match the search [query](/search-`ads/reporting/concepts/field-service`#use_a_query_to_get_field_details). List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QueryError]() [QuotaError]() [RequestError]()
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -751,7 +915,7 @@ pub fn searchads360_search_ads360_fields_search_task(
 ) -> Result<
     impl TaskIterator<
             Ready = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__SearchSearchAds360FieldsResponse>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse>,
                 ApiError,
             >,
             Pending = ApiPending,
@@ -788,7 +952,7 @@ pub fn searchads360_search_ads360_fields_search_task(
                 }
 
                 let body = body_reader::collect_string(stream);
-                let parsed: GoogleAdsSearchads360V0Services__SearchSearchAds360FieldsResponse =
+                let parsed: GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse =
                     serde_json::from_str(&body)
                         .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
 
@@ -803,7 +967,7 @@ pub fn searchads360_search_ads360_fields_search_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v0/searchAds360Fields:search
+/// POST v0/searchAds360Fields:search
 /// Returns all fields that match the search [query](/search-`ads/reporting/concepts/field-service`#use_a_query_to_get_field_details). List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QueryError]() [QuotaError]() [RequestError]()
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -828,7 +992,7 @@ pub fn searchads360_search_ads360_fields_search_execute(
 ) -> Result<
     impl StreamIterator<
             D = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__SearchSearchAds360FieldsResponse>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse>,
                 ApiError,
             >,
             P = ApiPending,
@@ -840,14 +1004,7 @@ pub fn searchads360_search_ads360_fields_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`searchads360_search_ads360_fields_search`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Searchads360SearchAds360FieldsSearchArgs {
-    /// Request body.
-    pub body: GoogleAdsSearchads360V0Services__SearchSearchAds360FieldsRequest,
-}
-
-/// GET v0/searchAds360Fields:search
+/// POST v0/searchAds360Fields:search
 /// Returns all fields that match the search [query](/search-`ads/reporting/concepts/field-service`#use_a_query_to_get_field_details). List of thrown errors: [AuthenticationError]() [AuthorizationError]() [HeaderError]() [InternalError]() [QueryError]() [QuotaError]() [RequestError]()
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -860,11 +1017,10 @@ pub struct Searchads360SearchAds360FieldsSearchArgs {
 
 pub fn searchads360_search_ads360_fields_search(
     client: &SimpleHttpClient,
-    args: &Searchads360SearchAds360FieldsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
-                ApiResponse<GoogleAdsSearchads360V0Services__SearchSearchAds360FieldsResponse>,
+                ApiResponse<GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse>,
                 ApiError,
             >,
             P = ApiPending,
@@ -872,6 +1028,173 @@ pub fn searchads360_search_ads360_fields_search(
         + 'static,
     ApiError,
 > {
-    let builder = searchads360_search_ads360_fields_search_builder(client, &args.body)?;
+    let builder = searchads360_search_ads360_fields_search_builder(client)?;
     searchads360_search_ads360_fields_search_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse with Searchads360CustomersListAccessibleCustomersArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Searchads360CustomersListAccessibleCustomersArgs>
+    for GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Searchads360CustomersListAccessibleCustomersArgs,
+    ) -> String {
+        "gcp::searchads360::GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse"
+            .to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::searchads360::GoogleAdsSearchads360V0ServicesListAccessibleCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAdsSearchads360V0ResourcesCustomColumn
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAdsSearchads360V0ResourcesCustomColumn with Searchads360CustomersCustomColumnsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Searchads360CustomersCustomColumnsGetArgs>
+    for GoogleAdsSearchads360V0ResourcesCustomColumn
+{
+    fn generate_resource_id(&self, input: &Searchads360CustomersCustomColumnsGetArgs) -> String {
+        format!(
+            "gcp::searchads360::GoogleAdsSearchads360V0ResourcesCustomColumn/{}",
+            input.resourceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::searchads360::GoogleAdsSearchads360V0ResourcesCustomColumn"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesListCustomColumnsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesListCustomColumnsResponse with Searchads360CustomersCustomColumnsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Searchads360CustomersCustomColumnsListArgs>
+    for GoogleAdsSearchads360V0ServicesListCustomColumnsResponse
+{
+    fn generate_resource_id(&self, input: &Searchads360CustomersCustomColumnsListArgs) -> String {
+        format!(
+            "gcp::searchads360::GoogleAdsSearchads360V0ServicesListCustomColumnsResponse/{}",
+            input.customerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::searchads360::GoogleAdsSearchads360V0ServicesListCustomColumnsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesSearchSearchAds360Response
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesSearchSearchAds360Response with Searchads360CustomersSearchAds360SearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Searchads360CustomersSearchAds360SearchArgs>
+    for GoogleAdsSearchads360V0ServicesSearchSearchAds360Response
+{
+    fn generate_resource_id(&self, input: &Searchads360CustomersSearchAds360SearchArgs) -> String {
+        format!(
+            "gcp::searchads360::GoogleAdsSearchads360V0ServicesSearchSearchAds360Response/{}",
+            input.customerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::searchads360::GoogleAdsSearchads360V0ServicesSearchSearchAds360Response"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAdsSearchads360V0ResourcesSearchAds360Field
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAdsSearchads360V0ResourcesSearchAds360Field with Searchads360SearchAds360FieldsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Searchads360SearchAds360FieldsGetArgs>
+    for GoogleAdsSearchads360V0ResourcesSearchAds360Field
+{
+    fn generate_resource_id(&self, input: &Searchads360SearchAds360FieldsGetArgs) -> String {
+        format!(
+            "gcp::searchads360::GoogleAdsSearchads360V0ResourcesSearchAds360Field/{}",
+            input.resourceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::searchads360::GoogleAdsSearchads360V0ResourcesSearchAds360Field"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse with Searchads360SearchAds360FieldsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Searchads360SearchAds360FieldsSearchArgs>
+    for GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse
+{
+    fn generate_resource_id(&self, input: &Searchads360SearchAds360FieldsSearchArgs) -> String {
+        "gcp::searchads360::GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse"
+            .to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::searchads360::GoogleAdsSearchads360V0ServicesSearchSearchAds360FieldsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

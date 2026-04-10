@@ -12,38 +12,64 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::recommendationengine::{
+    recommendationengine_projects_locations_catalogs_list_builder, recommendationengine_projects_locations_catalogs_list_task,
     recommendationengine_projects_locations_catalogs_patch_builder, recommendationengine_projects_locations_catalogs_patch_task,
     recommendationengine_projects_locations_catalogs_catalog_items_create_builder, recommendationengine_projects_locations_catalogs_catalog_items_create_task,
     recommendationengine_projects_locations_catalogs_catalog_items_delete_builder, recommendationengine_projects_locations_catalogs_catalog_items_delete_task,
+    recommendationengine_projects_locations_catalogs_catalog_items_get_builder, recommendationengine_projects_locations_catalogs_catalog_items_get_task,
     recommendationengine_projects_locations_catalogs_catalog_items_import_builder, recommendationengine_projects_locations_catalogs_catalog_items_import_task,
+    recommendationengine_projects_locations_catalogs_catalog_items_list_builder, recommendationengine_projects_locations_catalogs_catalog_items_list_task,
     recommendationengine_projects_locations_catalogs_catalog_items_patch_builder, recommendationengine_projects_locations_catalogs_catalog_items_patch_task,
+    recommendationengine_projects_locations_catalogs_event_stores_operations_get_builder, recommendationengine_projects_locations_catalogs_event_stores_operations_get_task,
+    recommendationengine_projects_locations_catalogs_event_stores_operations_list_builder, recommendationengine_projects_locations_catalogs_event_stores_operations_list_task,
     recommendationengine_projects_locations_catalogs_event_stores_placements_predict_builder, recommendationengine_projects_locations_catalogs_event_stores_placements_predict_task,
     recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create_builder, recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create_task,
     recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete_builder, recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete_task,
+    recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list_builder, recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list_task,
+    recommendationengine_projects_locations_catalogs_event_stores_user_events_collect_builder, recommendationengine_projects_locations_catalogs_event_stores_user_events_collect_task,
     recommendationengine_projects_locations_catalogs_event_stores_user_events_import_builder, recommendationengine_projects_locations_catalogs_event_stores_user_events_import_task,
+    recommendationengine_projects_locations_catalogs_event_stores_user_events_list_builder, recommendationengine_projects_locations_catalogs_event_stores_user_events_list_task,
     recommendationengine_projects_locations_catalogs_event_stores_user_events_purge_builder, recommendationengine_projects_locations_catalogs_event_stores_user_events_purge_task,
     recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin_builder, recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin_task,
     recommendationengine_projects_locations_catalogs_event_stores_user_events_write_builder, recommendationengine_projects_locations_catalogs_event_stores_user_events_write_task,
+    recommendationengine_projects_locations_catalogs_operations_get_builder, recommendationengine_projects_locations_catalogs_operations_get_task,
+    recommendationengine_projects_locations_catalogs_operations_list_builder, recommendationengine_projects_locations_catalogs_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::recommendationengine::GoogleApiHttpBody;
 use crate::providers::gcp::clients::recommendationengine::GoogleCloudRecommendationengineV1beta1Catalog;
 use crate::providers::gcp::clients::recommendationengine::GoogleCloudRecommendationengineV1beta1CatalogItem;
+use crate::providers::gcp::clients::recommendationengine::GoogleCloudRecommendationengineV1beta1ListCatalogItemsResponse;
+use crate::providers::gcp::clients::recommendationengine::GoogleCloudRecommendationengineV1beta1ListCatalogsResponse;
+use crate::providers::gcp::clients::recommendationengine::GoogleCloudRecommendationengineV1beta1ListPredictionApiKeyRegistrationsResponse;
+use crate::providers::gcp::clients::recommendationengine::GoogleCloudRecommendationengineV1beta1ListUserEventsResponse;
 use crate::providers::gcp::clients::recommendationengine::GoogleCloudRecommendationengineV1beta1PredictResponse;
 use crate::providers::gcp::clients::recommendationengine::GoogleCloudRecommendationengineV1beta1PredictionApiKeyRegistration;
 use crate::providers::gcp::clients::recommendationengine::GoogleCloudRecommendationengineV1beta1UserEvent;
+use crate::providers::gcp::clients::recommendationengine::GoogleLongrunningListOperationsResponse;
 use crate::providers::gcp::clients::recommendationengine::GoogleLongrunningOperation;
 use crate::providers::gcp::clients::recommendationengine::GoogleProtobufEmpty;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsCatalogItemsCreateArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsCatalogItemsDeleteArgs;
+use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsCatalogItemsGetArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsCatalogItemsImportArgs;
+use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsCatalogItemsListArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsCatalogItemsPatchArgs;
+use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresOperationsGetArgs;
+use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresOperationsListArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresPlacementsPredictArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsCreateArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsDeleteArgs;
+use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsListArgs;
+use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsCollectArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsImportArgs;
+use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsListArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsPurgeArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsRejoinArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsWriteArgs;
+use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsListArgs;
+use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsOperationsGetArgs;
+use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsOperationsListArgs;
 use crate::providers::gcp::clients::recommendationengine::RecommendationengineProjectsLocationsCatalogsPatchArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -84,6 +110,46 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Recommendationengine projects locations catalogs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommendationengineV1beta1ListCatalogsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommendationengine_projects_locations_catalogs_list(
+        &self,
+        args: &RecommendationengineProjectsLocationsCatalogsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommendationengineV1beta1ListCatalogsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommendationengine_projects_locations_catalogs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommendationengine_projects_locations_catalogs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommendationengine projects locations catalogs patch.
@@ -216,6 +282,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Recommendationengine projects locations catalogs catalog items get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommendationengineV1beta1CatalogItem result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommendationengine_projects_locations_catalogs_catalog_items_get(
+        &self,
+        args: &RecommendationengineProjectsLocationsCatalogsCatalogItemsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommendationengineV1beta1CatalogItem, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommendationengine_projects_locations_catalogs_catalog_items_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommendationengine_projects_locations_catalogs_catalog_items_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Recommendationengine projects locations catalogs catalog items import.
     ///
     /// Automatically stores the result in the state store on success.
@@ -257,6 +361,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommendationengine projects locations catalogs catalog items list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommendationengineV1beta1ListCatalogItemsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommendationengine_projects_locations_catalogs_catalog_items_list(
+        &self,
+        args: &RecommendationengineProjectsLocationsCatalogsCatalogItemsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommendationengineV1beta1ListCatalogItemsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommendationengine_projects_locations_catalogs_catalog_items_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommendationengine_projects_locations_catalogs_catalog_items_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommendationengine projects locations catalogs catalog items patch.
@@ -301,6 +446,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommendationengine projects locations catalogs event stores operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_get(
+        &self,
+        args: &RecommendationengineProjectsLocationsCatalogsEventStoresOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommendationengine_projects_locations_catalogs_event_stores_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommendationengine_projects_locations_catalogs_event_stores_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommendationengine projects locations catalogs event stores operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_list(
+        &self,
+        args: &RecommendationengineProjectsLocationsCatalogsEventStoresOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommendationengine_projects_locations_catalogs_event_stores_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommendationengine_projects_locations_catalogs_event_stores_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommendationengine projects locations catalogs event stores placements predict.
@@ -432,6 +657,87 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Recommendationengine projects locations catalogs event stores prediction api key registrations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommendationengineV1beta1ListPredictionApiKeyRegistrationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list(
+        &self,
+        args: &RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommendationengineV1beta1ListPredictionApiKeyRegistrationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommendationengine projects locations catalogs event stores user events collect.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleApiHttpBody result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_collect(
+        &self,
+        args: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsCollectArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleApiHttpBody, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommendationengine_projects_locations_catalogs_event_stores_user_events_collect_builder(
+            &self.http_client,
+            &args.parent,
+            &args.ets,
+            &args.uri,
+            &args.userEvent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommendationengine_projects_locations_catalogs_event_stores_user_events_collect_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Recommendationengine projects locations catalogs event stores user events import.
     ///
     /// Automatically stores the result in the state store on success.
@@ -473,6 +779,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommendationengine projects locations catalogs event stores user events list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecommendationengineV1beta1ListUserEventsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_list(
+        &self,
+        args: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecommendationengineV1beta1ListUserEventsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommendationengine_projects_locations_catalogs_event_stores_user_events_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommendationengine_projects_locations_catalogs_event_stores_user_events_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recommendationengine projects locations catalogs event stores user events purge.
@@ -602,6 +949,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommendationengine projects locations catalogs operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommendationengine_projects_locations_catalogs_operations_get(
+        &self,
+        args: &RecommendationengineProjectsLocationsCatalogsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommendationengine_projects_locations_catalogs_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommendationengine_projects_locations_catalogs_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recommendationengine projects locations catalogs operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recommendationengine_projects_locations_catalogs_operations_list(
+        &self,
+        args: &RecommendationengineProjectsLocationsCatalogsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recommendationengine_projects_locations_catalogs_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recommendationengine_projects_locations_catalogs_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

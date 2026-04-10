@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v2/groupItems
+/// DELETE v2/groupItems
 /// Removes an item from a group.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,8 +28,8 @@ use serde::Serialize;
 
 pub fn youtube_analytics_group_items_delete_builder(
     client: &SimpleHttpClient,
-    id: &Option<String>,
-    onBehalfOfContentOwner: &Option<String>,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groupItems",);
@@ -50,13 +50,13 @@ pub fn youtube_analytics_group_items_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v2/groupItems
+/// DELETE v2/groupItems
 /// Removes an item from a group.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -130,7 +130,7 @@ pub fn youtube_analytics_group_items_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/groupItems
+/// DELETE v2/groupItems
 /// Removes an item from a group.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -166,12 +166,12 @@ pub fn youtube_analytics_group_items_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsGroupItemsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<String>,
+    pub id: Option<Option<String>>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
 }
 
-/// GET v2/groupItems
+/// DELETE v2/groupItems
 /// Removes an item from a group.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -199,7 +199,352 @@ pub fn youtube_analytics_group_items_delete(
     youtube_analytics_group_items_delete_execute(builder)
 }
 
-/// GET v2/groups
+/// POST v2/groupItems
+/// Creates a group item.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_analytics_group_items_insert_execute()` to send, or `youtube_analytics_group_items_insert` for simplest API.
+
+pub fn youtube_analytics_group_items_insert_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groupItems",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/groupItems
+/// Creates a group item.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_analytics_group_items_insert_execute()` or `youtube_analytics_group_items_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_analytics_group_items_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_analytics_group_items_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GroupItem>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GroupItem = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/groupItems
+/// Creates a group item.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_analytics_group_items_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_analytics_group_items_insert_task()`.
+/// For the simplest API, use `youtube_analytics_group_items_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_analytics_group_items_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_analytics_group_items_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GroupItem>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_analytics_group_items_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_analytics_group_items_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupItemsInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// POST v2/groupItems
+/// Creates a group item.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_analytics_group_items_insert_builder()` + `youtube_analytics_group_items_insert_execute()`.
+/// For task-level control, use `youtube_analytics_group_items_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_analytics_group_items_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeAnalyticsGroupItemsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GroupItem>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_analytics_group_items_insert_builder(client, &args.onBehalfOfContentOwner)?;
+    youtube_analytics_group_items_insert_execute(builder)
+}
+
+/// GET v2/groupItems
+/// Returns a collection of group items that match the API request parameters.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_analytics_group_items_list_execute()` to send, or `youtube_analytics_group_items_list` for simplest API.
+
+pub fn youtube_analytics_group_items_list_builder(
+    client: &SimpleHttpClient,
+    groupId: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groupItems",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = groupId.as_ref() {
+        query_parts.push(format!("groupId={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/groupItems
+/// Returns a collection of group items that match the API request parameters.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_analytics_group_items_list_execute()` or `youtube_analytics_group_items_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_analytics_group_items_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_analytics_group_items_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGroupItemsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGroupItemsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/groupItems
+/// Returns a collection of group items that match the API request parameters.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_analytics_group_items_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_analytics_group_items_list_task()`.
+/// For the simplest API, use `youtube_analytics_group_items_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_analytics_group_items_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_analytics_group_items_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGroupItemsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_analytics_group_items_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_analytics_group_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupItemsListArgs {
+    /// Query parameter: groupId
+    pub groupId: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// GET v2/groupItems
+/// Returns a collection of group items that match the API request parameters.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_analytics_group_items_list_builder()` + `youtube_analytics_group_items_list_execute()`.
+/// For task-level control, use `youtube_analytics_group_items_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_analytics_group_items_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeAnalyticsGroupItemsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGroupItemsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_analytics_group_items_list_builder(
+        client,
+        &args.groupId,
+        &args.onBehalfOfContentOwner,
+    )?;
+    youtube_analytics_group_items_list_execute(builder)
+}
+
+/// DELETE v2/groups
 /// Deletes a group.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -207,8 +552,8 @@ pub fn youtube_analytics_group_items_delete(
 
 pub fn youtube_analytics_groups_delete_builder(
     client: &SimpleHttpClient,
-    id: &Option<String>,
-    onBehalfOfContentOwner: &Option<String>,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groups",);
@@ -229,13 +574,13 @@ pub fn youtube_analytics_groups_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v2/groups
+/// DELETE v2/groups
 /// Deletes a group.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -309,7 +654,7 @@ pub fn youtube_analytics_groups_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/groups
+/// DELETE v2/groups
 /// Deletes a group.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -345,12 +690,12 @@ pub fn youtube_analytics_groups_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsGroupsDeleteArgs {
     /// Query parameter: id
-    pub id: Option<String>,
+    pub id: Option<Option<String>>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
 }
 
-/// GET v2/groups
+/// DELETE v2/groups
 /// Deletes a group.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -375,6 +720,529 @@ pub fn youtube_analytics_groups_delete(
     youtube_analytics_groups_delete_execute(builder)
 }
 
+/// POST v2/groups
+/// Creates a group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_analytics_groups_insert_execute()` to send, or `youtube_analytics_groups_insert` for simplest API.
+
+pub fn youtube_analytics_groups_insert_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groups",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/groups
+/// Creates a group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_analytics_groups_insert_execute()` or `youtube_analytics_groups_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_analytics_groups_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_analytics_groups_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Group>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Group = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/groups
+/// Creates a group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_analytics_groups_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_analytics_groups_insert_task()`.
+/// For the simplest API, use `youtube_analytics_groups_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_analytics_groups_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_analytics_groups_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_analytics_groups_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_analytics_groups_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupsInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// POST v2/groups
+/// Creates a group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_analytics_groups_insert_builder()` + `youtube_analytics_groups_insert_execute()`.
+/// For task-level control, use `youtube_analytics_groups_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_analytics_groups_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeAnalyticsGroupsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_analytics_groups_insert_builder(client, &args.onBehalfOfContentOwner)?;
+    youtube_analytics_groups_insert_execute(builder)
+}
+
+/// GET v2/groups
+/// Returns a collection of groups that match the API request parameters. For example, you can retrieve all groups that the authenticated user owns, or you can retrieve one or more groups by their unique IDs.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_analytics_groups_list_execute()` to send, or `youtube_analytics_groups_list` for simplest API.
+
+pub fn youtube_analytics_groups_list_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    mine: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groups",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = mine.as_ref() {
+        query_parts.push(format!("mine={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/groups
+/// Returns a collection of groups that match the API request parameters. For example, you can retrieve all groups that the authenticated user owns, or you can retrieve one or more groups by their unique IDs.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_analytics_groups_list_execute()` or `youtube_analytics_groups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_analytics_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_analytics_groups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGroupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/groups
+/// Returns a collection of groups that match the API request parameters. For example, you can retrieve all groups that the authenticated user owns, or you can retrieve one or more groups by their unique IDs.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_analytics_groups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_analytics_groups_list_task()`.
+/// For the simplest API, use `youtube_analytics_groups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_analytics_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_analytics_groups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_analytics_groups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_analytics_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupsListArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: mine
+    pub mine: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/groups
+/// Returns a collection of groups that match the API request parameters. For example, you can retrieve all groups that the authenticated user owns, or you can retrieve one or more groups by their unique IDs.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_analytics_groups_list_builder()` + `youtube_analytics_groups_list_execute()`.
+/// For task-level control, use `youtube_analytics_groups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_analytics_groups_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeAnalyticsGroupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_analytics_groups_list_builder(
+        client,
+        &args.id,
+        &args.mine,
+        &args.onBehalfOfContentOwner,
+        &args.pageToken,
+    )?;
+    youtube_analytics_groups_list_execute(builder)
+}
+
+/// PUT v2/groups
+/// Modifies a group. For example, you could change a group's title.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_analytics_groups_update_execute()` to send, or `youtube_analytics_groups_update` for simplest API.
+
+pub fn youtube_analytics_groups_update_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/groups",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v2/groups
+/// Modifies a group. For example, you could change a group's title.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_analytics_groups_update_execute()` or `youtube_analytics_groups_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_analytics_groups_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_analytics_groups_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Group>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Group = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v2/groups
+/// Modifies a group. For example, you could change a group's title.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_analytics_groups_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_analytics_groups_update_task()`.
+/// For the simplest API, use `youtube_analytics_groups_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_analytics_groups_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_analytics_groups_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_analytics_groups_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_analytics_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAnalyticsGroupsUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// PUT v2/groups
+/// Modifies a group. For example, you could change a group's title.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_analytics_groups_update_builder()` + `youtube_analytics_groups_update_execute()`.
+/// For task-level control, use `youtube_analytics_groups_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_analytics_groups_update(
+    client: &SimpleHttpClient,
+    args: &YoutubeAnalyticsGroupsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_analytics_groups_update_builder(client, &args.onBehalfOfContentOwner)?;
+    youtube_analytics_groups_update_execute(builder)
+}
+
 /// GET v2/reports
 /// Retrieve your YouTube Analytics reports.
 ///
@@ -383,17 +1251,17 @@ pub fn youtube_analytics_groups_delete(
 
 pub fn youtube_analytics_reports_query_builder(
     client: &SimpleHttpClient,
-    currency: &Option<String>,
-    dimensions: &Option<String>,
-    endDate: &Option<String>,
-    filters: &Option<String>,
-    ids: &Option<String>,
-    includeHistoricalChannelData: &Option<bool>,
-    maxResults: &Option<i32>,
-    metrics: &Option<String>,
-    sort: &Option<String>,
-    startDate: &Option<String>,
-    startIndex: &Option<i32>,
+    currency: &Option<Option<String>>,
+    dimensions: &Option<Option<String>>,
+    endDate: &Option<Option<String>>,
+    filters: &Option<Option<String>>,
+    ids: &Option<Option<String>>,
+    includeHistoricalChannelData: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    metrics: &Option<Option<String>>,
+    sort: &Option<Option<String>>,
+    startDate: &Option<Option<String>>,
+    startIndex: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubeanalytics.googleapis.com/v2/reports",);
@@ -557,27 +1425,27 @@ pub fn youtube_analytics_reports_query_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeAnalyticsReportsQueryArgs {
     /// Query parameter: currency
-    pub currency: Option<String>,
+    pub currency: Option<Option<String>>,
     /// Query parameter: dimensions
-    pub dimensions: Option<String>,
+    pub dimensions: Option<Option<String>>,
     /// Query parameter: endDate
-    pub endDate: Option<String>,
+    pub endDate: Option<Option<String>>,
     /// Query parameter: filters
-    pub filters: Option<String>,
+    pub filters: Option<Option<String>>,
     /// Query parameter: ids
-    pub ids: Option<String>,
+    pub ids: Option<Option<String>>,
     /// Query parameter: includeHistoricalChannelData
-    pub includeHistoricalChannelData: Option<bool>,
+    pub includeHistoricalChannelData: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: metrics
-    pub metrics: Option<String>,
+    pub metrics: Option<Option<String>>,
     /// Query parameter: sort
-    pub sort: Option<String>,
+    pub sort: Option<Option<String>>,
     /// Query parameter: startDate
-    pub startDate: Option<String>,
+    pub startDate: Option<Option<String>>,
     /// Query parameter: startIndex
-    pub startIndex: Option<i32>,
+    pub startIndex: Option<Option<String>>,
 }
 
 /// GET v2/reports
@@ -615,4 +1483,188 @@ pub fn youtube_analytics_reports_query(
         &args.startIndex,
     )?;
     youtube_analytics_reports_query_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EmptyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EmptyResponse with YoutubeAnalyticsGroupItemsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeAnalyticsGroupItemsDeleteArgs> for EmptyResponse {
+    fn generate_resource_id(&self, input: &YoutubeAnalyticsGroupItemsDeleteArgs) -> String {
+        "gcp::youtubeAnalytics::EmptyResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubeAnalytics::EmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GroupItem
+// =============================================================================
+
+/// ResourceIdentifier implementation for GroupItem with YoutubeAnalyticsGroupItemsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeAnalyticsGroupItemsInsertArgs> for GroupItem {
+    fn generate_resource_id(&self, input: &YoutubeAnalyticsGroupItemsInsertArgs) -> String {
+        "gcp::youtubeAnalytics::GroupItem".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubeAnalytics::GroupItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGroupItemsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGroupItemsResponse with YoutubeAnalyticsGroupItemsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeAnalyticsGroupItemsListArgs> for ListGroupItemsResponse {
+    fn generate_resource_id(&self, input: &YoutubeAnalyticsGroupItemsListArgs) -> String {
+        "gcp::youtubeAnalytics::ListGroupItemsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubeAnalytics::ListGroupItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EmptyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EmptyResponse with YoutubeAnalyticsGroupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeAnalyticsGroupsDeleteArgs> for EmptyResponse {
+    fn generate_resource_id(&self, input: &YoutubeAnalyticsGroupsDeleteArgs) -> String {
+        "gcp::youtubeAnalytics::EmptyResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubeAnalytics::EmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Group
+// =============================================================================
+
+/// ResourceIdentifier implementation for Group with YoutubeAnalyticsGroupsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeAnalyticsGroupsInsertArgs> for Group {
+    fn generate_resource_id(&self, input: &YoutubeAnalyticsGroupsInsertArgs) -> String {
+        "gcp::youtubeAnalytics::Group".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubeAnalytics::Group"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGroupsResponse with YoutubeAnalyticsGroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeAnalyticsGroupsListArgs> for ListGroupsResponse {
+    fn generate_resource_id(&self, input: &YoutubeAnalyticsGroupsListArgs) -> String {
+        "gcp::youtubeAnalytics::ListGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubeAnalytics::ListGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Group
+// =============================================================================
+
+/// ResourceIdentifier implementation for Group with YoutubeAnalyticsGroupsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeAnalyticsGroupsUpdateArgs> for Group {
+    fn generate_resource_id(&self, input: &YoutubeAnalyticsGroupsUpdateArgs) -> String {
+        "gcp::youtubeAnalytics::Group".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubeAnalytics::Group"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for QueryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for QueryResponse with YoutubeAnalyticsReportsQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeAnalyticsReportsQueryArgs> for QueryResponse {
+    fn generate_resource_id(&self, input: &YoutubeAnalyticsReportsQueryArgs) -> String {
+        "gcp::youtubeAnalytics::QueryResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubeAnalytics::QueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -14,50 +14,87 @@
 use crate::providers::gcp::clients::accesscontextmanager::{
     accesscontextmanager_access_policies_create_builder, accesscontextmanager_access_policies_create_task,
     accesscontextmanager_access_policies_delete_builder, accesscontextmanager_access_policies_delete_task,
+    accesscontextmanager_access_policies_get_builder, accesscontextmanager_access_policies_get_task,
     accesscontextmanager_access_policies_get_iam_policy_builder, accesscontextmanager_access_policies_get_iam_policy_task,
+    accesscontextmanager_access_policies_list_builder, accesscontextmanager_access_policies_list_task,
     accesscontextmanager_access_policies_patch_builder, accesscontextmanager_access_policies_patch_task,
     accesscontextmanager_access_policies_set_iam_policy_builder, accesscontextmanager_access_policies_set_iam_policy_task,
     accesscontextmanager_access_policies_test_iam_permissions_builder, accesscontextmanager_access_policies_test_iam_permissions_task,
     accesscontextmanager_access_policies_access_levels_create_builder, accesscontextmanager_access_policies_access_levels_create_task,
     accesscontextmanager_access_policies_access_levels_delete_builder, accesscontextmanager_access_policies_access_levels_delete_task,
+    accesscontextmanager_access_policies_access_levels_get_builder, accesscontextmanager_access_policies_access_levels_get_task,
+    accesscontextmanager_access_policies_access_levels_list_builder, accesscontextmanager_access_policies_access_levels_list_task,
     accesscontextmanager_access_policies_access_levels_patch_builder, accesscontextmanager_access_policies_access_levels_patch_task,
     accesscontextmanager_access_policies_access_levels_replace_all_builder, accesscontextmanager_access_policies_access_levels_replace_all_task,
     accesscontextmanager_access_policies_access_levels_test_iam_permissions_builder, accesscontextmanager_access_policies_access_levels_test_iam_permissions_task,
     accesscontextmanager_access_policies_authorized_orgs_descs_create_builder, accesscontextmanager_access_policies_authorized_orgs_descs_create_task,
     accesscontextmanager_access_policies_authorized_orgs_descs_delete_builder, accesscontextmanager_access_policies_authorized_orgs_descs_delete_task,
+    accesscontextmanager_access_policies_authorized_orgs_descs_get_builder, accesscontextmanager_access_policies_authorized_orgs_descs_get_task,
+    accesscontextmanager_access_policies_authorized_orgs_descs_list_builder, accesscontextmanager_access_policies_authorized_orgs_descs_list_task,
     accesscontextmanager_access_policies_authorized_orgs_descs_patch_builder, accesscontextmanager_access_policies_authorized_orgs_descs_patch_task,
     accesscontextmanager_access_policies_service_perimeters_commit_builder, accesscontextmanager_access_policies_service_perimeters_commit_task,
     accesscontextmanager_access_policies_service_perimeters_create_builder, accesscontextmanager_access_policies_service_perimeters_create_task,
     accesscontextmanager_access_policies_service_perimeters_delete_builder, accesscontextmanager_access_policies_service_perimeters_delete_task,
+    accesscontextmanager_access_policies_service_perimeters_get_builder, accesscontextmanager_access_policies_service_perimeters_get_task,
+    accesscontextmanager_access_policies_service_perimeters_list_builder, accesscontextmanager_access_policies_service_perimeters_list_task,
     accesscontextmanager_access_policies_service_perimeters_patch_builder, accesscontextmanager_access_policies_service_perimeters_patch_task,
     accesscontextmanager_access_policies_service_perimeters_replace_all_builder, accesscontextmanager_access_policies_service_perimeters_replace_all_task,
     accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_builder, accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_task,
     accesscontextmanager_operations_cancel_builder, accesscontextmanager_operations_cancel_task,
     accesscontextmanager_operations_delete_builder, accesscontextmanager_operations_delete_task,
+    accesscontextmanager_operations_get_builder, accesscontextmanager_operations_get_task,
+    accesscontextmanager_operations_list_builder, accesscontextmanager_operations_list_task,
     accesscontextmanager_organizations_gcp_user_access_bindings_create_builder, accesscontextmanager_organizations_gcp_user_access_bindings_create_task,
     accesscontextmanager_organizations_gcp_user_access_bindings_delete_builder, accesscontextmanager_organizations_gcp_user_access_bindings_delete_task,
+    accesscontextmanager_organizations_gcp_user_access_bindings_get_builder, accesscontextmanager_organizations_gcp_user_access_bindings_get_task,
+    accesscontextmanager_organizations_gcp_user_access_bindings_list_builder, accesscontextmanager_organizations_gcp_user_access_bindings_list_task,
     accesscontextmanager_organizations_gcp_user_access_bindings_patch_builder, accesscontextmanager_organizations_gcp_user_access_bindings_patch_task,
+    accesscontextmanager_permissions_list_builder, accesscontextmanager_permissions_list_task,
+    accesscontextmanager_services_get_builder, accesscontextmanager_services_get_task,
+    accesscontextmanager_services_list_builder, accesscontextmanager_services_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::accesscontextmanager::AccessLevel;
+use crate::providers::gcp::clients::accesscontextmanager::AccessPolicy;
+use crate::providers::gcp::clients::accesscontextmanager::AuthorizedOrgsDesc;
 use crate::providers::gcp::clients::accesscontextmanager::Empty;
+use crate::providers::gcp::clients::accesscontextmanager::GcpUserAccessBinding;
+use crate::providers::gcp::clients::accesscontextmanager::ListAccessLevelsResponse;
+use crate::providers::gcp::clients::accesscontextmanager::ListAccessPoliciesResponse;
+use crate::providers::gcp::clients::accesscontextmanager::ListAuthorizedOrgsDescsResponse;
+use crate::providers::gcp::clients::accesscontextmanager::ListGcpUserAccessBindingsResponse;
+use crate::providers::gcp::clients::accesscontextmanager::ListOperationsResponse;
+use crate::providers::gcp::clients::accesscontextmanager::ListServicePerimetersResponse;
+use crate::providers::gcp::clients::accesscontextmanager::ListSupportedPermissionsResponse;
+use crate::providers::gcp::clients::accesscontextmanager::ListSupportedServicesResponse;
 use crate::providers::gcp::clients::accesscontextmanager::Operation;
 use crate::providers::gcp::clients::accesscontextmanager::Policy;
+use crate::providers::gcp::clients::accesscontextmanager::ServicePerimeter;
+use crate::providers::gcp::clients::accesscontextmanager::SupportedService;
 use crate::providers::gcp::clients::accesscontextmanager::TestIamPermissionsResponse;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAccessLevelsCreateArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAccessLevelsDeleteArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAccessLevelsListArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAccessLevelsPatchArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAccessLevelsReplaceAllArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAccessLevelsTestIamPermissionsArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsCreateArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsDeleteArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsPatchArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesCreateArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesDeleteArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesGetArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesGetIamPolicyArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesListArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesPatchArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesServicePerimetersCommitArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesServicePerimetersCreateArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesServicePerimetersDeleteArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesServicePerimetersListArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesServicePerimetersPatchArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesServicePerimetersReplaceAllArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesServicePerimetersTestIamPermissionsArgs;
@@ -65,9 +102,16 @@ use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAc
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerAccessPoliciesTestIamPermissionsArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerOperationsCancelArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerOperationsDeleteArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerOperationsGetArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerOperationsListArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerOrganizationsGcpUserAccessBindingsCreateArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerOrganizationsGcpUserAccessBindingsDeleteArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs;
 use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerOrganizationsGcpUserAccessBindingsPatchArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerPermissionsListArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerServicesGetArgs;
+use crate::providers::gcp::clients::accesscontextmanager::AccesscontextmanagerServicesListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -194,9 +238,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Accesscontextmanager access policies get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AccessPolicy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_access_policies_get(
+        &self,
+        args: &AccesscontextmanagerAccessPoliciesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AccessPolicy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_access_policies_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_access_policies_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Accesscontextmanager access policies get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -208,7 +290,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn accesscontextmanager_access_policies_get_iam_policy(
         &self,
         args: &AccesscontextmanagerAccessPoliciesGetIamPolicyArgs,
@@ -229,12 +311,47 @@ where
         let task = accesscontextmanager_access_policies_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Accesscontextmanager access policies list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAccessPoliciesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_access_policies_list(
+        &self,
+        args: &AccesscontextmanagerAccessPoliciesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAccessPoliciesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_access_policies_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = accesscontextmanager_access_policies_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Accesscontextmanager access policies patch.
@@ -326,7 +443,7 @@ where
 
     /// Accesscontextmanager access policies test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -338,7 +455,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn accesscontextmanager_access_policies_test_iam_permissions(
         &self,
         args: &AccesscontextmanagerAccessPoliciesTestIamPermissionsArgs,
@@ -359,12 +476,7 @@ where
         let task = accesscontextmanager_access_policies_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Accesscontextmanager access policies access levels create.
@@ -451,6 +563,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accesscontextmanager access policies access levels get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AccessLevel result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_access_policies_access_levels_get(
+        &self,
+        args: &AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AccessLevel, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_access_policies_access_levels_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.accessLevelFormat,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_access_policies_access_levels_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accesscontextmanager access policies access levels list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAccessLevelsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_access_policies_access_levels_list(
+        &self,
+        args: &AccesscontextmanagerAccessPoliciesAccessLevelsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAccessLevelsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_access_policies_access_levels_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.accessLevelFormat,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_access_policies_access_levels_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Accesscontextmanager access policies access levels patch.
@@ -542,7 +734,7 @@ where
 
     /// Accesscontextmanager access policies access levels test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -554,7 +746,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn accesscontextmanager_access_policies_access_levels_test_iam_permissions(
         &self,
         args: &AccesscontextmanagerAccessPoliciesAccessLevelsTestIamPermissionsArgs,
@@ -575,12 +767,7 @@ where
         let task = accesscontextmanager_access_policies_access_levels_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Accesscontextmanager access policies authorized orgs descs create.
@@ -667,6 +854,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accesscontextmanager access policies authorized orgs descs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AuthorizedOrgsDesc result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_access_policies_authorized_orgs_descs_get(
+        &self,
+        args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AuthorizedOrgsDesc, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_access_policies_authorized_orgs_descs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_access_policies_authorized_orgs_descs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accesscontextmanager access policies authorized orgs descs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAuthorizedOrgsDescsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_access_policies_authorized_orgs_descs_list(
+        &self,
+        args: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAuthorizedOrgsDescsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_access_policies_authorized_orgs_descs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_access_policies_authorized_orgs_descs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Accesscontextmanager access policies authorized orgs descs patch.
@@ -842,6 +1107,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Accesscontextmanager access policies service perimeters get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ServicePerimeter result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_access_policies_service_perimeters_get(
+        &self,
+        args: &AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ServicePerimeter, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_access_policies_service_perimeters_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_access_policies_service_perimeters_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accesscontextmanager access policies service perimeters list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListServicePerimetersResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_access_policies_service_perimeters_list(
+        &self,
+        args: &AccesscontextmanagerAccessPoliciesServicePerimetersListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListServicePerimetersResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_access_policies_service_perimeters_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_access_policies_service_perimeters_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Accesscontextmanager access policies service perimeters patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -931,7 +1274,7 @@ where
 
     /// Accesscontextmanager access policies service perimeters test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -943,7 +1286,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn accesscontextmanager_access_policies_service_perimeters_test_iam_permissions(
         &self,
         args: &AccesscontextmanagerAccessPoliciesServicePerimetersTestIamPermissionsArgs,
@@ -964,12 +1307,7 @@ where
         let task = accesscontextmanager_access_policies_service_perimeters_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Accesscontextmanager operations cancel.
@@ -1058,6 +1396,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Accesscontextmanager operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_operations_get(
+        &self,
+        args: &AccesscontextmanagerOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accesscontextmanager operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_operations_list(
+        &self,
+        args: &AccesscontextmanagerOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_operations_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Accesscontextmanager organizations gcp user access bindings create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1144,6 +1561,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Accesscontextmanager organizations gcp user access bindings get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GcpUserAccessBinding result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_organizations_gcp_user_access_bindings_get(
+        &self,
+        args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GcpUserAccessBinding, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_organizations_gcp_user_access_bindings_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_organizations_gcp_user_access_bindings_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accesscontextmanager organizations gcp user access bindings list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListGcpUserAccessBindingsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_organizations_gcp_user_access_bindings_list(
+        &self,
+        args: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListGcpUserAccessBindingsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_organizations_gcp_user_access_bindings_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_organizations_gcp_user_access_bindings_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Accesscontextmanager organizations gcp user access bindings patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1187,6 +1682,122 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accesscontextmanager permissions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSupportedPermissionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_permissions_list(
+        &self,
+        args: &AccesscontextmanagerPermissionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSupportedPermissionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_permissions_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_permissions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accesscontextmanager services get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SupportedService result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_services_get(
+        &self,
+        args: &AccesscontextmanagerServicesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SupportedService, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_services_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_services_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accesscontextmanager services list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSupportedServicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn accesscontextmanager_services_list(
+        &self,
+        args: &AccesscontextmanagerServicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSupportedServicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accesscontextmanager_services_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accesscontextmanager_services_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

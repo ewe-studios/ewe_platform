@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_get_execute()` to send, or `netapp_projects_locations_get` for simplest API.
+
+pub fn netapp_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_get_execute()` or `netapp_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_get_builder()` + `netapp_projects_locations_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_get_builder(client, &args.name)?;
+    netapp_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +186,16 @@ use serde::Serialize;
 pub fn netapp_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://netapp.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +337,13 @@ pub struct NetappProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +375,14699 @@ pub fn netapp_projects_locations_list(
         &args.pageToken,
     )?;
     netapp_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
+/// CreateActiveDirectory Creates the active directory specified in the request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_active_directories_create_execute()` to send, or `netapp_projects_locations_active_directories_create` for simplest API.
+
+pub fn netapp_projects_locations_active_directories_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    activeDirectoryId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/activeDirectories",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = activeDirectoryId.as_ref() {
+        query_parts.push(format!("activeDirectoryId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
+/// CreateActiveDirectory Creates the active directory specified in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_active_directories_create_execute()` or `netapp_projects_locations_active_directories_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_active_directories_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_active_directories_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
+/// CreateActiveDirectory Creates the active directory specified in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_active_directories_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_active_directories_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_active_directories_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_active_directories_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_active_directories_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_active_directories_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_active_directories_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsActiveDirectoriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: activeDirectoryId
+    pub activeDirectoryId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
+/// CreateActiveDirectory Creates the active directory specified in the request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_active_directories_create_builder()` + `netapp_projects_locations_active_directories_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_active_directories_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_active_directories_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsActiveDirectoriesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_active_directories_create_builder(
+        client,
+        &args.parent,
+        &args.activeDirectoryId,
+    )?;
+    netapp_projects_locations_active_directories_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Delete the active directory specified in the request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_active_directories_delete_execute()` to send, or `netapp_projects_locations_active_directories_delete` for simplest API.
+
+pub fn netapp_projects_locations_active_directories_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Delete the active directory specified in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_active_directories_delete_execute()` or `netapp_projects_locations_active_directories_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_active_directories_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_active_directories_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Delete the active directory specified in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_active_directories_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_active_directories_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_active_directories_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_active_directories_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_active_directories_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_active_directories_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_active_directories_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsActiveDirectoriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Delete the active directory specified in the request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_active_directories_delete_builder()` + `netapp_projects_locations_active_directories_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_active_directories_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_active_directories_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsActiveDirectoriesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_active_directories_delete_builder(client, &args.name)?;
+    netapp_projects_locations_active_directories_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Describes a specified active directory.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_active_directories_get_execute()` to send, or `netapp_projects_locations_active_directories_get` for simplest API.
+
+pub fn netapp_projects_locations_active_directories_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Describes a specified active directory.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_active_directories_get_execute()` or `netapp_projects_locations_active_directories_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_active_directories_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_active_directories_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ActiveDirectory>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ActiveDirectory = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Describes a specified active directory.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_active_directories_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_active_directories_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_active_directories_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_active_directories_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_active_directories_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ActiveDirectory>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_active_directories_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_active_directories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsActiveDirectoriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Describes a specified active directory.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_active_directories_get_builder()` + `netapp_projects_locations_active_directories_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_active_directories_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_active_directories_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsActiveDirectoriesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ActiveDirectory>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_active_directories_get_builder(client, &args.name)?;
+    netapp_projects_locations_active_directories_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
+/// Lists active directories.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_active_directories_list_execute()` to send, or `netapp_projects_locations_active_directories_list` for simplest API.
+
+pub fn netapp_projects_locations_active_directories_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/activeDirectories",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
+/// Lists active directories.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_active_directories_list_execute()` or `netapp_projects_locations_active_directories_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_active_directories_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_active_directories_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListActiveDirectoriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListActiveDirectoriesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
+/// Lists active directories.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_active_directories_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_active_directories_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_active_directories_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_active_directories_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_active_directories_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListActiveDirectoriesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_active_directories_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_active_directories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsActiveDirectoriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/activeDirectories
+/// Lists active directories.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_active_directories_list_builder()` + `netapp_projects_locations_active_directories_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_active_directories_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_active_directories_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsActiveDirectoriesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListActiveDirectoriesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_active_directories_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_active_directories_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Update the parameters of an active directories.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_active_directories_patch_execute()` to send, or `netapp_projects_locations_active_directories_patch` for simplest API.
+
+pub fn netapp_projects_locations_active_directories_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Update the parameters of an active directories.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_active_directories_patch_execute()` or `netapp_projects_locations_active_directories_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_active_directories_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_active_directories_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Update the parameters of an active directories.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_active_directories_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_active_directories_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_active_directories_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_active_directories_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_active_directories_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_active_directories_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_active_directories_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsActiveDirectoriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/activeDirectories/{activeDirectoriesId}
+/// Update the parameters of an active directories.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_active_directories_patch_builder()` + `netapp_projects_locations_active_directories_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_active_directories_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_active_directories_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsActiveDirectoriesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_active_directories_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    netapp_projects_locations_active_directories_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
+/// Creates new backup policy
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_policies_create_execute()` to send, or `netapp_projects_locations_backup_policies_create` for simplest API.
+
+pub fn netapp_projects_locations_backup_policies_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupPolicyId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPolicies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupPolicyId.as_ref() {
+        query_parts.push(format!("backupPolicyId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
+/// Creates new backup policy
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_policies_create_execute()` or `netapp_projects_locations_backup_policies_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_policies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_policies_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
+/// Creates new backup policy
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_policies_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_policies_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_policies_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_policies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_policies_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_policies_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupPolicyId
+    pub backupPolicyId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
+/// Creates new backup policy
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_policies_create_builder()` + `netapp_projects_locations_backup_policies_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_policies_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_policies_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupPoliciesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_policies_create_builder(
+        client,
+        &args.parent,
+        &args.backupPolicyId,
+    )?;
+    netapp_projects_locations_backup_policies_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Warning! This operation will permanently delete the backup policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_policies_delete_execute()` to send, or `netapp_projects_locations_backup_policies_delete` for simplest API.
+
+pub fn netapp_projects_locations_backup_policies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPolicies/{backupPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Warning! This operation will permanently delete the backup policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_policies_delete_execute()` or `netapp_projects_locations_backup_policies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_policies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Warning! This operation will permanently delete the backup policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_policies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_policies_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_policies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_policies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_policies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_policies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Warning! This operation will permanently delete the backup policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_policies_delete_builder()` + `netapp_projects_locations_backup_policies_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_policies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_policies_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupPoliciesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_policies_delete_builder(client, &args.name)?;
+    netapp_projects_locations_backup_policies_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Returns the description of the specified backup policy by backup_policy_id.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_policies_get_execute()` to send, or `netapp_projects_locations_backup_policies_get` for simplest API.
+
+pub fn netapp_projects_locations_backup_policies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPolicies/{backupPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Returns the description of the specified backup policy by backup_policy_id.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_policies_get_execute()` or `netapp_projects_locations_backup_policies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_policies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupPolicy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Returns the description of the specified backup policy by backup_policy_id.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_policies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_policies_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_policies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_policies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_policies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_policies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Returns the description of the specified backup policy by backup_policy_id.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_policies_get_builder()` + `netapp_projects_locations_backup_policies_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_policies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_policies_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupPoliciesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPolicy>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_policies_get_builder(client, &args.name)?;
+    netapp_projects_locations_backup_policies_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
+/// Returns list of all available backup policies.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_policies_list_execute()` to send, or `netapp_projects_locations_backup_policies_list` for simplest API.
+
+pub fn netapp_projects_locations_backup_policies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPolicies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
+/// Returns list of all available backup policies.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_policies_list_execute()` or `netapp_projects_locations_backup_policies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_policies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupPoliciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupPoliciesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
+/// Returns list of all available backup policies.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_policies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_policies_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_policies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_policies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_policies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_policies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPolicies
+/// Returns list of all available backup policies.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_policies_list_builder()` + `netapp_projects_locations_backup_policies_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_policies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_policies_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupPoliciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupPoliciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_policies_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_backup_policies_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Updates settings of a specific backup policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_policies_patch_execute()` to send, or `netapp_projects_locations_backup_policies_patch` for simplest API.
+
+pub fn netapp_projects_locations_backup_policies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPolicies/{backupPoliciesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Updates settings of a specific backup policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_policies_patch_execute()` or `netapp_projects_locations_backup_policies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_policies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Updates settings of a specific backup policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_policies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_policies_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_policies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_policies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_policies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_policies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPolicies/{backupPoliciesId}
+/// Updates settings of a specific backup policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_policies_patch_builder()` + `netapp_projects_locations_backup_policies_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_policies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_policies_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupPoliciesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_policies_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    netapp_projects_locations_backup_policies_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Creates new backup vault
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_vaults_create_execute()` to send, or `netapp_projects_locations_backup_vaults_create` for simplest API.
+
+pub fn netapp_projects_locations_backup_vaults_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupVaultId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupVaultId.as_ref() {
+        query_parts.push(format!("backupVaultId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Creates new backup vault
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_vaults_create_execute()` or `netapp_projects_locations_backup_vaults_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Creates new backup vault
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_vaults_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_vaults_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_vaults_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_vaults_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_vaults_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupVaultId
+    pub backupVaultId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Creates new backup vault
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_vaults_create_builder()` + `netapp_projects_locations_backup_vaults_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupVaultsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_vaults_create_builder(
+        client,
+        &args.parent,
+        &args.backupVaultId,
+    )?;
+    netapp_projects_locations_backup_vaults_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Warning! This operation will permanently delete the backup vault.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_vaults_delete_execute()` to send, or `netapp_projects_locations_backup_vaults_delete` for simplest API.
+
+pub fn netapp_projects_locations_backup_vaults_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Warning! This operation will permanently delete the backup vault.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_vaults_delete_execute()` or `netapp_projects_locations_backup_vaults_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Warning! This operation will permanently delete the backup vault.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_vaults_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_vaults_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_vaults_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_vaults_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_vaults_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Warning! This operation will permanently delete the backup vault.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_vaults_delete_builder()` + `netapp_projects_locations_backup_vaults_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupVaultsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_vaults_delete_builder(client, &args.name)?;
+    netapp_projects_locations_backup_vaults_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Returns the description of the specified backup vault
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_vaults_get_execute()` to send, or `netapp_projects_locations_backup_vaults_get` for simplest API.
+
+pub fn netapp_projects_locations_backup_vaults_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Returns the description of the specified backup vault
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_vaults_get_execute()` or `netapp_projects_locations_backup_vaults_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupVault>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupVault = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Returns the description of the specified backup vault
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_vaults_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_vaults_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_vaults_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupVault>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_vaults_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_vaults_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Returns the description of the specified backup vault
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_vaults_get_builder()` + `netapp_projects_locations_backup_vaults_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupVaultsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupVault>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_vaults_get_builder(client, &args.name)?;
+    netapp_projects_locations_backup_vaults_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Returns list of all available backup vaults.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_vaults_list_execute()` to send, or `netapp_projects_locations_backup_vaults_list` for simplest API.
+
+pub fn netapp_projects_locations_backup_vaults_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Returns list of all available backup vaults.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_vaults_list_execute()` or `netapp_projects_locations_backup_vaults_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupVaultsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupVaultsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Returns list of all available backup vaults.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_vaults_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_vaults_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_vaults_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupVaultsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_vaults_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_vaults_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults
+/// Returns list of all available backup vaults.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_vaults_list_builder()` + `netapp_projects_locations_backup_vaults_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupVaultsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupVaultsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_vaults_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_backup_vaults_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Updates the settings of a specific backup vault.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_vaults_patch_execute()` to send, or `netapp_projects_locations_backup_vaults_patch` for simplest API.
+
+pub fn netapp_projects_locations_backup_vaults_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Updates the settings of a specific backup vault.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_vaults_patch_execute()` or `netapp_projects_locations_backup_vaults_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Updates the settings of a specific backup vault.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_vaults_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_vaults_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_vaults_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_vaults_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_vaults_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}
+/// Updates the settings of a specific backup vault.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_vaults_patch_builder()` + `netapp_projects_locations_backup_vaults_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupVaultsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_vaults_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    netapp_projects_locations_backup_vaults_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
+/// Creates a backup from the volume specified in the request The backup can be created from the given snapshot if specified in the request. If no snapshot specified, there'll be a new snapshot taken to initiate the backup creation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_vaults_backups_create_execute()` to send, or `netapp_projects_locations_backup_vaults_backups_create` for simplest API.
+
+pub fn netapp_projects_locations_backup_vaults_backups_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupId.as_ref() {
+        query_parts.push(format!("backupId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
+/// Creates a backup from the volume specified in the request The backup can be created from the given snapshot if specified in the request. If no snapshot specified, there'll be a new snapshot taken to initiate the backup creation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_vaults_backups_create_execute()` or `netapp_projects_locations_backup_vaults_backups_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_backups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_backups_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
+/// Creates a backup from the volume specified in the request The backup can be created from the given snapshot if specified in the request. If no snapshot specified, there'll be a new snapshot taken to initiate the backup creation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_vaults_backups_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_backups_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_vaults_backups_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_backups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_vaults_backups_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_vaults_backups_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_vaults_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
+/// Creates a backup from the volume specified in the request The backup can be created from the given snapshot if specified in the request. If no snapshot specified, there'll be a new snapshot taken to initiate the backup creation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_vaults_backups_create_builder()` + `netapp_projects_locations_backup_vaults_backups_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_backups_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_backups_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupVaultsBackupsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_vaults_backups_create_builder(
+        client,
+        &args.parent,
+        &args.backupId,
+    )?;
+    netapp_projects_locations_backup_vaults_backups_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Warning! This operation will permanently delete the backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_vaults_backups_delete_execute()` to send, or `netapp_projects_locations_backup_vaults_backups_delete` for simplest API.
+
+pub fn netapp_projects_locations_backup_vaults_backups_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Warning! This operation will permanently delete the backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_vaults_backups_delete_execute()` or `netapp_projects_locations_backup_vaults_backups_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_backups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_backups_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Warning! This operation will permanently delete the backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_vaults_backups_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_backups_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_vaults_backups_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_backups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_vaults_backups_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_vaults_backups_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_vaults_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Warning! This operation will permanently delete the backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_vaults_backups_delete_builder()` + `netapp_projects_locations_backup_vaults_backups_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_backups_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_backups_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupVaultsBackupsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        netapp_projects_locations_backup_vaults_backups_delete_builder(client, &args.name)?;
+    netapp_projects_locations_backup_vaults_backups_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Returns the description of the specified backup
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_vaults_backups_get_execute()` to send, or `netapp_projects_locations_backup_vaults_backups_get` for simplest API.
+
+pub fn netapp_projects_locations_backup_vaults_backups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Returns the description of the specified backup
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_vaults_backups_get_execute()` or `netapp_projects_locations_backup_vaults_backups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_backups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Backup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Backup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Returns the description of the specified backup
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_vaults_backups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_backups_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_vaults_backups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_vaults_backups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_vaults_backups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_vaults_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Returns the description of the specified backup
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_vaults_backups_get_builder()` + `netapp_projects_locations_backup_vaults_backups_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_backups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_backups_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupVaultsBackupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_vaults_backups_get_builder(client, &args.name)?;
+    netapp_projects_locations_backup_vaults_backups_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
+/// Returns descriptions of all backups for a `backupVault`.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_vaults_backups_list_execute()` to send, or `netapp_projects_locations_backup_vaults_backups_list` for simplest API.
+
+pub fn netapp_projects_locations_backup_vaults_backups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
+/// Returns descriptions of all backups for a `backupVault`.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_vaults_backups_list_execute()` or `netapp_projects_locations_backup_vaults_backups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_backups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
+/// Returns descriptions of all backups for a `backupVault`.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_vaults_backups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_backups_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_vaults_backups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_vaults_backups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_vaults_backups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_vaults_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups
+/// Returns descriptions of all backups for a `backupVault`.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_vaults_backups_list_builder()` + `netapp_projects_locations_backup_vaults_backups_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_backups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_backups_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupVaultsBackupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_vaults_backups_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_backup_vaults_backups_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Update backup with full spec.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_backup_vaults_backups_patch_execute()` to send, or `netapp_projects_locations_backup_vaults_backups_patch` for simplest API.
+
+pub fn netapp_projects_locations_backup_vaults_backups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Update backup with full spec.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_backup_vaults_backups_patch_execute()` or `netapp_projects_locations_backup_vaults_backups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_backups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_backups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Update backup with full spec.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_backup_vaults_backups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_backups_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_backup_vaults_backups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_backup_vaults_backups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_backup_vaults_backups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_backup_vaults_backups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_backup_vaults_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsBackupVaultsBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupVaults/{backupVaultsId}/backups/{backupsId}
+/// Update backup with full spec.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_backup_vaults_backups_patch_builder()` + `netapp_projects_locations_backup_vaults_backups_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_backup_vaults_backups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_backup_vaults_backups_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsBackupVaultsBackupsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_backup_vaults_backups_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    netapp_projects_locations_backup_vaults_backups_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/hostGroups
+/// Creates a new host group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_host_groups_create_execute()` to send, or `netapp_projects_locations_host_groups_create` for simplest API.
+
+pub fn netapp_projects_locations_host_groups_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    hostGroupId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/hostGroups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = hostGroupId.as_ref() {
+        query_parts.push(format!("hostGroupId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/hostGroups
+/// Creates a new host group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_host_groups_create_execute()` or `netapp_projects_locations_host_groups_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_host_groups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_host_groups_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/hostGroups
+/// Creates a new host group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_host_groups_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_host_groups_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_host_groups_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_host_groups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_host_groups_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_host_groups_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_host_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsHostGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: hostGroupId
+    pub hostGroupId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/hostGroups
+/// Creates a new host group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_host_groups_create_builder()` + `netapp_projects_locations_host_groups_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_host_groups_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_host_groups_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsHostGroupsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_host_groups_create_builder(
+        client,
+        &args.parent,
+        &args.hostGroupId,
+    )?;
+    netapp_projects_locations_host_groups_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Deletes a host group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_host_groups_delete_execute()` to send, or `netapp_projects_locations_host_groups_delete` for simplest API.
+
+pub fn netapp_projects_locations_host_groups_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/hostGroups/{hostGroupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Deletes a host group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_host_groups_delete_execute()` or `netapp_projects_locations_host_groups_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_host_groups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_host_groups_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Deletes a host group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_host_groups_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_host_groups_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_host_groups_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_host_groups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_host_groups_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_host_groups_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_host_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsHostGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Deletes a host group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_host_groups_delete_builder()` + `netapp_projects_locations_host_groups_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_host_groups_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_host_groups_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsHostGroupsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_host_groups_delete_builder(client, &args.name)?;
+    netapp_projects_locations_host_groups_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Returns details of the specified host group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_host_groups_get_execute()` to send, or `netapp_projects_locations_host_groups_get` for simplest API.
+
+pub fn netapp_projects_locations_host_groups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/hostGroups/{hostGroupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Returns details of the specified host group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_host_groups_get_execute()` or `netapp_projects_locations_host_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_host_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_host_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HostGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HostGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Returns details of the specified host group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_host_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_host_groups_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_host_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_host_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_host_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HostGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_host_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_host_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsHostGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Returns details of the specified host group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_host_groups_get_builder()` + `netapp_projects_locations_host_groups_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_host_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_host_groups_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsHostGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HostGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_host_groups_get_builder(client, &args.name)?;
+    netapp_projects_locations_host_groups_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups
+/// Returns a list of host groups in a location. Use - as location to list host groups across all locations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_host_groups_list_execute()` to send, or `netapp_projects_locations_host_groups_list` for simplest API.
+
+pub fn netapp_projects_locations_host_groups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/hostGroups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups
+/// Returns a list of host groups in a location. Use - as location to list host groups across all locations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_host_groups_list_execute()` or `netapp_projects_locations_host_groups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_host_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_host_groups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListHostGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListHostGroupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups
+/// Returns a list of host groups in a location. Use - as location to list host groups across all locations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_host_groups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_host_groups_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_host_groups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_host_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_host_groups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHostGroupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_host_groups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_host_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsHostGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostGroups
+/// Returns a list of host groups in a location. Use - as location to list host groups across all locations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_host_groups_list_builder()` + `netapp_projects_locations_host_groups_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_host_groups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_host_groups_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsHostGroupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHostGroupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_host_groups_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_host_groups_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Updates an existing host group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_host_groups_patch_execute()` to send, or `netapp_projects_locations_host_groups_patch` for simplest API.
+
+pub fn netapp_projects_locations_host_groups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/hostGroups/{hostGroupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Updates an existing host group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_host_groups_patch_execute()` or `netapp_projects_locations_host_groups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_host_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_host_groups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Updates an existing host group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_host_groups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_host_groups_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_host_groups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_host_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_host_groups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_host_groups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_host_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsHostGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/hostGroups/{hostGroupsId}
+/// Updates an existing host group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_host_groups_patch_builder()` + `netapp_projects_locations_host_groups_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_host_groups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_host_groups_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsHostGroupsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        netapp_projects_locations_host_groups_patch_builder(client, &args.name, &args.updateMask)?;
+    netapp_projects_locations_host_groups_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
+/// Creates a new KMS config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_kms_configs_create_execute()` to send, or `netapp_projects_locations_kms_configs_create` for simplest API.
+
+pub fn netapp_projects_locations_kms_configs_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    kmsConfigId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = kmsConfigId.as_ref() {
+        query_parts.push(format!("kmsConfigId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
+/// Creates a new KMS config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_kms_configs_create_execute()` or `netapp_projects_locations_kms_configs_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
+/// Creates a new KMS config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_kms_configs_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_kms_configs_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_kms_configs_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_kms_configs_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_kms_configs_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_kms_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: kmsConfigId
+    pub kmsConfigId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
+/// Creates a new KMS config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_kms_configs_create_builder()` + `netapp_projects_locations_kms_configs_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_kms_configs_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsKmsConfigsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_kms_configs_create_builder(
+        client,
+        &args.parent,
+        &args.kmsConfigId,
+    )?;
+    netapp_projects_locations_kms_configs_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Warning! This operation will permanently delete the Kms config.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_kms_configs_delete_execute()` to send, or `netapp_projects_locations_kms_configs_delete` for simplest API.
+
+pub fn netapp_projects_locations_kms_configs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Warning! This operation will permanently delete the Kms config.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_kms_configs_delete_execute()` or `netapp_projects_locations_kms_configs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Warning! This operation will permanently delete the Kms config.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_kms_configs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_kms_configs_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_kms_configs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_kms_configs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_kms_configs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_kms_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Warning! This operation will permanently delete the Kms config.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_kms_configs_delete_builder()` + `netapp_projects_locations_kms_configs_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_kms_configs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsKmsConfigsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_kms_configs_delete_builder(client, &args.name)?;
+    netapp_projects_locations_kms_configs_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:encrypt
+/// Encrypt the existing volumes without CMEK encryption with the desired the KMS config for the whole region.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_kms_configs_encrypt_execute()` to send, or `netapp_projects_locations_kms_configs_encrypt` for simplest API.
+
+pub fn netapp_projects_locations_kms_configs_encrypt_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:encrypt",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:encrypt
+/// Encrypt the existing volumes without CMEK encryption with the desired the KMS config for the whole region.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_kms_configs_encrypt_execute()` or `netapp_projects_locations_kms_configs_encrypt`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_encrypt_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_encrypt_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:encrypt
+/// Encrypt the existing volumes without CMEK encryption with the desired the KMS config for the whole region.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_kms_configs_encrypt_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_kms_configs_encrypt_task()`.
+/// For the simplest API, use `netapp_projects_locations_kms_configs_encrypt()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_encrypt_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_kms_configs_encrypt_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_kms_configs_encrypt_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_kms_configs_encrypt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsEncryptArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:encrypt
+/// Encrypt the existing volumes without CMEK encryption with the desired the KMS config for the whole region.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_kms_configs_encrypt_builder()` + `netapp_projects_locations_kms_configs_encrypt_execute()`.
+/// For task-level control, use `netapp_projects_locations_kms_configs_encrypt_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_encrypt(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsKmsConfigsEncryptArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_kms_configs_encrypt_builder(client, &args.name)?;
+    netapp_projects_locations_kms_configs_encrypt_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Returns the description of the specified KMS config by kms_config_id.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_kms_configs_get_execute()` to send, or `netapp_projects_locations_kms_configs_get` for simplest API.
+
+pub fn netapp_projects_locations_kms_configs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Returns the description of the specified KMS config by kms_config_id.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_kms_configs_get_execute()` or `netapp_projects_locations_kms_configs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<KmsConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: KmsConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Returns the description of the specified KMS config by kms_config_id.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_kms_configs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_kms_configs_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_kms_configs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_kms_configs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<KmsConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_kms_configs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_kms_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Returns the description of the specified KMS config by kms_config_id.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_kms_configs_get_builder()` + `netapp_projects_locations_kms_configs_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_kms_configs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsKmsConfigsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<KmsConfig>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_kms_configs_get_builder(client, &args.name)?;
+    netapp_projects_locations_kms_configs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
+/// Returns descriptions of all KMS configs owned by the caller.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_kms_configs_list_execute()` to send, or `netapp_projects_locations_kms_configs_list` for simplest API.
+
+pub fn netapp_projects_locations_kms_configs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
+/// Returns descriptions of all KMS configs owned by the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_kms_configs_list_execute()` or `netapp_projects_locations_kms_configs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListKmsConfigsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListKmsConfigsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
+/// Returns descriptions of all KMS configs owned by the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_kms_configs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_kms_configs_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_kms_configs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_kms_configs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListKmsConfigsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_kms_configs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_kms_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs
+/// Returns descriptions of all KMS configs owned by the caller.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_kms_configs_list_builder()` + `netapp_projects_locations_kms_configs_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_kms_configs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsKmsConfigsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListKmsConfigsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_kms_configs_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_kms_configs_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Updates the Kms config properties with the full spec
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_kms_configs_patch_execute()` to send, or `netapp_projects_locations_kms_configs_patch` for simplest API.
+
+pub fn netapp_projects_locations_kms_configs_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Updates the Kms config properties with the full spec
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_kms_configs_patch_execute()` or `netapp_projects_locations_kms_configs_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Updates the Kms config properties with the full spec
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_kms_configs_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_kms_configs_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_kms_configs_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_kms_configs_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_kms_configs_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_kms_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}
+/// Updates the Kms config properties with the full spec
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_kms_configs_patch_builder()` + `netapp_projects_locations_kms_configs_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_kms_configs_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsKmsConfigsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        netapp_projects_locations_kms_configs_patch_builder(client, &args.name, &args.updateMask)?;
+    netapp_projects_locations_kms_configs_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:verify
+/// Verifies KMS config reachability.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_kms_configs_verify_execute()` to send, or `netapp_projects_locations_kms_configs_verify` for simplest API.
+
+pub fn netapp_projects_locations_kms_configs_verify_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:verify",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:verify
+/// Verifies KMS config reachability.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_kms_configs_verify_execute()` or `netapp_projects_locations_kms_configs_verify`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_verify_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_verify_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VerifyKmsConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VerifyKmsConfigResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:verify
+/// Verifies KMS config reachability.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_kms_configs_verify_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_kms_configs_verify_task()`.
+/// For the simplest API, use `netapp_projects_locations_kms_configs_verify()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_kms_configs_verify_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_kms_configs_verify_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VerifyKmsConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_kms_configs_verify_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_kms_configs_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsKmsConfigsVerifyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/kmsConfigs/{kmsConfigsId}:verify
+/// Verifies KMS config reachability.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_kms_configs_verify_builder()` + `netapp_projects_locations_kms_configs_verify_execute()`.
+/// For task-level control, use `netapp_projects_locations_kms_configs_verify_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_kms_configs_verify(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsKmsConfigsVerifyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VerifyKmsConfigResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_kms_configs_verify_builder(client, &args.name)?;
+    netapp_projects_locations_kms_configs_verify_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_operations_cancel_execute()` to send, or `netapp_projects_locations_operations_cancel` for simplest API.
+
+pub fn netapp_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_operations_cancel_execute()` or `netapp_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `netapp_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_operations_cancel_builder()` + `netapp_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `netapp_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_operations_cancel_builder(client, &args.name)?;
+    netapp_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_operations_delete_execute()` to send, or `netapp_projects_locations_operations_delete` for simplest API.
+
+pub fn netapp_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_operations_delete_execute()` or `netapp_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_operations_delete_builder()` + `netapp_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_operations_delete_builder(client, &args.name)?;
+    netapp_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_operations_get_execute()` to send, or `netapp_projects_locations_operations_get` for simplest API.
+
+pub fn netapp_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_operations_get_execute()` or `netapp_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_operations_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_operations_get_builder()` + `netapp_projects_locations_operations_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_operations_get_builder(client, &args.name)?;
+    netapp_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_operations_list_execute()` to send, or `netapp_projects_locations_operations_list` for simplest API.
+
+pub fn netapp_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_operations_list_execute()` or `netapp_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_operations_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_operations_list_builder()` + `netapp_projects_locations_operations_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    netapp_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools
+/// Creates a new storage pool.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_create_execute()` to send, or `netapp_projects_locations_storage_pools_create` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    storagePoolId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = storagePoolId.as_ref() {
+        query_parts.push(format!("storagePoolId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools
+/// Creates a new storage pool.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_create_execute()` or `netapp_projects_locations_storage_pools_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools
+/// Creates a new storage pool.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: storagePoolId
+    pub storagePoolId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools
+/// Creates a new storage pool.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_create_builder()` + `netapp_projects_locations_storage_pools_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_create_builder(
+        client,
+        &args.parent,
+        &args.storagePoolId,
+    )?;
+    netapp_projects_locations_storage_pools_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Warning! This operation will permanently delete the storage pool.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_delete_execute()` to send, or `netapp_projects_locations_storage_pools_delete` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Warning! This operation will permanently delete the storage pool.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_delete_execute()` or `netapp_projects_locations_storage_pools_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Warning! This operation will permanently delete the storage pool.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Warning! This operation will permanently delete the storage pool.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_delete_builder()` + `netapp_projects_locations_storage_pools_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_delete_builder(client, &args.name)?;
+    netapp_projects_locations_storage_pools_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Returns the description of the specified storage pool by `poolId`.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_get_execute()` to send, or `netapp_projects_locations_storage_pools_get` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Returns the description of the specified storage pool by `poolId`.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_get_execute()` or `netapp_projects_locations_storage_pools_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StoragePool>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StoragePool = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Returns the description of the specified storage pool by `poolId`.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StoragePool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Returns the description of the specified storage pool by `poolId`.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_get_builder()` + `netapp_projects_locations_storage_pools_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StoragePool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_get_builder(client, &args.name)?;
+    netapp_projects_locations_storage_pools_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools
+/// Returns descriptions of all storage pools owned by the caller.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_list_execute()` to send, or `netapp_projects_locations_storage_pools_list` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools
+/// Returns descriptions of all storage pools owned by the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_list_execute()` or `netapp_projects_locations_storage_pools_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListStoragePoolsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListStoragePoolsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools
+/// Returns descriptions of all storage pools owned by the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListStoragePoolsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools
+/// Returns descriptions of all storage pools owned by the caller.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_list_builder()` + `netapp_projects_locations_storage_pools_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListStoragePoolsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_storage_pools_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Updates the storage pool properties with the full spec
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_patch_execute()` to send, or `netapp_projects_locations_storage_pools_patch` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Updates the storage pool properties with the full spec
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_patch_execute()` or `netapp_projects_locations_storage_pools_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Updates the storage pool properties with the full spec
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}
+/// Updates the storage pool properties with the full spec
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_patch_builder()` + `netapp_projects_locations_storage_pools_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    netapp_projects_locations_storage_pools_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}:switch
+/// This operation will switch the `active/replica` zone for a regional `storagePool`.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_switch_execute()` to send, or `netapp_projects_locations_storage_pools_switch` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_switch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}:switch",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}:switch
+/// This operation will switch the `active/replica` zone for a regional `storagePool`.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_switch_execute()` or `netapp_projects_locations_storage_pools_switch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_switch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_switch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}:switch
+/// This operation will switch the `active/replica` zone for a regional `storagePool`.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_switch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_switch_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_switch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_switch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_switch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_switch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_switch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsSwitchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}:switch
+/// This operation will switch the `active/replica` zone for a regional `storagePool`.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_switch_builder()` + `netapp_projects_locations_storage_pools_switch_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_switch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_switch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsSwitchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_switch_builder(client, &args.name)?;
+    netapp_projects_locations_storage_pools_switch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}:validateDirectoryService
+/// ValidateDirectoryService does a connectivity check for a directory service policy attached to the storage pool.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_validate_directory_service_execute()` to send, or `netapp_projects_locations_storage_pools_validate_directory_service` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_validate_directory_service_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}:validateDirectoryService",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}:validateDirectoryService
+/// ValidateDirectoryService does a connectivity check for a directory service policy attached to the storage pool.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_validate_directory_service_execute()` or `netapp_projects_locations_storage_pools_validate_directory_service`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_validate_directory_service_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_validate_directory_service_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}:validateDirectoryService
+/// ValidateDirectoryService does a connectivity check for a directory service policy attached to the storage pool.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_validate_directory_service_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_validate_directory_service_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_validate_directory_service()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_validate_directory_service_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_validate_directory_service_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_validate_directory_service_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_validate_directory_service`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsValidateDirectoryServiceArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}:validateDirectoryService
+/// ValidateDirectoryService does a connectivity check for a directory service policy attached to the storage pool.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_validate_directory_service_builder()` + `netapp_projects_locations_storage_pools_validate_directory_service_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_validate_directory_service_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_validate_directory_service(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsValidateDirectoryServiceArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_validate_directory_service_builder(
+        client, &args.name,
+    )?;
+    netapp_projects_locations_storage_pools_validate_directory_service_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapDelete dispatches the ONTAP DELETE request to the StoragePool cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_execute()` to send, or `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_builder(
+    client: &SimpleHttpClient,
+    ontapPath: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}",
+        ontapPath,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapDelete dispatches the ONTAP DELETE request to the StoragePool cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_execute()` or `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExecuteOntapDeleteResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExecuteOntapDeleteResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapDelete dispatches the ONTAP DELETE request to the StoragePool cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ExecuteOntapDeleteResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_ontap_execute_ontap_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsOntapExecuteOntapDeleteArgs {
+    /// Path parameter: ontapPath
+    pub ontapPath: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapDelete dispatches the ONTAP DELETE request to the StoragePool cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_builder()` + `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ExecuteOntapDeleteResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_builder(
+        client,
+        &args.ontapPath,
+    )?;
+    netapp_projects_locations_storage_pools_ontap_execute_ontap_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapGet dispatches the ONTAP GET request to the StoragePool cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_ontap_execute_ontap_get_execute()` to send, or `netapp_projects_locations_storage_pools_ontap_execute_ontap_get` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_get_builder(
+    client: &SimpleHttpClient,
+    ontapPath: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}",
+        ontapPath,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapGet dispatches the ONTAP GET request to the StoragePool cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_get_execute()` or `netapp_projects_locations_storage_pools_ontap_execute_ontap_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_ontap_execute_ontap_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExecuteOntapGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExecuteOntapGetResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapGet dispatches the ONTAP GET request to the StoragePool cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_ontap_execute_ontap_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExecuteOntapGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_ontap_execute_ontap_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_ontap_execute_ontap_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsOntapExecuteOntapGetArgs {
+    /// Path parameter: ontapPath
+    pub ontapPath: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapGet dispatches the ONTAP GET request to the StoragePool cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_get_builder()` + `netapp_projects_locations_storage_pools_ontap_execute_ontap_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExecuteOntapGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_ontap_execute_ontap_get_builder(
+        client,
+        &args.ontapPath,
+    )?;
+    netapp_projects_locations_storage_pools_ontap_execute_ontap_get_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapPatch dispatches the ONTAP PATCH request to the StoragePool cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_execute()` to send, or `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_builder(
+    client: &SimpleHttpClient,
+    ontapPath: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}",
+        ontapPath,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapPatch dispatches the ONTAP PATCH request to the StoragePool cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_execute()` or `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExecuteOntapPatchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExecuteOntapPatchResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapPatch dispatches the ONTAP PATCH request to the StoragePool cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExecuteOntapPatchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_ontap_execute_ontap_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsOntapExecuteOntapPatchArgs {
+    /// Path parameter: ontapPath
+    pub ontapPath: String,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapPatch dispatches the ONTAP PATCH request to the StoragePool cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_builder()` + `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExecuteOntapPatchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_builder(
+        client,
+        &args.ontapPath,
+    )?;
+    netapp_projects_locations_storage_pools_ontap_execute_ontap_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapPost dispatches the ONTAP POST request to the StoragePool cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_storage_pools_ontap_execute_ontap_post_execute()` to send, or `netapp_projects_locations_storage_pools_ontap_execute_ontap_post` for simplest API.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post_builder(
+    client: &SimpleHttpClient,
+    ontapPath: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}",
+        ontapPath,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapPost dispatches the ONTAP POST request to the StoragePool cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_post_execute()` or `netapp_projects_locations_storage_pools_ontap_execute_ontap_post`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_ontap_execute_ontap_post_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExecuteOntapPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExecuteOntapPostResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapPost dispatches the ONTAP POST request to the StoragePool cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_post_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_post_task()`.
+/// For the simplest API, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_post()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_storage_pools_ontap_execute_ontap_post_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExecuteOntapPostResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_storage_pools_ontap_execute_ontap_post_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_storage_pools_ontap_execute_ontap_post`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsStoragePoolsOntapExecuteOntapPostArgs {
+    /// Path parameter: ontapPath
+    pub ontapPath: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/storagePools/{storagePoolsId}/ontap/{ontapId}
+/// ExecuteOntapPost dispatches the ONTAP POST request to the StoragePool cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_post_builder()` + `netapp_projects_locations_storage_pools_ontap_execute_ontap_post_execute()`.
+/// For task-level control, use `netapp_projects_locations_storage_pools_ontap_execute_ontap_post_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_storage_pools_ontap_execute_ontap_post(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapPostArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExecuteOntapPostResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_storage_pools_ontap_execute_ontap_post_builder(
+        client,
+        &args.ontapPath,
+    )?;
+    netapp_projects_locations_storage_pools_ontap_execute_ontap_post_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes
+/// Creates a new Volume in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_create_execute()` to send, or `netapp_projects_locations_volumes_create` for simplest API.
+
+pub fn netapp_projects_locations_volumes_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    volumeId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = volumeId.as_ref() {
+        query_parts.push(format!("volumeId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes
+/// Creates a new Volume in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_create_execute()` or `netapp_projects_locations_volumes_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes
+/// Creates a new Volume in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: volumeId
+    pub volumeId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes
+/// Creates a new Volume in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_create_builder()` + `netapp_projects_locations_volumes_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        netapp_projects_locations_volumes_create_builder(client, &args.parent, &args.volumeId)?;
+    netapp_projects_locations_volumes_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Deletes a single Volume.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_delete_execute()` to send, or `netapp_projects_locations_volumes_delete` for simplest API.
+
+pub fn netapp_projects_locations_volumes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Deletes a single Volume.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_delete_execute()` or `netapp_projects_locations_volumes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Deletes a single Volume.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Deletes a single Volume.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_delete_builder()` + `netapp_projects_locations_volumes_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        netapp_projects_locations_volumes_delete_builder(client, &args.name, &args.force)?;
+    netapp_projects_locations_volumes_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:establishPeering
+/// Establish volume peering. This is used to establish cluster and svm peerings between the GCNV and OnPrem clusters.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_establish_peering_execute()` to send, or `netapp_projects_locations_volumes_establish_peering` for simplest API.
+
+pub fn netapp_projects_locations_volumes_establish_peering_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}:establishPeering",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:establishPeering
+/// Establish volume peering. This is used to establish cluster and svm peerings between the GCNV and OnPrem clusters.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_establish_peering_execute()` or `netapp_projects_locations_volumes_establish_peering`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_establish_peering_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_establish_peering_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:establishPeering
+/// Establish volume peering. This is used to establish cluster and svm peerings between the GCNV and OnPrem clusters.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_establish_peering_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_establish_peering_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_establish_peering()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_establish_peering_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_establish_peering_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_establish_peering_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_establish_peering`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesEstablishPeeringArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:establishPeering
+/// Establish volume peering. This is used to establish cluster and svm peerings between the GCNV and OnPrem clusters.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_establish_peering_builder()` + `netapp_projects_locations_volumes_establish_peering_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_establish_peering_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_establish_peering(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesEstablishPeeringArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_establish_peering_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_establish_peering_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Gets details of a single Volume.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_get_execute()` to send, or `netapp_projects_locations_volumes_get` for simplest API.
+
+pub fn netapp_projects_locations_volumes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Gets details of a single Volume.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_get_execute()` or `netapp_projects_locations_volumes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Volume>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Volume = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Gets details of a single Volume.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Gets details of a single Volume.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_get_builder()` + `netapp_projects_locations_volumes_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_get_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes
+/// Lists Volumes in a given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_list_execute()` to send, or `netapp_projects_locations_volumes_list` for simplest API.
+
+pub fn netapp_projects_locations_volumes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes
+/// Lists Volumes in a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_list_execute()` or `netapp_projects_locations_volumes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListVolumesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListVolumesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes
+/// Lists Volumes in a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListVolumesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes
+/// Lists Volumes in a given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_list_builder()` + `netapp_projects_locations_volumes_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListVolumesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_volumes_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Updates the parameters of a single Volume.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_patch_execute()` to send, or `netapp_projects_locations_volumes_patch` for simplest API.
+
+pub fn netapp_projects_locations_volumes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Updates the parameters of a single Volume.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_patch_execute()` or `netapp_projects_locations_volumes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Updates the parameters of a single Volume.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}
+/// Updates the parameters of a single Volume.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_patch_builder()` + `netapp_projects_locations_volumes_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        netapp_projects_locations_volumes_patch_builder(client, &args.name, &args.updateMask)?;
+    netapp_projects_locations_volumes_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:restore
+/// Restore files from a backup to a volume.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_restore_execute()` to send, or `netapp_projects_locations_volumes_restore` for simplest API.
+
+pub fn netapp_projects_locations_volumes_restore_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}:restore",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:restore
+/// Restore files from a backup to a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_restore_execute()` or `netapp_projects_locations_volumes_restore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_restore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:restore
+/// Restore files from a backup to a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_restore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_restore_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_restore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_restore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_restore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:restore
+/// Restore files from a backup to a volume.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_restore_builder()` + `netapp_projects_locations_volumes_restore_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_restore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_restore(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesRestoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_restore_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_restore_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:revert
+/// Revert an existing volume to a specified snapshot. Warning! This operation will permanently revert all changes made after the snapshot was created.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_revert_execute()` to send, or `netapp_projects_locations_volumes_revert` for simplest API.
+
+pub fn netapp_projects_locations_volumes_revert_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}:revert",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:revert
+/// Revert an existing volume to a specified snapshot. Warning! This operation will permanently revert all changes made after the snapshot was created.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_revert_execute()` or `netapp_projects_locations_volumes_revert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_revert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:revert
+/// Revert an existing volume to a specified snapshot. Warning! This operation will permanently revert all changes made after the snapshot was created.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_revert_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_revert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesRevertArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}:revert
+/// Revert an existing volume to a specified snapshot. Warning! This operation will permanently revert all changes made after the snapshot was created.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_revert_builder()` + `netapp_projects_locations_volumes_revert_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_revert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_revert(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesRevertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_revert_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_revert_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
+/// Creates a new quota rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_quota_rules_create_execute()` to send, or `netapp_projects_locations_volumes_quota_rules_create` for simplest API.
+
+pub fn netapp_projects_locations_volumes_quota_rules_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    quotaRuleId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/quotaRules",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = quotaRuleId.as_ref() {
+        query_parts.push(format!("quotaRuleId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
+/// Creates a new quota rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_quota_rules_create_execute()` or `netapp_projects_locations_volumes_quota_rules_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_quota_rules_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_quota_rules_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
+/// Creates a new quota rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_quota_rules_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_quota_rules_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_quota_rules_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_quota_rules_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_quota_rules_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_quota_rules_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_quota_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesQuotaRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: quotaRuleId
+    pub quotaRuleId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
+/// Creates a new quota rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_quota_rules_create_builder()` + `netapp_projects_locations_volumes_quota_rules_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_quota_rules_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_quota_rules_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesQuotaRulesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_quota_rules_create_builder(
+        client,
+        &args.parent,
+        &args.quotaRuleId,
+    )?;
+    netapp_projects_locations_volumes_quota_rules_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Deletes a quota rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_quota_rules_delete_execute()` to send, or `netapp_projects_locations_volumes_quota_rules_delete` for simplest API.
+
+pub fn netapp_projects_locations_volumes_quota_rules_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Deletes a quota rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_quota_rules_delete_execute()` or `netapp_projects_locations_volumes_quota_rules_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_quota_rules_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_quota_rules_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Deletes a quota rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_quota_rules_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_quota_rules_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_quota_rules_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_quota_rules_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_quota_rules_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_quota_rules_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_quota_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesQuotaRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Deletes a quota rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_quota_rules_delete_builder()` + `netapp_projects_locations_volumes_quota_rules_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_quota_rules_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_quota_rules_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesQuotaRulesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_quota_rules_delete_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_quota_rules_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Returns details of the specified quota rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_quota_rules_get_execute()` to send, or `netapp_projects_locations_volumes_quota_rules_get` for simplest API.
+
+pub fn netapp_projects_locations_volumes_quota_rules_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Returns details of the specified quota rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_quota_rules_get_execute()` or `netapp_projects_locations_volumes_quota_rules_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_quota_rules_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_quota_rules_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<QuotaRule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: QuotaRule = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Returns details of the specified quota rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_quota_rules_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_quota_rules_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_quota_rules_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_quota_rules_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_quota_rules_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<QuotaRule>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_quota_rules_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_quota_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesQuotaRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Returns details of the specified quota rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_quota_rules_get_builder()` + `netapp_projects_locations_volumes_quota_rules_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_quota_rules_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_quota_rules_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesQuotaRulesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<QuotaRule>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_quota_rules_get_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_quota_rules_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
+/// Returns list of all quota rules in a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_quota_rules_list_execute()` to send, or `netapp_projects_locations_volumes_quota_rules_list` for simplest API.
+
+pub fn netapp_projects_locations_volumes_quota_rules_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/quotaRules",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
+/// Returns list of all quota rules in a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_quota_rules_list_execute()` or `netapp_projects_locations_volumes_quota_rules_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_quota_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_quota_rules_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListQuotaRulesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListQuotaRulesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
+/// Returns list of all quota rules in a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_quota_rules_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_quota_rules_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_quota_rules_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_quota_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_quota_rules_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListQuotaRulesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_quota_rules_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_quota_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesQuotaRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules
+/// Returns list of all quota rules in a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_quota_rules_list_builder()` + `netapp_projects_locations_volumes_quota_rules_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_quota_rules_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_quota_rules_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesQuotaRulesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListQuotaRulesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_quota_rules_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_volumes_quota_rules_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Updates a quota rule.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_quota_rules_patch_execute()` to send, or `netapp_projects_locations_volumes_quota_rules_patch` for simplest API.
+
+pub fn netapp_projects_locations_volumes_quota_rules_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Updates a quota rule.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_quota_rules_patch_execute()` or `netapp_projects_locations_volumes_quota_rules_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_quota_rules_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_quota_rules_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Updates a quota rule.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_quota_rules_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_quota_rules_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_quota_rules_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_quota_rules_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_quota_rules_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_quota_rules_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_quota_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesQuotaRulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/quotaRules/{quotaRulesId}
+/// Updates a quota rule.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_quota_rules_patch_builder()` + `netapp_projects_locations_volumes_quota_rules_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_quota_rules_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_quota_rules_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesQuotaRulesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_quota_rules_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    netapp_projects_locations_volumes_quota_rules_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
+/// Create a new replication for a volume.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_replications_create_execute()` to send, or `netapp_projects_locations_volumes_replications_create` for simplest API.
+
+pub fn netapp_projects_locations_volumes_replications_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    replicationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = replicationId.as_ref() {
+        query_parts.push(format!("replicationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
+/// Create a new replication for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_replications_create_execute()` or `netapp_projects_locations_volumes_replications_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
+/// Create a new replication for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_replications_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_replications_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_replications_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_replications_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_replications_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: replicationId
+    pub replicationId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
+/// Create a new replication for a volume.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_replications_create_builder()` + `netapp_projects_locations_volumes_replications_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesReplicationsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_replications_create_builder(
+        client,
+        &args.parent,
+        &args.replicationId,
+    )?;
+    netapp_projects_locations_volumes_replications_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Deletes a replication.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_replications_delete_execute()` to send, or `netapp_projects_locations_volumes_replications_delete` for simplest API.
+
+pub fn netapp_projects_locations_volumes_replications_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Deletes a replication.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_replications_delete_execute()` or `netapp_projects_locations_volumes_replications_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Deletes a replication.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_replications_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_replications_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_replications_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_replications_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_replications_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Deletes a replication.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_replications_delete_builder()` + `netapp_projects_locations_volumes_replications_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesReplicationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        netapp_projects_locations_volumes_replications_delete_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_replications_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:establishPeering
+/// Establish replication peering.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_replications_establish_peering_execute()` to send, or `netapp_projects_locations_volumes_replications_establish_peering` for simplest API.
+
+pub fn netapp_projects_locations_volumes_replications_establish_peering_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:establishPeering",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:establishPeering
+/// Establish replication peering.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_replications_establish_peering_execute()` or `netapp_projects_locations_volumes_replications_establish_peering`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_establish_peering_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_establish_peering_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:establishPeering
+/// Establish replication peering.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_replications_establish_peering_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_establish_peering_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_replications_establish_peering()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_establish_peering_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_replications_establish_peering_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_replications_establish_peering_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_replications_establish_peering`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsEstablishPeeringArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:establishPeering
+/// Establish replication peering.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_replications_establish_peering_builder()` + `netapp_projects_locations_volumes_replications_establish_peering_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_establish_peering_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_establish_peering(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesReplicationsEstablishPeeringArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_replications_establish_peering_builder(
+        client, &args.name,
+    )?;
+    netapp_projects_locations_volumes_replications_establish_peering_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Describe a replication for a volume.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_replications_get_execute()` to send, or `netapp_projects_locations_volumes_replications_get` for simplest API.
+
+pub fn netapp_projects_locations_volumes_replications_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Describe a replication for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_replications_get_execute()` or `netapp_projects_locations_volumes_replications_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Replication>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Replication = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Describe a replication for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_replications_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_replications_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_replications_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Replication>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_replications_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_replications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Describe a replication for a volume.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_replications_get_builder()` + `netapp_projects_locations_volumes_replications_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesReplicationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Replication>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_replications_get_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_replications_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
+/// Returns descriptions of all replications for a volume.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_replications_list_execute()` to send, or `netapp_projects_locations_volumes_replications_list` for simplest API.
+
+pub fn netapp_projects_locations_volumes_replications_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
+/// Returns descriptions of all replications for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_replications_list_execute()` or `netapp_projects_locations_volumes_replications_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListReplicationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListReplicationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
+/// Returns descriptions of all replications for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_replications_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_replications_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_replications_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListReplicationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_replications_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_replications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications
+/// Returns descriptions of all replications for a volume.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_replications_list_builder()` + `netapp_projects_locations_volumes_replications_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesReplicationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListReplicationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_replications_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_volumes_replications_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Updates the settings of a specific replication.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_replications_patch_execute()` to send, or `netapp_projects_locations_volumes_replications_patch` for simplest API.
+
+pub fn netapp_projects_locations_volumes_replications_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Updates the settings of a specific replication.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_replications_patch_execute()` or `netapp_projects_locations_volumes_replications_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Updates the settings of a specific replication.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_replications_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_replications_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_replications_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_replications_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_replications_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}
+/// Updates the settings of a specific replication.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_replications_patch_builder()` + `netapp_projects_locations_volumes_replications_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesReplicationsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_replications_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    netapp_projects_locations_volumes_replications_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:resume
+/// Resume Cross Region Replication.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_replications_resume_execute()` to send, or `netapp_projects_locations_volumes_replications_resume` for simplest API.
+
+pub fn netapp_projects_locations_volumes_replications_resume_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:resume",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:resume
+/// Resume Cross Region Replication.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_replications_resume_execute()` or `netapp_projects_locations_volumes_replications_resume`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_resume_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_resume_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:resume
+/// Resume Cross Region Replication.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_replications_resume_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_resume_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_replications_resume()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_resume_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_replications_resume_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_replications_resume_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_replications_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:resume
+/// Resume Cross Region Replication.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_replications_resume_builder()` + `netapp_projects_locations_volumes_replications_resume_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_resume_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_resume(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesReplicationsResumeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        netapp_projects_locations_volumes_replications_resume_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_replications_resume_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:reverseDirection
+/// Reverses direction of replication. Source becomes destination and destination becomes source.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_replications_reverse_direction_execute()` to send, or `netapp_projects_locations_volumes_replications_reverse_direction` for simplest API.
+
+pub fn netapp_projects_locations_volumes_replications_reverse_direction_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:reverseDirection",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:reverseDirection
+/// Reverses direction of replication. Source becomes destination and destination becomes source.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_replications_reverse_direction_execute()` or `netapp_projects_locations_volumes_replications_reverse_direction`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_reverse_direction_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_reverse_direction_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:reverseDirection
+/// Reverses direction of replication. Source becomes destination and destination becomes source.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_replications_reverse_direction_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_reverse_direction_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_replications_reverse_direction()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_reverse_direction_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_replications_reverse_direction_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_replications_reverse_direction_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_replications_reverse_direction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsReverseDirectionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:reverseDirection
+/// Reverses direction of replication. Source becomes destination and destination becomes source.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_replications_reverse_direction_builder()` + `netapp_projects_locations_volumes_replications_reverse_direction_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_reverse_direction_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_reverse_direction(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesReplicationsReverseDirectionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_replications_reverse_direction_builder(
+        client, &args.name,
+    )?;
+    netapp_projects_locations_volumes_replications_reverse_direction_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:stop
+/// Stop Cross Region Replication.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_replications_stop_execute()` to send, or `netapp_projects_locations_volumes_replications_stop` for simplest API.
+
+pub fn netapp_projects_locations_volumes_replications_stop_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:stop",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:stop
+/// Stop Cross Region Replication.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_replications_stop_execute()` or `netapp_projects_locations_volumes_replications_stop`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_stop_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:stop
+/// Stop Cross Region Replication.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_replications_stop_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_stop_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_replications_stop()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_replications_stop_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_replications_stop_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_replications_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsStopArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:stop
+/// Stop Cross Region Replication.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_replications_stop_builder()` + `netapp_projects_locations_volumes_replications_stop_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_stop_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_stop(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesReplicationsStopArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_replications_stop_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_replications_stop_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:sync
+/// Syncs the replication. This will invoke one time volume data transfer from source to destination.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_replications_sync_execute()` to send, or `netapp_projects_locations_volumes_replications_sync` for simplest API.
+
+pub fn netapp_projects_locations_volumes_replications_sync_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:sync",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:sync
+/// Syncs the replication. This will invoke one time volume data transfer from source to destination.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_replications_sync_execute()` or `netapp_projects_locations_volumes_replications_sync`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_sync_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_sync_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:sync
+/// Syncs the replication. This will invoke one time volume data transfer from source to destination.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_replications_sync_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_sync_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_replications_sync()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_replications_sync_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_replications_sync_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_replications_sync_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_replications_sync`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesReplicationsSyncArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/replications/{replicationsId}:sync
+/// Syncs the replication. This will invoke one time volume data transfer from source to destination.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_replications_sync_builder()` + `netapp_projects_locations_volumes_replications_sync_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_replications_sync_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_replications_sync(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesReplicationsSyncArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_replications_sync_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_replications_sync_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
+/// Create a new snapshot for a volume.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_snapshots_create_execute()` to send, or `netapp_projects_locations_volumes_snapshots_create` for simplest API.
+
+pub fn netapp_projects_locations_volumes_snapshots_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    snapshotId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = snapshotId.as_ref() {
+        query_parts.push(format!("snapshotId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
+/// Create a new snapshot for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_snapshots_create_execute()` or `netapp_projects_locations_volumes_snapshots_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_snapshots_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_snapshots_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
+/// Create a new snapshot for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_snapshots_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_snapshots_create_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_snapshots_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_snapshots_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_snapshots_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_snapshots_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_snapshots_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesSnapshotsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: snapshotId
+    pub snapshotId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
+/// Create a new snapshot for a volume.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_snapshots_create_builder()` + `netapp_projects_locations_volumes_snapshots_create_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_snapshots_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_snapshots_create(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesSnapshotsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_snapshots_create_builder(
+        client,
+        &args.parent,
+        &args.snapshotId,
+    )?;
+    netapp_projects_locations_volumes_snapshots_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Deletes a snapshot.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_snapshots_delete_execute()` to send, or `netapp_projects_locations_volumes_snapshots_delete` for simplest API.
+
+pub fn netapp_projects_locations_volumes_snapshots_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Deletes a snapshot.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_snapshots_delete_execute()` or `netapp_projects_locations_volumes_snapshots_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_snapshots_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_snapshots_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Deletes a snapshot.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_snapshots_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_snapshots_delete_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_snapshots_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_snapshots_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_snapshots_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_snapshots_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_snapshots_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesSnapshotsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Deletes a snapshot.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_snapshots_delete_builder()` + `netapp_projects_locations_volumes_snapshots_delete_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_snapshots_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_snapshots_delete(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesSnapshotsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_snapshots_delete_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_snapshots_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Describe a snapshot for a volume.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_snapshots_get_execute()` to send, or `netapp_projects_locations_volumes_snapshots_get` for simplest API.
+
+pub fn netapp_projects_locations_volumes_snapshots_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Describe a snapshot for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_snapshots_get_execute()` or `netapp_projects_locations_volumes_snapshots_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_snapshots_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_snapshots_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Snapshot>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Snapshot = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Describe a snapshot for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_snapshots_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_snapshots_get_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_snapshots_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_snapshots_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_snapshots_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_snapshots_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_snapshots_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesSnapshotsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Describe a snapshot for a volume.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_snapshots_get_builder()` + `netapp_projects_locations_volumes_snapshots_get_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_snapshots_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_snapshots_get(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesSnapshotsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_snapshots_get_builder(client, &args.name)?;
+    netapp_projects_locations_volumes_snapshots_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
+/// Returns descriptions of all snapshots for a volume.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_snapshots_list_execute()` to send, or `netapp_projects_locations_volumes_snapshots_list` for simplest API.
+
+pub fn netapp_projects_locations_volumes_snapshots_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
+/// Returns descriptions of all snapshots for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_snapshots_list_execute()` or `netapp_projects_locations_volumes_snapshots_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_snapshots_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_snapshots_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSnapshotsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSnapshotsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
+/// Returns descriptions of all snapshots for a volume.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_snapshots_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_snapshots_list_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_snapshots_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_snapshots_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_snapshots_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_snapshots_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_snapshots_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesSnapshotsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots
+/// Returns descriptions of all snapshots for a volume.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_snapshots_list_builder()` + `netapp_projects_locations_volumes_snapshots_list_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_snapshots_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_snapshots_list(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesSnapshotsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_snapshots_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    netapp_projects_locations_volumes_snapshots_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Updates the settings of a specific snapshot.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `netapp_projects_locations_volumes_snapshots_patch_execute()` to send, or `netapp_projects_locations_volumes_snapshots_patch` for simplest API.
+
+pub fn netapp_projects_locations_volumes_snapshots_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://netapp.googleapis.com/v1/projects/{}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Updates the settings of a specific snapshot.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `netapp_projects_locations_volumes_snapshots_patch_execute()` or `netapp_projects_locations_volumes_snapshots_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_snapshots_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_snapshots_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Updates the settings of a specific snapshot.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `netapp_projects_locations_volumes_snapshots_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `netapp_projects_locations_volumes_snapshots_patch_task()`.
+/// For the simplest API, use `netapp_projects_locations_volumes_snapshots_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `netapp_projects_locations_volumes_snapshots_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn netapp_projects_locations_volumes_snapshots_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = netapp_projects_locations_volumes_snapshots_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`netapp_projects_locations_volumes_snapshots_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetappProjectsLocationsVolumesSnapshotsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/volumes/{volumesId}/snapshots/{snapshotsId}
+/// Updates the settings of a specific snapshot.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `netapp_projects_locations_volumes_snapshots_patch_builder()` + `netapp_projects_locations_volumes_snapshots_patch_execute()`.
+/// For task-level control, use `netapp_projects_locations_volumes_snapshots_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn netapp_projects_locations_volumes_snapshots_patch(
+    client: &SimpleHttpClient,
+    args: &NetappProjectsLocationsVolumesSnapshotsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = netapp_projects_locations_volumes_snapshots_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    netapp_projects_locations_volumes_snapshots_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with NetappProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsGetArgs) -> String {
+        format!("gcp::netapp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with NetappProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsListArgs) -> String {
+        format!("gcp::netapp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsActiveDirectoriesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsActiveDirectoriesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsActiveDirectoriesCreateArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsActiveDirectoriesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsActiveDirectoriesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsActiveDirectoriesDeleteArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ActiveDirectory
+// =============================================================================
+
+/// ResourceIdentifier implementation for ActiveDirectory with NetappProjectsLocationsActiveDirectoriesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsActiveDirectoriesGetArgs> for ActiveDirectory {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsActiveDirectoriesGetArgs,
+    ) -> String {
+        format!("gcp::netapp::ActiveDirectory/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ActiveDirectory"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListActiveDirectoriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListActiveDirectoriesResponse with NetappProjectsLocationsActiveDirectoriesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsActiveDirectoriesListArgs>
+    for ListActiveDirectoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsActiveDirectoriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::netapp::ListActiveDirectoriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListActiveDirectoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsActiveDirectoriesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsActiveDirectoriesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsActiveDirectoriesPatchArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsBackupPoliciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupPoliciesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupPoliciesCreateArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsBackupPoliciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupPoliciesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupPoliciesDeleteArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupPolicy with NetappProjectsLocationsBackupPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupPoliciesGetArgs> for BackupPolicy {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsBackupPoliciesGetArgs) -> String {
+        format!("gcp::netapp::BackupPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::BackupPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupPoliciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupPoliciesResponse with NetappProjectsLocationsBackupPoliciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupPoliciesListArgs>
+    for ListBackupPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupPoliciesListArgs,
+    ) -> String {
+        format!("gcp::netapp::ListBackupPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListBackupPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsBackupPoliciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupPoliciesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupPoliciesPatchArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsBackupVaultsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupVaultsCreateArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsBackupVaultsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupVaultsDeleteArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupVault
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupVault with NetappProjectsLocationsBackupVaultsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsGetArgs> for BackupVault {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsBackupVaultsGetArgs) -> String {
+        format!("gcp::netapp::BackupVault/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::BackupVault"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupVaultsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupVaultsResponse with NetappProjectsLocationsBackupVaultsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsListArgs> for ListBackupVaultsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsBackupVaultsListArgs) -> String {
+        format!("gcp::netapp::ListBackupVaultsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListBackupVaultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsBackupVaultsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsBackupVaultsPatchArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsBackupVaultsBackupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsBackupsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupVaultsBackupsCreateArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsBackupVaultsBackupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsBackupsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupVaultsBackupsDeleteArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Backup
+// =============================================================================
+
+/// ResourceIdentifier implementation for Backup with NetappProjectsLocationsBackupVaultsBackupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsBackupsGetArgs> for Backup {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupVaultsBackupsGetArgs,
+    ) -> String {
+        format!("gcp::netapp::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupsResponse with NetappProjectsLocationsBackupVaultsBackupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsBackupsListArgs>
+    for ListBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupVaultsBackupsListArgs,
+    ) -> String {
+        format!("gcp::netapp::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsBackupVaultsBackupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsBackupsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupVaultsBackupsPatchArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsHostGroupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsHostGroupsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsHostGroupsCreateArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsHostGroupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsHostGroupsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsHostGroupsDeleteArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HostGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for HostGroup with NetappProjectsLocationsHostGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsHostGroupsGetArgs> for HostGroup {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsHostGroupsGetArgs) -> String {
+        format!("gcp::netapp::HostGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::HostGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListHostGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListHostGroupsResponse with NetappProjectsLocationsHostGroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsHostGroupsListArgs> for ListHostGroupsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsHostGroupsListArgs) -> String {
+        format!("gcp::netapp::ListHostGroupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListHostGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsHostGroupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsHostGroupsPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsHostGroupsPatchArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsKmsConfigsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsKmsConfigsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsKmsConfigsCreateArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsKmsConfigsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsKmsConfigsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsKmsConfigsDeleteArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsKmsConfigsEncryptArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsKmsConfigsEncryptArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsKmsConfigsEncryptArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for KmsConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for KmsConfig with NetappProjectsLocationsKmsConfigsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsKmsConfigsGetArgs> for KmsConfig {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsKmsConfigsGetArgs) -> String {
+        format!("gcp::netapp::KmsConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::KmsConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListKmsConfigsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListKmsConfigsResponse with NetappProjectsLocationsKmsConfigsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsKmsConfigsListArgs> for ListKmsConfigsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsKmsConfigsListArgs) -> String {
+        format!("gcp::netapp::ListKmsConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListKmsConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsKmsConfigsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsKmsConfigsPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsKmsConfigsPatchArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VerifyKmsConfigResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VerifyKmsConfigResponse with NetappProjectsLocationsKmsConfigsVerifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsKmsConfigsVerifyArgs> for VerifyKmsConfigResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsKmsConfigsVerifyArgs) -> String {
+        format!("gcp::netapp::VerifyKmsConfigResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::VerifyKmsConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with NetappProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsOperationsCancelArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsOperationsCancelArgs) -> String {
+        format!("gcp::netapp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with NetappProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsOperationsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsOperationsDeleteArgs) -> String {
+        format!("gcp::netapp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with NetappProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::netapp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsStoragePoolsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsCreateArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsStoragePoolsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsDeleteArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StoragePool
+// =============================================================================
+
+/// ResourceIdentifier implementation for StoragePool with NetappProjectsLocationsStoragePoolsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsGetArgs> for StoragePool {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsStoragePoolsGetArgs) -> String {
+        format!("gcp::netapp::StoragePool/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::StoragePool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListStoragePoolsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListStoragePoolsResponse with NetappProjectsLocationsStoragePoolsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsListArgs> for ListStoragePoolsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsStoragePoolsListArgs) -> String {
+        format!("gcp::netapp::ListStoragePoolsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListStoragePoolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsStoragePoolsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsStoragePoolsPatchArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsStoragePoolsSwitchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsSwitchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsSwitchArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsStoragePoolsValidateDirectoryServiceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsValidateDirectoryServiceArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsValidateDirectoryServiceArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExecuteOntapDeleteResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExecuteOntapDeleteResponse with NetappProjectsLocationsStoragePoolsOntapExecuteOntapDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsOntapExecuteOntapDeleteArgs>
+    for ExecuteOntapDeleteResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::netapp::ExecuteOntapDeleteResponse/{}",
+            input.ontapPath
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ExecuteOntapDeleteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExecuteOntapGetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExecuteOntapGetResponse with NetappProjectsLocationsStoragePoolsOntapExecuteOntapGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsOntapExecuteOntapGetArgs>
+    for ExecuteOntapGetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapGetArgs,
+    ) -> String {
+        format!("gcp::netapp::ExecuteOntapGetResponse/{}", input.ontapPath)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ExecuteOntapGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExecuteOntapPatchResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExecuteOntapPatchResponse with NetappProjectsLocationsStoragePoolsOntapExecuteOntapPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsOntapExecuteOntapPatchArgs>
+    for ExecuteOntapPatchResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapPatchArgs,
+    ) -> String {
+        format!("gcp::netapp::ExecuteOntapPatchResponse/{}", input.ontapPath)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ExecuteOntapPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExecuteOntapPostResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExecuteOntapPostResponse with NetappProjectsLocationsStoragePoolsOntapExecuteOntapPostArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsOntapExecuteOntapPostArgs>
+    for ExecuteOntapPostResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapPostArgs,
+    ) -> String {
+        format!("gcp::netapp::ExecuteOntapPostResponse/{}", input.ontapPath)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ExecuteOntapPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsVolumesCreateArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsVolumesDeleteArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesEstablishPeeringArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesEstablishPeeringArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesEstablishPeeringArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Volume
+// =============================================================================
+
+/// ResourceIdentifier implementation for Volume with NetappProjectsLocationsVolumesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesGetArgs> for Volume {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsVolumesGetArgs) -> String {
+        format!("gcp::netapp::Volume/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Volume"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListVolumesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListVolumesResponse with NetappProjectsLocationsVolumesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesListArgs> for ListVolumesResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsVolumesListArgs) -> String {
+        format!("gcp::netapp::ListVolumesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListVolumesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsVolumesPatchArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesRestoreArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsVolumesRestoreArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesRevertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesRevertArgs> for Operation {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsVolumesRevertArgs) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesQuotaRulesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesQuotaRulesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesQuotaRulesCreateArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesQuotaRulesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesQuotaRulesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesQuotaRulesDeleteArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for QuotaRule
+// =============================================================================
+
+/// ResourceIdentifier implementation for QuotaRule with NetappProjectsLocationsVolumesQuotaRulesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesQuotaRulesGetArgs> for QuotaRule {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesQuotaRulesGetArgs,
+    ) -> String {
+        format!("gcp::netapp::QuotaRule/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::QuotaRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListQuotaRulesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListQuotaRulesResponse with NetappProjectsLocationsVolumesQuotaRulesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesQuotaRulesListArgs>
+    for ListQuotaRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesQuotaRulesListArgs,
+    ) -> String {
+        format!("gcp::netapp::ListQuotaRulesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListQuotaRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesQuotaRulesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesQuotaRulesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesQuotaRulesPatchArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesReplicationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsCreateArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesReplicationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsDeleteArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesReplicationsEstablishPeeringArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsEstablishPeeringArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsEstablishPeeringArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Replication
+// =============================================================================
+
+/// ResourceIdentifier implementation for Replication with NetappProjectsLocationsVolumesReplicationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsGetArgs> for Replication {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsGetArgs,
+    ) -> String {
+        format!("gcp::netapp::Replication/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Replication"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListReplicationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListReplicationsResponse with NetappProjectsLocationsVolumesReplicationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsListArgs>
+    for ListReplicationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsListArgs,
+    ) -> String {
+        format!("gcp::netapp::ListReplicationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListReplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesReplicationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsPatchArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesReplicationsResumeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsResumeArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsResumeArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesReplicationsReverseDirectionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsReverseDirectionArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsReverseDirectionArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesReplicationsStopArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsStopArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsStopArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesReplicationsSyncArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsSyncArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsSyncArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesSnapshotsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesSnapshotsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesSnapshotsCreateArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesSnapshotsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesSnapshotsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesSnapshotsDeleteArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Snapshot
+// =============================================================================
+
+/// ResourceIdentifier implementation for Snapshot with NetappProjectsLocationsVolumesSnapshotsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesSnapshotsGetArgs> for Snapshot {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesSnapshotsGetArgs,
+    ) -> String {
+        format!("gcp::netapp::Snapshot/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Snapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSnapshotsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSnapshotsResponse with NetappProjectsLocationsVolumesSnapshotsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesSnapshotsListArgs> for ListSnapshotsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesSnapshotsListArgs,
+    ) -> String {
+        format!("gcp::netapp::ListSnapshotsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::ListSnapshotsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NetappProjectsLocationsVolumesSnapshotsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesSnapshotsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesSnapshotsPatchArgs,
+    ) -> String {
+        format!("gcp::netapp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::netapp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

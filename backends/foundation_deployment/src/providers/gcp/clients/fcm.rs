@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/projects/{projectsId}/messages:send
+/// POST v1/projects/{projectsId}/messages:send
 /// Send a message to specified target (a registration token, topic or condition).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +29,22 @@ use serde::Serialize;
 pub fn fcm_projects_messages_send_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &SendMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://fcm.googleapis.com/v1/projects/{}/messages:send",);
+    let endpoint_url = format!(
+        "https://fcm.googleapis.com/v1/projects/{}/messages:send",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/messages:send
+/// POST v1/projects/{projectsId}/messages:send
 /// Send a message to specified target (a registration token, topic or condition).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +118,7 @@ pub fn fcm_projects_messages_send_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/messages:send
+/// POST v1/projects/{projectsId}/messages:send
 /// Send a message to specified target (a registration token, topic or condition).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -153,11 +153,9 @@ pub fn fcm_projects_messages_send_execute(
 pub struct FcmProjectsMessagesSendArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: SendMessageRequest,
 }
 
-/// GET v1/projects/{projectsId}/messages:send
+/// POST v1/projects/{projectsId}/messages:send
 /// Send a message to specified target (a registration token, topic or condition).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -175,6 +173,29 @@ pub fn fcm_projects_messages_send(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = fcm_projects_messages_send_builder(client, &args.parent, &args.body)?;
+    let builder = fcm_projects_messages_send_builder(client, &args.parent)?;
     fcm_projects_messages_send_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Message
+// =============================================================================
+
+/// ResourceIdentifier implementation for Message with FcmProjectsMessagesSendArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FcmProjectsMessagesSendArgs> for Message {
+    fn generate_resource_id(&self, input: &FcmProjectsMessagesSendArgs) -> String {
+        format!("gcp::fcm::Message/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::fcm::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

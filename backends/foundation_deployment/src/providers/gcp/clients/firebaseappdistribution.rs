@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,2937 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/projects/{projectsId}/groups
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases:upload
+/// Uploads a binary. Uploading a binary can result in a new release being created, an update to an existing release, or a no-op if a release with the same binary already exists.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_media_upload_execute()` to send, or `firebaseappdistribution_media_upload` for simplest API.
+
+pub fn firebaseappdistribution_media_upload_builder(
+    client: &SimpleHttpClient,
+    app: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases:upload",
+        app,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases:upload
+/// Uploads a binary. Uploading a binary can result in a new release being created, an update to an existing release, or a no-op if a release with the same binary already exists.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_media_upload_execute()` or `firebaseappdistribution_media_upload`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_media_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_media_upload_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases:upload
+/// Uploads a binary. Uploading a binary can result in a new release being created, an update to an existing release, or a no-op if a release with the same binary already exists.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_media_upload_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_media_upload_task()`.
+/// For the simplest API, use `firebaseappdistribution_media_upload()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_media_upload_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_media_upload_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_media_upload_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_media_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionMediaUploadArgs {
+    /// Path parameter: app
+    pub app: String,
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases:upload
+/// Uploads a binary. Uploading a binary can result in a new release being created, an update to an existing release, or a no-op if a release with the same binary already exists.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_media_upload_builder()` + `firebaseappdistribution_media_upload_execute()`.
+/// For task-level control, use `firebaseappdistribution_media_upload_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_media_upload(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionMediaUploadArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_media_upload_builder(client, &args.app)?;
+    firebaseappdistribution_media_upload_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/aabInfo
+/// Gets Android App Bundle (AAB) information for a Firebase app.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_get_aab_info_execute()` to send, or `firebaseappdistribution_projects_apps_get_aab_info` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_get_aab_info_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/aabInfo",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/aabInfo
+/// Gets Android App Bundle (AAB) information for a Firebase app.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_get_aab_info_execute()` or `firebaseappdistribution_projects_apps_get_aab_info`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_get_aab_info_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_get_aab_info_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleFirebaseAppdistroV1AabInfo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1AabInfo = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/aabInfo
+/// Gets Android App Bundle (AAB) information for a Firebase app.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_get_aab_info_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_get_aab_info_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_get_aab_info()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_get_aab_info_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_get_aab_info_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1AabInfo>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_get_aab_info_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_get_aab_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsGetAabInfoArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/aabInfo
+/// Gets Android App Bundle (AAB) information for a Firebase app.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_get_aab_info_builder()` + `firebaseappdistribution_projects_apps_get_aab_info_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_get_aab_info_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_get_aab_info(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsGetAabInfoArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1AabInfo>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_apps_get_aab_info_builder(client, &args.name)?;
+    firebaseappdistribution_projects_apps_get_aab_info_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases:batchDelete
+/// Deletes releases. A maximum of 100 releases can be deleted per request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_batch_delete_execute()` to send, or `firebaseappdistribution_projects_apps_releases_batch_delete` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_batch_delete_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases:batchDelete",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases:batchDelete
+/// Deletes releases. A maximum of 100 releases can be deleted per request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_batch_delete_execute()` or `firebaseappdistribution_projects_apps_releases_batch_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_batch_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_batch_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases:batchDelete
+/// Deletes releases. A maximum of 100 releases can be deleted per request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_batch_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_batch_delete_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_batch_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_batch_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_batch_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_batch_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases:batchDelete
+/// Deletes releases. A maximum of 100 releases can be deleted per request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_batch_delete_builder()` + `firebaseappdistribution_projects_apps_releases_batch_delete_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_batch_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_batch_delete(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesBatchDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        firebaseappdistribution_projects_apps_releases_batch_delete_builder(client, &args.parent)?;
+    firebaseappdistribution_projects_apps_releases_batch_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}:distribute
+/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn't exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_distribute_execute()` to send, or `firebaseappdistribution_projects_apps_releases_distribute` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_distribute_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}:distribute",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}:distribute
+/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_distribute_execute()` or `firebaseappdistribution_projects_apps_releases_distribute`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_distribute_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_distribute_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleFirebaseAppdistroV1DistributeReleaseResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1DistributeReleaseResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}:distribute
+/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn't exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_distribute_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_distribute_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_distribute()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_distribute_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_distribute_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1DistributeReleaseResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_distribute_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_distribute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesDistributeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}:distribute
+/// Distributes a release to testers. This call does the following: 1. Creates testers for the specified emails, if none exist. 2. Adds the testers and groups to the release. 3. Sends new testers an invitation email. 4. Sends existing testers a new release email. The request will fail with a INVALID_ARGUMENT if it contains a group that doesn't exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_distribute_builder()` + `firebaseappdistribution_projects_apps_releases_distribute_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_distribute_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_distribute(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesDistributeArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1DistributeReleaseResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        firebaseappdistribution_projects_apps_releases_distribute_builder(client, &args.name)?;
+    firebaseappdistribution_projects_apps_releases_distribute_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}
+/// Gets a release.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_get_execute()` to send, or `firebaseappdistribution_projects_apps_releases_get` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}
+/// Gets a release.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_get_execute()` or `firebaseappdistribution_projects_apps_releases_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleFirebaseAppdistroV1Release>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1Release = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}
+/// Gets a release.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_get_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1Release>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}
+/// Gets a release.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_get_builder()` + `firebaseappdistribution_projects_apps_releases_get_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_get(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1Release>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_apps_releases_get_builder(client, &args.name)?;
+    firebaseappdistribution_projects_apps_releases_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases
+/// Lists releases. By default, sorts by `createTime` in descending order.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_list_execute()` to send, or `firebaseappdistribution_projects_apps_releases_list` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases
+/// Lists releases. By default, sorts by `createTime` in descending order.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_list_execute()` or `firebaseappdistribution_projects_apps_releases_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleFirebaseAppdistroV1ListReleasesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1ListReleasesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases
+/// Lists releases. By default, sorts by `createTime` in descending order.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_list_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1ListReleasesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases
+/// Lists releases. By default, sorts by `createTime` in descending order.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_list_builder()` + `firebaseappdistribution_projects_apps_releases_list_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_list(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1ListReleasesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_apps_releases_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    firebaseappdistribution_projects_apps_releases_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}
+/// Updates a release.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_patch_execute()` to send, or `firebaseappdistribution_projects_apps_releases_patch` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}
+/// Updates a release.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_patch_execute()` or `firebaseappdistribution_projects_apps_releases_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleFirebaseAppdistroV1Release>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1Release = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}
+/// Updates a release.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_patch_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1Release>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}
+/// Updates a release.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_patch_builder()` + `firebaseappdistribution_projects_apps_releases_patch_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_patch(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1Release>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_apps_releases_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    firebaseappdistribution_projects_apps_releases_patch_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}
+/// Deletes a feedback report.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_feedback_reports_delete_execute()` to send, or `firebaseappdistribution_projects_apps_releases_feedback_reports_delete` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}
+/// Deletes a feedback report.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_feedback_reports_delete_execute()` or `firebaseappdistribution_projects_apps_releases_feedback_reports_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_feedback_reports_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}
+/// Deletes a feedback report.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_feedback_reports_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_feedback_reports_delete_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_feedback_reports_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_feedback_reports_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        firebaseappdistribution_projects_apps_releases_feedback_reports_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_feedback_reports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesFeedbackReportsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}
+/// Deletes a feedback report.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_feedback_reports_delete_builder()` + `firebaseappdistribution_projects_apps_releases_feedback_reports_delete_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_feedback_reports_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_delete(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_apps_releases_feedback_reports_delete_builder(
+        client, &args.name,
+    )?;
+    firebaseappdistribution_projects_apps_releases_feedback_reports_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}
+/// Gets a feedback report.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_feedback_reports_get_execute()` to send, or `firebaseappdistribution_projects_apps_releases_feedback_reports_get` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}
+/// Gets a feedback report.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_feedback_reports_get_execute()` or `firebaseappdistribution_projects_apps_releases_feedback_reports_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleFirebaseAppdistroV1FeedbackReport>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1FeedbackReport =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}
+/// Gets a feedback report.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_feedback_reports_get_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_feedback_reports_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1FeedbackReport>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_feedback_reports_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_feedback_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports/{feedbackReportsId}
+/// Gets a feedback report.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder()` + `firebaseappdistribution_projects_apps_releases_feedback_reports_get_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_feedback_reports_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_get(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1FeedbackReport>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_apps_releases_feedback_reports_get_builder(
+        client, &args.name,
+    )?;
+    firebaseappdistribution_projects_apps_releases_feedback_reports_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports
+/// Lists feedback reports. By default, sorts by `createTime` in descending order.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_feedback_reports_list_execute()` to send, or `firebaseappdistribution_projects_apps_releases_feedback_reports_list` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/feedbackReports",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports
+/// Lists feedback reports. By default, sorts by `createTime` in descending order.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_feedback_reports_list_execute()` or `firebaseappdistribution_projects_apps_releases_feedback_reports_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleFirebaseAppdistroV1ListFeedbackReportsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1ListFeedbackReportsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports
+/// Lists feedback reports. By default, sorts by `createTime` in descending order.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_feedback_reports_list_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_feedback_reports_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1ListFeedbackReportsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_feedback_reports_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_feedback_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/feedbackReports
+/// Lists feedback reports. By default, sorts by `createTime` in descending order.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder()` + `firebaseappdistribution_projects_apps_releases_feedback_reports_list_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_feedback_reports_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_feedback_reports_list(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1ListFeedbackReportsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_apps_releases_feedback_reports_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    firebaseappdistribution_projects_apps_releases_feedback_reports_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_operations_cancel_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_cancel` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_operations_cancel_execute()` or `firebaseappdistribution_projects_apps_releases_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_operations_cancel_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_operations_cancel_builder()` + `firebaseappdistribution_projects_apps_releases_operations_cancel_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_apps_releases_operations_cancel_builder(
+        client, &args.name,
+    )?;
+    firebaseappdistribution_projects_apps_releases_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_operations_delete_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_delete` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_operations_delete_execute()` or `firebaseappdistribution_projects_apps_releases_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_operations_delete_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_operations_delete_builder()` + `firebaseappdistribution_projects_apps_releases_operations_delete_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_delete(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_apps_releases_operations_delete_builder(
+        client, &args.name,
+    )?;
+    firebaseappdistribution_projects_apps_releases_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_operations_get_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_get` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_operations_get_execute()` or `firebaseappdistribution_projects_apps_releases_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_operations_get_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_operations_get_builder()` + `firebaseappdistribution_projects_apps_releases_operations_get_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_get(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        firebaseappdistribution_projects_apps_releases_operations_get_builder(client, &args.name)?;
+    firebaseappdistribution_projects_apps_releases_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_operations_list_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_list` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_operations_list_execute()` or `firebaseappdistribution_projects_apps_releases_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningListOperationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_operations_list_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_operations_list_builder()` + `firebaseappdistribution_projects_apps_releases_operations_list_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_list(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_apps_releases_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    firebaseappdistribution_projects_apps_releases_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:wait
+/// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_apps_releases_operations_wait_execute()` to send, or `firebaseappdistribution_projects_apps_releases_operations_wait` for simplest API.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_wait_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:wait",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:wait
+/// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_apps_releases_operations_wait_execute()` or `firebaseappdistribution_projects_apps_releases_operations_wait`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_operations_wait_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_wait_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:wait
+/// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_apps_releases_operations_wait_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_operations_wait_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_apps_releases_operations_wait()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_apps_releases_operations_wait_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_wait_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_apps_releases_operations_wait_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_apps_releases_operations_wait`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsAppsReleasesOperationsWaitArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/apps/{appsId}/releases/{releasesId}/operations/{operationsId}:wait
+/// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_apps_releases_operations_wait_builder()` + `firebaseappdistribution_projects_apps_releases_operations_wait_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_apps_releases_operations_wait_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_apps_releases_operations_wait(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsAppsReleasesOperationsWaitArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        firebaseappdistribution_projects_apps_releases_operations_wait_builder(client, &args.name)?;
+    firebaseappdistribution_projects_apps_releases_operations_wait_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/groups/{groupsId}:batchJoin
+/// Batch adds members to a group. The testers will gain access to all releases that the groups have access to.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_groups_batch_join_execute()` to send, or `firebaseappdistribution_projects_groups_batch_join` for simplest API.
+
+pub fn firebaseappdistribution_projects_groups_batch_join_builder(
+    client: &SimpleHttpClient,
+    group: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups/{groupsId}:batchJoin",
+        group,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/groups/{groupsId}:batchJoin
+/// Batch adds members to a group. The testers will gain access to all releases that the groups have access to.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_groups_batch_join_execute()` or `firebaseappdistribution_projects_groups_batch_join`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_batch_join_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_batch_join_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/groups/{groupsId}:batchJoin
+/// Batch adds members to a group. The testers will gain access to all releases that the groups have access to.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_groups_batch_join_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_groups_batch_join_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_groups_batch_join()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_batch_join_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_groups_batch_join_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_groups_batch_join_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_groups_batch_join`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsBatchJoinArgs {
+    /// Path parameter: group
+    pub group: String,
+}
+
+/// POST v1/projects/{projectsId}/groups/{groupsId}:batchJoin
+/// Batch adds members to a group. The testers will gain access to all releases that the groups have access to.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_groups_batch_join_builder()` + `firebaseappdistribution_projects_groups_batch_join_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_groups_batch_join_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_batch_join(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsGroupsBatchJoinArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_groups_batch_join_builder(client, &args.group)?;
+    firebaseappdistribution_projects_groups_batch_join_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/groups/{groupsId}:batchLeave
+/// Batch removed members from a group. The testers will lose access to all releases that the groups have access to.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_groups_batch_leave_execute()` to send, or `firebaseappdistribution_projects_groups_batch_leave` for simplest API.
+
+pub fn firebaseappdistribution_projects_groups_batch_leave_builder(
+    client: &SimpleHttpClient,
+    group: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups/{groupsId}:batchLeave",
+        group,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/groups/{groupsId}:batchLeave
+/// Batch removed members from a group. The testers will lose access to all releases that the groups have access to.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_groups_batch_leave_execute()` or `firebaseappdistribution_projects_groups_batch_leave`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_batch_leave_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_batch_leave_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/groups/{groupsId}:batchLeave
+/// Batch removed members from a group. The testers will lose access to all releases that the groups have access to.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_groups_batch_leave_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_groups_batch_leave_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_groups_batch_leave()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_batch_leave_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_groups_batch_leave_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_groups_batch_leave_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_groups_batch_leave`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsBatchLeaveArgs {
+    /// Path parameter: group
+    pub group: String,
+}
+
+/// POST v1/projects/{projectsId}/groups/{groupsId}:batchLeave
+/// Batch removed members from a group. The testers will lose access to all releases that the groups have access to.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_groups_batch_leave_builder()` + `firebaseappdistribution_projects_groups_batch_leave_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_groups_batch_leave_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_batch_leave(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsGroupsBatchLeaveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_groups_batch_leave_builder(client, &args.group)?;
+    firebaseappdistribution_projects_groups_batch_leave_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/groups
 /// Create a group.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,12 +2955,13 @@ use serde::Serialize;
 pub fn firebaseappdistribution_projects_groups_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    groupId: &Option<String>,
-    body: &GoogleFirebaseAppdistroV1Group,
+    groupId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups",);
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -49,15 +2976,13 @@ pub fn firebaseappdistribution_projects_groups_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/groups
+/// POST v1/projects/{projectsId}/groups
 /// Create a group.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -131,7 +3056,7 @@ pub fn firebaseappdistribution_projects_groups_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/groups
+/// POST v1/projects/{projectsId}/groups
 /// Create a group.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -171,12 +3096,10 @@ pub struct FirebaseappdistributionProjectsGroupsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: groupId
-    pub groupId: Option<String>,
-    /// Request body.
-    pub body: GoogleFirebaseAppdistroV1Group,
+    pub groupId: Option<Option<String>>,
 }
 
-/// GET v1/projects/{projectsId}/groups
+/// POST v1/projects/{projectsId}/groups
 /// Create a group.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -202,12 +3125,711 @@ pub fn firebaseappdistribution_projects_groups_create(
         client,
         &args.parent,
         &args.groupId,
-        &args.body,
     )?;
     firebaseappdistribution_projects_groups_create_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/testers:batchAdd
+/// DELETE v1/projects/{projectsId}/groups/{groupsId}
+/// Delete a group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_groups_delete_execute()` to send, or `firebaseappdistribution_projects_groups_delete` for simplest API.
+
+pub fn firebaseappdistribution_projects_groups_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups/{groupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/groups/{groupsId}
+/// Delete a group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_groups_delete_execute()` or `firebaseappdistribution_projects_groups_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/groups/{groupsId}
+/// Delete a group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_groups_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_groups_delete_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_groups_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_groups_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_groups_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/groups/{groupsId}
+/// Delete a group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_groups_delete_builder()` + `firebaseappdistribution_projects_groups_delete_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_groups_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_delete(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsGroupsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_groups_delete_builder(client, &args.name)?;
+    firebaseappdistribution_projects_groups_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/groups/{groupsId}
+/// Get a group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_groups_get_execute()` to send, or `firebaseappdistribution_projects_groups_get` for simplest API.
+
+pub fn firebaseappdistribution_projects_groups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups/{groupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/groups/{groupsId}
+/// Get a group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_groups_get_execute()` or `firebaseappdistribution_projects_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleFirebaseAppdistroV1Group>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1Group = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/groups/{groupsId}
+/// Get a group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_groups_get_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1Group>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/groups/{groupsId}
+/// Get a group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_groups_get_builder()` + `firebaseappdistribution_projects_groups_get_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_get(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1Group>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_groups_get_builder(client, &args.name)?;
+    firebaseappdistribution_projects_groups_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/groups
+/// List groups.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_groups_list_execute()` to send, or `firebaseappdistribution_projects_groups_list` for simplest API.
+
+pub fn firebaseappdistribution_projects_groups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/groups
+/// List groups.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_groups_list_execute()` or `firebaseappdistribution_projects_groups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleFirebaseAppdistroV1ListGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1ListGroupsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/groups
+/// List groups.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_groups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_groups_list_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_groups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_groups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1ListGroupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_groups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/groups
+/// List groups.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_groups_list_builder()` + `firebaseappdistribution_projects_groups_list_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_groups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_list(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsGroupsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1ListGroupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_groups_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    firebaseappdistribution_projects_groups_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/groups/{groupsId}
+/// Update a group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_groups_patch_execute()` to send, or `firebaseappdistribution_projects_groups_patch` for simplest API.
+
+pub fn firebaseappdistribution_projects_groups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/groups/{groupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/groups/{groupsId}
+/// Update a group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_groups_patch_execute()` or `firebaseappdistribution_projects_groups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleFirebaseAppdistroV1Group>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1Group = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/groups/{groupsId}
+/// Update a group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_groups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_groups_patch_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_groups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_groups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1Group>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_groups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/groups/{groupsId}
+/// Update a group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_groups_patch_builder()` + `firebaseappdistribution_projects_groups_patch_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_groups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_groups_patch(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsGroupsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1Group>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_groups_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    firebaseappdistribution_projects_groups_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/testers:batchAdd
 /// Batch adds testers. This call adds testers for the specified emails if they don't already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -216,23 +3838,22 @@ pub fn firebaseappdistribution_projects_groups_create(
 pub fn firebaseappdistribution_projects_testers_batch_add_builder(
     client: &SimpleHttpClient,
     project: &String,
-    body: &GoogleFirebaseAppdistroV1BatchAddTestersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://firebaseappdistribution.googleapis.com/v1/projects/{}/testers:batchAdd",);
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/testers:batchAdd",
+        project,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/testers:batchAdd
+/// POST v1/projects/{projectsId}/testers:batchAdd
 /// Batch adds testers. This call adds testers for the specified emails if they don't already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -307,7 +3928,7 @@ pub fn firebaseappdistribution_projects_testers_batch_add_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/testers:batchAdd
+/// POST v1/projects/{projectsId}/testers:batchAdd
 /// Batch adds testers. This call adds testers for the specified emails if they don't already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -346,11 +3967,9 @@ pub fn firebaseappdistribution_projects_testers_batch_add_execute(
 pub struct FirebaseappdistributionProjectsTestersBatchAddArgs {
     /// Path parameter: project
     pub project: String,
-    /// Request body.
-    pub body: GoogleFirebaseAppdistroV1BatchAddTestersRequest,
 }
 
-/// GET v1/projects/{projectsId}/testers:batchAdd
+/// POST v1/projects/{projectsId}/testers:batchAdd
 /// Batch adds testers. This call adds testers for the specified emails if they don't already exist. Returns all testers specified in the request, including newly created and previously existing testers. This action is idempotent.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -372,15 +3991,12 @@ pub fn firebaseappdistribution_projects_testers_batch_add(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappdistribution_projects_testers_batch_add_builder(
-        client,
-        &args.project,
-        &args.body,
-    )?;
+    let builder =
+        firebaseappdistribution_projects_testers_batch_add_builder(client, &args.project)?;
     firebaseappdistribution_projects_testers_batch_add_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/testers:batchRemove
+/// POST v1/projects/{projectsId}/testers:batchRemove
 /// Batch removes testers. If found, this call deletes testers for the specified emails. Returns all deleted testers.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -389,24 +4005,22 @@ pub fn firebaseappdistribution_projects_testers_batch_add(
 pub fn firebaseappdistribution_projects_testers_batch_remove_builder(
     client: &SimpleHttpClient,
     project: &String,
-    body: &GoogleFirebaseAppdistroV1BatchRemoveTestersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://firebaseappdistribution.googleapis.com/v1/projects/{}/testers:batchRemove",
+        project,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/testers:batchRemove
+/// POST v1/projects/{projectsId}/testers:batchRemove
 /// Batch removes testers. If found, this call deletes testers for the specified emails. Returns all deleted testers.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -484,7 +4098,7 @@ pub fn firebaseappdistribution_projects_testers_batch_remove_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/testers:batchRemove
+/// POST v1/projects/{projectsId}/testers:batchRemove
 /// Batch removes testers. If found, this call deletes testers for the specified emails. Returns all deleted testers.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -523,11 +4137,9 @@ pub fn firebaseappdistribution_projects_testers_batch_remove_execute(
 pub struct FirebaseappdistributionProjectsTestersBatchRemoveArgs {
     /// Path parameter: project
     pub project: String,
-    /// Request body.
-    pub body: GoogleFirebaseAppdistroV1BatchRemoveTestersRequest,
 }
 
-/// GET v1/projects/{projectsId}/testers:batchRemove
+/// POST v1/projects/{projectsId}/testers:batchRemove
 /// Batch removes testers. If found, this call deletes testers for the specified emails. Returns all deleted testers.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -549,11 +4161,8 @@ pub fn firebaseappdistribution_projects_testers_batch_remove(
         + 'static,
     ApiError,
 > {
-    let builder = firebaseappdistribution_projects_testers_batch_remove_builder(
-        client,
-        &args.project,
-        &args.body,
-    )?;
+    let builder =
+        firebaseappdistribution_projects_testers_batch_remove_builder(client, &args.project)?;
     firebaseappdistribution_projects_testers_batch_remove_execute(builder)
 }
 
@@ -566,13 +4175,15 @@ pub fn firebaseappdistribution_projects_testers_batch_remove(
 pub fn firebaseappdistribution_projects_testers_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://firebaseappdistribution.googleapis.com/v1/projects/{}/testers",);
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/testers",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -714,11 +4325,11 @@ pub struct FirebaseappdistributionProjectsTestersListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/testers
@@ -751,4 +4362,983 @@ pub fn firebaseappdistribution_projects_testers_list(
         &args.pageToken,
     )?;
     firebaseappdistribution_projects_testers_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/testers/{testersId}
+/// Update a tester. If the testers joins a group they gain access to all releases that the group has access to.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebaseappdistribution_projects_testers_patch_execute()` to send, or `firebaseappdistribution_projects_testers_patch` for simplest API.
+
+pub fn firebaseappdistribution_projects_testers_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebaseappdistribution.googleapis.com/v1/projects/{}/testers/{testersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/testers/{testersId}
+/// Update a tester. If the testers joins a group they gain access to all releases that the group has access to.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebaseappdistribution_projects_testers_patch_execute()` or `firebaseappdistribution_projects_testers_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_testers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_testers_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleFirebaseAppdistroV1Tester>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleFirebaseAppdistroV1Tester = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/testers/{testersId}
+/// Update a tester. If the testers joins a group they gain access to all releases that the group has access to.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebaseappdistribution_projects_testers_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebaseappdistribution_projects_testers_patch_task()`.
+/// For the simplest API, use `firebaseappdistribution_projects_testers_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebaseappdistribution_projects_testers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebaseappdistribution_projects_testers_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1Tester>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebaseappdistribution_projects_testers_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebaseappdistribution_projects_testers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseappdistributionProjectsTestersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/testers/{testersId}
+/// Update a tester. If the testers joins a group they gain access to all releases that the group has access to.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebaseappdistribution_projects_testers_patch_builder()` + `firebaseappdistribution_projects_testers_patch_execute()`.
+/// For task-level control, use `firebaseappdistribution_projects_testers_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebaseappdistribution_projects_testers_patch(
+    client: &SimpleHttpClient,
+    args: &FirebaseappdistributionProjectsTestersPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleFirebaseAppdistroV1Tester>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebaseappdistribution_projects_testers_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    firebaseappdistribution_projects_testers_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with FirebaseappdistributionMediaUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionMediaUploadArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &FirebaseappdistributionMediaUploadArgs) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleLongrunningOperation/{}",
+            input.app
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1AabInfo
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1AabInfo with FirebaseappdistributionProjectsAppsGetAabInfoArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsGetAabInfoArgs>
+    for GoogleFirebaseAppdistroV1AabInfo
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsGetAabInfoArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1AabInfo/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1AabInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with FirebaseappdistributionProjectsAppsReleasesBatchDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesBatchDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesBatchDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleProtobufEmpty/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1DistributeReleaseResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1DistributeReleaseResponse with FirebaseappdistributionProjectsAppsReleasesDistributeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesDistributeArgs>
+    for GoogleFirebaseAppdistroV1DistributeReleaseResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesDistributeArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1DistributeReleaseResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1DistributeReleaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Release
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Release with FirebaseappdistributionProjectsAppsReleasesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesGetArgs>
+    for GoogleFirebaseAppdistroV1Release
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Release/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListReleasesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListReleasesResponse with FirebaseappdistributionProjectsAppsReleasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesListArgs>
+    for GoogleFirebaseAppdistroV1ListReleasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1ListReleasesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1ListReleasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Release
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Release with FirebaseappdistributionProjectsAppsReleasesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesPatchArgs>
+    for GoogleFirebaseAppdistroV1Release
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Release/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with FirebaseappdistributionProjectsAppsReleasesFeedbackReportsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesFeedbackReportsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleProtobufEmpty/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1FeedbackReport
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1FeedbackReport with FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs>
+    for GoogleFirebaseAppdistroV1FeedbackReport
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1FeedbackReport/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1FeedbackReport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListFeedbackReportsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListFeedbackReportsResponse with FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs>
+    for GoogleFirebaseAppdistroV1ListFeedbackReportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesFeedbackReportsListArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1ListFeedbackReportsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1ListFeedbackReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with FirebaseappdistributionProjectsAppsReleasesOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesOperationsCancelArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesOperationsCancelArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleProtobufEmpty/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with FirebaseappdistributionProjectsAppsReleasesOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesOperationsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesOperationsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleProtobufEmpty/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with FirebaseappdistributionProjectsAppsReleasesOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesOperationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleLongrunningOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse with FirebaseappdistributionProjectsAppsReleasesOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with FirebaseappdistributionProjectsAppsReleasesOperationsWaitArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsAppsReleasesOperationsWaitArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsAppsReleasesOperationsWaitArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleLongrunningOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with FirebaseappdistributionProjectsGroupsBatchJoinArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsGroupsBatchJoinArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsGroupsBatchJoinArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleProtobufEmpty/{}",
+            input.group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with FirebaseappdistributionProjectsGroupsBatchLeaveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsGroupsBatchLeaveArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsGroupsBatchLeaveArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleProtobufEmpty/{}",
+            input.group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Group
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Group with FirebaseappdistributionProjectsGroupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsGroupsCreateArgs>
+    for GoogleFirebaseAppdistroV1Group
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsGroupsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Group/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Group"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with FirebaseappdistributionProjectsGroupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsGroupsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsGroupsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleProtobufEmpty/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Group
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Group with FirebaseappdistributionProjectsGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsGroupsGetArgs>
+    for GoogleFirebaseAppdistroV1Group
+{
+    fn generate_resource_id(&self, input: &FirebaseappdistributionProjectsGroupsGetArgs) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Group/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Group"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListGroupsResponse with FirebaseappdistributionProjectsGroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsGroupsListArgs>
+    for GoogleFirebaseAppdistroV1ListGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsGroupsListArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1ListGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1ListGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Group
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Group with FirebaseappdistributionProjectsGroupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsGroupsPatchArgs>
+    for GoogleFirebaseAppdistroV1Group
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsGroupsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Group/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Group"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1BatchAddTestersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1BatchAddTestersResponse with FirebaseappdistributionProjectsTestersBatchAddArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsTestersBatchAddArgs>
+    for GoogleFirebaseAppdistroV1BatchAddTestersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsTestersBatchAddArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1BatchAddTestersResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1BatchAddTestersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1BatchRemoveTestersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1BatchRemoveTestersResponse with FirebaseappdistributionProjectsTestersBatchRemoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsTestersBatchRemoveArgs>
+    for GoogleFirebaseAppdistroV1BatchRemoveTestersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsTestersBatchRemoveArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1BatchRemoveTestersResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1BatchRemoveTestersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListTestersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1ListTestersResponse with FirebaseappdistributionProjectsTestersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsTestersListArgs>
+    for GoogleFirebaseAppdistroV1ListTestersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsTestersListArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1ListTestersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1ListTestersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Tester
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFirebaseAppdistroV1Tester with FirebaseappdistributionProjectsTestersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaseappdistributionProjectsTestersPatchArgs>
+    for GoogleFirebaseAppdistroV1Tester
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaseappdistributionProjectsTestersPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Tester/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebaseappdistribution::GoogleFirebaseAppdistroV1Tester"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

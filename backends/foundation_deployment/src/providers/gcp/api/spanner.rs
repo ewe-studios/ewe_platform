@@ -12,34 +12,53 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::spanner::{
+    spanner_projects_instance_config_operations_list_builder, spanner_projects_instance_config_operations_list_task,
     spanner_projects_instance_configs_create_builder, spanner_projects_instance_configs_create_task,
     spanner_projects_instance_configs_delete_builder, spanner_projects_instance_configs_delete_task,
+    spanner_projects_instance_configs_get_builder, spanner_projects_instance_configs_get_task,
+    spanner_projects_instance_configs_list_builder, spanner_projects_instance_configs_list_task,
     spanner_projects_instance_configs_patch_builder, spanner_projects_instance_configs_patch_task,
     spanner_projects_instance_configs_operations_cancel_builder, spanner_projects_instance_configs_operations_cancel_task,
     spanner_projects_instance_configs_operations_delete_builder, spanner_projects_instance_configs_operations_delete_task,
+    spanner_projects_instance_configs_operations_get_builder, spanner_projects_instance_configs_operations_get_task,
+    spanner_projects_instance_configs_operations_list_builder, spanner_projects_instance_configs_operations_list_task,
     spanner_projects_instance_configs_ssd_caches_operations_cancel_builder, spanner_projects_instance_configs_ssd_caches_operations_cancel_task,
     spanner_projects_instance_configs_ssd_caches_operations_delete_builder, spanner_projects_instance_configs_ssd_caches_operations_delete_task,
+    spanner_projects_instance_configs_ssd_caches_operations_get_builder, spanner_projects_instance_configs_ssd_caches_operations_get_task,
+    spanner_projects_instance_configs_ssd_caches_operations_list_builder, spanner_projects_instance_configs_ssd_caches_operations_list_task,
     spanner_projects_instances_create_builder, spanner_projects_instances_create_task,
     spanner_projects_instances_delete_builder, spanner_projects_instances_delete_task,
+    spanner_projects_instances_get_builder, spanner_projects_instances_get_task,
     spanner_projects_instances_get_iam_policy_builder, spanner_projects_instances_get_iam_policy_task,
+    spanner_projects_instances_list_builder, spanner_projects_instances_list_task,
     spanner_projects_instances_move_builder, spanner_projects_instances_move_task,
     spanner_projects_instances_patch_builder, spanner_projects_instances_patch_task,
     spanner_projects_instances_set_iam_policy_builder, spanner_projects_instances_set_iam_policy_task,
     spanner_projects_instances_test_iam_permissions_builder, spanner_projects_instances_test_iam_permissions_task,
+    spanner_projects_instances_backup_operations_list_builder, spanner_projects_instances_backup_operations_list_task,
     spanner_projects_instances_backups_copy_builder, spanner_projects_instances_backups_copy_task,
     spanner_projects_instances_backups_create_builder, spanner_projects_instances_backups_create_task,
     spanner_projects_instances_backups_delete_builder, spanner_projects_instances_backups_delete_task,
+    spanner_projects_instances_backups_get_builder, spanner_projects_instances_backups_get_task,
     spanner_projects_instances_backups_get_iam_policy_builder, spanner_projects_instances_backups_get_iam_policy_task,
+    spanner_projects_instances_backups_list_builder, spanner_projects_instances_backups_list_task,
     spanner_projects_instances_backups_patch_builder, spanner_projects_instances_backups_patch_task,
     spanner_projects_instances_backups_set_iam_policy_builder, spanner_projects_instances_backups_set_iam_policy_task,
     spanner_projects_instances_backups_test_iam_permissions_builder, spanner_projects_instances_backups_test_iam_permissions_task,
     spanner_projects_instances_backups_operations_cancel_builder, spanner_projects_instances_backups_operations_cancel_task,
     spanner_projects_instances_backups_operations_delete_builder, spanner_projects_instances_backups_operations_delete_task,
+    spanner_projects_instances_backups_operations_get_builder, spanner_projects_instances_backups_operations_get_task,
+    spanner_projects_instances_backups_operations_list_builder, spanner_projects_instances_backups_operations_list_task,
+    spanner_projects_instances_database_operations_list_builder, spanner_projects_instances_database_operations_list_task,
     spanner_projects_instances_databases_add_split_points_builder, spanner_projects_instances_databases_add_split_points_task,
     spanner_projects_instances_databases_changequorum_builder, spanner_projects_instances_databases_changequorum_task,
     spanner_projects_instances_databases_create_builder, spanner_projects_instances_databases_create_task,
     spanner_projects_instances_databases_drop_database_builder, spanner_projects_instances_databases_drop_database_task,
+    spanner_projects_instances_databases_get_builder, spanner_projects_instances_databases_get_task,
+    spanner_projects_instances_databases_get_ddl_builder, spanner_projects_instances_databases_get_ddl_task,
     spanner_projects_instances_databases_get_iam_policy_builder, spanner_projects_instances_databases_get_iam_policy_task,
+    spanner_projects_instances_databases_get_scans_builder, spanner_projects_instances_databases_get_scans_task,
+    spanner_projects_instances_databases_list_builder, spanner_projects_instances_databases_list_task,
     spanner_projects_instances_databases_patch_builder, spanner_projects_instances_databases_patch_task,
     spanner_projects_instances_databases_restore_builder, spanner_projects_instances_databases_restore_task,
     spanner_projects_instances_databases_set_iam_policy_builder, spanner_projects_instances_databases_set_iam_policy_task,
@@ -47,13 +66,18 @@ use crate::providers::gcp::clients::spanner::{
     spanner_projects_instances_databases_update_ddl_builder, spanner_projects_instances_databases_update_ddl_task,
     spanner_projects_instances_databases_backup_schedules_create_builder, spanner_projects_instances_databases_backup_schedules_create_task,
     spanner_projects_instances_databases_backup_schedules_delete_builder, spanner_projects_instances_databases_backup_schedules_delete_task,
+    spanner_projects_instances_databases_backup_schedules_get_builder, spanner_projects_instances_databases_backup_schedules_get_task,
     spanner_projects_instances_databases_backup_schedules_get_iam_policy_builder, spanner_projects_instances_databases_backup_schedules_get_iam_policy_task,
+    spanner_projects_instances_databases_backup_schedules_list_builder, spanner_projects_instances_databases_backup_schedules_list_task,
     spanner_projects_instances_databases_backup_schedules_patch_builder, spanner_projects_instances_databases_backup_schedules_patch_task,
     spanner_projects_instances_databases_backup_schedules_set_iam_policy_builder, spanner_projects_instances_databases_backup_schedules_set_iam_policy_task,
     spanner_projects_instances_databases_backup_schedules_test_iam_permissions_builder, spanner_projects_instances_databases_backup_schedules_test_iam_permissions_task,
+    spanner_projects_instances_databases_database_roles_list_builder, spanner_projects_instances_databases_database_roles_list_task,
     spanner_projects_instances_databases_database_roles_test_iam_permissions_builder, spanner_projects_instances_databases_database_roles_test_iam_permissions_task,
     spanner_projects_instances_databases_operations_cancel_builder, spanner_projects_instances_databases_operations_cancel_task,
     spanner_projects_instances_databases_operations_delete_builder, spanner_projects_instances_databases_operations_delete_task,
+    spanner_projects_instances_databases_operations_get_builder, spanner_projects_instances_databases_operations_get_task,
+    spanner_projects_instances_databases_operations_list_builder, spanner_projects_instances_databases_operations_list_task,
     spanner_projects_instances_databases_sessions_adapt_message_builder, spanner_projects_instances_databases_sessions_adapt_message_task,
     spanner_projects_instances_databases_sessions_adapter_builder, spanner_projects_instances_databases_sessions_adapter_task,
     spanner_projects_instances_databases_sessions_batch_create_builder, spanner_projects_instances_databases_sessions_batch_create_task,
@@ -65,18 +89,28 @@ use crate::providers::gcp::clients::spanner::{
     spanner_projects_instances_databases_sessions_execute_batch_dml_builder, spanner_projects_instances_databases_sessions_execute_batch_dml_task,
     spanner_projects_instances_databases_sessions_execute_sql_builder, spanner_projects_instances_databases_sessions_execute_sql_task,
     spanner_projects_instances_databases_sessions_execute_streaming_sql_builder, spanner_projects_instances_databases_sessions_execute_streaming_sql_task,
+    spanner_projects_instances_databases_sessions_get_builder, spanner_projects_instances_databases_sessions_get_task,
+    spanner_projects_instances_databases_sessions_list_builder, spanner_projects_instances_databases_sessions_list_task,
     spanner_projects_instances_databases_sessions_partition_query_builder, spanner_projects_instances_databases_sessions_partition_query_task,
     spanner_projects_instances_databases_sessions_partition_read_builder, spanner_projects_instances_databases_sessions_partition_read_task,
     spanner_projects_instances_databases_sessions_read_builder, spanner_projects_instances_databases_sessions_read_task,
     spanner_projects_instances_databases_sessions_rollback_builder, spanner_projects_instances_databases_sessions_rollback_task,
     spanner_projects_instances_databases_sessions_streaming_read_builder, spanner_projects_instances_databases_sessions_streaming_read_task,
+    spanner_projects_instances_instance_partition_operations_list_builder, spanner_projects_instances_instance_partition_operations_list_task,
     spanner_projects_instances_instance_partitions_create_builder, spanner_projects_instances_instance_partitions_create_task,
     spanner_projects_instances_instance_partitions_delete_builder, spanner_projects_instances_instance_partitions_delete_task,
+    spanner_projects_instances_instance_partitions_get_builder, spanner_projects_instances_instance_partitions_get_task,
+    spanner_projects_instances_instance_partitions_list_builder, spanner_projects_instances_instance_partitions_list_task,
     spanner_projects_instances_instance_partitions_patch_builder, spanner_projects_instances_instance_partitions_patch_task,
     spanner_projects_instances_instance_partitions_operations_cancel_builder, spanner_projects_instances_instance_partitions_operations_cancel_task,
     spanner_projects_instances_instance_partitions_operations_delete_builder, spanner_projects_instances_instance_partitions_operations_delete_task,
+    spanner_projects_instances_instance_partitions_operations_get_builder, spanner_projects_instances_instance_partitions_operations_get_task,
+    spanner_projects_instances_instance_partitions_operations_list_builder, spanner_projects_instances_instance_partitions_operations_list_task,
     spanner_projects_instances_operations_cancel_builder, spanner_projects_instances_operations_cancel_task,
     spanner_projects_instances_operations_delete_builder, spanner_projects_instances_operations_delete_task,
+    spanner_projects_instances_operations_get_builder, spanner_projects_instances_operations_get_task,
+    spanner_projects_instances_operations_list_builder, spanner_projects_instances_operations_list_task,
+    spanner_scans_list_builder, spanner_scans_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::spanner::AdaptMessageResponse;
@@ -87,47 +121,89 @@ use crate::providers::gcp::clients::spanner::BackupSchedule;
 use crate::providers::gcp::clients::spanner::BatchCreateSessionsResponse;
 use crate::providers::gcp::clients::spanner::BatchWriteResponse;
 use crate::providers::gcp::clients::spanner::CommitResponse;
+use crate::providers::gcp::clients::spanner::Database;
 use crate::providers::gcp::clients::spanner::Empty;
 use crate::providers::gcp::clients::spanner::ExecuteBatchDmlResponse;
+use crate::providers::gcp::clients::spanner::GetDatabaseDdlResponse;
+use crate::providers::gcp::clients::spanner::Instance;
+use crate::providers::gcp::clients::spanner::InstanceConfig;
+use crate::providers::gcp::clients::spanner::InstancePartition;
+use crate::providers::gcp::clients::spanner::ListBackupOperationsResponse;
+use crate::providers::gcp::clients::spanner::ListBackupSchedulesResponse;
+use crate::providers::gcp::clients::spanner::ListBackupsResponse;
+use crate::providers::gcp::clients::spanner::ListDatabaseOperationsResponse;
+use crate::providers::gcp::clients::spanner::ListDatabaseRolesResponse;
+use crate::providers::gcp::clients::spanner::ListDatabasesResponse;
+use crate::providers::gcp::clients::spanner::ListInstanceConfigOperationsResponse;
+use crate::providers::gcp::clients::spanner::ListInstanceConfigsResponse;
+use crate::providers::gcp::clients::spanner::ListInstancePartitionOperationsResponse;
+use crate::providers::gcp::clients::spanner::ListInstancePartitionsResponse;
+use crate::providers::gcp::clients::spanner::ListInstancesResponse;
+use crate::providers::gcp::clients::spanner::ListOperationsResponse;
+use crate::providers::gcp::clients::spanner::ListScansResponse;
+use crate::providers::gcp::clients::spanner::ListSessionsResponse;
 use crate::providers::gcp::clients::spanner::Operation;
 use crate::providers::gcp::clients::spanner::PartialResultSet;
 use crate::providers::gcp::clients::spanner::PartitionResponse;
 use crate::providers::gcp::clients::spanner::Policy;
 use crate::providers::gcp::clients::spanner::ResultSet;
+use crate::providers::gcp::clients::spanner::Scan;
 use crate::providers::gcp::clients::spanner::Session;
 use crate::providers::gcp::clients::spanner::TestIamPermissionsResponse;
 use crate::providers::gcp::clients::spanner::Transaction;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigOperationsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsCreateArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsGetArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsOperationsCancelArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsOperationsDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsOperationsGetArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsOperationsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsPatchArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsSsdCachesOperationsCancelArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsSsdCachesOperationsDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsSsdCachesOperationsGetArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupOperationsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsCopyArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsCreateArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsGetArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsGetIamPolicyArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsOperationsCancelArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsOperationsDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsOperationsGetArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsOperationsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsPatchArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsSetIamPolicyArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesBackupsTestIamPermissionsArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesCreateArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabaseOperationsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesAddSplitPointsArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesBackupSchedulesCreateArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesBackupSchedulesDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesBackupSchedulesGetArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesBackupSchedulesGetIamPolicyArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesBackupSchedulesListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesBackupSchedulesPatchArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesBackupSchedulesSetIamPolicyArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesBackupSchedulesTestIamPermissionsArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesChangequorumArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesCreateArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesDatabaseRolesListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesDatabaseRolesTestIamPermissionsArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesDropDatabaseArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesGetArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesGetDdlArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesGetIamPolicyArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesGetScansArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesOperationsCancelArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesOperationsDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesOperationsGetArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesOperationsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesPatchArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesRestoreArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSessionsAdaptMessageArgs;
@@ -141,6 +217,8 @@ use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSe
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSessionsExecuteBatchDmlArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSessionsExecuteSqlArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSessionsExecuteStreamingSqlArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSessionsGetArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSessionsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSessionsPartitionQueryArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSessionsPartitionReadArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSessionsReadArgs;
@@ -150,18 +228,28 @@ use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesSe
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesTestIamPermissionsArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDatabasesUpdateDdlArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesGetArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesGetIamPolicyArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesInstancePartitionOperationsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesInstancePartitionsCreateArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesInstancePartitionsDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesInstancePartitionsGetArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesInstancePartitionsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesInstancePartitionsOperationsCancelArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesInstancePartitionsOperationsDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesInstancePartitionsOperationsGetArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesInstancePartitionsOperationsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesInstancePartitionsPatchArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesMoveArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesOperationsCancelArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesOperationsDeleteArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesOperationsGetArgs;
+use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesOperationsListArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesPatchArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesSetIamPolicyArgs;
 use crate::providers::gcp::clients::spanner::SpannerProjectsInstancesTestIamPermissionsArgs;
+use crate::providers::gcp::clients::spanner::SpannerScansListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -201,6 +289,47 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Spanner projects instance config operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListInstanceConfigOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instance_config_operations_list(
+        &self,
+        args: &SpannerProjectsInstanceConfigOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListInstanceConfigOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instance_config_operations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instance_config_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instance configs create.
@@ -289,6 +418,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instance configs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the InstanceConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instance_configs_get(
+        &self,
+        args: &SpannerProjectsInstanceConfigsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<InstanceConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instance_configs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instance_configs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instance configs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListInstanceConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instance_configs_list(
+        &self,
+        args: &SpannerProjectsInstanceConfigsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListInstanceConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instance_configs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instance_configs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instance configs patch.
@@ -420,6 +627,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Spanner projects instance configs operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instance_configs_operations_get(
+        &self,
+        args: &SpannerProjectsInstanceConfigsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instance_configs_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instance_configs_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instance configs operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instance_configs_operations_list(
+        &self,
+        args: &SpannerProjectsInstanceConfigsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instance_configs_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instance_configs_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Spanner projects instance configs ssd caches operations cancel.
     ///
     /// Automatically stores the result in the state store on success.
@@ -504,6 +791,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instance configs ssd caches operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instance_configs_ssd_caches_operations_get(
+        &self,
+        args: &SpannerProjectsInstanceConfigsSsdCachesOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instance_configs_ssd_caches_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instance_configs_ssd_caches_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instance configs ssd caches operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instance_configs_ssd_caches_operations_list(
+        &self,
+        args: &SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instance_configs_ssd_caches_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instance_configs_ssd_caches_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances create.
@@ -592,9 +959,48 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Spanner projects instances get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Instance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_get(
+        &self,
+        args: &SpannerProjectsInstancesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Instance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.fieldMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Spanner projects instances get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -606,7 +1012,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn spanner_projects_instances_get_iam_policy(
         &self,
         args: &SpannerProjectsInstancesGetIamPolicyArgs,
@@ -627,12 +1033,49 @@ where
         let task = spanner_projects_instances_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Spanner projects instances list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListInstancesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_list(
+        &self,
+        args: &SpannerProjectsInstancesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListInstancesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.instanceDeadline,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = spanner_projects_instances_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances move.
@@ -766,7 +1209,7 @@ where
 
     /// Spanner projects instances test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -778,7 +1221,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn spanner_projects_instances_test_iam_permissions(
         &self,
         args: &SpannerProjectsInstancesTestIamPermissionsArgs,
@@ -799,12 +1242,48 @@ where
         let task = spanner_projects_instances_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Spanner projects instances backup operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListBackupOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_backup_operations_list(
+        &self,
+        args: &SpannerProjectsInstancesBackupOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListBackupOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_backup_operations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = spanner_projects_instances_backup_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances backups copy.
@@ -940,9 +1419,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Spanner projects instances backups get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Backup result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_backups_get(
+        &self,
+        args: &SpannerProjectsInstancesBackupsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Backup, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_backups_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_backups_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Spanner projects instances backups get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -954,7 +1471,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn spanner_projects_instances_backups_get_iam_policy(
         &self,
         args: &SpannerProjectsInstancesBackupsGetIamPolicyArgs,
@@ -975,12 +1492,48 @@ where
         let task = spanner_projects_instances_backups_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Spanner projects instances backups list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListBackupsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_backups_list(
+        &self,
+        args: &SpannerProjectsInstancesBackupsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListBackupsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_backups_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = spanner_projects_instances_backups_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances backups patch.
@@ -1072,7 +1625,7 @@ where
 
     /// Spanner projects instances backups test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1084,7 +1637,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn spanner_projects_instances_backups_test_iam_permissions(
         &self,
         args: &SpannerProjectsInstancesBackupsTestIamPermissionsArgs,
@@ -1105,12 +1658,7 @@ where
         let task = spanner_projects_instances_backups_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances backups operations cancel.
@@ -1197,6 +1745,127 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances backups operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_backups_operations_get(
+        &self,
+        args: &SpannerProjectsInstancesBackupsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_backups_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_backups_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances backups operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_backups_operations_list(
+        &self,
+        args: &SpannerProjectsInstancesBackupsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_backups_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_backups_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances database operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDatabaseOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_database_operations_list(
+        &self,
+        args: &SpannerProjectsInstancesDatabaseOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDatabaseOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_database_operations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_database_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances databases add split points.
@@ -1371,9 +2040,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Spanner projects instances databases get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Database result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_get(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Database, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_databases_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances databases get ddl.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GetDatabaseDdlResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_get_ddl(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesGetDdlArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GetDatabaseDdlResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_get_ddl_builder(
+            &self.http_client,
+            &args.database,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_databases_get_ddl_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Spanner projects instances databases get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1385,7 +2130,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn spanner_projects_instances_databases_get_iam_policy(
         &self,
         args: &SpannerProjectsInstancesDatabasesGetIamPolicyArgs,
@@ -1406,12 +2151,88 @@ where
         let task = spanner_projects_instances_databases_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Spanner projects instances databases get scans.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Scan result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_get_scans(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesGetScansArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Scan, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_get_scans_builder(
+            &self.http_client,
+            &args.name,
+            &args.endTime,
+            &args.startTime,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = spanner_projects_instances_databases_get_scans_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances databases list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDatabasesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_list(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDatabasesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_databases_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances databases patch.
@@ -1546,7 +2367,7 @@ where
 
     /// Spanner projects instances databases test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1558,7 +2379,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn spanner_projects_instances_databases_test_iam_permissions(
         &self,
         args: &SpannerProjectsInstancesDatabasesTestIamPermissionsArgs,
@@ -1579,12 +2400,7 @@ where
         let task = spanner_projects_instances_databases_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances databases update ddl.
@@ -1717,9 +2533,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Spanner projects instances databases backup schedules get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the BackupSchedule result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_backup_schedules_get(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesBackupSchedulesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<BackupSchedule, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_backup_schedules_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_databases_backup_schedules_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Spanner projects instances databases backup schedules get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1731,7 +2585,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy(
         &self,
         args: &SpannerProjectsInstancesDatabasesBackupSchedulesGetIamPolicyArgs,
@@ -1752,12 +2606,47 @@ where
         let task = spanner_projects_instances_databases_backup_schedules_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Spanner projects instances databases backup schedules list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListBackupSchedulesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_backup_schedules_list(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesBackupSchedulesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListBackupSchedulesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_backup_schedules_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = spanner_projects_instances_databases_backup_schedules_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances databases backup schedules patch.
@@ -1849,7 +2738,7 @@ where
 
     /// Spanner projects instances databases backup schedules test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1861,7 +2750,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permissions(
         &self,
         args: &SpannerProjectsInstancesDatabasesBackupSchedulesTestIamPermissionsArgs,
@@ -1882,17 +2771,52 @@ where
         let task = spanner_projects_instances_databases_backup_schedules_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Spanner projects instances databases database roles list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDatabaseRolesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_database_roles_list(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesDatabaseRolesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDatabaseRolesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_database_roles_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = spanner_projects_instances_databases_database_roles_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances databases database roles test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1904,7 +2828,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions(
         &self,
         args: &SpannerProjectsInstancesDatabasesDatabaseRolesTestIamPermissionsArgs,
@@ -1925,12 +2849,7 @@ where
         let task = spanner_projects_instances_databases_database_roles_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances databases operations cancel.
@@ -2017,6 +2936,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances databases operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_operations_get(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_databases_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances databases operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_operations_list(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_databases_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances databases sessions adapt message.
@@ -2492,9 +3491,88 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Spanner projects instances databases sessions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Session result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_sessions_get(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesSessionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Session, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_sessions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_databases_sessions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances databases sessions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSessionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_databases_sessions_list(
+        &self,
+        args: &SpannerProjectsInstancesDatabasesSessionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSessionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_databases_sessions_list_builder(
+            &self.http_client,
+            &args.database,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_databases_sessions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Spanner projects instances databases sessions partition query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -2506,7 +3584,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn spanner_projects_instances_databases_sessions_partition_query(
         &self,
         args: &SpannerProjectsInstancesDatabasesSessionsPartitionQueryArgs,
@@ -2527,12 +3605,7 @@ where
         let task = spanner_projects_instances_databases_sessions_partition_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances databases sessions partition read.
@@ -2707,6 +3780,48 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Spanner projects instances instance partition operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListInstancePartitionOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_instance_partition_operations_list(
+        &self,
+        args: &SpannerProjectsInstancesInstancePartitionOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListInstancePartitionOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_instance_partition_operations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.instancePartitionDeadline,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_instance_partition_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Spanner projects instances instance partitions create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -2792,6 +3907,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances instance partitions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the InstancePartition result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_instance_partitions_get(
+        &self,
+        args: &SpannerProjectsInstancesInstancePartitionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<InstancePartition, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_instance_partitions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_instance_partitions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances instance partitions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListInstancePartitionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_instance_partitions_list(
+        &self,
+        args: &SpannerProjectsInstancesInstancePartitionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListInstancePartitionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_instance_partitions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.instancePartitionDeadline,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_instance_partitions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Spanner projects instances instance partitions patch.
@@ -2923,6 +4117,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Spanner projects instances instance partitions operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_instance_partitions_operations_get(
+        &self,
+        args: &SpannerProjectsInstancesInstancePartitionsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_instance_partitions_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_instance_partitions_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances instance partitions operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_instance_partitions_operations_list(
+        &self,
+        args: &SpannerProjectsInstancesInstancePartitionsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_instance_partitions_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_instance_partitions_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Spanner projects instances operations cancel.
     ///
     /// Automatically stores the result in the state store on success.
@@ -3007,6 +4281,127 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_operations_get(
+        &self,
+        args: &SpannerProjectsInstancesOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner projects instances operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_projects_instances_operations_list(
+        &self,
+        args: &SpannerProjectsInstancesOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_projects_instances_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_projects_instances_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Spanner scans list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListScansResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn spanner_scans_list(
+        &self,
+        args: &SpannerScansListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListScansResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = spanner_scans_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = spanner_scans_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

@@ -12,33 +12,55 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::assuredworkloads::{
+    assuredworkloads_organizations_locations_operations_get_builder, assuredworkloads_organizations_locations_operations_get_task,
+    assuredworkloads_organizations_locations_operations_list_builder, assuredworkloads_organizations_locations_operations_list_task,
+    assuredworkloads_organizations_locations_workloads_analyze_workload_move_builder, assuredworkloads_organizations_locations_workloads_analyze_workload_move_task,
     assuredworkloads_organizations_locations_workloads_create_builder, assuredworkloads_organizations_locations_workloads_create_task,
     assuredworkloads_organizations_locations_workloads_delete_builder, assuredworkloads_organizations_locations_workloads_delete_task,
     assuredworkloads_organizations_locations_workloads_enable_compliance_updates_builder, assuredworkloads_organizations_locations_workloads_enable_compliance_updates_task,
     assuredworkloads_organizations_locations_workloads_enable_resource_monitoring_builder, assuredworkloads_organizations_locations_workloads_enable_resource_monitoring_task,
+    assuredworkloads_organizations_locations_workloads_get_builder, assuredworkloads_organizations_locations_workloads_get_task,
+    assuredworkloads_organizations_locations_workloads_list_builder, assuredworkloads_organizations_locations_workloads_list_task,
     assuredworkloads_organizations_locations_workloads_mutate_partner_permissions_builder, assuredworkloads_organizations_locations_workloads_mutate_partner_permissions_task,
     assuredworkloads_organizations_locations_workloads_patch_builder, assuredworkloads_organizations_locations_workloads_patch_task,
     assuredworkloads_organizations_locations_workloads_restrict_allowed_resources_builder, assuredworkloads_organizations_locations_workloads_restrict_allowed_resources_task,
     assuredworkloads_organizations_locations_workloads_updates_apply_builder, assuredworkloads_organizations_locations_workloads_updates_apply_task,
+    assuredworkloads_organizations_locations_workloads_updates_list_builder, assuredworkloads_organizations_locations_workloads_updates_list_task,
     assuredworkloads_organizations_locations_workloads_violations_acknowledge_builder, assuredworkloads_organizations_locations_workloads_violations_acknowledge_task,
+    assuredworkloads_organizations_locations_workloads_violations_get_builder, assuredworkloads_organizations_locations_workloads_violations_get_task,
+    assuredworkloads_organizations_locations_workloads_violations_list_builder, assuredworkloads_organizations_locations_workloads_violations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::assuredworkloads::GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse;
+use crate::providers::gcp::clients::assuredworkloads::GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse;
 use crate::providers::gcp::clients::assuredworkloads::GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse;
 use crate::providers::gcp::clients::assuredworkloads::GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse;
+use crate::providers::gcp::clients::assuredworkloads::GoogleCloudAssuredworkloadsV1ListViolationsResponse;
+use crate::providers::gcp::clients::assuredworkloads::GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse;
+use crate::providers::gcp::clients::assuredworkloads::GoogleCloudAssuredworkloadsV1ListWorkloadsResponse;
 use crate::providers::gcp::clients::assuredworkloads::GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse;
+use crate::providers::gcp::clients::assuredworkloads::GoogleCloudAssuredworkloadsV1Violation;
 use crate::providers::gcp::clients::assuredworkloads::GoogleCloudAssuredworkloadsV1Workload;
+use crate::providers::gcp::clients::assuredworkloads::GoogleLongrunningListOperationsResponse;
 use crate::providers::gcp::clients::assuredworkloads::GoogleLongrunningOperation;
 use crate::providers::gcp::clients::assuredworkloads::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsOperationsListArgs;
+use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsAnalyzeWorkloadMoveArgs;
 use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsCreateArgs;
 use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsDeleteArgs;
 use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsEnableComplianceUpdatesArgs;
 use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsEnableResourceMonitoringArgs;
+use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsGetArgs;
+use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsListArgs;
 use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsMutatePartnerPermissionsArgs;
 use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsPatchArgs;
 use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsRestrictAllowedResourcesArgs;
 use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsUpdatesApplyArgs;
+use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsUpdatesListArgs;
 use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsViolationsAcknowledgeArgs;
+use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsViolationsGetArgs;
+use crate::providers::gcp::clients::assuredworkloads::AssuredworkloadsOrganizationsLocationsWorkloadsViolationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -78,6 +100,128 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Assuredworkloads organizations locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn assuredworkloads_organizations_locations_operations_get(
+        &self,
+        args: &AssuredworkloadsOrganizationsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = assuredworkloads_organizations_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = assuredworkloads_organizations_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Assuredworkloads organizations locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn assuredworkloads_organizations_locations_operations_list(
+        &self,
+        args: &AssuredworkloadsOrganizationsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = assuredworkloads_organizations_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = assuredworkloads_organizations_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Assuredworkloads organizations locations workloads analyze workload move.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn assuredworkloads_organizations_locations_workloads_analyze_workload_move(
+        &self,
+        args: &AssuredworkloadsOrganizationsLocationsWorkloadsAnalyzeWorkloadMoveArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = assuredworkloads_organizations_locations_workloads_analyze_workload_move_builder(
+            &self.http_client,
+            &args.target,
+            &args.assetTypes,
+            &args.pageSize,
+            &args.pageToken,
+            &args.project,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = assuredworkloads_organizations_locations_workloads_analyze_workload_move_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Assuredworkloads organizations locations workloads create.
@@ -254,6 +398,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Assuredworkloads organizations locations workloads get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAssuredworkloadsV1Workload result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn assuredworkloads_organizations_locations_workloads_get(
+        &self,
+        args: &AssuredworkloadsOrganizationsLocationsWorkloadsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAssuredworkloadsV1Workload, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = assuredworkloads_organizations_locations_workloads_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = assuredworkloads_organizations_locations_workloads_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Assuredworkloads organizations locations workloads list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAssuredworkloadsV1ListWorkloadsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn assuredworkloads_organizations_locations_workloads_list(
+        &self,
+        args: &AssuredworkloadsOrganizationsLocationsWorkloadsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAssuredworkloadsV1ListWorkloadsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = assuredworkloads_organizations_locations_workloads_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = assuredworkloads_organizations_locations_workloads_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Assuredworkloads organizations locations workloads mutate partner permissions.
     ///
     /// Automatically stores the result in the state store on success.
@@ -427,6 +650,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Assuredworkloads organizations locations workloads updates list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn assuredworkloads_organizations_locations_workloads_updates_list(
+        &self,
+        args: &AssuredworkloadsOrganizationsLocationsWorkloadsUpdatesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = assuredworkloads_organizations_locations_workloads_updates_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = assuredworkloads_organizations_locations_workloads_updates_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Assuredworkloads organizations locations workloads violations acknowledge.
     ///
     /// Automatically stores the result in the state store on success.
@@ -468,6 +731,87 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Assuredworkloads organizations locations workloads violations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAssuredworkloadsV1Violation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn assuredworkloads_organizations_locations_workloads_violations_get(
+        &self,
+        args: &AssuredworkloadsOrganizationsLocationsWorkloadsViolationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAssuredworkloadsV1Violation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = assuredworkloads_organizations_locations_workloads_violations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = assuredworkloads_organizations_locations_workloads_violations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Assuredworkloads organizations locations workloads violations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAssuredworkloadsV1ListViolationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn assuredworkloads_organizations_locations_workloads_violations_list(
+        &self,
+        args: &AssuredworkloadsOrganizationsLocationsWorkloadsViolationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAssuredworkloadsV1ListViolationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = assuredworkloads_organizations_locations_workloads_violations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.interval.endTime,
+            &args.interval.startTime,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = assuredworkloads_organizations_locations_workloads_violations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

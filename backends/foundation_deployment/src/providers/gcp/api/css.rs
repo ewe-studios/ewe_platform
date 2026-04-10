@@ -12,25 +12,42 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::css::{
+    css_accounts_get_builder, css_accounts_get_task,
+    css_accounts_list_child_accounts_builder, css_accounts_list_child_accounts_task,
     css_accounts_update_labels_builder, css_accounts_update_labels_task,
     css_accounts_css_product_inputs_delete_builder, css_accounts_css_product_inputs_delete_task,
     css_accounts_css_product_inputs_insert_builder, css_accounts_css_product_inputs_insert_task,
     css_accounts_css_product_inputs_patch_builder, css_accounts_css_product_inputs_patch_task,
+    css_accounts_css_products_get_builder, css_accounts_css_products_get_task,
+    css_accounts_css_products_list_builder, css_accounts_css_products_list_task,
     css_accounts_labels_create_builder, css_accounts_labels_create_task,
     css_accounts_labels_delete_builder, css_accounts_labels_delete_task,
+    css_accounts_labels_list_builder, css_accounts_labels_list_task,
     css_accounts_labels_patch_builder, css_accounts_labels_patch_task,
+    css_accounts_quotas_list_builder, css_accounts_quotas_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::css::Account;
 use crate::providers::gcp::clients::css::AccountLabel;
+use crate::providers::gcp::clients::css::CssProduct;
 use crate::providers::gcp::clients::css::CssProductInput;
 use crate::providers::gcp::clients::css::Empty;
+use crate::providers::gcp::clients::css::ListAccountLabelsResponse;
+use crate::providers::gcp::clients::css::ListChildAccountsResponse;
+use crate::providers::gcp::clients::css::ListCssProductsResponse;
+use crate::providers::gcp::clients::css::ListQuotaGroupsResponse;
 use crate::providers::gcp::clients::css::CssAccountsCssProductInputsDeleteArgs;
 use crate::providers::gcp::clients::css::CssAccountsCssProductInputsInsertArgs;
 use crate::providers::gcp::clients::css::CssAccountsCssProductInputsPatchArgs;
+use crate::providers::gcp::clients::css::CssAccountsCssProductsGetArgs;
+use crate::providers::gcp::clients::css::CssAccountsCssProductsListArgs;
+use crate::providers::gcp::clients::css::CssAccountsGetArgs;
 use crate::providers::gcp::clients::css::CssAccountsLabelsCreateArgs;
 use crate::providers::gcp::clients::css::CssAccountsLabelsDeleteArgs;
+use crate::providers::gcp::clients::css::CssAccountsLabelsListArgs;
 use crate::providers::gcp::clients::css::CssAccountsLabelsPatchArgs;
+use crate::providers::gcp::clients::css::CssAccountsListChildAccountsArgs;
+use crate::providers::gcp::clients::css::CssAccountsQuotasListArgs;
 use crate::providers::gcp::clients::css::CssAccountsUpdateLabelsArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -71,6 +88,87 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Css accounts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Account result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn css_accounts_get(
+        &self,
+        args: &CssAccountsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Account, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = css_accounts_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = css_accounts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Css accounts list child accounts.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListChildAccountsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn css_accounts_list_child_accounts(
+        &self,
+        args: &CssAccountsListChildAccountsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListChildAccountsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = css_accounts_list_child_accounts_builder(
+            &self.http_client,
+            &args.parent,
+            &args.fullName,
+            &args.labelId,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = css_accounts_list_child_accounts_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Css accounts update labels.
@@ -248,6 +346,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Css accounts css products get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CssProduct result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn css_accounts_css_products_get(
+        &self,
+        args: &CssAccountsCssProductsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CssProduct, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = css_accounts_css_products_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = css_accounts_css_products_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Css accounts css products list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCssProductsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn css_accounts_css_products_list(
+        &self,
+        args: &CssAccountsCssProductsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCssProductsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = css_accounts_css_products_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = css_accounts_css_products_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Css accounts labels create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -334,6 +510,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Css accounts labels list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAccountLabelsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn css_accounts_labels_list(
+        &self,
+        args: &CssAccountsLabelsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAccountLabelsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = css_accounts_labels_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = css_accounts_labels_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Css accounts labels patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -375,6 +591,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Css accounts quotas list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListQuotaGroupsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn css_accounts_quotas_list(
+        &self,
+        args: &CssAccountsQuotasListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListQuotaGroupsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = css_accounts_quotas_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = css_accounts_quotas_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

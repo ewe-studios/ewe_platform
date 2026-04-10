@@ -14,16 +14,24 @@
 use crate::providers::gcp::clients::ondemandscanning::{
     ondemandscanning_projects_locations_operations_cancel_builder, ondemandscanning_projects_locations_operations_cancel_task,
     ondemandscanning_projects_locations_operations_delete_builder, ondemandscanning_projects_locations_operations_delete_task,
+    ondemandscanning_projects_locations_operations_get_builder, ondemandscanning_projects_locations_operations_get_task,
+    ondemandscanning_projects_locations_operations_list_builder, ondemandscanning_projects_locations_operations_list_task,
     ondemandscanning_projects_locations_operations_wait_builder, ondemandscanning_projects_locations_operations_wait_task,
     ondemandscanning_projects_locations_scans_analyze_packages_builder, ondemandscanning_projects_locations_scans_analyze_packages_task,
+    ondemandscanning_projects_locations_scans_vulnerabilities_list_builder, ondemandscanning_projects_locations_scans_vulnerabilities_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::ondemandscanning::Empty;
+use crate::providers::gcp::clients::ondemandscanning::ListOperationsResponse;
+use crate::providers::gcp::clients::ondemandscanning::ListVulnerabilitiesResponseV1;
 use crate::providers::gcp::clients::ondemandscanning::Operation;
 use crate::providers::gcp::clients::ondemandscanning::OndemandscanningProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::ondemandscanning::OndemandscanningProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::ondemandscanning::OndemandscanningProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::ondemandscanning::OndemandscanningProjectsLocationsOperationsListArgs;
 use crate::providers::gcp::clients::ondemandscanning::OndemandscanningProjectsLocationsOperationsWaitArgs;
 use crate::providers::gcp::clients::ondemandscanning::OndemandscanningProjectsLocationsScansAnalyzePackagesArgs;
+use crate::providers::gcp::clients::ondemandscanning::OndemandscanningProjectsLocationsScansVulnerabilitiesListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -151,6 +159,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Ondemandscanning projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn ondemandscanning_projects_locations_operations_get(
+        &self,
+        args: &OndemandscanningProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = ondemandscanning_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = ondemandscanning_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Ondemandscanning projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn ondemandscanning_projects_locations_operations_list(
+        &self,
+        args: &OndemandscanningProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = ondemandscanning_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = ondemandscanning_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Ondemandscanning projects locations operations wait.
     ///
     /// Automatically stores the result in the state store on success.
@@ -197,7 +285,7 @@ where
 
     /// Ondemandscanning projects locations scans analyze packages.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -209,7 +297,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn ondemandscanning_projects_locations_scans_analyze_packages(
         &self,
         args: &OndemandscanningProjectsLocationsScansAnalyzePackagesArgs,
@@ -230,12 +318,47 @@ where
         let task = ondemandscanning_projects_locations_scans_analyze_packages_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Ondemandscanning projects locations scans vulnerabilities list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListVulnerabilitiesResponseV1 result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn ondemandscanning_projects_locations_scans_vulnerabilities_list(
+        &self,
+        args: &OndemandscanningProjectsLocationsScansVulnerabilitiesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListVulnerabilitiesResponseV1, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = ondemandscanning_projects_locations_scans_vulnerabilities_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = ondemandscanning_projects_locations_scans_vulnerabilities_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

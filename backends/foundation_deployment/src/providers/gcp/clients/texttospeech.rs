@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +29,22 @@ use serde::Serialize;
 pub fn texttospeech_operations_cancel_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://texttospeech.googleapis.com/v1/operations/{}:cancel",);
+    let endpoint_url = format!(
+        "https://texttospeech.googleapis.com/v1/operations/{}:cancel",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +118,7 @@ pub fn texttospeech_operations_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -153,11 +153,9 @@ pub fn texttospeech_operations_cancel_execute(
 pub struct TexttospeechOperationsCancelArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: CancelOperationRequest,
 }
 
-/// GET v1/operations/{operationsId}:cancel
+/// POST v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -175,11 +173,11 @@ pub fn texttospeech_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = texttospeech_operations_cancel_builder(client, &args.name, &args.body)?;
+    let builder = texttospeech_operations_cancel_builder(client, &args.name)?;
     texttospeech_operations_cancel_execute(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -190,17 +188,17 @@ pub fn texttospeech_operations_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://texttospeech.googleapis.com/v1/operations/{}",);
+    let endpoint_url = format!("https://texttospeech.googleapis.com/v1/operations/{}", name,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -274,7 +272,7 @@ pub fn texttospeech_operations_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -311,7 +309,7 @@ pub struct TexttospeechOperationsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/operations/{operationsId}
+/// DELETE v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -333,7 +331,522 @@ pub fn texttospeech_operations_delete(
     texttospeech_operations_delete_execute(builder)
 }
 
-/// GET v1/text:synthesize
+/// POST v1/projects/{projectsId}/locations/{locationsId}:synthesizeLongAudio
+/// Synthesizes long form text asynchronously.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `texttospeech_projects_locations_synthesize_long_audio_execute()` to send, or `texttospeech_projects_locations_synthesize_long_audio` for simplest API.
+
+pub fn texttospeech_projects_locations_synthesize_long_audio_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://texttospeech.googleapis.com/v1/projects/{}/locations/{locationsId}:synthesizeLongAudio",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:synthesizeLongAudio
+/// Synthesizes long form text asynchronously.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `texttospeech_projects_locations_synthesize_long_audio_execute()` or `texttospeech_projects_locations_synthesize_long_audio`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `texttospeech_projects_locations_synthesize_long_audio_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn texttospeech_projects_locations_synthesize_long_audio_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:synthesizeLongAudio
+/// Synthesizes long form text asynchronously.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `texttospeech_projects_locations_synthesize_long_audio_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `texttospeech_projects_locations_synthesize_long_audio_task()`.
+/// For the simplest API, use `texttospeech_projects_locations_synthesize_long_audio()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `texttospeech_projects_locations_synthesize_long_audio_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn texttospeech_projects_locations_synthesize_long_audio_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = texttospeech_projects_locations_synthesize_long_audio_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`texttospeech_projects_locations_synthesize_long_audio`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TexttospeechProjectsLocationsSynthesizeLongAudioArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:synthesizeLongAudio
+/// Synthesizes long form text asynchronously.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `texttospeech_projects_locations_synthesize_long_audio_builder()` + `texttospeech_projects_locations_synthesize_long_audio_execute()`.
+/// For task-level control, use `texttospeech_projects_locations_synthesize_long_audio_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn texttospeech_projects_locations_synthesize_long_audio(
+    client: &SimpleHttpClient,
+    args: &TexttospeechProjectsLocationsSynthesizeLongAudioArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        texttospeech_projects_locations_synthesize_long_audio_builder(client, &args.parent)?;
+    texttospeech_projects_locations_synthesize_long_audio_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `texttospeech_projects_locations_operations_get_execute()` to send, or `texttospeech_projects_locations_operations_get` for simplest API.
+
+pub fn texttospeech_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://texttospeech.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `texttospeech_projects_locations_operations_get_execute()` or `texttospeech_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `texttospeech_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn texttospeech_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `texttospeech_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `texttospeech_projects_locations_operations_get_task()`.
+/// For the simplest API, use `texttospeech_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `texttospeech_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn texttospeech_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = texttospeech_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`texttospeech_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TexttospeechProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `texttospeech_projects_locations_operations_get_builder()` + `texttospeech_projects_locations_operations_get_execute()`.
+/// For task-level control, use `texttospeech_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn texttospeech_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &TexttospeechProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = texttospeech_projects_locations_operations_get_builder(client, &args.name)?;
+    texttospeech_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `texttospeech_projects_locations_operations_list_execute()` to send, or `texttospeech_projects_locations_operations_list` for simplest API.
+
+pub fn texttospeech_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://texttospeech.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `texttospeech_projects_locations_operations_list_execute()` or `texttospeech_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `texttospeech_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn texttospeech_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `texttospeech_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `texttospeech_projects_locations_operations_list_task()`.
+/// For the simplest API, use `texttospeech_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `texttospeech_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn texttospeech_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = texttospeech_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`texttospeech_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TexttospeechProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `texttospeech_projects_locations_operations_list_builder()` + `texttospeech_projects_locations_operations_list_execute()`.
+/// For task-level control, use `texttospeech_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn texttospeech_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &TexttospeechProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = texttospeech_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    texttospeech_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v1/text:synthesize
 /// Synthesizes speech synchronously: receive results after all text input has been processed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -341,22 +854,19 @@ pub fn texttospeech_operations_delete(
 
 pub fn texttospeech_text_synthesize_builder(
     client: &SimpleHttpClient,
-    body: &SynthesizeSpeechRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://texttospeech.googleapis.com/v1/text:synthesize",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/text:synthesize
+/// POST v1/text:synthesize
 /// Synthesizes speech synchronously: receive results after all text input has been processed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -430,7 +940,7 @@ pub fn texttospeech_text_synthesize_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/text:synthesize
+/// POST v1/text:synthesize
 /// Synthesizes speech synchronously: receive results after all text input has been processed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -462,14 +972,7 @@ pub fn texttospeech_text_synthesize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`texttospeech_text_synthesize`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct TexttospeechTextSynthesizeArgs {
-    /// Request body.
-    pub body: SynthesizeSpeechRequest,
-}
-
-/// GET v1/text:synthesize
+/// POST v1/text:synthesize
 /// Synthesizes speech synchronously: receive results after all text input has been processed.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -482,14 +985,13 @@ pub struct TexttospeechTextSynthesizeArgs {
 
 pub fn texttospeech_text_synthesize(
     client: &SimpleHttpClient,
-    args: &TexttospeechTextSynthesizeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SynthesizeSpeechResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = texttospeech_text_synthesize_builder(client, &args.body)?;
+    let builder = texttospeech_text_synthesize_builder(client)?;
     texttospeech_text_synthesize_execute(builder)
 }
 
@@ -501,7 +1003,7 @@ pub fn texttospeech_text_synthesize(
 
 pub fn texttospeech_voices_list_builder(
     client: &SimpleHttpClient,
-    languageCode: &Option<String>,
+    languageCode: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://texttospeech.googleapis.com/v1/voices",);
@@ -635,7 +1137,7 @@ pub fn texttospeech_voices_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct TexttospeechVoicesListArgs {
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
 }
 
 /// GET v1/voices
@@ -660,4 +1162,176 @@ pub fn texttospeech_voices_list(
 > {
     let builder = texttospeech_voices_list_builder(client, &args.languageCode)?;
     texttospeech_voices_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with TexttospeechOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TexttospeechOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &TexttospeechOperationsCancelArgs) -> String {
+        format!("gcp::texttospeech::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::texttospeech::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with TexttospeechOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TexttospeechOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &TexttospeechOperationsDeleteArgs) -> String {
+        format!("gcp::texttospeech::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::texttospeech::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TexttospeechProjectsLocationsSynthesizeLongAudioArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TexttospeechProjectsLocationsSynthesizeLongAudioArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &TexttospeechProjectsLocationsSynthesizeLongAudioArgs,
+    ) -> String {
+        format!("gcp::texttospeech::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::texttospeech::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with TexttospeechProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TexttospeechProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &TexttospeechProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::texttospeech::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::texttospeech::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with TexttospeechProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TexttospeechProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &TexttospeechProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::texttospeech::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::texttospeech::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SynthesizeSpeechResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SynthesizeSpeechResponse with TexttospeechTextSynthesizeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TexttospeechTextSynthesizeArgs> for SynthesizeSpeechResponse {
+    fn generate_resource_id(&self, input: &TexttospeechTextSynthesizeArgs) -> String {
+        "gcp::texttospeech::SynthesizeSpeechResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::texttospeech::SynthesizeSpeechResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListVoicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListVoicesResponse with TexttospeechVoicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TexttospeechVoicesListArgs> for ListVoicesResponse {
+    fn generate_resource_id(&self, input: &TexttospeechVoicesListArgs) -> String {
+        "gcp::texttospeech::ListVoicesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::texttospeech::ListVoicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

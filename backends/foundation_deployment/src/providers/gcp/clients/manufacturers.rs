@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,700 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/accounts/{accountsId}/products/{productsId}
+/// DELETE v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Deletes a product certification by its name. This method can only be called by certification bodies.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `manufacturers_accounts_languages_product_certifications_delete_execute()` to send, or `manufacturers_accounts_languages_product_certifications_delete` for simplest API.
+
+pub fn manufacturers_accounts_languages_product_certifications_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://manufacturers.googleapis.com/v1/accounts/{}/languages/{languagesId}/productCertifications/{productCertificationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Deletes a product certification by its name. This method can only be called by certification bodies.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `manufacturers_accounts_languages_product_certifications_delete_execute()` or `manufacturers_accounts_languages_product_certifications_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_languages_product_certifications_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_languages_product_certifications_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Deletes a product certification by its name. This method can only be called by certification bodies.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `manufacturers_accounts_languages_product_certifications_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `manufacturers_accounts_languages_product_certifications_delete_task()`.
+/// For the simplest API, use `manufacturers_accounts_languages_product_certifications_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_languages_product_certifications_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn manufacturers_accounts_languages_product_certifications_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = manufacturers_accounts_languages_product_certifications_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`manufacturers_accounts_languages_product_certifications_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsLanguagesProductCertificationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Deletes a product certification by its name. This method can only be called by certification bodies.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `manufacturers_accounts_languages_product_certifications_delete_builder()` + `manufacturers_accounts_languages_product_certifications_delete_execute()`.
+/// For task-level control, use `manufacturers_accounts_languages_product_certifications_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_languages_product_certifications_delete(
+    client: &SimpleHttpClient,
+    args: &ManufacturersAccountsLanguagesProductCertificationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        manufacturers_accounts_languages_product_certifications_delete_builder(client, &args.name)?;
+    manufacturers_accounts_languages_product_certifications_delete_execute(builder)
+}
+
+/// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Gets a product certification by its name. This method can only be called by certification bodies.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `manufacturers_accounts_languages_product_certifications_get_execute()` to send, or `manufacturers_accounts_languages_product_certifications_get` for simplest API.
+
+pub fn manufacturers_accounts_languages_product_certifications_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://manufacturers.googleapis.com/v1/accounts/{}/languages/{languagesId}/productCertifications/{productCertificationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Gets a product certification by its name. This method can only be called by certification bodies.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `manufacturers_accounts_languages_product_certifications_get_execute()` or `manufacturers_accounts_languages_product_certifications_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_languages_product_certifications_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_languages_product_certifications_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductCertification>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProductCertification = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Gets a product certification by its name. This method can only be called by certification bodies.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `manufacturers_accounts_languages_product_certifications_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `manufacturers_accounts_languages_product_certifications_get_task()`.
+/// For the simplest API, use `manufacturers_accounts_languages_product_certifications_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_languages_product_certifications_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn manufacturers_accounts_languages_product_certifications_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductCertification>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = manufacturers_accounts_languages_product_certifications_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`manufacturers_accounts_languages_product_certifications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsLanguagesProductCertificationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Gets a product certification by its name. This method can only be called by certification bodies.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `manufacturers_accounts_languages_product_certifications_get_builder()` + `manufacturers_accounts_languages_product_certifications_get_execute()`.
+/// For task-level control, use `manufacturers_accounts_languages_product_certifications_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_languages_product_certifications_get(
+    client: &SimpleHttpClient,
+    args: &ManufacturersAccountsLanguagesProductCertificationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductCertification>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        manufacturers_accounts_languages_product_certifications_get_builder(client, &args.name)?;
+    manufacturers_accounts_languages_product_certifications_get_execute(builder)
+}
+
+/// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications
+/// Lists product certifications from a specified certification body. This method can only be called by certification bodies.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `manufacturers_accounts_languages_product_certifications_list_execute()` to send, or `manufacturers_accounts_languages_product_certifications_list` for simplest API.
+
+pub fn manufacturers_accounts_languages_product_certifications_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://manufacturers.googleapis.com/v1/accounts/{}/languages/{languagesId}/productCertifications",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications
+/// Lists product certifications from a specified certification body. This method can only be called by certification bodies.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `manufacturers_accounts_languages_product_certifications_list_execute()` or `manufacturers_accounts_languages_product_certifications_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_languages_product_certifications_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_languages_product_certifications_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListProductCertificationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListProductCertificationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications
+/// Lists product certifications from a specified certification body. This method can only be called by certification bodies.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `manufacturers_accounts_languages_product_certifications_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `manufacturers_accounts_languages_product_certifications_list_task()`.
+/// For the simplest API, use `manufacturers_accounts_languages_product_certifications_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_languages_product_certifications_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn manufacturers_accounts_languages_product_certifications_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListProductCertificationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = manufacturers_accounts_languages_product_certifications_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`manufacturers_accounts_languages_product_certifications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsLanguagesProductCertificationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/accounts/{accountsId}/languages/{languagesId}/productCertifications
+/// Lists product certifications from a specified certification body. This method can only be called by certification bodies.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `manufacturers_accounts_languages_product_certifications_list_builder()` + `manufacturers_accounts_languages_product_certifications_list_execute()`.
+/// For task-level control, use `manufacturers_accounts_languages_product_certifications_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_languages_product_certifications_list(
+    client: &SimpleHttpClient,
+    args: &ManufacturersAccountsLanguagesProductCertificationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListProductCertificationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = manufacturers_accounts_languages_product_certifications_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    manufacturers_accounts_languages_product_certifications_list_execute(builder)
+}
+
+/// PATCH v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Updates (or creates if allow_missing = `true`) a product certification which links certifications with products. This method can only be called by certification bodies.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `manufacturers_accounts_languages_product_certifications_patch_execute()` to send, or `manufacturers_accounts_languages_product_certifications_patch` for simplest API.
+
+pub fn manufacturers_accounts_languages_product_certifications_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://manufacturers.googleapis.com/v1/accounts/{}/languages/{languagesId}/productCertifications/{productCertificationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Updates (or creates if allow_missing = `true`) a product certification which links certifications with products. This method can only be called by certification bodies.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `manufacturers_accounts_languages_product_certifications_patch_execute()` or `manufacturers_accounts_languages_product_certifications_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_languages_product_certifications_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_languages_product_certifications_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductCertification>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ProductCertification = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Updates (or creates if allow_missing = `true`) a product certification which links certifications with products. This method can only be called by certification bodies.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `manufacturers_accounts_languages_product_certifications_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `manufacturers_accounts_languages_product_certifications_patch_task()`.
+/// For the simplest API, use `manufacturers_accounts_languages_product_certifications_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_languages_product_certifications_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn manufacturers_accounts_languages_product_certifications_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductCertification>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = manufacturers_accounts_languages_product_certifications_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`manufacturers_accounts_languages_product_certifications_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsLanguagesProductCertificationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/accounts/{accountsId}/languages/{languagesId}/productCertifications/{productCertificationsId}
+/// Updates (or creates if allow_missing = `true`) a product certification which links certifications with products. This method can only be called by certification bodies.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `manufacturers_accounts_languages_product_certifications_patch_builder()` + `manufacturers_accounts_languages_product_certifications_patch_execute()`.
+/// For task-level control, use `manufacturers_accounts_languages_product_certifications_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_languages_product_certifications_patch(
+    client: &SimpleHttpClient,
+    args: &ManufacturersAccountsLanguagesProductCertificationsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProductCertification>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = manufacturers_accounts_languages_product_certifications_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    manufacturers_accounts_languages_product_certifications_patch_execute(builder)
+}
+
+/// DELETE v1/accounts/{accountsId}/products/{productsId}
 /// Deletes the product from a Manufacturer Center account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -32,17 +721,20 @@ pub fn manufacturers_accounts_products_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://manufacturers.googleapis.com/v1/accounts/{}/products/{}",);
+    let endpoint_url = format!(
+        "https://manufacturers.googleapis.com/v1/accounts/{}/products/{}",
+        parent, name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/accounts/{accountsId}/products/{productsId}
+/// DELETE v1/accounts/{accountsId}/products/{productsId}
 /// Deletes the product from a Manufacturer Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -116,7 +808,7 @@ pub fn manufacturers_accounts_products_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accounts/{accountsId}/products/{productsId}
+/// DELETE v1/accounts/{accountsId}/products/{productsId}
 /// Deletes the product from a Manufacturer Center account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -155,7 +847,7 @@ pub struct ManufacturersAccountsProductsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/accounts/{accountsId}/products/{productsId}
+/// DELETE v1/accounts/{accountsId}/products/{productsId}
 /// Deletes the product from a Manufacturer Center account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -177,6 +869,185 @@ pub fn manufacturers_accounts_products_delete(
     manufacturers_accounts_products_delete_execute(builder)
 }
 
+/// GET v1/accounts/{accountsId}/products/{productsId}
+/// Gets the product from a Manufacturer Center account, including product issues. A recently updated product takes around 15 minutes to process. Changes are only visible after it has been processed. While some issues may be available once the product has been processed, other issues may take days to appear.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `manufacturers_accounts_products_get_execute()` to send, or `manufacturers_accounts_products_get` for simplest API.
+
+pub fn manufacturers_accounts_products_get_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    name: &String,
+    include: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://manufacturers.googleapis.com/v1/accounts/{}/products/{}",
+        parent, name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = include.as_ref() {
+        query_parts.push(format!("include={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accounts/{accountsId}/products/{productsId}
+/// Gets the product from a Manufacturer Center account, including product issues. A recently updated product takes around 15 minutes to process. Changes are only visible after it has been processed. While some issues may be available once the product has been processed, other issues may take days to appear.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `manufacturers_accounts_products_get_execute()` or `manufacturers_accounts_products_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_products_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_products_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Product>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Product = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accounts/{accountsId}/products/{productsId}
+/// Gets the product from a Manufacturer Center account, including product issues. A recently updated product takes around 15 minutes to process. Changes are only visible after it has been processed. While some issues may be available once the product has been processed, other issues may take days to appear.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `manufacturers_accounts_products_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `manufacturers_accounts_products_get_task()`.
+/// For the simplest API, use `manufacturers_accounts_products_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_products_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn manufacturers_accounts_products_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = manufacturers_accounts_products_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`manufacturers_accounts_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsProductsGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: include
+    pub include: Option<Option<String>>,
+}
+
+/// GET v1/accounts/{accountsId}/products/{productsId}
+/// Gets the product from a Manufacturer Center account, including product issues. A recently updated product takes around 15 minutes to process. Changes are only visible after it has been processed. While some issues may be available once the product has been processed, other issues may take days to appear.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `manufacturers_accounts_products_get_builder()` + `manufacturers_accounts_products_get_execute()`.
+/// For task-level control, use `manufacturers_accounts_products_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_products_get(
+    client: &SimpleHttpClient,
+    args: &ManufacturersAccountsProductsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = manufacturers_accounts_products_get_builder(
+        client,
+        &args.parent,
+        &args.name,
+        &args.include,
+    )?;
+    manufacturers_accounts_products_get_execute(builder)
+}
+
 /// GET v1/accounts/{accountsId}/products
 /// Lists all the products in a Manufacturer Center account.
 ///
@@ -186,12 +1057,15 @@ pub fn manufacturers_accounts_products_delete(
 pub fn manufacturers_accounts_products_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    include: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    include: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://manufacturers.googleapis.com/v1/accounts/{}/products",);
+    let endpoint_url = format!(
+        "https://manufacturers.googleapis.com/v1/accounts/{}/products",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -330,11 +1204,11 @@ pub struct ManufacturersAccountsProductsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: include
-    pub include: Option<String>,
+    pub include: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/accounts/{accountsId}/products
@@ -365,4 +1239,372 @@ pub fn manufacturers_accounts_products_list(
         &args.pageToken,
     )?;
     manufacturers_accounts_products_list_execute(builder)
+}
+
+/// PUT v1/accounts/{accountsId}/products/{productsId}
+/// Inserts or updates the attributes of the product in a Manufacturer Center account. Creates a product with the provided attributes. If the product already exists, then all attributes are replaced with the new ones. The checks at upload time are minimal. All required attributes need to be present for a product to be valid. Issues may show up later after the API has accepted a new upload for a product and it is possible to overwrite an existing valid product with an invalid product. To detect this, you should retrieve the product and check it for issues once the new version is available. Uploaded attributes first need to be processed before they can be retrieved. Until then, new products will be unavailable, and retrieval of previously uploaded products will return the original state of the product.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `manufacturers_accounts_products_update_execute()` to send, or `manufacturers_accounts_products_update` for simplest API.
+
+pub fn manufacturers_accounts_products_update_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://manufacturers.googleapis.com/v1/accounts/{}/products/{}",
+        parent, name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/accounts/{accountsId}/products/{productsId}
+/// Inserts or updates the attributes of the product in a Manufacturer Center account. Creates a product with the provided attributes. If the product already exists, then all attributes are replaced with the new ones. The checks at upload time are minimal. All required attributes need to be present for a product to be valid. Issues may show up later after the API has accepted a new upload for a product and it is possible to overwrite an existing valid product with an invalid product. To detect this, you should retrieve the product and check it for issues once the new version is available. Uploaded attributes first need to be processed before they can be retrieved. Until then, new products will be unavailable, and retrieval of previously uploaded products will return the original state of the product.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `manufacturers_accounts_products_update_execute()` or `manufacturers_accounts_products_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_products_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_products_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/accounts/{accountsId}/products/{productsId}
+/// Inserts or updates the attributes of the product in a Manufacturer Center account. Creates a product with the provided attributes. If the product already exists, then all attributes are replaced with the new ones. The checks at upload time are minimal. All required attributes need to be present for a product to be valid. Issues may show up later after the API has accepted a new upload for a product and it is possible to overwrite an existing valid product with an invalid product. To detect this, you should retrieve the product and check it for issues once the new version is available. Uploaded attributes first need to be processed before they can be retrieved. Until then, new products will be unavailable, and retrieval of previously uploaded products will return the original state of the product.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `manufacturers_accounts_products_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `manufacturers_accounts_products_update_task()`.
+/// For the simplest API, use `manufacturers_accounts_products_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `manufacturers_accounts_products_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn manufacturers_accounts_products_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = manufacturers_accounts_products_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`manufacturers_accounts_products_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManufacturersAccountsProductsUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/accounts/{accountsId}/products/{productsId}
+/// Inserts or updates the attributes of the product in a Manufacturer Center account. Creates a product with the provided attributes. If the product already exists, then all attributes are replaced with the new ones. The checks at upload time are minimal. All required attributes need to be present for a product to be valid. Issues may show up later after the API has accepted a new upload for a product and it is possible to overwrite an existing valid product with an invalid product. To detect this, you should retrieve the product and check it for issues once the new version is available. Uploaded attributes first need to be processed before they can be retrieved. Until then, new products will be unavailable, and retrieval of previously uploaded products will return the original state of the product.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `manufacturers_accounts_products_update_builder()` + `manufacturers_accounts_products_update_execute()`.
+/// For task-level control, use `manufacturers_accounts_products_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn manufacturers_accounts_products_update(
+    client: &SimpleHttpClient,
+    args: &ManufacturersAccountsProductsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = manufacturers_accounts_products_update_builder(client, &args.parent, &args.name)?;
+    manufacturers_accounts_products_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ManufacturersAccountsLanguagesProductCertificationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsLanguagesProductCertificationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ManufacturersAccountsLanguagesProductCertificationsDeleteArgs,
+    ) -> String {
+        format!("gcp::manufacturers::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::manufacturers::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductCertification
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductCertification with ManufacturersAccountsLanguagesProductCertificationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsLanguagesProductCertificationsGetArgs>
+    for ProductCertification
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManufacturersAccountsLanguagesProductCertificationsGetArgs,
+    ) -> String {
+        format!("gcp::manufacturers::ProductCertification/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::manufacturers::ProductCertification"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListProductCertificationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListProductCertificationsResponse with ManufacturersAccountsLanguagesProductCertificationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsLanguagesProductCertificationsListArgs>
+    for ListProductCertificationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManufacturersAccountsLanguagesProductCertificationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::manufacturers::ListProductCertificationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::manufacturers::ListProductCertificationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProductCertification
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProductCertification with ManufacturersAccountsLanguagesProductCertificationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsLanguagesProductCertificationsPatchArgs>
+    for ProductCertification
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManufacturersAccountsLanguagesProductCertificationsPatchArgs,
+    ) -> String {
+        format!("gcp::manufacturers::ProductCertification/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::manufacturers::ProductCertification"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ManufacturersAccountsProductsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsProductsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ManufacturersAccountsProductsDeleteArgs) -> String {
+        format!("gcp::manufacturers::Empty/{}/{}", input.parent, input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::manufacturers::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Product
+// =============================================================================
+
+/// ResourceIdentifier implementation for Product with ManufacturersAccountsProductsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsProductsGetArgs> for Product {
+    fn generate_resource_id(&self, input: &ManufacturersAccountsProductsGetArgs) -> String {
+        format!(
+            "gcp::manufacturers::Product/{}/{}",
+            input.parent, input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::manufacturers::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListProductsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListProductsResponse with ManufacturersAccountsProductsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsProductsListArgs> for ListProductsResponse {
+    fn generate_resource_id(&self, input: &ManufacturersAccountsProductsListArgs) -> String {
+        format!("gcp::manufacturers::ListProductsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::manufacturers::ListProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ManufacturersAccountsProductsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManufacturersAccountsProductsUpdateArgs> for Empty {
+    fn generate_resource_id(&self, input: &ManufacturersAccountsProductsUpdateArgs) -> String {
+        format!("gcp::manufacturers::Empty/{}/{}", input.parent, input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::manufacturers::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

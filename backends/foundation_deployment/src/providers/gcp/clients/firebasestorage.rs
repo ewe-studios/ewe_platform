@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1beta/projects/{projectsId}/defaultBucket
+/// DELETE v1beta/projects/{projectsId}/defaultBucket
 /// Unlinks and deletes the default bucket.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -31,18 +31,20 @@ pub fn firebasestorage_projects_delete_default_bucket_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://firebasestorage.googleapis.com/v1beta/projects/{}/defaultBucket",);
+    let endpoint_url = format!(
+        "https://firebasestorage.googleapis.com/v1beta/projects/{}/defaultBucket",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1beta/projects/{projectsId}/defaultBucket
+/// DELETE v1beta/projects/{projectsId}/defaultBucket
 /// Unlinks and deletes the default bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -116,7 +118,7 @@ pub fn firebasestorage_projects_delete_default_bucket_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/projects/{projectsId}/defaultBucket
+/// DELETE v1beta/projects/{projectsId}/defaultBucket
 /// Unlinks and deletes the default bucket.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -153,7 +155,7 @@ pub struct FirebasestorageProjectsDeleteDefaultBucketArgs {
     pub name: String,
 }
 
-/// GET v1beta/projects/{projectsId}/defaultBucket
+/// DELETE v1beta/projects/{projectsId}/defaultBucket
 /// Unlinks and deletes the default bucket.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -175,6 +177,481 @@ pub fn firebasestorage_projects_delete_default_bucket(
     firebasestorage_projects_delete_default_bucket_execute(builder)
 }
 
+/// GET v1beta/projects/{projectsId}/defaultBucket
+/// Gets the default bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebasestorage_projects_get_default_bucket_execute()` to send, or `firebasestorage_projects_get_default_bucket` for simplest API.
+
+pub fn firebasestorage_projects_get_default_bucket_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebasestorage.googleapis.com/v1beta/projects/{}/defaultBucket",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/projects/{projectsId}/defaultBucket
+/// Gets the default bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebasestorage_projects_get_default_bucket_execute()` or `firebasestorage_projects_get_default_bucket`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebasestorage_projects_get_default_bucket_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebasestorage_projects_get_default_bucket_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DefaultBucket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DefaultBucket = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/projects/{projectsId}/defaultBucket
+/// Gets the default bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebasestorage_projects_get_default_bucket_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebasestorage_projects_get_default_bucket_task()`.
+/// For the simplest API, use `firebasestorage_projects_get_default_bucket()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebasestorage_projects_get_default_bucket_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebasestorage_projects_get_default_bucket_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DefaultBucket>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebasestorage_projects_get_default_bucket_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebasestorage_projects_get_default_bucket`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsGetDefaultBucketArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/projects/{projectsId}/defaultBucket
+/// Gets the default bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebasestorage_projects_get_default_bucket_builder()` + `firebasestorage_projects_get_default_bucket_execute()`.
+/// For task-level control, use `firebasestorage_projects_get_default_bucket_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebasestorage_projects_get_default_bucket(
+    client: &SimpleHttpClient,
+    args: &FirebasestorageProjectsGetDefaultBucketArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DefaultBucket>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebasestorage_projects_get_default_bucket_builder(client, &args.name)?;
+    firebasestorage_projects_get_default_bucket_execute(builder)
+}
+
+/// POST v1beta/projects/{projectsId}/buckets/{bucketsId}:addFirebase
+/// Links a Google Cloud Storage bucket to a Firebase project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebasestorage_projects_buckets_add_firebase_execute()` to send, or `firebasestorage_projects_buckets_add_firebase` for simplest API.
+
+pub fn firebasestorage_projects_buckets_add_firebase_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebasestorage.googleapis.com/v1beta/projects/{}/buckets/{bucketsId}:addFirebase",
+        bucket,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta/projects/{projectsId}/buckets/{bucketsId}:addFirebase
+/// Links a Google Cloud Storage bucket to a Firebase project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebasestorage_projects_buckets_add_firebase_execute()` or `firebasestorage_projects_buckets_add_firebase`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebasestorage_projects_buckets_add_firebase_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebasestorage_projects_buckets_add_firebase_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bucket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Bucket = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta/projects/{projectsId}/buckets/{bucketsId}:addFirebase
+/// Links a Google Cloud Storage bucket to a Firebase project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebasestorage_projects_buckets_add_firebase_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebasestorage_projects_buckets_add_firebase_task()`.
+/// For the simplest API, use `firebasestorage_projects_buckets_add_firebase()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebasestorage_projects_buckets_add_firebase_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebasestorage_projects_buckets_add_firebase_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = firebasestorage_projects_buckets_add_firebase_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebasestorage_projects_buckets_add_firebase`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsBucketsAddFirebaseArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+}
+
+/// POST v1beta/projects/{projectsId}/buckets/{bucketsId}:addFirebase
+/// Links a Google Cloud Storage bucket to a Firebase project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebasestorage_projects_buckets_add_firebase_builder()` + `firebasestorage_projects_buckets_add_firebase_execute()`.
+/// For task-level control, use `firebasestorage_projects_buckets_add_firebase_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebasestorage_projects_buckets_add_firebase(
+    client: &SimpleHttpClient,
+    args: &FirebasestorageProjectsBucketsAddFirebaseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = firebasestorage_projects_buckets_add_firebase_builder(client, &args.bucket)?;
+    firebasestorage_projects_buckets_add_firebase_execute(builder)
+}
+
+/// GET v1beta/projects/{projectsId}/buckets/{bucketsId}
+/// Gets a single linked storage bucket.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebasestorage_projects_buckets_get_execute()` to send, or `firebasestorage_projects_buckets_get` for simplest API.
+
+pub fn firebasestorage_projects_buckets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebasestorage.googleapis.com/v1beta/projects/{}/buckets/{bucketsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/projects/{projectsId}/buckets/{bucketsId}
+/// Gets a single linked storage bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebasestorage_projects_buckets_get_execute()` or `firebasestorage_projects_buckets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebasestorage_projects_buckets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebasestorage_projects_buckets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Bucket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Bucket = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/projects/{projectsId}/buckets/{bucketsId}
+/// Gets a single linked storage bucket.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebasestorage_projects_buckets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebasestorage_projects_buckets_get_task()`.
+/// For the simplest API, use `firebasestorage_projects_buckets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebasestorage_projects_buckets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebasestorage_projects_buckets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = firebasestorage_projects_buckets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebasestorage_projects_buckets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsBucketsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/projects/{projectsId}/buckets/{bucketsId}
+/// Gets a single linked storage bucket.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebasestorage_projects_buckets_get_builder()` + `firebasestorage_projects_buckets_get_execute()`.
+/// For task-level control, use `firebasestorage_projects_buckets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebasestorage_projects_buckets_get(
+    client: &SimpleHttpClient,
+    args: &FirebasestorageProjectsBucketsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = firebasestorage_projects_buckets_get_builder(client, &args.name)?;
+    firebasestorage_projects_buckets_get_execute(builder)
+}
+
 /// GET v1beta/projects/{projectsId}/buckets
 /// Lists the linked storage buckets for a project.
 ///
@@ -184,12 +661,14 @@ pub fn firebasestorage_projects_delete_default_bucket(
 pub fn firebasestorage_projects_buckets_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://firebasestorage.googleapis.com/v1beta/projects/{}/buckets",);
+    let endpoint_url = format!(
+        "https://firebasestorage.googleapis.com/v1beta/projects/{}/buckets",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -325,9 +804,9 @@ pub struct FirebasestorageProjectsBucketsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1beta/projects/{projectsId}/buckets
@@ -357,4 +836,495 @@ pub fn firebasestorage_projects_buckets_list(
         &args.pageToken,
     )?;
     firebasestorage_projects_buckets_list_execute(builder)
+}
+
+/// POST v1beta/projects/{projectsId}/buckets/{bucketsId}:removeFirebase
+/// Unlinks a linked Google Cloud Storage bucket from a Firebase project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebasestorage_projects_buckets_remove_firebase_execute()` to send, or `firebasestorage_projects_buckets_remove_firebase` for simplest API.
+
+pub fn firebasestorage_projects_buckets_remove_firebase_builder(
+    client: &SimpleHttpClient,
+    bucket: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebasestorage.googleapis.com/v1beta/projects/{}/buckets/{bucketsId}:removeFirebase",
+        bucket,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta/projects/{projectsId}/buckets/{bucketsId}:removeFirebase
+/// Unlinks a linked Google Cloud Storage bucket from a Firebase project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebasestorage_projects_buckets_remove_firebase_execute()` or `firebasestorage_projects_buckets_remove_firebase`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebasestorage_projects_buckets_remove_firebase_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebasestorage_projects_buckets_remove_firebase_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta/projects/{projectsId}/buckets/{bucketsId}:removeFirebase
+/// Unlinks a linked Google Cloud Storage bucket from a Firebase project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebasestorage_projects_buckets_remove_firebase_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebasestorage_projects_buckets_remove_firebase_task()`.
+/// For the simplest API, use `firebasestorage_projects_buckets_remove_firebase()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebasestorage_projects_buckets_remove_firebase_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebasestorage_projects_buckets_remove_firebase_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = firebasestorage_projects_buckets_remove_firebase_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebasestorage_projects_buckets_remove_firebase`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsBucketsRemoveFirebaseArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+}
+
+/// POST v1beta/projects/{projectsId}/buckets/{bucketsId}:removeFirebase
+/// Unlinks a linked Google Cloud Storage bucket from a Firebase project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebasestorage_projects_buckets_remove_firebase_builder()` + `firebasestorage_projects_buckets_remove_firebase_execute()`.
+/// For task-level control, use `firebasestorage_projects_buckets_remove_firebase_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebasestorage_projects_buckets_remove_firebase(
+    client: &SimpleHttpClient,
+    args: &FirebasestorageProjectsBucketsRemoveFirebaseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = firebasestorage_projects_buckets_remove_firebase_builder(client, &args.bucket)?;
+    firebasestorage_projects_buckets_remove_firebase_execute(builder)
+}
+
+/// POST v1beta/projects/{projectsId}/defaultBucket
+/// Creates a Spark tier-eligible Cloud Storage bucket and links it to your Firebase project. If the default bucket already exists, this method will re-link it to your Firebase project. See <https://firebase.google.`com/pricing`> for pricing details.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `firebasestorage_projects_default_bucket_create_execute()` to send, or `firebasestorage_projects_default_bucket_create` for simplest API.
+
+pub fn firebasestorage_projects_default_bucket_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://firebasestorage.googleapis.com/v1beta/projects/{}/defaultBucket",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta/projects/{projectsId}/defaultBucket
+/// Creates a Spark tier-eligible Cloud Storage bucket and links it to your Firebase project. If the default bucket already exists, this method will re-link it to your Firebase project. See <https://firebase.google.`com/pricing`> for pricing details.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `firebasestorage_projects_default_bucket_create_execute()` or `firebasestorage_projects_default_bucket_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebasestorage_projects_default_bucket_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebasestorage_projects_default_bucket_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DefaultBucket>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DefaultBucket = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta/projects/{projectsId}/defaultBucket
+/// Creates a Spark tier-eligible Cloud Storage bucket and links it to your Firebase project. If the default bucket already exists, this method will re-link it to your Firebase project. See <https://firebase.google.`com/pricing`> for pricing details.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `firebasestorage_projects_default_bucket_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `firebasestorage_projects_default_bucket_create_task()`.
+/// For the simplest API, use `firebasestorage_projects_default_bucket_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `firebasestorage_projects_default_bucket_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn firebasestorage_projects_default_bucket_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DefaultBucket>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = firebasestorage_projects_default_bucket_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`firebasestorage_projects_default_bucket_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsDefaultBucketCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1beta/projects/{projectsId}/defaultBucket
+/// Creates a Spark tier-eligible Cloud Storage bucket and links it to your Firebase project. If the default bucket already exists, this method will re-link it to your Firebase project. See <https://firebase.google.`com/pricing`> for pricing details.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `firebasestorage_projects_default_bucket_create_builder()` + `firebasestorage_projects_default_bucket_create_execute()`.
+/// For task-level control, use `firebasestorage_projects_default_bucket_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn firebasestorage_projects_default_bucket_create(
+    client: &SimpleHttpClient,
+    args: &FirebasestorageProjectsDefaultBucketCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DefaultBucket>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = firebasestorage_projects_default_bucket_create_builder(client, &args.parent)?;
+    firebasestorage_projects_default_bucket_create_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with FirebasestorageProjectsDeleteDefaultBucketArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsDeleteDefaultBucketArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasestorageProjectsDeleteDefaultBucketArgs,
+    ) -> String {
+        format!("gcp::firebasestorage::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasestorage::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DefaultBucket
+// =============================================================================
+
+/// ResourceIdentifier implementation for DefaultBucket with FirebasestorageProjectsGetDefaultBucketArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsGetDefaultBucketArgs> for DefaultBucket {
+    fn generate_resource_id(&self, input: &FirebasestorageProjectsGetDefaultBucketArgs) -> String {
+        format!("gcp::firebasestorage::DefaultBucket/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasestorage::DefaultBucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Bucket
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bucket with FirebasestorageProjectsBucketsAddFirebaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsBucketsAddFirebaseArgs> for Bucket {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasestorageProjectsBucketsAddFirebaseArgs,
+    ) -> String {
+        format!("gcp::firebasestorage::Bucket/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasestorage::Bucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Bucket
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bucket with FirebasestorageProjectsBucketsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsBucketsGetArgs> for Bucket {
+    fn generate_resource_id(&self, input: &FirebasestorageProjectsBucketsGetArgs) -> String {
+        format!("gcp::firebasestorage::Bucket/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasestorage::Bucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBucketsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBucketsResponse with FirebasestorageProjectsBucketsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsBucketsListArgs> for ListBucketsResponse {
+    fn generate_resource_id(&self, input: &FirebasestorageProjectsBucketsListArgs) -> String {
+        format!("gcp::firebasestorage::ListBucketsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasestorage::ListBucketsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with FirebasestorageProjectsBucketsRemoveFirebaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsBucketsRemoveFirebaseArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasestorageProjectsBucketsRemoveFirebaseArgs,
+    ) -> String {
+        format!("gcp::firebasestorage::Empty/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasestorage::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DefaultBucket
+// =============================================================================
+
+/// ResourceIdentifier implementation for DefaultBucket with FirebasestorageProjectsDefaultBucketCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsDefaultBucketCreateArgs> for DefaultBucket {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasestorageProjectsDefaultBucketCreateArgs,
+    ) -> String {
+        format!("gcp::firebasestorage::DefaultBucket/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::firebasestorage::DefaultBucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -1968,7 +1968,7 @@
       }
     }
   },
-  "revision": "20260218",
+  "revision": "20260405",
   "rootUrl": "https://cloudresourcemanager.googleapis.com/",
   "schemas": {
     "AuditConfig": {

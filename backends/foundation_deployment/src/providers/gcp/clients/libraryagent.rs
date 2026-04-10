@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -31,7 +31,7 @@ pub fn libraryagent_shelves_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://libraryagent.googleapis.com/v1/shelves/{}",);
+    let endpoint_url = format!("https://libraryagent.googleapis.com/v1/shelves/{}", name,);
 
     // Build request
     let builder = client
@@ -190,8 +190,8 @@ pub fn libraryagent_shelves_get(
 
 pub fn libraryagent_shelves_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://libraryagent.googleapis.com/v1/shelves",);
@@ -331,9 +331,9 @@ pub fn libraryagent_shelves_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct LibraryagentShelvesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/shelves
@@ -362,6 +362,336 @@ pub fn libraryagent_shelves_list(
     libraryagent_shelves_list_execute(builder)
 }
 
+/// POST v1/shelves/{shelvesId}/books/{booksId}:borrow
+/// Borrow a book from the library. Returns the book if it is borrowed successfully. Returns NOT_FOUND if the book does not exist in the library. Returns quota exceeded error if the amount of books borrowed exceeds allocation quota in any dimensions.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `libraryagent_shelves_books_borrow_execute()` to send, or `libraryagent_shelves_books_borrow` for simplest API.
+
+pub fn libraryagent_shelves_books_borrow_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://libraryagent.googleapis.com/v1/shelves/{}/books/{booksId}:borrow",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/shelves/{shelvesId}/books/{booksId}:borrow
+/// Borrow a book from the library. Returns the book if it is borrowed successfully. Returns NOT_FOUND if the book does not exist in the library. Returns quota exceeded error if the amount of books borrowed exceeds allocation quota in any dimensions.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `libraryagent_shelves_books_borrow_execute()` or `libraryagent_shelves_books_borrow`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `libraryagent_shelves_books_borrow_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn libraryagent_shelves_books_borrow_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleExampleLibraryagentV1Book = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/shelves/{shelvesId}/books/{booksId}:borrow
+/// Borrow a book from the library. Returns the book if it is borrowed successfully. Returns NOT_FOUND if the book does not exist in the library. Returns quota exceeded error if the amount of books borrowed exceeds allocation quota in any dimensions.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `libraryagent_shelves_books_borrow_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `libraryagent_shelves_books_borrow_task()`.
+/// For the simplest API, use `libraryagent_shelves_books_borrow()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `libraryagent_shelves_books_borrow_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn libraryagent_shelves_books_borrow_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = libraryagent_shelves_books_borrow_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`libraryagent_shelves_books_borrow`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LibraryagentShelvesBooksBorrowArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/shelves/{shelvesId}/books/{booksId}:borrow
+/// Borrow a book from the library. Returns the book if it is borrowed successfully. Returns NOT_FOUND if the book does not exist in the library. Returns quota exceeded error if the amount of books borrowed exceeds allocation quota in any dimensions.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `libraryagent_shelves_books_borrow_builder()` + `libraryagent_shelves_books_borrow_execute()`.
+/// For task-level control, use `libraryagent_shelves_books_borrow_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn libraryagent_shelves_books_borrow(
+    client: &SimpleHttpClient,
+    args: &LibraryagentShelvesBooksBorrowArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = libraryagent_shelves_books_borrow_builder(client, &args.name)?;
+    libraryagent_shelves_books_borrow_execute(builder)
+}
+
+/// GET v1/shelves/{shelvesId}/books/{booksId}
+/// Gets a book. Returns NOT_FOUND if the book does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `libraryagent_shelves_books_get_execute()` to send, or `libraryagent_shelves_books_get` for simplest API.
+
+pub fn libraryagent_shelves_books_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://libraryagent.googleapis.com/v1/shelves/{}/books/{booksId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/shelves/{shelvesId}/books/{booksId}
+/// Gets a book. Returns NOT_FOUND if the book does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `libraryagent_shelves_books_get_execute()` or `libraryagent_shelves_books_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `libraryagent_shelves_books_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn libraryagent_shelves_books_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleExampleLibraryagentV1Book = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/shelves/{shelvesId}/books/{booksId}
+/// Gets a book. Returns NOT_FOUND if the book does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `libraryagent_shelves_books_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `libraryagent_shelves_books_get_task()`.
+/// For the simplest API, use `libraryagent_shelves_books_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `libraryagent_shelves_books_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn libraryagent_shelves_books_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = libraryagent_shelves_books_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`libraryagent_shelves_books_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LibraryagentShelvesBooksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/shelves/{shelvesId}/books/{booksId}
+/// Gets a book. Returns NOT_FOUND if the book does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `libraryagent_shelves_books_get_builder()` + `libraryagent_shelves_books_get_execute()`.
+/// For task-level control, use `libraryagent_shelves_books_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn libraryagent_shelves_books_get(
+    client: &SimpleHttpClient,
+    args: &LibraryagentShelvesBooksGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = libraryagent_shelves_books_get_builder(client, &args.name)?;
+    libraryagent_shelves_books_get_execute(builder)
+}
+
 /// GET v1/shelves/{shelvesId}/books
 /// Lists books in a shelf. The order is unspecified but deterministic. Newly created books will not necessarily be added to the end of this list. Returns NOT_FOUND if the shelf does not exist.
 ///
@@ -371,11 +701,14 @@ pub fn libraryagent_shelves_list(
 pub fn libraryagent_shelves_books_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://libraryagent.googleapis.com/v1/shelves/{}/books",);
+    let endpoint_url = format!(
+        "https://libraryagent.googleapis.com/v1/shelves/{}/books",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -514,9 +847,9 @@ pub struct LibraryagentShelvesBooksListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/shelves/{shelvesId}/books
@@ -548,4 +881,326 @@ pub fn libraryagent_shelves_books_list(
         &args.pageToken,
     )?;
     libraryagent_shelves_books_list_execute(builder)
+}
+
+/// POST v1/shelves/{shelvesId}/books/{booksId}:return
+/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn't borrow before.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `libraryagent_shelves_books_return_execute()` to send, or `libraryagent_shelves_books_return` for simplest API.
+
+pub fn libraryagent_shelves_books_return_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://libraryagent.googleapis.com/v1/shelves/{}/books/{booksId}:return",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/shelves/{shelvesId}/books/{booksId}:return
+/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn't borrow before.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `libraryagent_shelves_books_return_execute()` or `libraryagent_shelves_books_return`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `libraryagent_shelves_books_return_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn libraryagent_shelves_books_return_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleExampleLibraryagentV1Book = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/shelves/{shelvesId}/books/{booksId}:return
+/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn't borrow before.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `libraryagent_shelves_books_return_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `libraryagent_shelves_books_return_task()`.
+/// For the simplest API, use `libraryagent_shelves_books_return()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `libraryagent_shelves_books_return_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn libraryagent_shelves_books_return_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = libraryagent_shelves_books_return_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`libraryagent_shelves_books_return`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LibraryagentShelvesBooksReturnArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/shelves/{shelvesId}/books/{booksId}:return
+/// Return a book to the library. Returns the book if it is returned to the library successfully. Returns error if the book does not belong to the library or the users didn't borrow before.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `libraryagent_shelves_books_return_builder()` + `libraryagent_shelves_books_return_execute()`.
+/// For task-level control, use `libraryagent_shelves_books_return_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn libraryagent_shelves_books_return(
+    client: &SimpleHttpClient,
+    args: &LibraryagentShelvesBooksReturnArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleExampleLibraryagentV1Book>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = libraryagent_shelves_books_return_builder(client, &args.name)?;
+    libraryagent_shelves_books_return_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleExampleLibraryagentV1Shelf
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleExampleLibraryagentV1Shelf with LibraryagentShelvesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LibraryagentShelvesGetArgs> for GoogleExampleLibraryagentV1Shelf {
+    fn generate_resource_id(&self, input: &LibraryagentShelvesGetArgs) -> String {
+        format!(
+            "gcp::libraryagent::GoogleExampleLibraryagentV1Shelf/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::libraryagent::GoogleExampleLibraryagentV1Shelf"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleExampleLibraryagentV1ListShelvesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleExampleLibraryagentV1ListShelvesResponse with LibraryagentShelvesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LibraryagentShelvesListArgs>
+    for GoogleExampleLibraryagentV1ListShelvesResponse
+{
+    fn generate_resource_id(&self, input: &LibraryagentShelvesListArgs) -> String {
+        "gcp::libraryagent::GoogleExampleLibraryagentV1ListShelvesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::libraryagent::GoogleExampleLibraryagentV1ListShelvesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleExampleLibraryagentV1Book
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleExampleLibraryagentV1Book with LibraryagentShelvesBooksBorrowArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LibraryagentShelvesBooksBorrowArgs> for GoogleExampleLibraryagentV1Book {
+    fn generate_resource_id(&self, input: &LibraryagentShelvesBooksBorrowArgs) -> String {
+        format!(
+            "gcp::libraryagent::GoogleExampleLibraryagentV1Book/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::libraryagent::GoogleExampleLibraryagentV1Book"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleExampleLibraryagentV1Book
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleExampleLibraryagentV1Book with LibraryagentShelvesBooksGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LibraryagentShelvesBooksGetArgs> for GoogleExampleLibraryagentV1Book {
+    fn generate_resource_id(&self, input: &LibraryagentShelvesBooksGetArgs) -> String {
+        format!(
+            "gcp::libraryagent::GoogleExampleLibraryagentV1Book/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::libraryagent::GoogleExampleLibraryagentV1Book"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleExampleLibraryagentV1ListBooksResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleExampleLibraryagentV1ListBooksResponse with LibraryagentShelvesBooksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LibraryagentShelvesBooksListArgs>
+    for GoogleExampleLibraryagentV1ListBooksResponse
+{
+    fn generate_resource_id(&self, input: &LibraryagentShelvesBooksListArgs) -> String {
+        format!(
+            "gcp::libraryagent::GoogleExampleLibraryagentV1ListBooksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::libraryagent::GoogleExampleLibraryagentV1ListBooksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleExampleLibraryagentV1Book
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleExampleLibraryagentV1Book with LibraryagentShelvesBooksReturnArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LibraryagentShelvesBooksReturnArgs> for GoogleExampleLibraryagentV1Book {
+    fn generate_resource_id(&self, input: &LibraryagentShelvesBooksReturnArgs) -> String {
+        format!(
+            "gcp::libraryagent::GoogleExampleLibraryagentV1Book/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::libraryagent::GoogleExampleLibraryagentV1Book"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

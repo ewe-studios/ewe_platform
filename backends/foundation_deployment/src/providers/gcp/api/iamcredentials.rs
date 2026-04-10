@@ -12,18 +12,27 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::iamcredentials::{
+    iamcredentials_locations_workforce_pools_get_allowed_locations_builder, iamcredentials_locations_workforce_pools_get_allowed_locations_task,
+    iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations_builder, iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations_task,
     iamcredentials_projects_service_accounts_generate_access_token_builder, iamcredentials_projects_service_accounts_generate_access_token_task,
     iamcredentials_projects_service_accounts_generate_id_token_builder, iamcredentials_projects_service_accounts_generate_id_token_task,
+    iamcredentials_projects_service_accounts_get_allowed_locations_builder, iamcredentials_projects_service_accounts_get_allowed_locations_task,
     iamcredentials_projects_service_accounts_sign_blob_builder, iamcredentials_projects_service_accounts_sign_blob_task,
     iamcredentials_projects_service_accounts_sign_jwt_builder, iamcredentials_projects_service_accounts_sign_jwt_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::iamcredentials::GenerateAccessTokenResponse;
 use crate::providers::gcp::clients::iamcredentials::GenerateIdTokenResponse;
+use crate::providers::gcp::clients::iamcredentials::ServiceAccountAllowedLocations;
 use crate::providers::gcp::clients::iamcredentials::SignBlobResponse;
 use crate::providers::gcp::clients::iamcredentials::SignJwtResponse;
+use crate::providers::gcp::clients::iamcredentials::WorkforcePoolAllowedLocations;
+use crate::providers::gcp::clients::iamcredentials::WorkloadIdentityPoolAllowedLocations;
+use crate::providers::gcp::clients::iamcredentials::IamcredentialsLocationsWorkforcePoolsGetAllowedLocationsArgs;
+use crate::providers::gcp::clients::iamcredentials::IamcredentialsProjectsLocationsWorkloadIdentityPoolsGetAllowedLocationsArgs;
 use crate::providers::gcp::clients::iamcredentials::IamcredentialsProjectsServiceAccountsGenerateAccessTokenArgs;
 use crate::providers::gcp::clients::iamcredentials::IamcredentialsProjectsServiceAccountsGenerateIdTokenArgs;
+use crate::providers::gcp::clients::iamcredentials::IamcredentialsProjectsServiceAccountsGetAllowedLocationsArgs;
 use crate::providers::gcp::clients::iamcredentials::IamcredentialsProjectsServiceAccountsSignBlobArgs;
 use crate::providers::gcp::clients::iamcredentials::IamcredentialsProjectsServiceAccountsSignJwtArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -65,6 +74,82 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Iamcredentials locations workforce pools get allowed locations.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the WorkforcePoolAllowedLocations result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn iamcredentials_locations_workforce_pools_get_allowed_locations(
+        &self,
+        args: &IamcredentialsLocationsWorkforcePoolsGetAllowedLocationsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<WorkforcePoolAllowedLocations, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = iamcredentials_locations_workforce_pools_get_allowed_locations_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = iamcredentials_locations_workforce_pools_get_allowed_locations_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Iamcredentials projects locations workload identity pools get allowed locations.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the WorkloadIdentityPoolAllowedLocations result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations(
+        &self,
+        args: &IamcredentialsProjectsLocationsWorkloadIdentityPoolsGetAllowedLocationsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<WorkloadIdentityPoolAllowedLocations, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = iamcredentials_projects_locations_workload_identity_pools_get_allowed_locations_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Iamcredentials projects service accounts generate access token.
@@ -151,6 +236,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Iamcredentials projects service accounts get allowed locations.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ServiceAccountAllowedLocations result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn iamcredentials_projects_service_accounts_get_allowed_locations(
+        &self,
+        args: &IamcredentialsProjectsServiceAccountsGetAllowedLocationsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ServiceAccountAllowedLocations, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = iamcredentials_projects_service_accounts_get_allowed_locations_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = iamcredentials_projects_service_accounts_get_allowed_locations_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Iamcredentials projects service accounts sign blob.

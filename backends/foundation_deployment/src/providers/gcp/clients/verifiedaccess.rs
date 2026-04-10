@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v2/challenge:generate
+/// POST v2/challenge:generate
 /// Generates a new challenge.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn verifiedaccess_challenge_generate_builder(
     client: &SimpleHttpClient,
-    body: &Empty,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://verifiedaccess.googleapis.com/v2/challenge:generate",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/challenge:generate
+/// POST v2/challenge:generate
 /// Generates a new challenge.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn verifiedaccess_challenge_generate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/challenge:generate
+/// POST v2/challenge:generate
 /// Generates a new challenge.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -147,14 +144,7 @@ pub fn verifiedaccess_challenge_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`verifiedaccess_challenge_generate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VerifiedaccessChallengeGenerateArgs {
-    /// Request body.
-    pub body: Empty,
-}
-
-/// GET v2/challenge:generate
+/// POST v2/challenge:generate
 /// Generates a new challenge.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -167,16 +157,15 @@ pub struct VerifiedaccessChallengeGenerateArgs {
 
 pub fn verifiedaccess_challenge_generate(
     client: &SimpleHttpClient,
-    args: &VerifiedaccessChallengeGenerateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Challenge>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = verifiedaccess_challenge_generate_builder(client, &args.body)?;
+    let builder = verifiedaccess_challenge_generate_builder(client)?;
     verifiedaccess_challenge_generate_execute(builder)
 }
 
-/// GET v2/challenge:verify
+/// POST v2/challenge:verify
 /// Verifies the challenge response.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -184,22 +173,19 @@ pub fn verifiedaccess_challenge_generate(
 
 pub fn verifiedaccess_challenge_verify_builder(
     client: &SimpleHttpClient,
-    body: &VerifyChallengeResponseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://verifiedaccess.googleapis.com/v2/challenge:verify",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/challenge:verify
+/// POST v2/challenge:verify
 /// Verifies the challenge response.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -273,7 +259,7 @@ pub fn verifiedaccess_challenge_verify_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/challenge:verify
+/// POST v2/challenge:verify
 /// Verifies the challenge response.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -307,14 +293,7 @@ pub fn verifiedaccess_challenge_verify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`verifiedaccess_challenge_verify`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct VerifiedaccessChallengeVerifyArgs {
-    /// Request body.
-    pub body: VerifyChallengeResponseRequest,
-}
-
-/// GET v2/challenge:verify
+/// POST v2/challenge:verify
 /// Verifies the challenge response.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -327,7 +306,6 @@ pub struct VerifiedaccessChallengeVerifyArgs {
 
 pub fn verifiedaccess_challenge_verify(
     client: &SimpleHttpClient,
-    args: &VerifiedaccessChallengeVerifyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<VerifyChallengeResponseResult>, ApiError>,
@@ -336,6 +314,52 @@ pub fn verifiedaccess_challenge_verify(
         + 'static,
     ApiError,
 > {
-    let builder = verifiedaccess_challenge_verify_builder(client, &args.body)?;
+    let builder = verifiedaccess_challenge_verify_builder(client)?;
     verifiedaccess_challenge_verify_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Challenge
+// =============================================================================
+
+/// ResourceIdentifier implementation for Challenge with VerifiedaccessChallengeGenerateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VerifiedaccessChallengeGenerateArgs> for Challenge {
+    fn generate_resource_id(&self, input: &VerifiedaccessChallengeGenerateArgs) -> String {
+        "gcp::verifiedaccess::Challenge".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::verifiedaccess::Challenge"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VerifyChallengeResponseResult
+// =============================================================================
+
+/// ResourceIdentifier implementation for VerifyChallengeResponseResult with VerifiedaccessChallengeVerifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VerifiedaccessChallengeVerifyArgs> for VerifyChallengeResponseResult {
+    fn generate_resource_id(&self, input: &VerifiedaccessChallengeVerifyArgs) -> String {
+        "gcp::verifiedaccess::VerifyChallengeResponseResult".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::verifiedaccess::VerifyChallengeResponseResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

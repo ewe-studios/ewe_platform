@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -31,7 +31,7 @@ pub fn adsense_accounts_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}",);
+    let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}", name,);
 
     // Build request
     let builder = client
@@ -185,8 +185,10 @@ pub fn adsense_accounts_get_ad_blocking_recovery_tag_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://adsense.googleapis.com/v2/accounts/{}/adBlockingRecoveryTag",);
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adBlockingRecoveryTag",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -341,8 +343,8 @@ pub fn adsense_accounts_get_ad_blocking_recovery_tag(
 
 pub fn adsense_accounts_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts",);
@@ -479,9 +481,9 @@ pub fn adsense_accounts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AdsenseAccountsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/accounts
@@ -517,11 +519,14 @@ pub fn adsense_accounts_list(
 pub fn adsense_accounts_list_child_accounts_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}:listChildAccounts",);
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}:listChildAccounts",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -657,9 +662,9 @@ pub struct AdsenseAccountsListChildAccountsArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/accounts/{accountsId}:listChildAccounts
@@ -691,6 +696,324 @@ pub fn adsense_accounts_list_child_accounts(
     adsense_accounts_list_child_accounts_execute(builder)
 }
 
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}
+/// Gets the ad client from the given resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_get_execute()` to send, or `adsense_accounts_adclients_get` for simplest API.
+
+pub fn adsense_accounts_adclients_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}
+/// Gets the ad client from the given resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_get_execute()` or `adsense_accounts_adclients_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdClient>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdClient = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}
+/// Gets the ad client from the given resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_get_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdClient>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}
+/// Gets the ad client from the given resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_get_builder()` + `adsense_accounts_adclients_get_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_get(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdClient>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_get_builder(client, &args.name)?;
+    adsense_accounts_adclients_get_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adcode
+/// Gets the AdSense code for a given ad client. This returns what was previously known as the 'auto ad code'. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_get_adcode_execute()` to send, or `adsense_accounts_adclients_get_adcode` for simplest API.
+
+pub fn adsense_accounts_adclients_get_adcode_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/adcode",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adcode
+/// Gets the AdSense code for a given ad client. This returns what was previously known as the 'auto ad code'. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_get_adcode_execute()` or `adsense_accounts_adclients_get_adcode`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_get_adcode_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_get_adcode_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdClientAdCode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdClientAdCode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adcode
+/// Gets the AdSense code for a given ad client. This returns what was previously known as the 'auto ad code'. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_get_adcode_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_get_adcode_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_get_adcode()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_get_adcode_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_get_adcode_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdClientAdCode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_get_adcode_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_get_adcode`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsGetAdcodeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adcode
+/// Gets the AdSense code for a given ad client. This returns what was previously known as the 'auto ad code'. This is only supported for ad clients with a product_code of AFC. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_get_adcode_builder()` + `adsense_accounts_adclients_get_adcode_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_get_adcode_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_get_adcode(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsGetAdcodeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdClientAdCode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_get_adcode_builder(client, &args.name)?;
+    adsense_accounts_adclients_get_adcode_execute(builder)
+}
+
 /// GET v2/accounts/{accountsId}/adclients
 /// Lists all the ad clients available in an account.
 ///
@@ -700,11 +1023,14 @@ pub fn adsense_accounts_list_child_accounts(
 pub fn adsense_accounts_adclients_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/adclients",);
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -840,9 +1166,9 @@ pub struct AdsenseAccountsAdclientsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/accounts/{accountsId}/adclients
@@ -874,6 +1200,2406 @@ pub fn adsense_accounts_adclients_list(
     adsense_accounts_adclients_list_execute(builder)
 }
 
+/// POST v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
+/// Creates an ad unit. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method. Note that ad units can only be created for ad clients with an "AFC" product code. For more info see the [AdClient resource](/`adsense/management/reference/rest/v2/accounts`.adclients). For now, this method can only be used to create DISPLAY ad units. See: <https://support.google.`com/adsense/answer/9183566`>
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_adunits_create_execute()` to send, or `adsense_accounts_adclients_adunits_create` for simplest API.
+
+pub fn adsense_accounts_adclients_adunits_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/adunits",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
+/// Creates an ad unit. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method. Note that ad units can only be created for ad clients with an "AFC" product code. For more info see the [AdClient resource](/`adsense/management/reference/rest/v2/accounts`.adclients). For now, this method can only be used to create DISPLAY ad units. See: <https://support.google.`com/adsense/answer/9183566`>
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_adunits_create_execute()` or `adsense_accounts_adclients_adunits_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdUnit>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdUnit = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
+/// Creates an ad unit. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method. Note that ad units can only be created for ad clients with an "AFC" product code. For more info see the [AdClient resource](/`adsense/management/reference/rest/v2/accounts`.adclients). For now, this method can only be used to create DISPLAY ad units. See: <https://support.google.`com/adsense/answer/9183566`>
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_adunits_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_adunits_create_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_adunits_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_adunits_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdUnit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_adunits_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_adunits_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
+/// Creates an ad unit. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method. Note that ad units can only be created for ad clients with an "AFC" product code. For more info see the [AdClient resource](/`adsense/management/reference/rest/v2/accounts`.adclients). For now, this method can only be used to create DISPLAY ad units. See: <https://support.google.`com/adsense/answer/9183566`>
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_adunits_create_builder()` + `adsense_accounts_adclients_adunits_create_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_adunits_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_create(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsAdunitsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdUnit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_adunits_create_builder(client, &args.parent)?;
+    adsense_accounts_adclients_adunits_create_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
+/// Gets an ad unit from a specified account and ad client.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_adunits_get_execute()` to send, or `adsense_accounts_adclients_adunits_get` for simplest API.
+
+pub fn adsense_accounts_adclients_adunits_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/adunits/{adunitsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
+/// Gets an ad unit from a specified account and ad client.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_adunits_get_execute()` or `adsense_accounts_adclients_adunits_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdUnit>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdUnit = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
+/// Gets an ad unit from a specified account and ad client.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_adunits_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_adunits_get_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_adunits_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_adunits_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdUnit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_adunits_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_adunits_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
+/// Gets an ad unit from a specified account and ad client.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_adunits_get_builder()` + `adsense_accounts_adclients_adunits_get_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_adunits_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_get(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsAdunitsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdUnit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_adunits_get_builder(client, &args.name)?;
+    adsense_accounts_adclients_adunits_get_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}/adcode
+/// Gets the ad unit code for a given ad unit. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>) and [Where to place the ad code in your HTML](<https://support.google.`com/adsense/answer/9190028`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_adunits_get_adcode_execute()` to send, or `adsense_accounts_adclients_adunits_get_adcode` for simplest API.
+
+pub fn adsense_accounts_adclients_adunits_get_adcode_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/adunits/{adunitsId}/adcode",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}/adcode
+/// Gets the ad unit code for a given ad unit. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>) and [Where to place the ad code in your HTML](<https://support.google.`com/adsense/answer/9190028`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_adunits_get_adcode_execute()` or `adsense_accounts_adclients_adunits_get_adcode`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_get_adcode_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_get_adcode_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdUnitAdCode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdUnitAdCode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}/adcode
+/// Gets the ad unit code for a given ad unit. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>) and [Where to place the ad code in your HTML](<https://support.google.`com/adsense/answer/9190028`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_adunits_get_adcode_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_adunits_get_adcode_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_adunits_get_adcode()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_get_adcode_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_adunits_get_adcode_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdUnitAdCode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_adunits_get_adcode_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_adunits_get_adcode`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsGetAdcodeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}/adcode
+/// Gets the ad unit code for a given ad unit. For more information, see [About the AdSense code](<https://support.google.`com/adsense/answer/9274634`>) and [Where to place the ad code in your HTML](<https://support.google.`com/adsense/answer/9190028`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_adunits_get_adcode_builder()` + `adsense_accounts_adclients_adunits_get_adcode_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_adunits_get_adcode_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_get_adcode(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsAdunitsGetAdcodeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdUnitAdCode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_adunits_get_adcode_builder(client, &args.name)?;
+    adsense_accounts_adclients_adunits_get_adcode_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
+/// Lists all ad units under a specified account and ad client.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_adunits_list_execute()` to send, or `adsense_accounts_adclients_adunits_list` for simplest API.
+
+pub fn adsense_accounts_adclients_adunits_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/adunits",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
+/// Lists all ad units under a specified account and ad client.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_adunits_list_execute()` or `adsense_accounts_adclients_adunits_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdUnitsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdUnitsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
+/// Lists all ad units under a specified account and ad client.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_adunits_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_adunits_list_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_adunits_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_adunits_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAdUnitsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_adunits_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_adunits_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits
+/// Lists all ad units under a specified account and ad client.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_adunits_list_builder()` + `adsense_accounts_adclients_adunits_list_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_adunits_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_list(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsAdunitsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAdUnitsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_adunits_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    adsense_accounts_adclients_adunits_list_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}:listLinkedCustomChannels
+/// Lists all the custom channels available for an ad unit.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_adunits_list_linked_custom_channels_execute()` to send, or `adsense_accounts_adclients_adunits_list_linked_custom_channels` for simplest API.
+
+pub fn adsense_accounts_adclients_adunits_list_linked_custom_channels_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/adunits/{adunitsId}:listLinkedCustomChannels",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}:listLinkedCustomChannels
+/// Lists all the custom channels available for an ad unit.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_adunits_list_linked_custom_channels_execute()` or `adsense_accounts_adclients_adunits_list_linked_custom_channels`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_list_linked_custom_channels_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_list_linked_custom_channels_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLinkedCustomChannelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLinkedCustomChannelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}:listLinkedCustomChannels
+/// Lists all the custom channels available for an ad unit.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_adunits_list_linked_custom_channels_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_adunits_list_linked_custom_channels_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_adunits_list_linked_custom_channels()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_list_linked_custom_channels_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_adunits_list_linked_custom_channels_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLinkedCustomChannelsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_adunits_list_linked_custom_channels_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_adunits_list_linked_custom_channels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsListLinkedCustomChannelsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}:listLinkedCustomChannels
+/// Lists all the custom channels available for an ad unit.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_adunits_list_linked_custom_channels_builder()` + `adsense_accounts_adclients_adunits_list_linked_custom_channels_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_adunits_list_linked_custom_channels_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_list_linked_custom_channels(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsAdunitsListLinkedCustomChannelsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLinkedCustomChannelsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_adunits_list_linked_custom_channels_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    adsense_accounts_adclients_adunits_list_linked_custom_channels_execute(builder)
+}
+
+/// PATCH v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
+/// Updates an ad unit. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method. For now, this method can only be used to update DISPLAY ad units. See: <https://support.google.`com/adsense/answer/9183566`>
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_adunits_patch_execute()` to send, or `adsense_accounts_adclients_adunits_patch` for simplest API.
+
+pub fn adsense_accounts_adclients_adunits_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/adunits/{adunitsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
+/// Updates an ad unit. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method. For now, this method can only be used to update DISPLAY ad units. See: <https://support.google.`com/adsense/answer/9183566`>
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_adunits_patch_execute()` or `adsense_accounts_adclients_adunits_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdUnit>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdUnit = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
+/// Updates an ad unit. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method. For now, this method can only be used to update DISPLAY ad units. See: <https://support.google.`com/adsense/answer/9183566`>
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_adunits_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_adunits_patch_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_adunits_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_adunits_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_adunits_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdUnit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_adunits_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_adunits_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsAdunitsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/accounts/{accountsId}/adclients/{adclientsId}/adunits/{adunitsId}
+/// Updates an ad unit. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method. For now, this method can only be used to update DISPLAY ad units. See: <https://support.google.`com/adsense/answer/9183566`>
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_adunits_patch_builder()` + `adsense_accounts_adclients_adunits_patch_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_adunits_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_adunits_patch(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsAdunitsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdUnit>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        adsense_accounts_adclients_adunits_patch_builder(client, &args.name, &args.updateMask)?;
+    adsense_accounts_adclients_adunits_patch_execute(builder)
+}
+
+/// POST v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
+/// Creates a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_customchannels_create_execute()` to send, or `adsense_accounts_adclients_customchannels_create` for simplest API.
+
+pub fn adsense_accounts_adclients_customchannels_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/customchannels",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
+/// Creates a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_customchannels_create_execute()` or `adsense_accounts_adclients_customchannels_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomChannel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CustomChannel = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
+/// Creates a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_customchannels_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_create_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_customchannels_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_customchannels_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomChannel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_customchannels_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_customchannels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
+/// Creates a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_customchannels_create_builder()` + `adsense_accounts_adclients_customchannels_create_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_create(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsCustomchannelsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomChannel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_customchannels_create_builder(client, &args.parent)?;
+    adsense_accounts_adclients_customchannels_create_execute(builder)
+}
+
+/// DELETE v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Deletes a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_customchannels_delete_execute()` to send, or `adsense_accounts_adclients_customchannels_delete` for simplest API.
+
+pub fn adsense_accounts_adclients_customchannels_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/customchannels/{customchannelsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Deletes a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_customchannels_delete_execute()` or `adsense_accounts_adclients_customchannels_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Deletes a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_customchannels_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_delete_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_customchannels_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_customchannels_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_customchannels_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_customchannels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Deletes a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_customchannels_delete_builder()` + `adsense_accounts_adclients_customchannels_delete_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_delete(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsCustomchannelsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_customchannels_delete_builder(client, &args.name)?;
+    adsense_accounts_adclients_customchannels_delete_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Gets information about the selected custom channel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_customchannels_get_execute()` to send, or `adsense_accounts_adclients_customchannels_get` for simplest API.
+
+pub fn adsense_accounts_adclients_customchannels_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/customchannels/{customchannelsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Gets information about the selected custom channel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_customchannels_get_execute()` or `adsense_accounts_adclients_customchannels_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomChannel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CustomChannel = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Gets information about the selected custom channel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_customchannels_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_get_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_customchannels_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_customchannels_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomChannel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_customchannels_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_customchannels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Gets information about the selected custom channel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_customchannels_get_builder()` + `adsense_accounts_adclients_customchannels_get_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_get(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsCustomchannelsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomChannel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_customchannels_get_builder(client, &args.name)?;
+    adsense_accounts_adclients_customchannels_get_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
+/// Lists all the custom channels available in an ad client.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_customchannels_list_execute()` to send, or `adsense_accounts_adclients_customchannels_list` for simplest API.
+
+pub fn adsense_accounts_adclients_customchannels_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/customchannels",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
+/// Lists all the custom channels available in an ad client.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_customchannels_list_execute()` or `adsense_accounts_adclients_customchannels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCustomChannelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCustomChannelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
+/// Lists all the custom channels available in an ad client.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_customchannels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_list_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_customchannels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_customchannels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCustomChannelsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_customchannels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_customchannels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels
+/// Lists all the custom channels available in an ad client.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_customchannels_list_builder()` + `adsense_accounts_adclients_customchannels_list_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_list(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsCustomchannelsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCustomChannelsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_customchannels_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    adsense_accounts_adclients_customchannels_list_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}:listLinkedAdUnits
+/// Lists all the ad units available for a custom channel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_customchannels_list_linked_ad_units_execute()` to send, or `adsense_accounts_adclients_customchannels_list_linked_ad_units` for simplest API.
+
+pub fn adsense_accounts_adclients_customchannels_list_linked_ad_units_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/customchannels/{customchannelsId}:listLinkedAdUnits",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}:listLinkedAdUnits
+/// Lists all the ad units available for a custom channel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_customchannels_list_linked_ad_units_execute()` or `adsense_accounts_adclients_customchannels_list_linked_ad_units`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_list_linked_ad_units_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_list_linked_ad_units_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLinkedAdUnitsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLinkedAdUnitsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}:listLinkedAdUnits
+/// Lists all the ad units available for a custom channel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_customchannels_list_linked_ad_units_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_list_linked_ad_units_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_customchannels_list_linked_ad_units()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_list_linked_ad_units_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_customchannels_list_linked_ad_units_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLinkedAdUnitsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_customchannels_list_linked_ad_units_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_customchannels_list_linked_ad_units`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsListLinkedAdUnitsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}:listLinkedAdUnits
+/// Lists all the ad units available for a custom channel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_customchannels_list_linked_ad_units_builder()` + `adsense_accounts_adclients_customchannels_list_linked_ad_units_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_list_linked_ad_units_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_list_linked_ad_units(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsCustomchannelsListLinkedAdUnitsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLinkedAdUnitsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_customchannels_list_linked_ad_units_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    adsense_accounts_adclients_customchannels_list_linked_ad_units_execute(builder)
+}
+
+/// PATCH v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Updates a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_customchannels_patch_execute()` to send, or `adsense_accounts_adclients_customchannels_patch` for simplest API.
+
+pub fn adsense_accounts_adclients_customchannels_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/customchannels/{customchannelsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Updates a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_customchannels_patch_execute()` or `adsense_accounts_adclients_customchannels_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomChannel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CustomChannel = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Updates a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_customchannels_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_patch_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_customchannels_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_customchannels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_customchannels_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomChannel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_customchannels_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_customchannels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsCustomchannelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/accounts/{accountsId}/adclients/{adclientsId}/customchannels/{customchannelsId}
+/// Updates a custom channel. This method can be called only by a restricted set of projects, which are usually owned by [AdSense for Platforms](<https://developers.google.`com/adsense/platforms/`>) publishers. Contact your account manager if you need to use this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_customchannels_patch_builder()` + `adsense_accounts_adclients_customchannels_patch_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_customchannels_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_customchannels_patch(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsCustomchannelsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomChannel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_customchannels_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    adsense_accounts_adclients_customchannels_patch_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels/{urlchannelsId}
+/// Gets information about the selected url channel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_urlchannels_get_execute()` to send, or `adsense_accounts_adclients_urlchannels_get` for simplest API.
+
+pub fn adsense_accounts_adclients_urlchannels_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/urlchannels/{urlchannelsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels/{urlchannelsId}
+/// Gets information about the selected url channel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_urlchannels_get_execute()` or `adsense_accounts_adclients_urlchannels_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_urlchannels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_urlchannels_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UrlChannel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UrlChannel = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels/{urlchannelsId}
+/// Gets information about the selected url channel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_urlchannels_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_urlchannels_get_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_urlchannels_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_urlchannels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_urlchannels_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UrlChannel>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_urlchannels_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_urlchannels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsUrlchannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels/{urlchannelsId}
+/// Gets information about the selected url channel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_urlchannels_get_builder()` + `adsense_accounts_adclients_urlchannels_get_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_urlchannels_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_urlchannels_get(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsUrlchannelsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UrlChannel>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_urlchannels_get_builder(client, &args.name)?;
+    adsense_accounts_adclients_urlchannels_get_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels
+/// Lists active url channels.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_adclients_urlchannels_list_execute()` to send, or `adsense_accounts_adclients_urlchannels_list` for simplest API.
+
+pub fn adsense_accounts_adclients_urlchannels_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/adclients/{adclientsId}/urlchannels",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels
+/// Lists active url channels.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_adclients_urlchannels_list_execute()` or `adsense_accounts_adclients_urlchannels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_urlchannels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_urlchannels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUrlChannelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUrlChannelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels
+/// Lists active url channels.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_adclients_urlchannels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_adclients_urlchannels_list_task()`.
+/// For the simplest API, use `adsense_accounts_adclients_urlchannels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_adclients_urlchannels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_adclients_urlchannels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUrlChannelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_adclients_urlchannels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_adclients_urlchannels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsAdclientsUrlchannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/accounts/{accountsId}/adclients/{adclientsId}/urlchannels
+/// Lists active url channels.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_adclients_urlchannels_list_builder()` + `adsense_accounts_adclients_urlchannels_list_execute()`.
+/// For task-level control, use `adsense_accounts_adclients_urlchannels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_adclients_urlchannels_list(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsAdclientsUrlchannelsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUrlChannelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_adclients_urlchannels_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    adsense_accounts_adclients_urlchannels_list_execute(builder)
+}
+
 /// GET v2/accounts/{accountsId}/alerts
 /// Lists all the alerts available in an account.
 ///
@@ -883,10 +3609,13 @@ pub fn adsense_accounts_adclients_list(
 pub fn adsense_accounts_alerts_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    languageCode: &Option<String>,
+    languageCode: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/alerts",);
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/alerts",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1019,7 +3748,7 @@ pub struct AdsenseAccountsAlertsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
 }
 
 /// GET v2/accounts/{accountsId}/alerts
@@ -1057,7 +3786,10 @@ pub fn adsense_accounts_payments_list_builder(
     parent: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/payments",);
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/payments",
+        parent,
+    );
 
     // Build request
     let builder = client
@@ -1204,6 +3936,163 @@ pub fn adsense_accounts_payments_list(
     adsense_accounts_payments_list_execute(builder)
 }
 
+/// GET v2/accounts/{accountsId}/policyIssues/{policyIssuesId}
+/// Gets information about the selected policy issue.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_policy_issues_get_execute()` to send, or `adsense_accounts_policy_issues_get` for simplest API.
+
+pub fn adsense_accounts_policy_issues_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/policyIssues/{policyIssuesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/policyIssues/{policyIssuesId}
+/// Gets information about the selected policy issue.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_policy_issues_get_execute()` or `adsense_accounts_policy_issues_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_policy_issues_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_policy_issues_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PolicyIssue>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PolicyIssue = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/policyIssues/{policyIssuesId}
+/// Gets information about the selected policy issue.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_policy_issues_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_policy_issues_get_task()`.
+/// For the simplest API, use `adsense_accounts_policy_issues_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_policy_issues_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_policy_issues_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PolicyIssue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_policy_issues_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_policy_issues_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsPolicyIssuesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/accounts/{accountsId}/policyIssues/{policyIssuesId}
+/// Gets information about the selected policy issue.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_policy_issues_get_builder()` + `adsense_accounts_policy_issues_get_execute()`.
+/// For task-level control, use `adsense_accounts_policy_issues_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_policy_issues_get(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsPolicyIssuesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PolicyIssue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_policy_issues_get_builder(client, &args.name)?;
+    adsense_accounts_policy_issues_get_execute(builder)
+}
+
 /// GET v2/accounts/{accountsId}/policyIssues
 /// Lists all the policy issues where the specified account is involved, both directly and through any AFP child accounts.
 ///
@@ -1213,11 +4102,14 @@ pub fn adsense_accounts_payments_list(
 pub fn adsense_accounts_policy_issues_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/policyIssues",);
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/policyIssues",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1353,9 +4245,9 @@ pub struct AdsenseAccountsPolicyIssuesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/accounts/{accountsId}/policyIssues
@@ -1396,24 +4288,27 @@ pub fn adsense_accounts_policy_issues_list(
 pub fn adsense_accounts_reports_generate_builder(
     client: &SimpleHttpClient,
     account: &String,
-    currencyCode: &Option<String>,
-    dateRange: &Option<String>,
-    dimensions: &Option<String>,
-    endDate_day: &Option<i32>,
-    endDate_month: &Option<i32>,
-    endDate_year: &Option<i32>,
-    filters: &Option<String>,
-    languageCode: &Option<String>,
-    limit: &Option<i32>,
-    metrics: &Option<String>,
-    orderBy: &Option<String>,
-    reportingTimeZone: &Option<String>,
-    startDate_day: &Option<i32>,
-    startDate_month: &Option<i32>,
-    startDate_year: &Option<i32>,
+    currencyCode: &Option<Option<String>>,
+    dateRange: &Option<Option<String>>,
+    dimensions: &Option<Option<String>>,
+    endDate_day: &Option<Option<String>>,
+    endDate_month: &Option<Option<String>>,
+    endDate_year: &Option<Option<String>>,
+    filters: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    metrics: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    reportingTimeZone: &Option<Option<String>>,
+    startDate_day: &Option<Option<String>>,
+    startDate_month: &Option<Option<String>>,
+    startDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/reports:generate",);
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/reports:generate",
+        account,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1588,35 +4483,35 @@ pub struct AdsenseAccountsReportsGenerateArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: currencyCode
-    pub currencyCode: Option<String>,
+    pub currencyCode: Option<Option<String>>,
     /// Query parameter: dateRange
-    pub dateRange: Option<String>,
+    pub dateRange: Option<Option<String>>,
     /// Query parameter: dimensions
-    pub dimensions: Option<String>,
+    pub dimensions: Option<Option<String>>,
     /// Query parameter: endDate_day
-    pub endDate_day: Option<i32>,
+    pub endDate_day: Option<Option<String>>,
     /// Query parameter: endDate_month
-    pub endDate_month: Option<i32>,
+    pub endDate_month: Option<Option<String>>,
     /// Query parameter: endDate_year
-    pub endDate_year: Option<i32>,
+    pub endDate_year: Option<Option<String>>,
     /// Query parameter: filters
-    pub filters: Option<String>,
+    pub filters: Option<Option<String>>,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: metrics
-    pub metrics: Option<String>,
+    pub metrics: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: reportingTimeZone
-    pub reportingTimeZone: Option<String>,
+    pub reportingTimeZone: Option<Option<String>>,
     /// Query parameter: startDate_day
-    pub startDate_day: Option<i32>,
+    pub startDate_day: Option<Option<String>>,
     /// Query parameter: startDate_month
-    pub startDate_month: Option<i32>,
+    pub startDate_month: Option<Option<String>>,
     /// Query parameter: startDate_year
-    pub startDate_year: Option<i32>,
+    pub startDate_year: Option<Option<String>>,
 }
 
 /// GET v2/accounts/{accountsId}/reports:generate
@@ -1670,25 +4565,27 @@ pub fn adsense_accounts_reports_generate(
 pub fn adsense_accounts_reports_generate_csv_builder(
     client: &SimpleHttpClient,
     account: &String,
-    currencyCode: &Option<String>,
-    dateRange: &Option<String>,
-    dimensions: &Option<String>,
-    endDate_day: &Option<i32>,
-    endDate_month: &Option<i32>,
-    endDate_year: &Option<i32>,
-    filters: &Option<String>,
-    languageCode: &Option<String>,
-    limit: &Option<i32>,
-    metrics: &Option<String>,
-    orderBy: &Option<String>,
-    reportingTimeZone: &Option<String>,
-    startDate_day: &Option<i32>,
-    startDate_month: &Option<i32>,
-    startDate_year: &Option<i32>,
+    currencyCode: &Option<Option<String>>,
+    dateRange: &Option<Option<String>>,
+    dimensions: &Option<Option<String>>,
+    endDate_day: &Option<Option<String>>,
+    endDate_month: &Option<Option<String>>,
+    endDate_year: &Option<Option<String>>,
+    filters: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
+    limit: &Option<Option<String>>,
+    metrics: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    reportingTimeZone: &Option<Option<String>>,
+    startDate_day: &Option<Option<String>>,
+    startDate_month: &Option<Option<String>>,
+    startDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://adsense.googleapis.com/v2/accounts/{}/reports:generateCsv",);
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/reports:generateCsv",
+        account,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1861,35 +4758,35 @@ pub struct AdsenseAccountsReportsGenerateCsvArgs {
     /// Path parameter: account
     pub account: String,
     /// Query parameter: currencyCode
-    pub currencyCode: Option<String>,
+    pub currencyCode: Option<Option<String>>,
     /// Query parameter: dateRange
-    pub dateRange: Option<String>,
+    pub dateRange: Option<Option<String>>,
     /// Query parameter: dimensions
-    pub dimensions: Option<String>,
+    pub dimensions: Option<Option<String>>,
     /// Query parameter: endDate_day
-    pub endDate_day: Option<i32>,
+    pub endDate_day: Option<Option<String>>,
     /// Query parameter: endDate_month
-    pub endDate_month: Option<i32>,
+    pub endDate_month: Option<Option<String>>,
     /// Query parameter: endDate_year
-    pub endDate_year: Option<i32>,
+    pub endDate_year: Option<Option<String>>,
     /// Query parameter: filters
-    pub filters: Option<String>,
+    pub filters: Option<Option<String>>,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: limit
-    pub limit: Option<i32>,
+    pub limit: Option<Option<String>>,
     /// Query parameter: metrics
-    pub metrics: Option<String>,
+    pub metrics: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: reportingTimeZone
-    pub reportingTimeZone: Option<String>,
+    pub reportingTimeZone: Option<Option<String>>,
     /// Query parameter: startDate_day
-    pub startDate_day: Option<i32>,
+    pub startDate_day: Option<Option<String>>,
     /// Query parameter: startDate_month
-    pub startDate_month: Option<i32>,
+    pub startDate_month: Option<Option<String>>,
     /// Query parameter: startDate_year
-    pub startDate_year: Option<i32>,
+    pub startDate_year: Option<Option<String>>,
 }
 
 /// GET v2/accounts/{accountsId}/reports:generateCsv
@@ -1932,6 +4829,643 @@ pub fn adsense_accounts_reports_generate_csv(
     adsense_accounts_reports_generate_csv_execute(builder)
 }
 
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved
+/// Gets the saved report from the given resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_reports_get_saved_execute()` to send, or `adsense_accounts_reports_get_saved` for simplest API.
+
+pub fn adsense_accounts_reports_get_saved_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/reports/{reportsId}/saved",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved
+/// Gets the saved report from the given resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_reports_get_saved_execute()` or `adsense_accounts_reports_get_saved`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_reports_get_saved_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_reports_get_saved_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SavedReport>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SavedReport = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved
+/// Gets the saved report from the given resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_reports_get_saved_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_reports_get_saved_task()`.
+/// For the simplest API, use `adsense_accounts_reports_get_saved()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_reports_get_saved_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_reports_get_saved_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SavedReport>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_reports_get_saved_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_reports_get_saved`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsReportsGetSavedArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved
+/// Gets the saved report from the given resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_reports_get_saved_builder()` + `adsense_accounts_reports_get_saved_execute()`.
+/// For task-level control, use `adsense_accounts_reports_get_saved_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_reports_get_saved(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsReportsGetSavedArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SavedReport>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_reports_get_saved_builder(client, &args.name)?;
+    adsense_accounts_reports_get_saved_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generate
+/// Generates a saved report.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_reports_saved_generate_execute()` to send, or `adsense_accounts_reports_saved_generate` for simplest API.
+
+pub fn adsense_accounts_reports_saved_generate_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    currencyCode: &Option<Option<String>>,
+    dateRange: &Option<Option<String>>,
+    endDate_day: &Option<Option<String>>,
+    endDate_month: &Option<Option<String>>,
+    endDate_year: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
+    reportingTimeZone: &Option<Option<String>>,
+    startDate_day: &Option<Option<String>>,
+    startDate_month: &Option<Option<String>>,
+    startDate_year: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/reports/{reportsId}/saved:generate",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = currencyCode.as_ref() {
+        query_parts.push(format!("currencyCode={}", val));
+    }
+    if let Some(val) = dateRange.as_ref() {
+        query_parts.push(format!("dateRange={}", val));
+    }
+    if let Some(val) = endDate_day.as_ref() {
+        query_parts.push(format!("endDate.day={}", val));
+    }
+    if let Some(val) = endDate_month.as_ref() {
+        query_parts.push(format!("endDate.month={}", val));
+    }
+    if let Some(val) = endDate_year.as_ref() {
+        query_parts.push(format!("endDate.year={}", val));
+    }
+    if let Some(val) = languageCode.as_ref() {
+        query_parts.push(format!("languageCode={}", val));
+    }
+    if let Some(val) = reportingTimeZone.as_ref() {
+        query_parts.push(format!("reportingTimeZone={}", val));
+    }
+    if let Some(val) = startDate_day.as_ref() {
+        query_parts.push(format!("startDate.day={}", val));
+    }
+    if let Some(val) = startDate_month.as_ref() {
+        query_parts.push(format!("startDate.month={}", val));
+    }
+    if let Some(val) = startDate_year.as_ref() {
+        query_parts.push(format!("startDate.year={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generate
+/// Generates a saved report.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_reports_saved_generate_execute()` or `adsense_accounts_reports_saved_generate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_reports_saved_generate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_reports_saved_generate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReportResult>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ReportResult = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generate
+/// Generates a saved report.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_reports_saved_generate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_reports_saved_generate_task()`.
+/// For the simplest API, use `adsense_accounts_reports_saved_generate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_reports_saved_generate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_reports_saved_generate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReportResult>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_reports_saved_generate_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_reports_saved_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsReportsSavedGenerateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: currencyCode
+    pub currencyCode: Option<Option<String>>,
+    /// Query parameter: dateRange
+    pub dateRange: Option<Option<String>>,
+    /// Query parameter: endDate_day
+    pub endDate_day: Option<Option<String>>,
+    /// Query parameter: endDate_month
+    pub endDate_month: Option<Option<String>>,
+    /// Query parameter: endDate_year
+    pub endDate_year: Option<Option<String>>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<Option<String>>,
+    /// Query parameter: reportingTimeZone
+    pub reportingTimeZone: Option<Option<String>>,
+    /// Query parameter: startDate_day
+    pub startDate_day: Option<Option<String>>,
+    /// Query parameter: startDate_month
+    pub startDate_month: Option<Option<String>>,
+    /// Query parameter: startDate_year
+    pub startDate_year: Option<Option<String>>,
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generate
+/// Generates a saved report.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_reports_saved_generate_builder()` + `adsense_accounts_reports_saved_generate_execute()`.
+/// For task-level control, use `adsense_accounts_reports_saved_generate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_reports_saved_generate(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsReportsSavedGenerateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ReportResult>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_reports_saved_generate_builder(
+        client,
+        &args.name,
+        &args.currencyCode,
+        &args.dateRange,
+        &args.endDate_day,
+        &args.endDate_month,
+        &args.endDate_year,
+        &args.languageCode,
+        &args.reportingTimeZone,
+        &args.startDate_day,
+        &args.startDate_month,
+        &args.startDate_year,
+    )?;
+    adsense_accounts_reports_saved_generate_execute(builder)
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generateCsv
+/// Generates a csv formatted saved report.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_reports_saved_generate_csv_execute()` to send, or `adsense_accounts_reports_saved_generate_csv` for simplest API.
+
+pub fn adsense_accounts_reports_saved_generate_csv_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    currencyCode: &Option<Option<String>>,
+    dateRange: &Option<Option<String>>,
+    endDate_day: &Option<Option<String>>,
+    endDate_month: &Option<Option<String>>,
+    endDate_year: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
+    reportingTimeZone: &Option<Option<String>>,
+    startDate_day: &Option<Option<String>>,
+    startDate_month: &Option<Option<String>>,
+    startDate_year: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/reports/{reportsId}/saved:generateCsv",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = currencyCode.as_ref() {
+        query_parts.push(format!("currencyCode={}", val));
+    }
+    if let Some(val) = dateRange.as_ref() {
+        query_parts.push(format!("dateRange={}", val));
+    }
+    if let Some(val) = endDate_day.as_ref() {
+        query_parts.push(format!("endDate.day={}", val));
+    }
+    if let Some(val) = endDate_month.as_ref() {
+        query_parts.push(format!("endDate.month={}", val));
+    }
+    if let Some(val) = endDate_year.as_ref() {
+        query_parts.push(format!("endDate.year={}", val));
+    }
+    if let Some(val) = languageCode.as_ref() {
+        query_parts.push(format!("languageCode={}", val));
+    }
+    if let Some(val) = reportingTimeZone.as_ref() {
+        query_parts.push(format!("reportingTimeZone={}", val));
+    }
+    if let Some(val) = startDate_day.as_ref() {
+        query_parts.push(format!("startDate.day={}", val));
+    }
+    if let Some(val) = startDate_month.as_ref() {
+        query_parts.push(format!("startDate.month={}", val));
+    }
+    if let Some(val) = startDate_year.as_ref() {
+        query_parts.push(format!("startDate.year={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generateCsv
+/// Generates a csv formatted saved report.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_reports_saved_generate_csv_execute()` or `adsense_accounts_reports_saved_generate_csv`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_reports_saved_generate_csv_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_reports_saved_generate_csv_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generateCsv
+/// Generates a csv formatted saved report.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_reports_saved_generate_csv_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_reports_saved_generate_csv_task()`.
+/// For the simplest API, use `adsense_accounts_reports_saved_generate_csv()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_reports_saved_generate_csv_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_reports_saved_generate_csv_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_reports_saved_generate_csv_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_reports_saved_generate_csv`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsReportsSavedGenerateCsvArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: currencyCode
+    pub currencyCode: Option<Option<String>>,
+    /// Query parameter: dateRange
+    pub dateRange: Option<Option<String>>,
+    /// Query parameter: endDate_day
+    pub endDate_day: Option<Option<String>>,
+    /// Query parameter: endDate_month
+    pub endDate_month: Option<Option<String>>,
+    /// Query parameter: endDate_year
+    pub endDate_year: Option<Option<String>>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<Option<String>>,
+    /// Query parameter: reportingTimeZone
+    pub reportingTimeZone: Option<Option<String>>,
+    /// Query parameter: startDate_day
+    pub startDate_day: Option<Option<String>>,
+    /// Query parameter: startDate_month
+    pub startDate_month: Option<Option<String>>,
+    /// Query parameter: startDate_year
+    pub startDate_year: Option<Option<String>>,
+}
+
+/// GET v2/accounts/{accountsId}/reports/{reportsId}/saved:generateCsv
+/// Generates a csv formatted saved report.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_reports_saved_generate_csv_builder()` + `adsense_accounts_reports_saved_generate_csv_execute()`.
+/// For task-level control, use `adsense_accounts_reports_saved_generate_csv_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_reports_saved_generate_csv(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsReportsSavedGenerateCsvArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_reports_saved_generate_csv_builder(
+        client,
+        &args.name,
+        &args.currencyCode,
+        &args.dateRange,
+        &args.endDate_day,
+        &args.endDate_month,
+        &args.endDate_year,
+        &args.languageCode,
+        &args.reportingTimeZone,
+        &args.startDate_day,
+        &args.startDate_month,
+        &args.startDate_year,
+    )?;
+    adsense_accounts_reports_saved_generate_csv_execute(builder)
+}
+
 /// GET v2/accounts/{accountsId}/reports/saved
 /// Lists saved reports.
 ///
@@ -1941,11 +5475,14 @@ pub fn adsense_accounts_reports_generate_csv(
 pub fn adsense_accounts_reports_saved_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/reports/saved",);
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/reports/saved",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2081,9 +5618,9 @@ pub struct AdsenseAccountsReportsSavedListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/accounts/{accountsId}/reports/saved
@@ -2115,6 +5652,163 @@ pub fn adsense_accounts_reports_saved_list(
     adsense_accounts_reports_saved_list_execute(builder)
 }
 
+/// GET v2/accounts/{accountsId}/sites/{sitesId}
+/// Gets information about the selected site.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `adsense_accounts_sites_get_execute()` to send, or `adsense_accounts_sites_get` for simplest API.
+
+pub fn adsense_accounts_sites_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/sites/{sitesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/accounts/{accountsId}/sites/{sitesId}
+/// Gets information about the selected site.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `adsense_accounts_sites_get_execute()` or `adsense_accounts_sites_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_sites_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_sites_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Site>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Site = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/accounts/{accountsId}/sites/{sitesId}
+/// Gets information about the selected site.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `adsense_accounts_sites_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `adsense_accounts_sites_get_task()`.
+/// For the simplest API, use `adsense_accounts_sites_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `adsense_accounts_sites_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn adsense_accounts_sites_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = adsense_accounts_sites_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`adsense_accounts_sites_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseAccountsSitesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/accounts/{accountsId}/sites/{sitesId}
+/// Gets information about the selected site.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `adsense_accounts_sites_get_builder()` + `adsense_accounts_sites_get_execute()`.
+/// For task-level control, use `adsense_accounts_sites_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn adsense_accounts_sites_get(
+    client: &SimpleHttpClient,
+    args: &AdsenseAccountsSitesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = adsense_accounts_sites_get_builder(client, &args.name)?;
+    adsense_accounts_sites_get_execute(builder)
+}
+
 /// GET v2/accounts/{accountsId}/sites
 /// Lists all the sites available in an account.
 ///
@@ -2124,11 +5818,14 @@ pub fn adsense_accounts_reports_saved_list(
 pub fn adsense_accounts_sites_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://adsense.googleapis.com/v2/accounts/{}/sites",);
+    let endpoint_url = format!(
+        "https://adsense.googleapis.com/v2/accounts/{}/sites",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2264,9 +5961,9 @@ pub struct AdsenseAccountsSitesListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/accounts/{accountsId}/sites
@@ -2292,4 +5989,793 @@ pub fn adsense_accounts_sites_list(
     let builder =
         adsense_accounts_sites_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
     adsense_accounts_sites_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Account
+// =============================================================================
+
+/// ResourceIdentifier implementation for Account with AdsenseAccountsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsGetArgs> for Account {
+    fn generate_resource_id(&self, input: &AdsenseAccountsGetArgs) -> String {
+        format!("gcp::adsense::Account/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdBlockingRecoveryTag
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdBlockingRecoveryTag with AdsenseAccountsGetAdBlockingRecoveryTagArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsGetAdBlockingRecoveryTagArgs> for AdBlockingRecoveryTag {
+    fn generate_resource_id(&self, input: &AdsenseAccountsGetAdBlockingRecoveryTagArgs) -> String {
+        format!("gcp::adsense::AdBlockingRecoveryTag/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::AdBlockingRecoveryTag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAccountsResponse with AdsenseAccountsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsListArgs> for ListAccountsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsListArgs) -> String {
+        "gcp::adsense::ListAccountsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListChildAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListChildAccountsResponse with AdsenseAccountsListChildAccountsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsListChildAccountsArgs> for ListChildAccountsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsListChildAccountsArgs) -> String {
+        format!("gcp::adsense::ListChildAccountsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListChildAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdClient
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdClient with AdsenseAccountsAdclientsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsGetArgs> for AdClient {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsGetArgs) -> String {
+        format!("gcp::adsense::AdClient/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::AdClient"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdClientAdCode
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdClientAdCode with AdsenseAccountsAdclientsGetAdcodeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsGetAdcodeArgs> for AdClientAdCode {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsGetAdcodeArgs) -> String {
+        format!("gcp::adsense::AdClientAdCode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::AdClientAdCode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdClientsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdClientsResponse with AdsenseAccountsAdclientsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsListArgs> for ListAdClientsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsListArgs) -> String {
+        format!("gcp::adsense::ListAdClientsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListAdClientsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdUnit
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdUnit with AdsenseAccountsAdclientsAdunitsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsAdunitsCreateArgs> for AdUnit {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsAdunitsCreateArgs) -> String {
+        format!("gcp::adsense::AdUnit/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::AdUnit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdUnit
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdUnit with AdsenseAccountsAdclientsAdunitsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsAdunitsGetArgs> for AdUnit {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsAdunitsGetArgs) -> String {
+        format!("gcp::adsense::AdUnit/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::AdUnit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdUnitAdCode
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdUnitAdCode with AdsenseAccountsAdclientsAdunitsGetAdcodeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsAdunitsGetAdcodeArgs> for AdUnitAdCode {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsAdunitsGetAdcodeArgs) -> String {
+        format!("gcp::adsense::AdUnitAdCode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::AdUnitAdCode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdUnitsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdUnitsResponse with AdsenseAccountsAdclientsAdunitsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsAdunitsListArgs> for ListAdUnitsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsAdunitsListArgs) -> String {
+        format!("gcp::adsense::ListAdUnitsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListAdUnitsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLinkedCustomChannelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLinkedCustomChannelsResponse with AdsenseAccountsAdclientsAdunitsListLinkedCustomChannelsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsAdunitsListLinkedCustomChannelsArgs>
+    for ListLinkedCustomChannelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsAdunitsListLinkedCustomChannelsArgs,
+    ) -> String {
+        format!(
+            "gcp::adsense::ListLinkedCustomChannelsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListLinkedCustomChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdUnit
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdUnit with AdsenseAccountsAdclientsAdunitsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsAdunitsPatchArgs> for AdUnit {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsAdunitsPatchArgs) -> String {
+        format!("gcp::adsense::AdUnit/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::AdUnit"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomChannel
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomChannel with AdsenseAccountsAdclientsCustomchannelsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsCustomchannelsCreateArgs> for CustomChannel {
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsCustomchannelsCreateArgs,
+    ) -> String {
+        format!("gcp::adsense::CustomChannel/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::CustomChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with AdsenseAccountsAdclientsCustomchannelsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsCustomchannelsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsCustomchannelsDeleteArgs,
+    ) -> String {
+        format!("gcp::adsense::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomChannel
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomChannel with AdsenseAccountsAdclientsCustomchannelsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsCustomchannelsGetArgs> for CustomChannel {
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsCustomchannelsGetArgs,
+    ) -> String {
+        format!("gcp::adsense::CustomChannel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::CustomChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCustomChannelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCustomChannelsResponse with AdsenseAccountsAdclientsCustomchannelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsCustomchannelsListArgs>
+    for ListCustomChannelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsCustomchannelsListArgs,
+    ) -> String {
+        format!("gcp::adsense::ListCustomChannelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListCustomChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLinkedAdUnitsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLinkedAdUnitsResponse with AdsenseAccountsAdclientsCustomchannelsListLinkedAdUnitsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsCustomchannelsListLinkedAdUnitsArgs>
+    for ListLinkedAdUnitsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsCustomchannelsListLinkedAdUnitsArgs,
+    ) -> String {
+        format!("gcp::adsense::ListLinkedAdUnitsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListLinkedAdUnitsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomChannel
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomChannel with AdsenseAccountsAdclientsCustomchannelsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsCustomchannelsPatchArgs> for CustomChannel {
+    fn generate_resource_id(
+        &self,
+        input: &AdsenseAccountsAdclientsCustomchannelsPatchArgs,
+    ) -> String {
+        format!("gcp::adsense::CustomChannel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::CustomChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UrlChannel
+// =============================================================================
+
+/// ResourceIdentifier implementation for UrlChannel with AdsenseAccountsAdclientsUrlchannelsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsUrlchannelsGetArgs> for UrlChannel {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsUrlchannelsGetArgs) -> String {
+        format!("gcp::adsense::UrlChannel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::UrlChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUrlChannelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUrlChannelsResponse with AdsenseAccountsAdclientsUrlchannelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAdclientsUrlchannelsListArgs> for ListUrlChannelsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAdclientsUrlchannelsListArgs) -> String {
+        format!("gcp::adsense::ListUrlChannelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListUrlChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAlertsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAlertsResponse with AdsenseAccountsAlertsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsAlertsListArgs> for ListAlertsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsAlertsListArgs) -> String {
+        format!("gcp::adsense::ListAlertsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListAlertsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPaymentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPaymentsResponse with AdsenseAccountsPaymentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsPaymentsListArgs> for ListPaymentsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsPaymentsListArgs) -> String {
+        format!("gcp::adsense::ListPaymentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListPaymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PolicyIssue
+// =============================================================================
+
+/// ResourceIdentifier implementation for PolicyIssue with AdsenseAccountsPolicyIssuesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsPolicyIssuesGetArgs> for PolicyIssue {
+    fn generate_resource_id(&self, input: &AdsenseAccountsPolicyIssuesGetArgs) -> String {
+        format!("gcp::adsense::PolicyIssue/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::PolicyIssue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPolicyIssuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPolicyIssuesResponse with AdsenseAccountsPolicyIssuesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsPolicyIssuesListArgs> for ListPolicyIssuesResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsPolicyIssuesListArgs) -> String {
+        format!("gcp::adsense::ListPolicyIssuesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListPolicyIssuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReportResult
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReportResult with AdsenseAccountsReportsGenerateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsReportsGenerateArgs> for ReportResult {
+    fn generate_resource_id(&self, input: &AdsenseAccountsReportsGenerateArgs) -> String {
+        format!("gcp::adsense::ReportResult/{}", input.account)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ReportResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with AdsenseAccountsReportsGenerateCsvArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsReportsGenerateCsvArgs> for HttpBody {
+    fn generate_resource_id(&self, input: &AdsenseAccountsReportsGenerateCsvArgs) -> String {
+        format!("gcp::adsense::HttpBody/{}", input.account)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SavedReport
+// =============================================================================
+
+/// ResourceIdentifier implementation for SavedReport with AdsenseAccountsReportsGetSavedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsReportsGetSavedArgs> for SavedReport {
+    fn generate_resource_id(&self, input: &AdsenseAccountsReportsGetSavedArgs) -> String {
+        format!("gcp::adsense::SavedReport/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::SavedReport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReportResult
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReportResult with AdsenseAccountsReportsSavedGenerateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsReportsSavedGenerateArgs> for ReportResult {
+    fn generate_resource_id(&self, input: &AdsenseAccountsReportsSavedGenerateArgs) -> String {
+        format!("gcp::adsense::ReportResult/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ReportResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with AdsenseAccountsReportsSavedGenerateCsvArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsReportsSavedGenerateCsvArgs> for HttpBody {
+    fn generate_resource_id(&self, input: &AdsenseAccountsReportsSavedGenerateCsvArgs) -> String {
+        format!("gcp::adsense::HttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSavedReportsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSavedReportsResponse with AdsenseAccountsReportsSavedListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsReportsSavedListArgs> for ListSavedReportsResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsReportsSavedListArgs) -> String {
+        format!("gcp::adsense::ListSavedReportsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListSavedReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Site
+// =============================================================================
+
+/// ResourceIdentifier implementation for Site with AdsenseAccountsSitesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsSitesGetArgs> for Site {
+    fn generate_resource_id(&self, input: &AdsenseAccountsSitesGetArgs) -> String {
+        format!("gcp::adsense::Site/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::Site"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSitesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSitesResponse with AdsenseAccountsSitesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdsenseAccountsSitesListArgs> for ListSitesResponse {
+    fn generate_resource_id(&self, input: &AdsenseAccountsSitesListArgs) -> String {
+        format!("gcp::adsense::ListSitesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::adsense::ListSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

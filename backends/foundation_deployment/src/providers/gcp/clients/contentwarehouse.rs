@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/projects/{projectsId}:fetchAcl
+/// POST v1/projects/{projectsId}:fetchAcl
 /// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +29,22 @@ use serde::Serialize;
 pub fn contentwarehouse_projects_fetch_acl_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &GoogleCloudContentwarehouseV1FetchAclRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://contentwarehouse.googleapis.com/v1/projects/{}:fetchAcl",);
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}:fetchAcl",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}:fetchAcl
+/// POST v1/projects/{projectsId}:fetchAcl
 /// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -119,7 +119,7 @@ pub fn contentwarehouse_projects_fetch_acl_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}:fetchAcl
+/// POST v1/projects/{projectsId}:fetchAcl
 /// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -158,11 +158,9 @@ pub fn contentwarehouse_projects_fetch_acl_execute(
 pub struct ContentwarehouseProjectsFetchAclArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GoogleCloudContentwarehouseV1FetchAclRequest,
 }
 
-/// GET v1/projects/{projectsId}:fetchAcl
+/// POST v1/projects/{projectsId}:fetchAcl
 /// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -184,11 +182,11 @@ pub fn contentwarehouse_projects_fetch_acl(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_fetch_acl_builder(client, &args.resource, &args.body)?;
+    let builder = contentwarehouse_projects_fetch_acl_builder(client, &args.resource)?;
     contentwarehouse_projects_fetch_acl_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}:setAcl
+/// POST v1/projects/{projectsId}:setAcl
 /// Sets the access control policy for a resource. Replaces any existing policy.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -197,22 +195,22 @@ pub fn contentwarehouse_projects_fetch_acl(
 pub fn contentwarehouse_projects_set_acl_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &GoogleCloudContentwarehouseV1SetAclRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://contentwarehouse.googleapis.com/v1/projects/{}:setAcl",);
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}:setAcl",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}:setAcl
+/// POST v1/projects/{projectsId}:setAcl
 /// Sets the access control policy for a resource. Replaces any existing policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -287,7 +285,7 @@ pub fn contentwarehouse_projects_set_acl_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}:setAcl
+/// POST v1/projects/{projectsId}:setAcl
 /// Sets the access control policy for a resource. Replaces any existing policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -326,11 +324,9 @@ pub fn contentwarehouse_projects_set_acl_execute(
 pub struct ContentwarehouseProjectsSetAclArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GoogleCloudContentwarehouseV1SetAclRequest,
 }
 
-/// GET v1/projects/{projectsId}:setAcl
+/// POST v1/projects/{projectsId}:setAcl
 /// Sets the access control policy for a resource. Replaces any existing policy.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -352,6 +348,6846 @@ pub fn contentwarehouse_projects_set_acl(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_set_acl_builder(client, &args.resource, &args.body)?;
+    let builder = contentwarehouse_projects_set_acl_builder(client, &args.resource)?;
     contentwarehouse_projects_set_acl_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:getStatus
+/// Get the project status.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_get_status_execute()` to send, or `contentwarehouse_projects_locations_get_status` for simplest API.
+
+pub fn contentwarehouse_projects_locations_get_status_builder(
+    client: &SimpleHttpClient,
+    location: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}:getStatus",
+        location,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:getStatus
+/// Get the project status.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_get_status_execute()` or `contentwarehouse_projects_locations_get_status`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_get_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_get_status_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1ProjectStatus>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1ProjectStatus =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:getStatus
+/// Get the project status.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_get_status_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_get_status_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_get_status()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_get_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_get_status_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1ProjectStatus>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_get_status_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_get_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsGetStatusArgs {
+    /// Path parameter: location
+    pub location: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:getStatus
+/// Get the project status.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_get_status_builder()` + `contentwarehouse_projects_locations_get_status_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_get_status_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_get_status(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsGetStatusArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1ProjectStatus>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_get_status_builder(client, &args.location)?;
+    contentwarehouse_projects_locations_get_status_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:initialize
+/// Provisions resources for given tenant project. Returns a long running operation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_initialize_execute()` to send, or `contentwarehouse_projects_locations_initialize` for simplest API.
+
+pub fn contentwarehouse_projects_locations_initialize_builder(
+    client: &SimpleHttpClient,
+    location: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}:initialize",
+        location,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:initialize
+/// Provisions resources for given tenant project. Returns a long running operation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_initialize_execute()` or `contentwarehouse_projects_locations_initialize`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_initialize_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_initialize_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:initialize
+/// Provisions resources for given tenant project. Returns a long running operation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_initialize_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_initialize_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_initialize()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_initialize_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_initialize_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_initialize_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_initialize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsInitializeArgs {
+    /// Path parameter: location
+    pub location: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:initialize
+/// Provisions resources for given tenant project. Returns a long running operation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_initialize_builder()` + `contentwarehouse_projects_locations_initialize_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_initialize_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_initialize(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsInitializeArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_initialize_builder(client, &args.location)?;
+    contentwarehouse_projects_locations_initialize_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:runPipeline
+/// Run a predefined pipeline.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_run_pipeline_execute()` to send, or `contentwarehouse_projects_locations_run_pipeline` for simplest API.
+
+pub fn contentwarehouse_projects_locations_run_pipeline_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}:runPipeline",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:runPipeline
+/// Run a predefined pipeline.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_run_pipeline_execute()` or `contentwarehouse_projects_locations_run_pipeline`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_run_pipeline_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_run_pipeline_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:runPipeline
+/// Run a predefined pipeline.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_run_pipeline_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_run_pipeline_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_run_pipeline()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_run_pipeline_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_run_pipeline_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_run_pipeline_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_run_pipeline`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRunPipelineArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:runPipeline
+/// Run a predefined pipeline.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_run_pipeline_builder()` + `contentwarehouse_projects_locations_run_pipeline_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_run_pipeline_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_run_pipeline(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsRunPipelineArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_run_pipeline_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_run_pipeline_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documentSchemas
+/// Creates a document schema.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_document_schemas_create_execute()` to send, or `contentwarehouse_projects_locations_document_schemas_create` for simplest API.
+
+pub fn contentwarehouse_projects_locations_document_schemas_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documentSchemas",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documentSchemas
+/// Creates a document schema.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_document_schemas_create_execute()` or `contentwarehouse_projects_locations_document_schemas_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_document_schemas_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_document_schemas_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1DocumentSchema =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documentSchemas
+/// Creates a document schema.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_document_schemas_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_document_schemas_create_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_document_schemas_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_document_schemas_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_document_schemas_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_document_schemas_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_document_schemas_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentSchemasCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documentSchemas
+/// Creates a document schema.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_document_schemas_create_builder()` + `contentwarehouse_projects_locations_document_schemas_create_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_document_schemas_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_document_schemas_create(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentSchemasCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_document_schemas_create_builder(client, &args.parent)?;
+    contentwarehouse_projects_locations_document_schemas_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Deletes a document schema. Returns NOT_FOUND if the document schema does not exist. Returns BAD_REQUEST if the document schema has documents depending on it.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_document_schemas_delete_execute()` to send, or `contentwarehouse_projects_locations_document_schemas_delete` for simplest API.
+
+pub fn contentwarehouse_projects_locations_document_schemas_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documentSchemas/{documentSchemasId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Deletes a document schema. Returns NOT_FOUND if the document schema does not exist. Returns BAD_REQUEST if the document schema has documents depending on it.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_document_schemas_delete_execute()` or `contentwarehouse_projects_locations_document_schemas_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_document_schemas_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_document_schemas_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Deletes a document schema. Returns NOT_FOUND if the document schema does not exist. Returns BAD_REQUEST if the document schema has documents depending on it.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_document_schemas_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_document_schemas_delete_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_document_schemas_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_document_schemas_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_document_schemas_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_document_schemas_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_document_schemas_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentSchemasDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Deletes a document schema. Returns NOT_FOUND if the document schema does not exist. Returns BAD_REQUEST if the document schema has documents depending on it.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_document_schemas_delete_builder()` + `contentwarehouse_projects_locations_document_schemas_delete_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_document_schemas_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_document_schemas_delete(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentSchemasDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_document_schemas_delete_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_document_schemas_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Gets a document schema. Returns NOT_FOUND if the document schema does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_document_schemas_get_execute()` to send, or `contentwarehouse_projects_locations_document_schemas_get` for simplest API.
+
+pub fn contentwarehouse_projects_locations_document_schemas_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documentSchemas/{documentSchemasId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Gets a document schema. Returns NOT_FOUND if the document schema does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_document_schemas_get_execute()` or `contentwarehouse_projects_locations_document_schemas_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_document_schemas_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_document_schemas_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1DocumentSchema =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Gets a document schema. Returns NOT_FOUND if the document schema does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_document_schemas_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_document_schemas_get_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_document_schemas_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_document_schemas_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_document_schemas_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_document_schemas_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_document_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Gets a document schema. Returns NOT_FOUND if the document schema does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_document_schemas_get_builder()` + `contentwarehouse_projects_locations_document_schemas_get_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_document_schemas_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_document_schemas_get(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentSchemasGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_document_schemas_get_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_document_schemas_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas
+/// Lists document schemas.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_document_schemas_list_execute()` to send, or `contentwarehouse_projects_locations_document_schemas_list` for simplest API.
+
+pub fn contentwarehouse_projects_locations_document_schemas_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documentSchemas",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas
+/// Lists document schemas.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_document_schemas_list_execute()` or `contentwarehouse_projects_locations_document_schemas_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_document_schemas_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_document_schemas_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListDocumentSchemasResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1ListDocumentSchemasResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas
+/// Lists document schemas.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_document_schemas_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_document_schemas_list_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_document_schemas_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_document_schemas_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_document_schemas_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListDocumentSchemasResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_document_schemas_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_document_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentSchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas
+/// Lists document schemas.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_document_schemas_list_builder()` + `contentwarehouse_projects_locations_document_schemas_list_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_document_schemas_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_document_schemas_list(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentSchemasListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListDocumentSchemasResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_document_schemas_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    contentwarehouse_projects_locations_document_schemas_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Updates a Document Schema. Returns INVALID_ARGUMENT if the name of the Document Schema is non-empty and does not equal the existing name. Supports only appending new properties, adding new ENUM possible values, and updating the EnumTypeOptions.validation_check_disabled flag for ENUM possible values. Updating existing properties will result into INVALID_ARGUMENT.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_document_schemas_patch_execute()` to send, or `contentwarehouse_projects_locations_document_schemas_patch` for simplest API.
+
+pub fn contentwarehouse_projects_locations_document_schemas_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documentSchemas/{documentSchemasId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Updates a Document Schema. Returns INVALID_ARGUMENT if the name of the Document Schema is non-empty and does not equal the existing name. Supports only appending new properties, adding new ENUM possible values, and updating the EnumTypeOptions.validation_check_disabled flag for ENUM possible values. Updating existing properties will result into INVALID_ARGUMENT.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_document_schemas_patch_execute()` or `contentwarehouse_projects_locations_document_schemas_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_document_schemas_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_document_schemas_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1DocumentSchema =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Updates a Document Schema. Returns INVALID_ARGUMENT if the name of the Document Schema is non-empty and does not equal the existing name. Supports only appending new properties, adding new ENUM possible values, and updating the EnumTypeOptions.validation_check_disabled flag for ENUM possible values. Updating existing properties will result into INVALID_ARGUMENT.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_document_schemas_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_document_schemas_patch_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_document_schemas_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_document_schemas_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_document_schemas_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_document_schemas_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_document_schemas_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentSchemasPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
+/// Updates a Document Schema. Returns INVALID_ARGUMENT if the name of the Document Schema is non-empty and does not equal the existing name. Supports only appending new properties, adding new ENUM possible values, and updating the EnumTypeOptions.validation_check_disabled flag for ENUM possible values. Updating existing properties will result into INVALID_ARGUMENT.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_document_schemas_patch_builder()` + `contentwarehouse_projects_locations_document_schemas_patch_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_document_schemas_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_document_schemas_patch(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentSchemasPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_document_schemas_patch_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_document_schemas_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents
+/// Creates a document.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_create_execute()` to send, or `contentwarehouse_projects_locations_documents_create` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents
+/// Creates a document.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_create_execute()` or `contentwarehouse_projects_locations_documents_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1CreateDocumentResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1CreateDocumentResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents
+/// Creates a document.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_create_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1CreateDocumentResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents
+/// Creates a document.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_create_builder()` + `contentwarehouse_projects_locations_documents_create_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_create(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1CreateDocumentResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_documents_create_builder(client, &args.parent)?;
+    contentwarehouse_projects_locations_documents_create_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:delete
+/// Deletes a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_delete_execute()` to send, or `contentwarehouse_projects_locations_documents_delete` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}:delete",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:delete
+/// Deletes a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_delete_execute()` or `contentwarehouse_projects_locations_documents_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:delete
+/// Deletes a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_delete_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:delete
+/// Deletes a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_delete_builder()` + `contentwarehouse_projects_locations_documents_delete_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_delete(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_documents_delete_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_documents_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:fetchAcl
+/// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_fetch_acl_execute()` to send, or `contentwarehouse_projects_locations_documents_fetch_acl` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_fetch_acl_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}:fetchAcl",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:fetchAcl
+/// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_fetch_acl_execute()` or `contentwarehouse_projects_locations_documents_fetch_acl`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_fetch_acl_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_fetch_acl_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1FetchAclResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1FetchAclResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:fetchAcl
+/// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_fetch_acl_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_fetch_acl_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_fetch_acl()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_fetch_acl_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_fetch_acl_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1FetchAclResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_fetch_acl_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_fetch_acl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsFetchAclArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:fetchAcl
+/// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_fetch_acl_builder()` + `contentwarehouse_projects_locations_documents_fetch_acl_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_fetch_acl_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_fetch_acl(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsFetchAclArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1FetchAclResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_documents_fetch_acl_builder(client, &args.resource)?;
+    contentwarehouse_projects_locations_documents_fetch_acl_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:get
+/// Gets a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_get_execute()` to send, or `contentwarehouse_projects_locations_documents_get` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}:get",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:get
+/// Gets a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_get_execute()` or `contentwarehouse_projects_locations_documents_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1Document = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:get
+/// Gets a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_get_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:get
+/// Gets a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_get_builder()` + `contentwarehouse_projects_locations_documents_get_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_get(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_documents_get_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_documents_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/linkedSources
+/// Return all source document-links from the document.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_linked_sources_execute()` to send, or `contentwarehouse_projects_locations_documents_linked_sources` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_linked_sources_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}/linkedSources",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/linkedSources
+/// Return all source document-links from the document.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_linked_sources_execute()` or `contentwarehouse_projects_locations_documents_linked_sources`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_linked_sources_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_linked_sources_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListLinkedSourcesResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1ListLinkedSourcesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/linkedSources
+/// Return all source document-links from the document.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_linked_sources_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_linked_sources_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_linked_sources()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_linked_sources_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_linked_sources_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListLinkedSourcesResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_linked_sources_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_linked_sources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsLinkedSourcesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/linkedSources
+/// Return all source document-links from the document.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_linked_sources_builder()` + `contentwarehouse_projects_locations_documents_linked_sources_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_linked_sources_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_linked_sources(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsLinkedSourcesArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListLinkedSourcesResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_documents_linked_sources_builder(client, &args.parent)?;
+    contentwarehouse_projects_locations_documents_linked_sources_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/linkedTargets
+/// Return all target document-links from the document.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_linked_targets_execute()` to send, or `contentwarehouse_projects_locations_documents_linked_targets` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_linked_targets_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}/linkedTargets",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/linkedTargets
+/// Return all target document-links from the document.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_linked_targets_execute()` or `contentwarehouse_projects_locations_documents_linked_targets`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_linked_targets_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_linked_targets_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListLinkedTargetsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1ListLinkedTargetsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/linkedTargets
+/// Return all target document-links from the document.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_linked_targets_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_linked_targets_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_linked_targets()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_linked_targets_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_linked_targets_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListLinkedTargetsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_linked_targets_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_linked_targets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsLinkedTargetsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/linkedTargets
+/// Return all target document-links from the document.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_linked_targets_builder()` + `contentwarehouse_projects_locations_documents_linked_targets_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_linked_targets_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_linked_targets(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsLinkedTargetsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListLinkedTargetsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_documents_linked_targets_builder(client, &args.parent)?;
+    contentwarehouse_projects_locations_documents_linked_targets_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:lock
+/// Lock the document so the document cannot be updated by other users.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_lock_execute()` to send, or `contentwarehouse_projects_locations_documents_lock` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_lock_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}:lock",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:lock
+/// Lock the document so the document cannot be updated by other users.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_lock_execute()` or `contentwarehouse_projects_locations_documents_lock`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_lock_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_lock_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1Document = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:lock
+/// Lock the document so the document cannot be updated by other users.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_lock_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_lock_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_lock()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_lock_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_lock_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_lock_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_lock`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsLockArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:lock
+/// Lock the document so the document cannot be updated by other users.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_lock_builder()` + `contentwarehouse_projects_locations_documents_lock_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_lock_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_lock(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsLockArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_documents_lock_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_documents_lock_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}
+/// Updates a document. Returns INVALID_ARGUMENT if the name of the document is non-empty and does not equal the existing name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_patch_execute()` to send, or `contentwarehouse_projects_locations_documents_patch` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}
+/// Updates a document. Returns INVALID_ARGUMENT if the name of the document is non-empty and does not equal the existing name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_patch_execute()` or `contentwarehouse_projects_locations_documents_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1UpdateDocumentResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1UpdateDocumentResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}
+/// Updates a document. Returns INVALID_ARGUMENT if the name of the document is non-empty and does not equal the existing name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_patch_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1UpdateDocumentResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}
+/// Updates a document. Returns INVALID_ARGUMENT if the name of the document is non-empty and does not equal the existing name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_patch_builder()` + `contentwarehouse_projects_locations_documents_patch_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_patch(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1UpdateDocumentResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_documents_patch_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_documents_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents:search
+/// Searches for documents using provided SearchDocumentsRequest. This call only returns documents that the caller has permission to search against.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_search_execute()` to send, or `contentwarehouse_projects_locations_documents_search` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_search_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents:search",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents:search
+/// Searches for documents using provided SearchDocumentsRequest. This call only returns documents that the caller has permission to search against.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_search_execute()` or `contentwarehouse_projects_locations_documents_search`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_search_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_search_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1SearchDocumentsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1SearchDocumentsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents:search
+/// Searches for documents using provided SearchDocumentsRequest. This call only returns documents that the caller has permission to search against.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_search_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_search_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_search()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_search_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_search_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1SearchDocumentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_search_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents:search
+/// Searches for documents using provided SearchDocumentsRequest. This call only returns documents that the caller has permission to search against.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_search_builder()` + `contentwarehouse_projects_locations_documents_search_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_search_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_search(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsSearchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1SearchDocumentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_documents_search_builder(client, &args.parent)?;
+    contentwarehouse_projects_locations_documents_search_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:setAcl
+/// Sets the access control policy for a resource. Replaces any existing policy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_set_acl_execute()` to send, or `contentwarehouse_projects_locations_documents_set_acl` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_set_acl_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}:setAcl",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:setAcl
+/// Sets the access control policy for a resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_set_acl_execute()` or `contentwarehouse_projects_locations_documents_set_acl`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_set_acl_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_set_acl_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1SetAclResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1SetAclResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:setAcl
+/// Sets the access control policy for a resource. Replaces any existing policy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_set_acl_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_set_acl_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_set_acl()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_set_acl_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_set_acl_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1SetAclResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_set_acl_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_set_acl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsSetAclArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:setAcl
+/// Sets the access control policy for a resource. Replaces any existing policy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_set_acl_builder()` + `contentwarehouse_projects_locations_documents_set_acl_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_set_acl_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_set_acl(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsSetAclArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1SetAclResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_documents_set_acl_builder(client, &args.resource)?;
+    contentwarehouse_projects_locations_documents_set_acl_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/documentLinks
+/// Create a link between a source document and a target document.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_document_links_create_execute()` to send, or `contentwarehouse_projects_locations_documents_document_links_create` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_document_links_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}/documentLinks",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/documentLinks
+/// Create a link between a source document and a target document.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_document_links_create_execute()` or `contentwarehouse_projects_locations_documents_document_links_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_document_links_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_document_links_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1DocumentLink = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/documentLinks
+/// Create a link between a source document and a target document.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_document_links_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_document_links_create_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_document_links_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_document_links_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_document_links_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentLink>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_document_links_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_document_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsDocumentLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/documentLinks
+/// Create a link between a source document and a target document.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_document_links_create_builder()` + `contentwarehouse_projects_locations_documents_document_links_create_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_document_links_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_document_links_create(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsDocumentLinksCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentLink>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_documents_document_links_create_builder(
+        client,
+        &args.parent,
+    )?;
+    contentwarehouse_projects_locations_documents_document_links_create_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/documentLinks/{documentLinksId}:delete
+/// Remove the link between the source and target documents.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_document_links_delete_execute()` to send, or `contentwarehouse_projects_locations_documents_document_links_delete` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_document_links_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/{documentsId}/documentLinks/{documentLinksId}:delete",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/documentLinks/{documentLinksId}:delete
+/// Remove the link between the source and target documents.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_document_links_delete_execute()` or `contentwarehouse_projects_locations_documents_document_links_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_document_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_document_links_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/documentLinks/{documentLinksId}:delete
+/// Remove the link between the source and target documents.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_document_links_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_document_links_delete_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_document_links_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_document_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_document_links_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_document_links_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_document_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsDocumentLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/documentLinks/{documentLinksId}:delete
+/// Remove the link between the source and target documents.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_document_links_delete_builder()` + `contentwarehouse_projects_locations_documents_document_links_delete_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_document_links_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_document_links_delete(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsDocumentLinksDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_documents_document_links_delete_builder(
+        client, &args.name,
+    )?;
+    contentwarehouse_projects_locations_documents_document_links_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}:delete
+/// Deletes a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_reference_id_delete_execute()` to send, or `contentwarehouse_projects_locations_documents_reference_id_delete` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/referenceId/{referenceIdId}:delete",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}:delete
+/// Deletes a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_reference_id_delete_execute()` or `contentwarehouse_projects_locations_documents_reference_id_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_reference_id_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}:delete
+/// Deletes a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_reference_id_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_reference_id_delete_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_reference_id_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_reference_id_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_reference_id_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_reference_id_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsReferenceIdDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}:delete
+/// Deletes a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_reference_id_delete_builder()` + `contentwarehouse_projects_locations_documents_reference_id_delete_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_reference_id_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_delete(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsReferenceIdDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_documents_reference_id_delete_builder(
+        client, &args.name,
+    )?;
+    contentwarehouse_projects_locations_documents_reference_id_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}:get
+/// Gets a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_reference_id_get_execute()` to send, or `contentwarehouse_projects_locations_documents_reference_id_get` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/referenceId/{referenceIdId}:get",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}:get
+/// Gets a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_reference_id_get_execute()` or `contentwarehouse_projects_locations_documents_reference_id_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_reference_id_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1Document = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}:get
+/// Gets a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_reference_id_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_reference_id_get_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_reference_id_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_reference_id_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_reference_id_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_reference_id_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsReferenceIdGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}:get
+/// Gets a document. Returns NOT_FOUND if the document does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_reference_id_get_builder()` + `contentwarehouse_projects_locations_documents_reference_id_get_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_reference_id_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_get(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsReferenceIdGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_documents_reference_id_get_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_documents_reference_id_get_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}
+/// Updates a document. Returns INVALID_ARGUMENT if the name of the document is non-empty and does not equal the existing name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_documents_reference_id_patch_execute()` to send, or `contentwarehouse_projects_locations_documents_reference_id_patch` for simplest API.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/documents/referenceId/{referenceIdId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}
+/// Updates a document. Returns INVALID_ARGUMENT if the name of the document is non-empty and does not equal the existing name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_documents_reference_id_patch_execute()` or `contentwarehouse_projects_locations_documents_reference_id_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_reference_id_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1UpdateDocumentResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1UpdateDocumentResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}
+/// Updates a document. Returns INVALID_ARGUMENT if the name of the document is non-empty and does not equal the existing name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_documents_reference_id_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_reference_id_patch_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_documents_reference_id_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_documents_reference_id_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1UpdateDocumentResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_documents_reference_id_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_documents_reference_id_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsReferenceIdPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}
+/// Updates a document. Returns INVALID_ARGUMENT if the name of the document is non-empty and does not equal the existing name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_documents_reference_id_patch_builder()` + `contentwarehouse_projects_locations_documents_reference_id_patch_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_documents_reference_id_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_documents_reference_id_patch(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsDocumentsReferenceIdPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1UpdateDocumentResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_documents_reference_id_patch_builder(
+        client, &args.name,
+    )?;
+    contentwarehouse_projects_locations_documents_reference_id_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_operations_get_execute()` to send, or `contentwarehouse_projects_locations_operations_get` for simplest API.
+
+pub fn contentwarehouse_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_operations_get_execute()` or `contentwarehouse_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_operations_get_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_operations_get_builder()` + `contentwarehouse_projects_locations_operations_get_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_operations_get_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_operations_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/ruleSets
+/// Creates a ruleset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_rule_sets_create_execute()` to send, or `contentwarehouse_projects_locations_rule_sets_create` for simplest API.
+
+pub fn contentwarehouse_projects_locations_rule_sets_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/ruleSets",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/ruleSets
+/// Creates a ruleset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_rule_sets_create_execute()` or `contentwarehouse_projects_locations_rule_sets_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_rule_sets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_rule_sets_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1RuleSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/ruleSets
+/// Creates a ruleset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_rule_sets_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_rule_sets_create_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_rule_sets_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_rule_sets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_rule_sets_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_rule_sets_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_rule_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRuleSetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/ruleSets
+/// Creates a ruleset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_rule_sets_create_builder()` + `contentwarehouse_projects_locations_rule_sets_create_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_rule_sets_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_rule_sets_create(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsRuleSetsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_rule_sets_create_builder(client, &args.parent)?;
+    contentwarehouse_projects_locations_rule_sets_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Deletes a ruleset. Returns NOT_FOUND if the document does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_rule_sets_delete_execute()` to send, or `contentwarehouse_projects_locations_rule_sets_delete` for simplest API.
+
+pub fn contentwarehouse_projects_locations_rule_sets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/ruleSets/{ruleSetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Deletes a ruleset. Returns NOT_FOUND if the document does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_rule_sets_delete_execute()` or `contentwarehouse_projects_locations_rule_sets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_rule_sets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_rule_sets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Deletes a ruleset. Returns NOT_FOUND if the document does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_rule_sets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_rule_sets_delete_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_rule_sets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_rule_sets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_rule_sets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_rule_sets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_rule_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRuleSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Deletes a ruleset. Returns NOT_FOUND if the document does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_rule_sets_delete_builder()` + `contentwarehouse_projects_locations_rule_sets_delete_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_rule_sets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_rule_sets_delete(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsRuleSetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_rule_sets_delete_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_rule_sets_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Gets a ruleset. Returns NOT_FOUND if the ruleset does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_rule_sets_get_execute()` to send, or `contentwarehouse_projects_locations_rule_sets_get` for simplest API.
+
+pub fn contentwarehouse_projects_locations_rule_sets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/ruleSets/{ruleSetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Gets a ruleset. Returns NOT_FOUND if the ruleset does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_rule_sets_get_execute()` or `contentwarehouse_projects_locations_rule_sets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_rule_sets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_rule_sets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1RuleSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Gets a ruleset. Returns NOT_FOUND if the ruleset does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_rule_sets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_rule_sets_get_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_rule_sets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_rule_sets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_rule_sets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_rule_sets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_rule_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRuleSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Gets a ruleset. Returns NOT_FOUND if the ruleset does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_rule_sets_get_builder()` + `contentwarehouse_projects_locations_rule_sets_get_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_rule_sets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_rule_sets_get(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsRuleSetsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_rule_sets_get_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_rule_sets_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets
+/// Lists rulesets.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_rule_sets_list_execute()` to send, or `contentwarehouse_projects_locations_rule_sets_list` for simplest API.
+
+pub fn contentwarehouse_projects_locations_rule_sets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/ruleSets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets
+/// Lists rulesets.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_rule_sets_list_execute()` or `contentwarehouse_projects_locations_rule_sets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_rule_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_rule_sets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListRuleSetsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1ListRuleSetsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets
+/// Lists rulesets.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_rule_sets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_rule_sets_list_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_rule_sets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_rule_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_rule_sets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1ListRuleSetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_rule_sets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_rule_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRuleSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets
+/// Lists rulesets.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_rule_sets_list_builder()` + `contentwarehouse_projects_locations_rule_sets_list_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_rule_sets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_rule_sets_list(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsRuleSetsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1ListRuleSetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_rule_sets_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    contentwarehouse_projects_locations_rule_sets_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Updates a ruleset. Returns INVALID_ARGUMENT if the name of the ruleset is non-empty and does not equal the existing name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_rule_sets_patch_execute()` to send, or `contentwarehouse_projects_locations_rule_sets_patch` for simplest API.
+
+pub fn contentwarehouse_projects_locations_rule_sets_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/ruleSets/{ruleSetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Updates a ruleset. Returns INVALID_ARGUMENT if the name of the ruleset is non-empty and does not equal the existing name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_rule_sets_patch_execute()` or `contentwarehouse_projects_locations_rule_sets_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_rule_sets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_rule_sets_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1RuleSet = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Updates a ruleset. Returns INVALID_ARGUMENT if the name of the ruleset is non-empty and does not equal the existing name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_rule_sets_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_rule_sets_patch_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_rule_sets_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_rule_sets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_rule_sets_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_rule_sets_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_rule_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRuleSetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
+/// Updates a ruleset. Returns INVALID_ARGUMENT if the name of the ruleset is non-empty and does not equal the existing name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_rule_sets_patch_builder()` + `contentwarehouse_projects_locations_rule_sets_patch_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_rule_sets_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_rule_sets_patch(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsRuleSetsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_rule_sets_patch_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_rule_sets_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/synonymSets
+/// Creates a SynonymSet for a single context. Throws an ALREADY_EXISTS exception if a synonymset already exists for the context.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_synonym_sets_create_execute()` to send, or `contentwarehouse_projects_locations_synonym_sets_create` for simplest API.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/synonymSets",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/synonymSets
+/// Creates a SynonymSet for a single context. Throws an ALREADY_EXISTS exception if a synonymset already exists for the context.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_synonym_sets_create_execute()` or `contentwarehouse_projects_locations_synonym_sets_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_synonym_sets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1SynonymSet =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/synonymSets
+/// Creates a SynonymSet for a single context. Throws an ALREADY_EXISTS exception if a synonymset already exists for the context.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_synonym_sets_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_synonym_sets_create_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_synonym_sets_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_synonym_sets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_synonym_sets_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_synonym_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsSynonymSetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/synonymSets
+/// Creates a SynonymSet for a single context. Throws an ALREADY_EXISTS exception if a synonymset already exists for the context.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_synonym_sets_create_builder()` + `contentwarehouse_projects_locations_synonym_sets_create_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_synonym_sets_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_create(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsSynonymSetsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_synonym_sets_create_builder(client, &args.parent)?;
+    contentwarehouse_projects_locations_synonym_sets_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Deletes a SynonymSet for a given context. Throws a NOT_FOUND exception if the SynonymSet is not found.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_synonym_sets_delete_execute()` to send, or `contentwarehouse_projects_locations_synonym_sets_delete` for simplest API.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/synonymSets/{synonymSetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Deletes a SynonymSet for a given context. Throws a NOT_FOUND exception if the SynonymSet is not found.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_synonym_sets_delete_execute()` or `contentwarehouse_projects_locations_synonym_sets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_synonym_sets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Deletes a SynonymSet for a given context. Throws a NOT_FOUND exception if the SynonymSet is not found.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_synonym_sets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_synonym_sets_delete_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_synonym_sets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_synonym_sets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_synonym_sets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_synonym_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsSynonymSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Deletes a SynonymSet for a given context. Throws a NOT_FOUND exception if the SynonymSet is not found.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_synonym_sets_delete_builder()` + `contentwarehouse_projects_locations_synonym_sets_delete_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_synonym_sets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_delete(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsSynonymSetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_synonym_sets_delete_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_synonym_sets_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Gets a SynonymSet for a particular context. Throws a NOT_FOUND exception if the Synonymset does not exist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_synonym_sets_get_execute()` to send, or `contentwarehouse_projects_locations_synonym_sets_get` for simplest API.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/synonymSets/{synonymSetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Gets a SynonymSet for a particular context. Throws a NOT_FOUND exception if the Synonymset does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_synonym_sets_get_execute()` or `contentwarehouse_projects_locations_synonym_sets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_synonym_sets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1SynonymSet =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Gets a SynonymSet for a particular context. Throws a NOT_FOUND exception if the Synonymset does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_synonym_sets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_synonym_sets_get_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_synonym_sets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_synonym_sets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_synonym_sets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_synonym_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsSynonymSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Gets a SynonymSet for a particular context. Throws a NOT_FOUND exception if the Synonymset does not exist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_synonym_sets_get_builder()` + `contentwarehouse_projects_locations_synonym_sets_get_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_synonym_sets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_get(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsSynonymSetsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_synonym_sets_get_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_synonym_sets_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets
+/// Returns all SynonymSets (for all contexts) for the specified location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_synonym_sets_list_execute()` to send, or `contentwarehouse_projects_locations_synonym_sets_list` for simplest API.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/synonymSets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets
+/// Returns all SynonymSets (for all contexts) for the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_synonym_sets_list_execute()` or `contentwarehouse_projects_locations_synonym_sets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_synonym_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudContentwarehouseV1ListSynonymSetsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1ListSynonymSetsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets
+/// Returns all SynonymSets (for all contexts) for the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_synonym_sets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_synonym_sets_list_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_synonym_sets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_synonym_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1ListSynonymSetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_synonym_sets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_synonym_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsSynonymSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets
+/// Returns all SynonymSets (for all contexts) for the specified location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_synonym_sets_list_builder()` + `contentwarehouse_projects_locations_synonym_sets_list_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_synonym_sets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_list(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsSynonymSetsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1ListSynonymSetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = contentwarehouse_projects_locations_synonym_sets_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    contentwarehouse_projects_locations_synonym_sets_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Remove the existing SynonymSet for the context and replaces it with a new one. Throws a NOT_FOUND exception if the SynonymSet is not found.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `contentwarehouse_projects_locations_synonym_sets_patch_execute()` to send, or `contentwarehouse_projects_locations_synonym_sets_patch` for simplest API.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://contentwarehouse.googleapis.com/v1/projects/{}/locations/{locationsId}/synonymSets/{synonymSetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Remove the existing SynonymSet for the context and replaces it with a new one. Throws a NOT_FOUND exception if the SynonymSet is not found.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `contentwarehouse_projects_locations_synonym_sets_patch_execute()` or `contentwarehouse_projects_locations_synonym_sets_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_synonym_sets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudContentwarehouseV1SynonymSet =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Remove the existing SynonymSet for the context and replaces it with a new one. Throws a NOT_FOUND exception if the SynonymSet is not found.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `contentwarehouse_projects_locations_synonym_sets_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `contentwarehouse_projects_locations_synonym_sets_patch_task()`.
+/// For the simplest API, use `contentwarehouse_projects_locations_synonym_sets_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `contentwarehouse_projects_locations_synonym_sets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = contentwarehouse_projects_locations_synonym_sets_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`contentwarehouse_projects_locations_synonym_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsSynonymSetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
+/// Remove the existing SynonymSet for the context and replaces it with a new one. Throws a NOT_FOUND exception if the SynonymSet is not found.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `contentwarehouse_projects_locations_synonym_sets_patch_builder()` + `contentwarehouse_projects_locations_synonym_sets_patch_execute()`.
+/// For task-level control, use `contentwarehouse_projects_locations_synonym_sets_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn contentwarehouse_projects_locations_synonym_sets_patch(
+    client: &SimpleHttpClient,
+    args: &ContentwarehouseProjectsLocationsSynonymSetsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        contentwarehouse_projects_locations_synonym_sets_patch_builder(client, &args.name)?;
+    contentwarehouse_projects_locations_synonym_sets_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1FetchAclResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1FetchAclResponse with ContentwarehouseProjectsFetchAclArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsFetchAclArgs>
+    for GoogleCloudContentwarehouseV1FetchAclResponse
+{
+    fn generate_resource_id(&self, input: &ContentwarehouseProjectsFetchAclArgs) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1FetchAclResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1FetchAclResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SetAclResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SetAclResponse with ContentwarehouseProjectsSetAclArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsSetAclArgs>
+    for GoogleCloudContentwarehouseV1SetAclResponse
+{
+    fn generate_resource_id(&self, input: &ContentwarehouseProjectsSetAclArgs) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SetAclResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SetAclResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ProjectStatus
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ProjectStatus with ContentwarehouseProjectsLocationsGetStatusArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsGetStatusArgs>
+    for GoogleCloudContentwarehouseV1ProjectStatus
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsGetStatusArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ProjectStatus/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ProjectStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ContentwarehouseProjectsLocationsInitializeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsInitializeArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsInitializeArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleLongrunningOperation/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ContentwarehouseProjectsLocationsRunPipelineArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsRunPipelineArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsRunPipelineArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleLongrunningOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1DocumentSchema
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1DocumentSchema with ContentwarehouseProjectsLocationsDocumentSchemasCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentSchemasCreateArgs>
+    for GoogleCloudContentwarehouseV1DocumentSchema
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentSchemasCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1DocumentSchema/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1DocumentSchema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ContentwarehouseProjectsLocationsDocumentSchemasDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentSchemasDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentSchemasDeleteArgs,
+    ) -> String {
+        format!("gcp::contentwarehouse::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1DocumentSchema
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1DocumentSchema with ContentwarehouseProjectsLocationsDocumentSchemasGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentSchemasGetArgs>
+    for GoogleCloudContentwarehouseV1DocumentSchema
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentSchemasGetArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1DocumentSchema/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1DocumentSchema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListDocumentSchemasResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListDocumentSchemasResponse with ContentwarehouseProjectsLocationsDocumentSchemasListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentSchemasListArgs>
+    for GoogleCloudContentwarehouseV1ListDocumentSchemasResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentSchemasListArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ListDocumentSchemasResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ListDocumentSchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1DocumentSchema
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1DocumentSchema with ContentwarehouseProjectsLocationsDocumentSchemasPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentSchemasPatchArgs>
+    for GoogleCloudContentwarehouseV1DocumentSchema
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentSchemasPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1DocumentSchema/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1DocumentSchema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1CreateDocumentResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1CreateDocumentResponse with ContentwarehouseProjectsLocationsDocumentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsCreateArgs>
+    for GoogleCloudContentwarehouseV1CreateDocumentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1CreateDocumentResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1CreateDocumentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ContentwarehouseProjectsLocationsDocumentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsDeleteArgs,
+    ) -> String {
+        format!("gcp::contentwarehouse::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1FetchAclResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1FetchAclResponse with ContentwarehouseProjectsLocationsDocumentsFetchAclArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsFetchAclArgs>
+    for GoogleCloudContentwarehouseV1FetchAclResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsFetchAclArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1FetchAclResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1FetchAclResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1Document
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1Document with ContentwarehouseProjectsLocationsDocumentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsGetArgs>
+    for GoogleCloudContentwarehouseV1Document
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1Document/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1Document"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListLinkedSourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListLinkedSourcesResponse with ContentwarehouseProjectsLocationsDocumentsLinkedSourcesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsLinkedSourcesArgs>
+    for GoogleCloudContentwarehouseV1ListLinkedSourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsLinkedSourcesArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ListLinkedSourcesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ListLinkedSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListLinkedTargetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListLinkedTargetsResponse with ContentwarehouseProjectsLocationsDocumentsLinkedTargetsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsLinkedTargetsArgs>
+    for GoogleCloudContentwarehouseV1ListLinkedTargetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsLinkedTargetsArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ListLinkedTargetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ListLinkedTargetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1Document
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1Document with ContentwarehouseProjectsLocationsDocumentsLockArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsLockArgs>
+    for GoogleCloudContentwarehouseV1Document
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsLockArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1Document/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1Document"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1UpdateDocumentResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1UpdateDocumentResponse with ContentwarehouseProjectsLocationsDocumentsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsPatchArgs>
+    for GoogleCloudContentwarehouseV1UpdateDocumentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1UpdateDocumentResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1UpdateDocumentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SearchDocumentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SearchDocumentsResponse with ContentwarehouseProjectsLocationsDocumentsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsSearchArgs>
+    for GoogleCloudContentwarehouseV1SearchDocumentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SearchDocumentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SearchDocumentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SetAclResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SetAclResponse with ContentwarehouseProjectsLocationsDocumentsSetAclArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsSetAclArgs>
+    for GoogleCloudContentwarehouseV1SetAclResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsSetAclArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SetAclResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SetAclResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1DocumentLink
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1DocumentLink with ContentwarehouseProjectsLocationsDocumentsDocumentLinksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsDocumentLinksCreateArgs>
+    for GoogleCloudContentwarehouseV1DocumentLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsDocumentLinksCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1DocumentLink/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1DocumentLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ContentwarehouseProjectsLocationsDocumentsDocumentLinksDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsDocumentLinksDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsDocumentLinksDeleteArgs,
+    ) -> String {
+        format!("gcp::contentwarehouse::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ContentwarehouseProjectsLocationsDocumentsReferenceIdDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsReferenceIdDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsReferenceIdDeleteArgs,
+    ) -> String {
+        format!("gcp::contentwarehouse::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1Document
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1Document with ContentwarehouseProjectsLocationsDocumentsReferenceIdGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsReferenceIdGetArgs>
+    for GoogleCloudContentwarehouseV1Document
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsReferenceIdGetArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1Document/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1Document"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1UpdateDocumentResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1UpdateDocumentResponse with ContentwarehouseProjectsLocationsDocumentsReferenceIdPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsReferenceIdPatchArgs>
+    for GoogleCloudContentwarehouseV1UpdateDocumentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsReferenceIdPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1UpdateDocumentResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1UpdateDocumentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ContentwarehouseProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleLongrunningOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1RuleSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1RuleSet with ContentwarehouseProjectsLocationsRuleSetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsRuleSetsCreateArgs>
+    for GoogleCloudContentwarehouseV1RuleSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsRuleSetsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1RuleSet/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1RuleSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ContentwarehouseProjectsLocationsRuleSetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsRuleSetsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsRuleSetsDeleteArgs,
+    ) -> String {
+        format!("gcp::contentwarehouse::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1RuleSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1RuleSet with ContentwarehouseProjectsLocationsRuleSetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsRuleSetsGetArgs>
+    for GoogleCloudContentwarehouseV1RuleSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsRuleSetsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1RuleSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1RuleSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListRuleSetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListRuleSetsResponse with ContentwarehouseProjectsLocationsRuleSetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsRuleSetsListArgs>
+    for GoogleCloudContentwarehouseV1ListRuleSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsRuleSetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ListRuleSetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ListRuleSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1RuleSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1RuleSet with ContentwarehouseProjectsLocationsRuleSetsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsRuleSetsPatchArgs>
+    for GoogleCloudContentwarehouseV1RuleSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsRuleSetsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1RuleSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1RuleSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SynonymSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SynonymSet with ContentwarehouseProjectsLocationsSynonymSetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsSynonymSetsCreateArgs>
+    for GoogleCloudContentwarehouseV1SynonymSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsSynonymSetsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SynonymSet/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SynonymSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ContentwarehouseProjectsLocationsSynonymSetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsSynonymSetsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsSynonymSetsDeleteArgs,
+    ) -> String {
+        format!("gcp::contentwarehouse::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SynonymSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SynonymSet with ContentwarehouseProjectsLocationsSynonymSetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsSynonymSetsGetArgs>
+    for GoogleCloudContentwarehouseV1SynonymSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsSynonymSetsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SynonymSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SynonymSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListSynonymSetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListSynonymSetsResponse with ContentwarehouseProjectsLocationsSynonymSetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsSynonymSetsListArgs>
+    for GoogleCloudContentwarehouseV1ListSynonymSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsSynonymSetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ListSynonymSetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1ListSynonymSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SynonymSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SynonymSet with ContentwarehouseProjectsLocationsSynonymSetsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsSynonymSetsPatchArgs>
+    for GoogleCloudContentwarehouseV1SynonymSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsSynonymSetsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SynonymSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::contentwarehouse::GoogleCloudContentwarehouseV1SynonymSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

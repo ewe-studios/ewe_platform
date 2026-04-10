@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,3734 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/projects/{projectsId}/notes:batchCreate
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes:batchCreate
+/// Creates new notes in batch.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_notes_batch_create_execute()` to send, or `containeranalysis_projects_locations_notes_batch_create` for simplest API.
+
+pub fn containeranalysis_projects_locations_notes_batch_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes:batchCreate",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes:batchCreate
+/// Creates new notes in batch.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_notes_batch_create_execute()` or `containeranalysis_projects_locations_notes_batch_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_batch_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_batch_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchCreateNotesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BatchCreateNotesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes:batchCreate
+/// Creates new notes in batch.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_notes_batch_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_notes_batch_create_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_notes_batch_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_batch_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_notes_batch_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BatchCreateNotesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_notes_batch_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_notes_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes:batchCreate
+/// Creates new notes in batch.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_notes_batch_create_builder()` + `containeranalysis_projects_locations_notes_batch_create_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_notes_batch_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_batch_create(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsNotesBatchCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BatchCreateNotesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_locations_notes_batch_create_builder(client, &args.parent)?;
+    containeranalysis_projects_locations_notes_batch_create_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes
+/// Creates a new note.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_notes_create_execute()` to send, or `containeranalysis_projects_locations_notes_create` for simplest API.
+
+pub fn containeranalysis_projects_locations_notes_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    noteId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = noteId.as_ref() {
+        query_parts.push(format!("noteId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes
+/// Creates a new note.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_notes_create_execute()` or `containeranalysis_projects_locations_notes_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Note>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Note = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes
+/// Creates a new note.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_notes_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_notes_create_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_notes_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_notes_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_notes_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_notes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: noteId
+    pub noteId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes
+/// Creates a new note.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_notes_create_builder()` + `containeranalysis_projects_locations_notes_create_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_notes_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_create(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsNotesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_notes_create_builder(
+        client,
+        &args.parent,
+        &args.noteId,
+    )?;
+    containeranalysis_projects_locations_notes_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Deletes the specified note.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_notes_delete_execute()` to send, or `containeranalysis_projects_locations_notes_delete` for simplest API.
+
+pub fn containeranalysis_projects_locations_notes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Deletes the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_notes_delete_execute()` or `containeranalysis_projects_locations_notes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Deletes the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_notes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_notes_delete_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_notes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_notes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_notes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_notes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Deletes the specified note.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_notes_delete_builder()` + `containeranalysis_projects_locations_notes_delete_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_notes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_delete(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsNotesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_notes_delete_builder(client, &args.name)?;
+    containeranalysis_projects_locations_notes_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Gets the specified note.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_notes_get_execute()` to send, or `containeranalysis_projects_locations_notes_get` for simplest API.
+
+pub fn containeranalysis_projects_locations_notes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Gets the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_notes_get_execute()` or `containeranalysis_projects_locations_notes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Note>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Note = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Gets the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_notes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_notes_get_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_notes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_notes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_notes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_notes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Gets the specified note.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_notes_get_builder()` + `containeranalysis_projects_locations_notes_get_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_notes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_get(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsNotesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_notes_get_builder(client, &args.name)?;
+    containeranalysis_projects_locations_notes_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_notes_get_iam_policy_execute()` to send, or `containeranalysis_projects_locations_notes_get_iam_policy` for simplest API.
+
+pub fn containeranalysis_projects_locations_notes_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_notes_get_iam_policy_execute()` or `containeranalysis_projects_locations_notes_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_notes_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_notes_get_iam_policy_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_notes_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_notes_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_notes_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_notes_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_notes_get_iam_policy_builder()` + `containeranalysis_projects_locations_notes_get_iam_policy_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_notes_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_locations_notes_get_iam_policy_builder(client, &args.resource)?;
+    containeranalysis_projects_locations_notes_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes
+/// Lists notes for the specified project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_notes_list_execute()` to send, or `containeranalysis_projects_locations_notes_list` for simplest API.
+
+pub fn containeranalysis_projects_locations_notes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes
+/// Lists notes for the specified project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_notes_list_execute()` or `containeranalysis_projects_locations_notes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNotesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNotesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes
+/// Lists notes for the specified project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_notes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_notes_list_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_notes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_notes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNotesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_notes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_notes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes
+/// Lists notes for the specified project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_notes_list_builder()` + `containeranalysis_projects_locations_notes_list_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_notes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_list(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsNotesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNotesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_notes_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    containeranalysis_projects_locations_notes_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Updates the specified note.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_notes_patch_execute()` to send, or `containeranalysis_projects_locations_notes_patch` for simplest API.
+
+pub fn containeranalysis_projects_locations_notes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Updates the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_notes_patch_execute()` or `containeranalysis_projects_locations_notes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Note>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Note = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Updates the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_notes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_notes_patch_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_notes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_notes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_notes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_notes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
+/// Updates the specified note.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_notes_patch_builder()` + `containeranalysis_projects_locations_notes_patch_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_notes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_patch(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsNotesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_notes_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    containeranalysis_projects_locations_notes_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_notes_set_iam_policy_execute()` to send, or `containeranalysis_projects_locations_notes_set_iam_policy` for simplest API.
+
+pub fn containeranalysis_projects_locations_notes_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_notes_set_iam_policy_execute()` or `containeranalysis_projects_locations_notes_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_notes_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_notes_set_iam_policy_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_notes_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_notes_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_notes_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_notes_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_notes_set_iam_policy_builder()` + `containeranalysis_projects_locations_notes_set_iam_policy_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_notes_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsNotesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_locations_notes_set_iam_policy_builder(client, &args.resource)?;
+    containeranalysis_projects_locations_notes_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_notes_test_iam_permissions_execute()` to send, or `containeranalysis_projects_locations_notes_test_iam_permissions` for simplest API.
+
+pub fn containeranalysis_projects_locations_notes_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_notes_test_iam_permissions_execute()` or `containeranalysis_projects_locations_notes_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_notes_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_notes_test_iam_permissions_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_notes_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_notes_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_notes_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_notes_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_notes_test_iam_permissions_builder()` + `containeranalysis_projects_locations_notes_test_iam_permissions_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_notes_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_notes_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    containeranalysis_projects_locations_notes_test_iam_permissions_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}/occurrences
+/// Lists occurrences referencing the specified note. Provider projects can use this method to get all occurrences across consumer projects referencing the specified note.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_notes_occurrences_list_execute()` to send, or `containeranalysis_projects_locations_notes_occurrences_list` for simplest API.
+
+pub fn containeranalysis_projects_locations_notes_occurrences_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/notes/{notesId}/occurrences",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}/occurrences
+/// Lists occurrences referencing the specified note. Provider projects can use this method to get all occurrences across consumer projects referencing the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_notes_occurrences_list_execute()` or `containeranalysis_projects_locations_notes_occurrences_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_occurrences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_occurrences_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNoteOccurrencesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNoteOccurrencesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}/occurrences
+/// Lists occurrences referencing the specified note. Provider projects can use this method to get all occurrences across consumer projects referencing the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_notes_occurrences_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_notes_occurrences_list_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_notes_occurrences_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_notes_occurrences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_notes_occurrences_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNoteOccurrencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_notes_occurrences_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_notes_occurrences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesOccurrencesListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}/occurrences
+/// Lists occurrences referencing the specified note. Provider projects can use this method to get all occurrences across consumer projects referencing the specified note.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_notes_occurrences_list_builder()` + `containeranalysis_projects_locations_notes_occurrences_list_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_notes_occurrences_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_notes_occurrences_list(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsNotesOccurrencesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNoteOccurrencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_notes_occurrences_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    containeranalysis_projects_locations_notes_occurrences_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences:batchCreate
+/// Creates new occurrences in batch.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_batch_create_execute()` to send, or `containeranalysis_projects_locations_occurrences_batch_create` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_batch_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences:batchCreate",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences:batchCreate
+/// Creates new occurrences in batch.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_batch_create_execute()` or `containeranalysis_projects_locations_occurrences_batch_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_batch_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_batch_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchCreateOccurrencesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BatchCreateOccurrencesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences:batchCreate
+/// Creates new occurrences in batch.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_batch_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_batch_create_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_batch_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_batch_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_batch_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<BatchCreateOccurrencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_occurrences_batch_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences:batchCreate
+/// Creates new occurrences in batch.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_batch_create_builder()` + `containeranalysis_projects_locations_occurrences_batch_create_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_batch_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_batch_create(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesBatchCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<BatchCreateOccurrencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_occurrences_batch_create_builder(
+        client,
+        &args.parent,
+    )?;
+    containeranalysis_projects_locations_occurrences_batch_create_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences
+/// Creates a new occurrence.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_create_execute()` to send, or `containeranalysis_projects_locations_occurrences_create` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences
+/// Creates a new occurrence.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_create_execute()` or `containeranalysis_projects_locations_occurrences_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Occurrence>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Occurrence = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences
+/// Creates a new occurrence.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_create_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_occurrences_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences
+/// Creates a new occurrence.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_create_builder()` + `containeranalysis_projects_locations_occurrences_create_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_create(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_locations_occurrences_create_builder(client, &args.parent)?;
+    containeranalysis_projects_locations_occurrences_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Deletes the specified occurrence. For example, use this method to delete an occurrence when the occurrence is no longer applicable for the given resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_delete_execute()` to send, or `containeranalysis_projects_locations_occurrences_delete` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Deletes the specified occurrence. For example, use this method to delete an occurrence when the occurrence is no longer applicable for the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_delete_execute()` or `containeranalysis_projects_locations_occurrences_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Deletes the specified occurrence. For example, use this method to delete an occurrence when the occurrence is no longer applicable for the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_delete_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_occurrences_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Deletes the specified occurrence. For example, use this method to delete an occurrence when the occurrence is no longer applicable for the given resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_delete_builder()` + `containeranalysis_projects_locations_occurrences_delete_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_delete(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_locations_occurrences_delete_builder(client, &args.name)?;
+    containeranalysis_projects_locations_occurrences_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Gets the specified occurrence.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_get_execute()` to send, or `containeranalysis_projects_locations_occurrences_get` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Gets the specified occurrence.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_get_execute()` or `containeranalysis_projects_locations_occurrences_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Occurrence>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Occurrence = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Gets the specified occurrence.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_get_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_occurrences_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Gets the specified occurrence.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_get_builder()` + `containeranalysis_projects_locations_occurrences_get_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_get(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_occurrences_get_builder(client, &args.name)?;
+    containeranalysis_projects_locations_occurrences_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_get_iam_policy_execute()` to send, or `containeranalysis_projects_locations_occurrences_get_iam_policy` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_get_iam_policy_execute()` or `containeranalysis_projects_locations_occurrences_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_get_iam_policy_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_occurrences_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_get_iam_policy_builder()` + `containeranalysis_projects_locations_occurrences_get_iam_policy_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_occurrences_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    containeranalysis_projects_locations_occurrences_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}/notes
+/// Gets the note attached to the specified occurrence. Consumer projects can use this method to get a note that belongs to a provider project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_get_notes_execute()` to send, or `containeranalysis_projects_locations_occurrences_get_notes` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_get_notes_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}/notes",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}/notes
+/// Gets the note attached to the specified occurrence. Consumer projects can use this method to get a note that belongs to a provider project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_get_notes_execute()` or `containeranalysis_projects_locations_occurrences_get_notes`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_get_notes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_get_notes_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Note>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Note = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}/notes
+/// Gets the note attached to the specified occurrence. Consumer projects can use this method to get a note that belongs to a provider project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_get_notes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_get_notes_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_get_notes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_get_notes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_get_notes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_occurrences_get_notes_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_get_notes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesGetNotesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}/notes
+/// Gets the note attached to the specified occurrence. Consumer projects can use this method to get a note that belongs to a provider project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_get_notes_builder()` + `containeranalysis_projects_locations_occurrences_get_notes_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_get_notes_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_get_notes(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesGetNotesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_locations_occurrences_get_notes_builder(client, &args.name)?;
+    containeranalysis_projects_locations_occurrences_get_notes_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences:vulnerabilitySummary
+/// Gets a summary of the number and severity of occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_get_vulnerability_summary_execute()` to send, or `containeranalysis_projects_locations_occurrences_get_vulnerability_summary` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences:vulnerabilitySummary",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences:vulnerabilitySummary
+/// Gets a summary of the number and severity of occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_get_vulnerability_summary_execute()` or `containeranalysis_projects_locations_occurrences_get_vulnerability_summary`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summary_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VulnerabilityOccurrencesSummary>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VulnerabilityOccurrencesSummary = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences:vulnerabilitySummary
+/// Gets a summary of the number and severity of occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_get_vulnerability_summary_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_get_vulnerability_summary()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summary_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<VulnerabilityOccurrencesSummary>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        containeranalysis_projects_locations_occurrences_get_vulnerability_summary_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_get_vulnerability_summary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences:vulnerabilitySummary
+/// Gets a summary of the number and severity of occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder()` + `containeranalysis_projects_locations_occurrences_get_vulnerability_summary_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_get_vulnerability_summary_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summary(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<VulnerabilityOccurrencesSummary>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder(
+            client,
+            &args.parent,
+            &args.filter,
+            &args.returnPartialSuccess,
+        )?;
+    containeranalysis_projects_locations_occurrences_get_vulnerability_summary_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences
+/// Lists occurrences for the specified project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_list_execute()` to send, or `containeranalysis_projects_locations_occurrences_list` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences
+/// Lists occurrences for the specified project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_list_execute()` or `containeranalysis_projects_locations_occurrences_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOccurrencesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOccurrencesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences
+/// Lists occurrences for the specified project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_list_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOccurrencesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_occurrences_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences
+/// Lists occurrences for the specified project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_list_builder()` + `containeranalysis_projects_locations_occurrences_list_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_list(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOccurrencesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_occurrences_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    containeranalysis_projects_locations_occurrences_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Updates the specified occurrence.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_patch_execute()` to send, or `containeranalysis_projects_locations_occurrences_patch` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Updates the specified occurrence.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_patch_execute()` or `containeranalysis_projects_locations_occurrences_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Occurrence>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Occurrence = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Updates the specified occurrence.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_patch_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_occurrences_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
+/// Updates the specified occurrence.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_patch_builder()` + `containeranalysis_projects_locations_occurrences_patch_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_patch(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_occurrences_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    containeranalysis_projects_locations_occurrences_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_set_iam_policy_execute()` to send, or `containeranalysis_projects_locations_occurrences_set_iam_policy` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_set_iam_policy_execute()` or `containeranalysis_projects_locations_occurrences_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_set_iam_policy_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_occurrences_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_set_iam_policy_builder()` + `containeranalysis_projects_locations_occurrences_set_iam_policy_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_occurrences_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    containeranalysis_projects_locations_occurrences_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_occurrences_test_iam_permissions_execute()` to send, or `containeranalysis_projects_locations_occurrences_test_iam_permissions` for simplest API.
+
+pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/occurrences/{occurrencesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_occurrences_test_iam_permissions_execute()` or `containeranalysis_projects_locations_occurrences_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_occurrences_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_test_iam_permissions_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_occurrences_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_occurrences_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_occurrences_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_occurrences_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_occurrences_test_iam_permissions_builder()` + `containeranalysis_projects_locations_occurrences_test_iam_permissions_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_occurrences_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsOccurrencesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_locations_occurrences_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    containeranalysis_projects_locations_occurrences_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/resources/{resourcesId}:exportSBOM
+/// Generates an SBOM for the given resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_locations_resources_export_sbom_execute()` to send, or `containeranalysis_projects_locations_resources_export_sbom` for simplest API.
+
+pub fn containeranalysis_projects_locations_resources_export_sbom_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/locations/{locationsId}/resources/{resourcesId}:exportSBOM",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/resources/{resourcesId}:exportSBOM
+/// Generates an SBOM for the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_locations_resources_export_sbom_execute()` or `containeranalysis_projects_locations_resources_export_sbom`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_resources_export_sbom_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_resources_export_sbom_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExportSBOMResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExportSBOMResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/resources/{resourcesId}:exportSBOM
+/// Generates an SBOM for the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_locations_resources_export_sbom_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_locations_resources_export_sbom_task()`.
+/// For the simplest API, use `containeranalysis_projects_locations_resources_export_sbom()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_locations_resources_export_sbom_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_locations_resources_export_sbom_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExportSBOMResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_locations_resources_export_sbom_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_locations_resources_export_sbom`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsResourcesExportSbomArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/resources/{resourcesId}:exportSBOM
+/// Generates an SBOM for the given resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_locations_resources_export_sbom_builder()` + `containeranalysis_projects_locations_resources_export_sbom_execute()`.
+/// For task-level control, use `containeranalysis_projects_locations_resources_export_sbom_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_locations_resources_export_sbom(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsLocationsResourcesExportSbomArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExportSBOMResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_locations_resources_export_sbom_builder(client, &args.name)?;
+    containeranalysis_projects_locations_resources_export_sbom_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/notes:batchCreate
 /// Creates new notes in batch.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,23 +3752,22 @@ use serde::Serialize;
 pub fn containeranalysis_projects_notes_batch_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &BatchCreateNotesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://containeranalysis.googleapis.com/v1/projects/{}/notes:batchCreate",);
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/notes:batchCreate",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/notes:batchCreate
+/// POST v1/projects/{projectsId}/notes:batchCreate
 /// Creates new notes in batch.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -119,7 +3841,7 @@ pub fn containeranalysis_projects_notes_batch_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/notes:batchCreate
+/// POST v1/projects/{projectsId}/notes:batchCreate
 /// Creates new notes in batch.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -156,11 +3878,9 @@ pub fn containeranalysis_projects_notes_batch_create_execute(
 pub struct ContaineranalysisProjectsNotesBatchCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: BatchCreateNotesRequest,
 }
 
-/// GET v1/projects/{projectsId}/notes:batchCreate
+/// POST v1/projects/{projectsId}/notes:batchCreate
 /// Creates new notes in batch.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -180,12 +3900,11 @@ pub fn containeranalysis_projects_notes_batch_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_notes_batch_create_builder(client, &args.parent, &args.body)?;
+    let builder = containeranalysis_projects_notes_batch_create_builder(client, &args.parent)?;
     containeranalysis_projects_notes_batch_create_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/notes
+/// POST v1/projects/{projectsId}/notes
 /// Creates a new note.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -194,11 +3913,13 @@ pub fn containeranalysis_projects_notes_batch_create(
 pub fn containeranalysis_projects_notes_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    noteId: &Option<String>,
-    body: &Note,
+    noteId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://containeranalysis.googleapis.com/v1/projects/{}/notes",);
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/notes",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -213,15 +3934,13 @@ pub fn containeranalysis_projects_notes_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/notes
+/// POST v1/projects/{projectsId}/notes
 /// Creates a new note.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -295,7 +4014,7 @@ pub fn containeranalysis_projects_notes_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/notes
+/// POST v1/projects/{projectsId}/notes
 /// Creates a new note.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -331,12 +4050,10 @@ pub struct ContaineranalysisProjectsNotesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: noteId
-    pub noteId: Option<String>,
-    /// Request body.
-    pub body: Note,
+    pub noteId: Option<Option<String>>,
 }
 
-/// GET v1/projects/{projectsId}/notes
+/// POST v1/projects/{projectsId}/notes
 /// Creates a new note.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -354,16 +4071,1375 @@ pub fn containeranalysis_projects_notes_create(
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_notes_create_builder(
-        client,
-        &args.parent,
-        &args.noteId,
-        &args.body,
-    )?;
+    let builder =
+        containeranalysis_projects_notes_create_builder(client, &args.parent, &args.noteId)?;
     containeranalysis_projects_notes_create_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/occurrences:batchCreate
+/// DELETE v1/projects/{projectsId}/notes/{notesId}
+/// Deletes the specified note.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_notes_delete_execute()` to send, or `containeranalysis_projects_notes_delete` for simplest API.
+
+pub fn containeranalysis_projects_notes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/notes/{notesId}
+/// Deletes the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_notes_delete_execute()` or `containeranalysis_projects_notes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/notes/{notesId}
+/// Deletes the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_notes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_notes_delete_task()`.
+/// For the simplest API, use `containeranalysis_projects_notes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_notes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_notes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_notes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/notes/{notesId}
+/// Deletes the specified note.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_notes_delete_builder()` + `containeranalysis_projects_notes_delete_execute()`.
+/// For task-level control, use `containeranalysis_projects_notes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_delete(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsNotesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_notes_delete_builder(client, &args.name)?;
+    containeranalysis_projects_notes_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/notes/{notesId}
+/// Gets the specified note.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_notes_get_execute()` to send, or `containeranalysis_projects_notes_get` for simplest API.
+
+pub fn containeranalysis_projects_notes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/notes/{notesId}
+/// Gets the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_notes_get_execute()` or `containeranalysis_projects_notes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Note>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Note = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/notes/{notesId}
+/// Gets the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_notes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_notes_get_task()`.
+/// For the simplest API, use `containeranalysis_projects_notes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_notes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_notes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_notes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/notes/{notesId}
+/// Gets the specified note.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_notes_get_builder()` + `containeranalysis_projects_notes_get_execute()`.
+/// For task-level control, use `containeranalysis_projects_notes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_get(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsNotesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_notes_get_builder(client, &args.name)?;
+    containeranalysis_projects_notes_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_notes_get_iam_policy_execute()` to send, or `containeranalysis_projects_notes_get_iam_policy` for simplest API.
+
+pub fn containeranalysis_projects_notes_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_notes_get_iam_policy_execute()` or `containeranalysis_projects_notes_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_notes_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_notes_get_iam_policy_task()`.
+/// For the simplest API, use `containeranalysis_projects_notes_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_notes_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_notes_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_notes_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_notes_get_iam_policy_builder()` + `containeranalysis_projects_notes_get_iam_policy_execute()`.
+/// For task-level control, use `containeranalysis_projects_notes_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsNotesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_notes_get_iam_policy_builder(client, &args.resource)?;
+    containeranalysis_projects_notes_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/notes
+/// Lists notes for the specified project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_notes_list_execute()` to send, or `containeranalysis_projects_notes_list` for simplest API.
+
+pub fn containeranalysis_projects_notes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/notes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/notes
+/// Lists notes for the specified project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_notes_list_execute()` or `containeranalysis_projects_notes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNotesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNotesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/notes
+/// Lists notes for the specified project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_notes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_notes_list_task()`.
+/// For the simplest API, use `containeranalysis_projects_notes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_notes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNotesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_notes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_notes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/notes
+/// Lists notes for the specified project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_notes_list_builder()` + `containeranalysis_projects_notes_list_execute()`.
+/// For task-level control, use `containeranalysis_projects_notes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_list(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsNotesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNotesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_notes_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    containeranalysis_projects_notes_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/notes/{notesId}
+/// Updates the specified note.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_notes_patch_execute()` to send, or `containeranalysis_projects_notes_patch` for simplest API.
+
+pub fn containeranalysis_projects_notes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/notes/{notesId}
+/// Updates the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_notes_patch_execute()` or `containeranalysis_projects_notes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Note>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Note = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/notes/{notesId}
+/// Updates the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_notes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_notes_patch_task()`.
+/// For the simplest API, use `containeranalysis_projects_notes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_notes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_notes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_notes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/notes/{notesId}
+/// Updates the specified note.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_notes_patch_builder()` + `containeranalysis_projects_notes_patch_execute()`.
+/// For task-level control, use `containeranalysis_projects_notes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_patch(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsNotesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_notes_patch_builder(client, &args.name, &args.updateMask)?;
+    containeranalysis_projects_notes_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_notes_set_iam_policy_execute()` to send, or `containeranalysis_projects_notes_set_iam_policy` for simplest API.
+
+pub fn containeranalysis_projects_notes_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_notes_set_iam_policy_execute()` or `containeranalysis_projects_notes_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_notes_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_notes_set_iam_policy_task()`.
+/// For the simplest API, use `containeranalysis_projects_notes_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_notes_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_notes_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_notes_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_notes_set_iam_policy_builder()` + `containeranalysis_projects_notes_set_iam_policy_execute()`.
+/// For task-level control, use `containeranalysis_projects_notes_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsNotesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_notes_set_iam_policy_builder(client, &args.resource)?;
+    containeranalysis_projects_notes_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_notes_test_iam_permissions_execute()` to send, or `containeranalysis_projects_notes_test_iam_permissions` for simplest API.
+
+pub fn containeranalysis_projects_notes_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_notes_test_iam_permissions_execute()` or `containeranalysis_projects_notes_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_notes_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_notes_test_iam_permissions_task()`.
+/// For the simplest API, use `containeranalysis_projects_notes_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_notes_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_notes_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_notes_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/notes/{notesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_notes_test_iam_permissions_builder()` + `containeranalysis_projects_notes_test_iam_permissions_execute()`.
+/// For task-level control, use `containeranalysis_projects_notes_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsNotesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_notes_test_iam_permissions_builder(client, &args.resource)?;
+    containeranalysis_projects_notes_test_iam_permissions_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/notes/{notesId}/occurrences
+/// Lists occurrences referencing the specified note. Provider projects can use this method to get all occurrences across consumer projects referencing the specified note.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_notes_occurrences_list_execute()` to send, or `containeranalysis_projects_notes_occurrences_list` for simplest API.
+
+pub fn containeranalysis_projects_notes_occurrences_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/notes/{notesId}/occurrences",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/notes/{notesId}/occurrences
+/// Lists occurrences referencing the specified note. Provider projects can use this method to get all occurrences across consumer projects referencing the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_notes_occurrences_list_execute()` or `containeranalysis_projects_notes_occurrences_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_occurrences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_occurrences_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNoteOccurrencesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNoteOccurrencesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/notes/{notesId}/occurrences
+/// Lists occurrences referencing the specified note. Provider projects can use this method to get all occurrences across consumer projects referencing the specified note.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_notes_occurrences_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_notes_occurrences_list_task()`.
+/// For the simplest API, use `containeranalysis_projects_notes_occurrences_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_notes_occurrences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_notes_occurrences_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNoteOccurrencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_notes_occurrences_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_notes_occurrences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesOccurrencesListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/notes/{notesId}/occurrences
+/// Lists occurrences referencing the specified note. Provider projects can use this method to get all occurrences across consumer projects referencing the specified note.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_notes_occurrences_list_builder()` + `containeranalysis_projects_notes_occurrences_list_execute()`.
+/// For task-level control, use `containeranalysis_projects_notes_occurrences_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_notes_occurrences_list(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsNotesOccurrencesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNoteOccurrencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_notes_occurrences_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    containeranalysis_projects_notes_occurrences_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/occurrences:batchCreate
 /// Creates new occurrences in batch.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -372,23 +5448,22 @@ pub fn containeranalysis_projects_notes_create(
 pub fn containeranalysis_projects_occurrences_batch_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &BatchCreateOccurrencesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://containeranalysis.googleapis.com/v1/projects/{}/occurrences:batchCreate",);
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences:batchCreate",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/occurrences:batchCreate
+/// POST v1/projects/{projectsId}/occurrences:batchCreate
 /// Creates new occurrences in batch.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -462,7 +5537,7 @@ pub fn containeranalysis_projects_occurrences_batch_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/occurrences:batchCreate
+/// POST v1/projects/{projectsId}/occurrences:batchCreate
 /// Creates new occurrences in batch.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -501,11 +5576,9 @@ pub fn containeranalysis_projects_occurrences_batch_create_execute(
 pub struct ContaineranalysisProjectsOccurrencesBatchCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: BatchCreateOccurrencesRequest,
 }
 
-/// GET v1/projects/{projectsId}/occurrences:batchCreate
+/// POST v1/projects/{projectsId}/occurrences:batchCreate
 /// Creates new occurrences in batch.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -527,15 +5600,12 @@ pub fn containeranalysis_projects_occurrences_batch_create(
         + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_occurrences_batch_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder =
+        containeranalysis_projects_occurrences_batch_create_builder(client, &args.parent)?;
     containeranalysis_projects_occurrences_batch_create_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/occurrences
+/// POST v1/projects/{projectsId}/occurrences
 /// Creates a new occurrence.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -544,23 +5614,22 @@ pub fn containeranalysis_projects_occurrences_batch_create(
 pub fn containeranalysis_projects_occurrences_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &Occurrence,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://containeranalysis.googleapis.com/v1/projects/{}/occurrences",);
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/occurrences
+/// POST v1/projects/{projectsId}/occurrences
 /// Creates a new occurrence.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -634,7 +5703,7 @@ pub fn containeranalysis_projects_occurrences_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/occurrences
+/// POST v1/projects/{projectsId}/occurrences
 /// Creates a new occurrence.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -669,11 +5738,9 @@ pub fn containeranalysis_projects_occurrences_create_execute(
 pub struct ContaineranalysisProjectsOccurrencesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: Occurrence,
 }
 
-/// GET v1/projects/{projectsId}/occurrences
+/// POST v1/projects/{projectsId}/occurrences
 /// Creates a new occurrence.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -691,9 +5758,637 @@ pub fn containeranalysis_projects_occurrences_create(
     impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_occurrences_create_builder(client, &args.parent, &args.body)?;
+    let builder = containeranalysis_projects_occurrences_create_builder(client, &args.parent)?;
     containeranalysis_projects_occurrences_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Deletes the specified occurrence. For example, use this method to delete an occurrence when the occurrence is no longer applicable for the given resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_occurrences_delete_execute()` to send, or `containeranalysis_projects_occurrences_delete` for simplest API.
+
+pub fn containeranalysis_projects_occurrences_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Deletes the specified occurrence. For example, use this method to delete an occurrence when the occurrence is no longer applicable for the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_occurrences_delete_execute()` or `containeranalysis_projects_occurrences_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Deletes the specified occurrence. For example, use this method to delete an occurrence when the occurrence is no longer applicable for the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_occurrences_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_occurrences_delete_task()`.
+/// For the simplest API, use `containeranalysis_projects_occurrences_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_occurrences_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_occurrences_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_occurrences_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Deletes the specified occurrence. For example, use this method to delete an occurrence when the occurrence is no longer applicable for the given resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_occurrences_delete_builder()` + `containeranalysis_projects_occurrences_delete_execute()`.
+/// For task-level control, use `containeranalysis_projects_occurrences_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_delete(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsOccurrencesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_occurrences_delete_builder(client, &args.name)?;
+    containeranalysis_projects_occurrences_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Gets the specified occurrence.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_occurrences_get_execute()` to send, or `containeranalysis_projects_occurrences_get` for simplest API.
+
+pub fn containeranalysis_projects_occurrences_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Gets the specified occurrence.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_occurrences_get_execute()` or `containeranalysis_projects_occurrences_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Occurrence>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Occurrence = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Gets the specified occurrence.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_occurrences_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_occurrences_get_task()`.
+/// For the simplest API, use `containeranalysis_projects_occurrences_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_occurrences_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_occurrences_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_occurrences_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Gets the specified occurrence.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_occurrences_get_builder()` + `containeranalysis_projects_occurrences_get_execute()`.
+/// For task-level control, use `containeranalysis_projects_occurrences_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_get(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsOccurrencesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_occurrences_get_builder(client, &args.name)?;
+    containeranalysis_projects_occurrences_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_occurrences_get_iam_policy_execute()` to send, or `containeranalysis_projects_occurrences_get_iam_policy` for simplest API.
+
+pub fn containeranalysis_projects_occurrences_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_occurrences_get_iam_policy_execute()` or `containeranalysis_projects_occurrences_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_occurrences_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_occurrences_get_iam_policy_task()`.
+/// For the simplest API, use `containeranalysis_projects_occurrences_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_occurrences_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_occurrences_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_occurrences_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:getIamPolicy
+/// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_occurrences_get_iam_policy_builder()` + `containeranalysis_projects_occurrences_get_iam_policy_execute()`.
+/// For task-level control, use `containeranalysis_projects_occurrences_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsOccurrencesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_occurrences_get_iam_policy_builder(client, &args.resource)?;
+    containeranalysis_projects_occurrences_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/occurrences/{occurrencesId}/notes
+/// Gets the note attached to the specified occurrence. Consumer projects can use this method to get a note that belongs to a provider project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_occurrences_get_notes_execute()` to send, or `containeranalysis_projects_occurrences_get_notes` for simplest API.
+
+pub fn containeranalysis_projects_occurrences_get_notes_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}/notes",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/occurrences/{occurrencesId}/notes
+/// Gets the note attached to the specified occurrence. Consumer projects can use this method to get a note that belongs to a provider project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_occurrences_get_notes_execute()` or `containeranalysis_projects_occurrences_get_notes`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_get_notes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_get_notes_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Note>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Note = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/occurrences/{occurrencesId}/notes
+/// Gets the note attached to the specified occurrence. Consumer projects can use this method to get a note that belongs to a provider project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_occurrences_get_notes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_occurrences_get_notes_task()`.
+/// For the simplest API, use `containeranalysis_projects_occurrences_get_notes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_get_notes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_occurrences_get_notes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_occurrences_get_notes_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_occurrences_get_notes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesGetNotesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/occurrences/{occurrencesId}/notes
+/// Gets the note attached to the specified occurrence. Consumer projects can use this method to get a note that belongs to a provider project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_occurrences_get_notes_builder()` + `containeranalysis_projects_occurrences_get_notes_execute()`.
+/// For task-level control, use `containeranalysis_projects_occurrences_get_notes_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_get_notes(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsOccurrencesGetNotesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_occurrences_get_notes_builder(client, &args.name)?;
+    containeranalysis_projects_occurrences_get_notes_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/occurrences:vulnerabilitySummary
@@ -705,12 +6400,13 @@ pub fn containeranalysis_projects_occurrences_create(
 pub fn containeranalysis_projects_occurrences_get_vulnerability_summary_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    returnPartialSuccess: &Option<bool>,
+    filter: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences:vulnerabilitySummary",
+        parent,
     );
 
     // Build request
@@ -849,9 +6545,9 @@ pub struct ContaineranalysisProjectsOccurrencesGetVulnerabilitySummaryArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
+    pub returnPartialSuccess: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/occurrences:vulnerabilitySummary
@@ -883,4 +6579,2056 @@ pub fn containeranalysis_projects_occurrences_get_vulnerability_summary(
         &args.returnPartialSuccess,
     )?;
     containeranalysis_projects_occurrences_get_vulnerability_summary_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/occurrences
+/// Lists occurrences for the specified project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_occurrences_list_execute()` to send, or `containeranalysis_projects_occurrences_list` for simplest API.
+
+pub fn containeranalysis_projects_occurrences_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/occurrences
+/// Lists occurrences for the specified project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_occurrences_list_execute()` or `containeranalysis_projects_occurrences_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOccurrencesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOccurrencesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/occurrences
+/// Lists occurrences for the specified project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_occurrences_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_occurrences_list_task()`.
+/// For the simplest API, use `containeranalysis_projects_occurrences_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_occurrences_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOccurrencesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_occurrences_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_occurrences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/occurrences
+/// Lists occurrences for the specified project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_occurrences_list_builder()` + `containeranalysis_projects_occurrences_list_execute()`.
+/// For task-level control, use `containeranalysis_projects_occurrences_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_list(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsOccurrencesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOccurrencesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_occurrences_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    containeranalysis_projects_occurrences_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Updates the specified occurrence.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_occurrences_patch_execute()` to send, or `containeranalysis_projects_occurrences_patch` for simplest API.
+
+pub fn containeranalysis_projects_occurrences_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Updates the specified occurrence.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_occurrences_patch_execute()` or `containeranalysis_projects_occurrences_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Occurrence>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Occurrence = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Updates the specified occurrence.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_occurrences_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_occurrences_patch_task()`.
+/// For the simplest API, use `containeranalysis_projects_occurrences_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_occurrences_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_occurrences_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_occurrences_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/occurrences/{occurrencesId}
+/// Updates the specified occurrence.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_occurrences_patch_builder()` + `containeranalysis_projects_occurrences_patch_execute()`.
+/// For task-level control, use `containeranalysis_projects_occurrences_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_patch(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsOccurrencesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_occurrences_patch_builder(client, &args.name, &args.updateMask)?;
+    containeranalysis_projects_occurrences_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_occurrences_set_iam_policy_execute()` to send, or `containeranalysis_projects_occurrences_set_iam_policy` for simplest API.
+
+pub fn containeranalysis_projects_occurrences_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_occurrences_set_iam_policy_execute()` or `containeranalysis_projects_occurrences_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_occurrences_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_occurrences_set_iam_policy_task()`.
+/// For the simplest API, use `containeranalysis_projects_occurrences_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_occurrences_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_occurrences_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_occurrences_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:setIamPolicy
+/// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_occurrences_set_iam_policy_builder()` + `containeranalysis_projects_occurrences_set_iam_policy_execute()`.
+/// For task-level control, use `containeranalysis_projects_occurrences_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsOccurrencesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        containeranalysis_projects_occurrences_set_iam_policy_builder(client, &args.resource)?;
+    containeranalysis_projects_occurrences_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_occurrences_test_iam_permissions_execute()` to send, or `containeranalysis_projects_occurrences_test_iam_permissions` for simplest API.
+
+pub fn containeranalysis_projects_occurrences_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/occurrences/{occurrencesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_occurrences_test_iam_permissions_execute()` or `containeranalysis_projects_occurrences_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_occurrences_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_occurrences_test_iam_permissions_task()`.
+/// For the simplest API, use `containeranalysis_projects_occurrences_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_occurrences_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_occurrences_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_occurrences_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_occurrences_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/occurrences/{occurrencesId}:testIamPermissions
+/// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_occurrences_test_iam_permissions_builder()` + `containeranalysis_projects_occurrences_test_iam_permissions_execute()`.
+/// For task-level control, use `containeranalysis_projects_occurrences_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_occurrences_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsOccurrencesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_occurrences_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    containeranalysis_projects_occurrences_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/resources/{resourcesId}:exportSBOM
+/// Generates an SBOM for the given resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `containeranalysis_projects_resources_export_sbom_execute()` to send, or `containeranalysis_projects_resources_export_sbom` for simplest API.
+
+pub fn containeranalysis_projects_resources_export_sbom_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://containeranalysis.googleapis.com/v1/projects/{}/resources/{resourcesId}:exportSBOM",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/resources/{resourcesId}:exportSBOM
+/// Generates an SBOM for the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `containeranalysis_projects_resources_export_sbom_execute()` or `containeranalysis_projects_resources_export_sbom`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_resources_export_sbom_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_resources_export_sbom_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExportSBOMResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ExportSBOMResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/resources/{resourcesId}:exportSBOM
+/// Generates an SBOM for the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `containeranalysis_projects_resources_export_sbom_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `containeranalysis_projects_resources_export_sbom_task()`.
+/// For the simplest API, use `containeranalysis_projects_resources_export_sbom()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `containeranalysis_projects_resources_export_sbom_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn containeranalysis_projects_resources_export_sbom_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExportSBOMResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = containeranalysis_projects_resources_export_sbom_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`containeranalysis_projects_resources_export_sbom`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsResourcesExportSbomArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/resources/{resourcesId}:exportSBOM
+/// Generates an SBOM for the given resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `containeranalysis_projects_resources_export_sbom_builder()` + `containeranalysis_projects_resources_export_sbom_execute()`.
+/// For task-level control, use `containeranalysis_projects_resources_export_sbom_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn containeranalysis_projects_resources_export_sbom(
+    client: &SimpleHttpClient,
+    args: &ContaineranalysisProjectsResourcesExportSbomArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExportSBOMResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = containeranalysis_projects_resources_export_sbom_builder(client, &args.name)?;
+    containeranalysis_projects_resources_export_sbom_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchCreateNotesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchCreateNotesResponse with ContaineranalysisProjectsLocationsNotesBatchCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesBatchCreateArgs>
+    for BatchCreateNotesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesBatchCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::BatchCreateNotesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::BatchCreateNotesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Note
+// =============================================================================
+
+/// ResourceIdentifier implementation for Note with ContaineranalysisProjectsLocationsNotesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesCreateArgs> for Note {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesCreateArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Note/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ContaineranalysisProjectsLocationsNotesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesDeleteArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Note
+// =============================================================================
+
+/// ResourceIdentifier implementation for Note with ContaineranalysisProjectsLocationsNotesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesGetArgs> for Note {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesGetArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Note/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNotesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNotesResponse with ContaineranalysisProjectsLocationsNotesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesListArgs> for ListNotesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesListArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::ListNotesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::ListNotesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Note
+// =============================================================================
+
+/// ResourceIdentifier implementation for Note with ContaineranalysisProjectsLocationsNotesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesPatchArgs> for Note {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesPatchArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Note/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ContaineranalysisProjectsLocationsNotesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNoteOccurrencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNoteOccurrencesResponse with ContaineranalysisProjectsLocationsNotesOccurrencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesOccurrencesListArgs>
+    for ListNoteOccurrencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesOccurrencesListArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::ListNoteOccurrencesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::ListNoteOccurrencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchCreateOccurrencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchCreateOccurrencesResponse with ContaineranalysisProjectsLocationsOccurrencesBatchCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesBatchCreateArgs>
+    for BatchCreateOccurrencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesBatchCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::BatchCreateOccurrencesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::BatchCreateOccurrencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Occurrence
+// =============================================================================
+
+/// ResourceIdentifier implementation for Occurrence with ContaineranalysisProjectsLocationsOccurrencesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesCreateArgs> for Occurrence {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesCreateArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Occurrence/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Occurrence"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ContaineranalysisProjectsLocationsOccurrencesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesDeleteArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Occurrence
+// =============================================================================
+
+/// ResourceIdentifier implementation for Occurrence with ContaineranalysisProjectsLocationsOccurrencesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesGetArgs> for Occurrence {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesGetArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Occurrence/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Occurrence"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ContaineranalysisProjectsLocationsOccurrencesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Note
+// =============================================================================
+
+/// ResourceIdentifier implementation for Note with ContaineranalysisProjectsLocationsOccurrencesGetNotesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesGetNotesArgs> for Note {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesGetNotesArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Note/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VulnerabilityOccurrencesSummary
+// =============================================================================
+
+/// ResourceIdentifier implementation for VulnerabilityOccurrencesSummary with ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs>
+    for VulnerabilityOccurrencesSummary
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::VulnerabilityOccurrencesSummary/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::VulnerabilityOccurrencesSummary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOccurrencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOccurrencesResponse with ContaineranalysisProjectsLocationsOccurrencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesListArgs>
+    for ListOccurrencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesListArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::ListOccurrencesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::ListOccurrencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Occurrence
+// =============================================================================
+
+/// ResourceIdentifier implementation for Occurrence with ContaineranalysisProjectsLocationsOccurrencesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesPatchArgs> for Occurrence {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesPatchArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Occurrence/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Occurrence"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ContaineranalysisProjectsLocationsOccurrencesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with ContaineranalysisProjectsLocationsOccurrencesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExportSBOMResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExportSBOMResponse with ContaineranalysisProjectsLocationsResourcesExportSbomArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsResourcesExportSbomArgs>
+    for ExportSBOMResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsResourcesExportSbomArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::ExportSBOMResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::ExportSBOMResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchCreateNotesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchCreateNotesResponse with ContaineranalysisProjectsNotesBatchCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsNotesBatchCreateArgs>
+    for BatchCreateNotesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsNotesBatchCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::BatchCreateNotesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::BatchCreateNotesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Note
+// =============================================================================
+
+/// ResourceIdentifier implementation for Note with ContaineranalysisProjectsNotesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsNotesCreateArgs> for Note {
+    fn generate_resource_id(&self, input: &ContaineranalysisProjectsNotesCreateArgs) -> String {
+        format!("gcp::containeranalysis::Note/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ContaineranalysisProjectsNotesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsNotesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ContaineranalysisProjectsNotesDeleteArgs) -> String {
+        format!("gcp::containeranalysis::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Note
+// =============================================================================
+
+/// ResourceIdentifier implementation for Note with ContaineranalysisProjectsNotesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsNotesGetArgs> for Note {
+    fn generate_resource_id(&self, input: &ContaineranalysisProjectsNotesGetArgs) -> String {
+        format!("gcp::containeranalysis::Note/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ContaineranalysisProjectsNotesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsNotesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsNotesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNotesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNotesResponse with ContaineranalysisProjectsNotesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsNotesListArgs> for ListNotesResponse {
+    fn generate_resource_id(&self, input: &ContaineranalysisProjectsNotesListArgs) -> String {
+        format!("gcp::containeranalysis::ListNotesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::ListNotesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Note
+// =============================================================================
+
+/// ResourceIdentifier implementation for Note with ContaineranalysisProjectsNotesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsNotesPatchArgs> for Note {
+    fn generate_resource_id(&self, input: &ContaineranalysisProjectsNotesPatchArgs) -> String {
+        format!("gcp::containeranalysis::Note/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ContaineranalysisProjectsNotesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsNotesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsNotesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with ContaineranalysisProjectsNotesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsNotesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsNotesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNoteOccurrencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNoteOccurrencesResponse with ContaineranalysisProjectsNotesOccurrencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsNotesOccurrencesListArgs>
+    for ListNoteOccurrencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsNotesOccurrencesListArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::ListNoteOccurrencesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::ListNoteOccurrencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchCreateOccurrencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchCreateOccurrencesResponse with ContaineranalysisProjectsOccurrencesBatchCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesBatchCreateArgs>
+    for BatchCreateOccurrencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsOccurrencesBatchCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::BatchCreateOccurrencesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::BatchCreateOccurrencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Occurrence
+// =============================================================================
+
+/// ResourceIdentifier implementation for Occurrence with ContaineranalysisProjectsOccurrencesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesCreateArgs> for Occurrence {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsOccurrencesCreateArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Occurrence/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Occurrence"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ContaineranalysisProjectsOccurrencesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsOccurrencesDeleteArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Occurrence
+// =============================================================================
+
+/// ResourceIdentifier implementation for Occurrence with ContaineranalysisProjectsOccurrencesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesGetArgs> for Occurrence {
+    fn generate_resource_id(&self, input: &ContaineranalysisProjectsOccurrencesGetArgs) -> String {
+        format!("gcp::containeranalysis::Occurrence/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Occurrence"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ContaineranalysisProjectsOccurrencesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsOccurrencesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Note
+// =============================================================================
+
+/// ResourceIdentifier implementation for Note with ContaineranalysisProjectsOccurrencesGetNotesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesGetNotesArgs> for Note {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsOccurrencesGetNotesArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Note/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VulnerabilityOccurrencesSummary
+// =============================================================================
+
+/// ResourceIdentifier implementation for VulnerabilityOccurrencesSummary with ContaineranalysisProjectsOccurrencesGetVulnerabilitySummaryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesGetVulnerabilitySummaryArgs>
+    for VulnerabilityOccurrencesSummary
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsOccurrencesGetVulnerabilitySummaryArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::VulnerabilityOccurrencesSummary/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::VulnerabilityOccurrencesSummary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOccurrencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOccurrencesResponse with ContaineranalysisProjectsOccurrencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesListArgs> for ListOccurrencesResponse {
+    fn generate_resource_id(&self, input: &ContaineranalysisProjectsOccurrencesListArgs) -> String {
+        format!(
+            "gcp::containeranalysis::ListOccurrencesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::ListOccurrencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Occurrence
+// =============================================================================
+
+/// ResourceIdentifier implementation for Occurrence with ContaineranalysisProjectsOccurrencesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesPatchArgs> for Occurrence {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsOccurrencesPatchArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Occurrence/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Occurrence"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ContaineranalysisProjectsOccurrencesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsOccurrencesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with ContaineranalysisProjectsOccurrencesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsOccurrencesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsOccurrencesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::containeranalysis::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ExportSBOMResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ExportSBOMResponse with ContaineranalysisProjectsResourcesExportSbomArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsResourcesExportSbomArgs> for ExportSBOMResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsResourcesExportSbomArgs,
+    ) -> String {
+        format!("gcp::containeranalysis::ExportSBOMResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::containeranalysis::ExportSBOMResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

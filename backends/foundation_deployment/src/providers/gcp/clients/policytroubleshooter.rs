@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v3/iam:troubleshoot
+/// POST v3/iam:troubleshoot
 /// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn't have that permission.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn policytroubleshooter_iam_troubleshoot_builder(
     client: &SimpleHttpClient,
-    body: &GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://policytroubleshooter.googleapis.com/v3/iam:troubleshoot",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/iam:troubleshoot
+/// POST v3/iam:troubleshoot
 /// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn't have that permission.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -121,7 +118,7 @@ pub fn policytroubleshooter_iam_troubleshoot_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/iam:troubleshoot
+/// POST v3/iam:troubleshoot
 /// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn't have that permission.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -158,14 +155,7 @@ pub fn policytroubleshooter_iam_troubleshoot_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`policytroubleshooter_iam_troubleshoot`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PolicytroubleshooterIamTroubleshootArgs {
-    /// Request body.
-    pub body: GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest,
-}
-
-/// GET v3/iam:troubleshoot
+/// POST v3/iam:troubleshoot
 /// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn't have that permission.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -178,7 +168,6 @@ pub struct PolicytroubleshooterIamTroubleshootArgs {
 
 pub fn policytroubleshooter_iam_troubleshoot(
     client: &SimpleHttpClient,
-    args: &PolicytroubleshooterIamTroubleshootArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -190,6 +179,31 @@ pub fn policytroubleshooter_iam_troubleshoot(
         + 'static,
     ApiError,
 > {
-    let builder = policytroubleshooter_iam_troubleshoot_builder(client, &args.body)?;
+    let builder = policytroubleshooter_iam_troubleshoot_builder(client)?;
     policytroubleshooter_iam_troubleshoot_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse with PolicytroubleshooterIamTroubleshootArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PolicytroubleshooterIamTroubleshootArgs>
+    for GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse
+{
+    fn generate_resource_id(&self, input: &PolicytroubleshooterIamTroubleshootArgs) -> String {
+        "gcp::policytroubleshooter::GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::policytroubleshooter::GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

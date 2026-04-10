@@ -12,13 +12,20 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::metastore::{
+    metastore_projects_locations_get_builder, metastore_projects_locations_get_task,
+    metastore_projects_locations_list_builder, metastore_projects_locations_list_task,
     metastore_projects_locations_federations_create_builder, metastore_projects_locations_federations_create_task,
     metastore_projects_locations_federations_delete_builder, metastore_projects_locations_federations_delete_task,
+    metastore_projects_locations_federations_get_builder, metastore_projects_locations_federations_get_task,
+    metastore_projects_locations_federations_get_iam_policy_builder, metastore_projects_locations_federations_get_iam_policy_task,
+    metastore_projects_locations_federations_list_builder, metastore_projects_locations_federations_list_task,
     metastore_projects_locations_federations_patch_builder, metastore_projects_locations_federations_patch_task,
     metastore_projects_locations_federations_set_iam_policy_builder, metastore_projects_locations_federations_set_iam_policy_task,
     metastore_projects_locations_federations_test_iam_permissions_builder, metastore_projects_locations_federations_test_iam_permissions_task,
     metastore_projects_locations_operations_cancel_builder, metastore_projects_locations_operations_cancel_task,
     metastore_projects_locations_operations_delete_builder, metastore_projects_locations_operations_delete_task,
+    metastore_projects_locations_operations_get_builder, metastore_projects_locations_operations_get_task,
+    metastore_projects_locations_operations_list_builder, metastore_projects_locations_operations_list_task,
     metastore_projects_locations_services_alter_location_builder, metastore_projects_locations_services_alter_location_task,
     metastore_projects_locations_services_alter_table_properties_builder, metastore_projects_locations_services_alter_table_properties_task,
     metastore_projects_locations_services_cancel_migration_builder, metastore_projects_locations_services_cancel_migration_task,
@@ -26,6 +33,9 @@ use crate::providers::gcp::clients::metastore::{
     metastore_projects_locations_services_create_builder, metastore_projects_locations_services_create_task,
     metastore_projects_locations_services_delete_builder, metastore_projects_locations_services_delete_task,
     metastore_projects_locations_services_export_metadata_builder, metastore_projects_locations_services_export_metadata_task,
+    metastore_projects_locations_services_get_builder, metastore_projects_locations_services_get_task,
+    metastore_projects_locations_services_get_iam_policy_builder, metastore_projects_locations_services_get_iam_policy_task,
+    metastore_projects_locations_services_list_builder, metastore_projects_locations_services_list_task,
     metastore_projects_locations_services_move_table_to_database_builder, metastore_projects_locations_services_move_table_to_database_task,
     metastore_projects_locations_services_patch_builder, metastore_projects_locations_services_patch_task,
     metastore_projects_locations_services_query_metadata_builder, metastore_projects_locations_services_query_metadata_task,
@@ -35,40 +45,81 @@ use crate::providers::gcp::clients::metastore::{
     metastore_projects_locations_services_test_iam_permissions_builder, metastore_projects_locations_services_test_iam_permissions_task,
     metastore_projects_locations_services_backups_create_builder, metastore_projects_locations_services_backups_create_task,
     metastore_projects_locations_services_backups_delete_builder, metastore_projects_locations_services_backups_delete_task,
+    metastore_projects_locations_services_backups_get_builder, metastore_projects_locations_services_backups_get_task,
+    metastore_projects_locations_services_backups_get_iam_policy_builder, metastore_projects_locations_services_backups_get_iam_policy_task,
+    metastore_projects_locations_services_backups_list_builder, metastore_projects_locations_services_backups_list_task,
     metastore_projects_locations_services_backups_set_iam_policy_builder, metastore_projects_locations_services_backups_set_iam_policy_task,
+    metastore_projects_locations_services_databases_get_iam_policy_builder, metastore_projects_locations_services_databases_get_iam_policy_task,
     metastore_projects_locations_services_databases_set_iam_policy_builder, metastore_projects_locations_services_databases_set_iam_policy_task,
+    metastore_projects_locations_services_databases_tables_get_iam_policy_builder, metastore_projects_locations_services_databases_tables_get_iam_policy_task,
     metastore_projects_locations_services_databases_tables_set_iam_policy_builder, metastore_projects_locations_services_databases_tables_set_iam_policy_task,
     metastore_projects_locations_services_metadata_imports_create_builder, metastore_projects_locations_services_metadata_imports_create_task,
+    metastore_projects_locations_services_metadata_imports_get_builder, metastore_projects_locations_services_metadata_imports_get_task,
+    metastore_projects_locations_services_metadata_imports_list_builder, metastore_projects_locations_services_metadata_imports_list_task,
     metastore_projects_locations_services_metadata_imports_patch_builder, metastore_projects_locations_services_metadata_imports_patch_task,
     metastore_projects_locations_services_migration_executions_delete_builder, metastore_projects_locations_services_migration_executions_delete_task,
+    metastore_projects_locations_services_migration_executions_get_builder, metastore_projects_locations_services_migration_executions_get_task,
+    metastore_projects_locations_services_migration_executions_list_builder, metastore_projects_locations_services_migration_executions_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::metastore::Backup;
 use crate::providers::gcp::clients::metastore::Empty;
+use crate::providers::gcp::clients::metastore::Federation;
+use crate::providers::gcp::clients::metastore::ListBackupsResponse;
+use crate::providers::gcp::clients::metastore::ListFederationsResponse;
+use crate::providers::gcp::clients::metastore::ListLocationsResponse;
+use crate::providers::gcp::clients::metastore::ListMetadataImportsResponse;
+use crate::providers::gcp::clients::metastore::ListMigrationExecutionsResponse;
+use crate::providers::gcp::clients::metastore::ListOperationsResponse;
+use crate::providers::gcp::clients::metastore::ListServicesResponse;
+use crate::providers::gcp::clients::metastore::Location;
+use crate::providers::gcp::clients::metastore::MetadataImport;
+use crate::providers::gcp::clients::metastore::MigrationExecution;
 use crate::providers::gcp::clients::metastore::Operation;
 use crate::providers::gcp::clients::metastore::Policy;
+use crate::providers::gcp::clients::metastore::Service;
 use crate::providers::gcp::clients::metastore::TestIamPermissionsResponse;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsFederationsCreateArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsFederationsDeleteArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsFederationsGetArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsFederationsGetIamPolicyArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsFederationsListArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsFederationsPatchArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsFederationsSetIamPolicyArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsFederationsTestIamPermissionsArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsListArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsOperationsCancelArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsOperationsDeleteArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsOperationsListArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesAlterLocationArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesAlterTablePropertiesArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesBackupsCreateArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesBackupsDeleteArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesBackupsGetArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesBackupsGetIamPolicyArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesBackupsListArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesBackupsSetIamPolicyArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesCancelMigrationArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesCompleteMigrationArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesCreateArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesDatabasesGetIamPolicyArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesDatabasesSetIamPolicyArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesDatabasesTablesGetIamPolicyArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesDatabasesTablesSetIamPolicyArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesDeleteArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesExportMetadataArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesGetArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesGetIamPolicyArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesListArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesMetadataImportsCreateArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesMetadataImportsGetArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesMetadataImportsListArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesMetadataImportsPatchArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesMigrationExecutionsDeleteArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesMigrationExecutionsGetArgs;
+use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesMigrationExecutionsListArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesMoveTableToDatabaseArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesPatchArgs;
 use crate::providers::gcp::clients::metastore::MetastoreProjectsLocationsServicesQueryMetadataArgs;
@@ -115,6 +166,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Metastore projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_get(
+        &self,
+        args: &MetastoreProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_list(
+        &self,
+        args: &MetastoreProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Metastore projects locations federations create.
@@ -204,6 +335,125 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations federations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Federation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_federations_get(
+        &self,
+        args: &MetastoreProjectsLocationsFederationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Federation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_federations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_federations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations federations get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_federations_get_iam_policy(
+        &self,
+        args: &MetastoreProjectsLocationsFederationsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_federations_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_federations_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations federations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListFederationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_federations_list(
+        &self,
+        args: &MetastoreProjectsLocationsFederationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListFederationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_federations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_federations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Metastore projects locations federations patch.
@@ -296,7 +546,7 @@ where
 
     /// Metastore projects locations federations test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -308,7 +558,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn metastore_projects_locations_federations_test_iam_permissions(
         &self,
         args: &MetastoreProjectsLocationsFederationsTestIamPermissionsArgs,
@@ -329,12 +579,7 @@ where
         let task = metastore_projects_locations_federations_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Metastore projects locations operations cancel.
@@ -421,6 +666,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_operations_get(
+        &self,
+        args: &MetastoreProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_operations_list(
+        &self,
+        args: &MetastoreProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Metastore projects locations services alter location.
@@ -686,7 +1011,7 @@ where
 
     /// Metastore projects locations services export metadata.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -698,7 +1023,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn metastore_projects_locations_services_export_metadata(
         &self,
         args: &MetastoreProjectsLocationsServicesExportMetadataArgs,
@@ -719,12 +1044,126 @@ where
         let task = metastore_projects_locations_services_export_metadata_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Metastore projects locations services get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Service result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_get(
+        &self,
+        args: &MetastoreProjectsLocationsServicesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Service, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = metastore_projects_locations_services_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations services get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_get_iam_policy(
+        &self,
+        args: &MetastoreProjectsLocationsServicesGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations services list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListServicesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_list(
+        &self,
+        args: &MetastoreProjectsLocationsServicesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListServicesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Metastore projects locations services move table to database.
@@ -817,7 +1256,7 @@ where
 
     /// Metastore projects locations services query metadata.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -829,7 +1268,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn metastore_projects_locations_services_query_metadata(
         &self,
         args: &MetastoreProjectsLocationsServicesQueryMetadataArgs,
@@ -850,12 +1289,7 @@ where
         let task = metastore_projects_locations_services_query_metadata_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Metastore projects locations services restore.
@@ -989,7 +1423,7 @@ where
 
     /// Metastore projects locations services test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1001,7 +1435,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn metastore_projects_locations_services_test_iam_permissions(
         &self,
         args: &MetastoreProjectsLocationsServicesTestIamPermissionsArgs,
@@ -1022,12 +1456,7 @@ where
         let task = metastore_projects_locations_services_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Metastore projects locations services backups create.
@@ -1119,6 +1548,125 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Metastore projects locations services backups get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Backup result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_backups_get(
+        &self,
+        args: &MetastoreProjectsLocationsServicesBackupsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Backup, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_backups_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_backups_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations services backups get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_backups_get_iam_policy(
+        &self,
+        args: &MetastoreProjectsLocationsServicesBackupsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_backups_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_backups_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations services backups list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListBackupsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_backups_list(
+        &self,
+        args: &MetastoreProjectsLocationsServicesBackupsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListBackupsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_backups_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_backups_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Metastore projects locations services backups set iam policy.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1162,6 +1710,45 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Metastore projects locations services databases get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_databases_get_iam_policy(
+        &self,
+        args: &MetastoreProjectsLocationsServicesDatabasesGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_databases_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_databases_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Metastore projects locations services databases set iam policy.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1203,6 +1790,45 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations services databases tables get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_databases_tables_get_iam_policy(
+        &self,
+        args: &MetastoreProjectsLocationsServicesDatabasesTablesGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_databases_tables_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_databases_tables_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Metastore projects locations services databases tables set iam policy.
@@ -1293,6 +1919,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Metastore projects locations services metadata imports get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the MetadataImport result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_metadata_imports_get(
+        &self,
+        args: &MetastoreProjectsLocationsServicesMetadataImportsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<MetadataImport, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_metadata_imports_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_metadata_imports_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations services metadata imports list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListMetadataImportsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_metadata_imports_list(
+        &self,
+        args: &MetastoreProjectsLocationsServicesMetadataImportsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListMetadataImportsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_metadata_imports_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_metadata_imports_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Metastore projects locations services metadata imports patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1380,6 +2086,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations services migration executions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the MigrationExecution result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_migration_executions_get(
+        &self,
+        args: &MetastoreProjectsLocationsServicesMigrationExecutionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<MigrationExecution, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_migration_executions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_migration_executions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Metastore projects locations services migration executions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListMigrationExecutionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn metastore_projects_locations_services_migration_executions_list(
+        &self,
+        args: &MetastoreProjectsLocationsServicesMigrationExecutionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListMigrationExecutionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = metastore_projects_locations_services_migration_executions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = metastore_projects_locations_services_migration_executions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

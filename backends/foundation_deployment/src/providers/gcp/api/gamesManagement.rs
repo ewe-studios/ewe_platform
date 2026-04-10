@@ -17,6 +17,7 @@ use crate::providers::gcp::clients::gamesManagement::{
     games_management_achievements_reset_all_for_all_players_builder, games_management_achievements_reset_all_for_all_players_task,
     games_management_achievements_reset_for_all_players_builder, games_management_achievements_reset_for_all_players_task,
     games_management_achievements_reset_multiple_for_all_players_builder, games_management_achievements_reset_multiple_for_all_players_task,
+    games_management_applications_list_hidden_builder, games_management_applications_list_hidden_task,
     games_management_events_reset_builder, games_management_events_reset_task,
     games_management_events_reset_all_builder, games_management_events_reset_all_task,
     games_management_events_reset_all_for_all_players_builder, games_management_events_reset_all_for_all_players_task,
@@ -33,6 +34,7 @@ use crate::providers::gcp::clients::gamesManagement::{
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::gamesManagement::AchievementResetAllResponse;
 use crate::providers::gcp::clients::gamesManagement::AchievementResetResponse;
+use crate::providers::gcp::clients::gamesManagement::HiddenPlayerList;
 use crate::providers::gcp::clients::gamesManagement::PlayerScoreResetAllResponse;
 use crate::providers::gcp::clients::gamesManagement::PlayerScoreResetResponse;
 use crate::providers::gcp::clients::gamesManagement::GamesManagementAchievementsResetAllArgs;
@@ -40,6 +42,7 @@ use crate::providers::gcp::clients::gamesManagement::GamesManagementAchievements
 use crate::providers::gcp::clients::gamesManagement::GamesManagementAchievementsResetArgs;
 use crate::providers::gcp::clients::gamesManagement::GamesManagementAchievementsResetForAllPlayersArgs;
 use crate::providers::gcp::clients::gamesManagement::GamesManagementAchievementsResetMultipleForAllPlayersArgs;
+use crate::providers::gcp::clients::gamesManagement::GamesManagementApplicationsListHiddenArgs;
 use crate::providers::gcp::clients::gamesManagement::GamesManagementEventsResetAllArgs;
 use crate::providers::gcp::clients::gamesManagement::GamesManagementEventsResetAllForAllPlayersArgs;
 use crate::providers::gcp::clients::gamesManagement::GamesManagementEventsResetArgs;
@@ -303,6 +306,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Games management applications list hidden.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the HiddenPlayerList result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn games_management_applications_list_hidden(
+        &self,
+        args: &GamesManagementApplicationsListHiddenArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<HiddenPlayerList, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = games_management_applications_list_hidden_builder(
+            &self.http_client,
+            &args.applicationId,
+            &args.maxResults,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = games_management_applications_list_hidden_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Games management events reset.

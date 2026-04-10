@@ -12,6 +12,8 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::managedidentities::{
+    managedidentities_projects_locations_get_builder, managedidentities_projects_locations_get_task,
+    managedidentities_projects_locations_list_builder, managedidentities_projects_locations_list_task,
     managedidentities_projects_locations_global_domains_attach_trust_builder, managedidentities_projects_locations_global_domains_attach_trust_task,
     managedidentities_projects_locations_global_domains_check_migration_permission_builder, managedidentities_projects_locations_global_domains_check_migration_permission_task,
     managedidentities_projects_locations_global_domains_create_builder, managedidentities_projects_locations_global_domains_create_task,
@@ -21,6 +23,10 @@ use crate::providers::gcp::clients::managedidentities::{
     managedidentities_projects_locations_global_domains_domain_join_machine_builder, managedidentities_projects_locations_global_domains_domain_join_machine_task,
     managedidentities_projects_locations_global_domains_enable_migration_builder, managedidentities_projects_locations_global_domains_enable_migration_task,
     managedidentities_projects_locations_global_domains_extend_schema_builder, managedidentities_projects_locations_global_domains_extend_schema_task,
+    managedidentities_projects_locations_global_domains_get_builder, managedidentities_projects_locations_global_domains_get_task,
+    managedidentities_projects_locations_global_domains_get_iam_policy_builder, managedidentities_projects_locations_global_domains_get_iam_policy_task,
+    managedidentities_projects_locations_global_domains_get_ldapssettings_builder, managedidentities_projects_locations_global_domains_get_ldapssettings_task,
+    managedidentities_projects_locations_global_domains_list_builder, managedidentities_projects_locations_global_domains_list_task,
     managedidentities_projects_locations_global_domains_patch_builder, managedidentities_projects_locations_global_domains_patch_task,
     managedidentities_projects_locations_global_domains_reconfigure_trust_builder, managedidentities_projects_locations_global_domains_reconfigure_trust_task,
     managedidentities_projects_locations_global_domains_reset_admin_password_builder, managedidentities_projects_locations_global_domains_reset_admin_password_task,
@@ -31,28 +37,54 @@ use crate::providers::gcp::clients::managedidentities::{
     managedidentities_projects_locations_global_domains_validate_trust_builder, managedidentities_projects_locations_global_domains_validate_trust_task,
     managedidentities_projects_locations_global_domains_backups_create_builder, managedidentities_projects_locations_global_domains_backups_create_task,
     managedidentities_projects_locations_global_domains_backups_delete_builder, managedidentities_projects_locations_global_domains_backups_delete_task,
+    managedidentities_projects_locations_global_domains_backups_get_builder, managedidentities_projects_locations_global_domains_backups_get_task,
+    managedidentities_projects_locations_global_domains_backups_get_iam_policy_builder, managedidentities_projects_locations_global_domains_backups_get_iam_policy_task,
+    managedidentities_projects_locations_global_domains_backups_list_builder, managedidentities_projects_locations_global_domains_backups_list_task,
     managedidentities_projects_locations_global_domains_backups_patch_builder, managedidentities_projects_locations_global_domains_backups_patch_task,
     managedidentities_projects_locations_global_domains_backups_set_iam_policy_builder, managedidentities_projects_locations_global_domains_backups_set_iam_policy_task,
     managedidentities_projects_locations_global_domains_backups_test_iam_permissions_builder, managedidentities_projects_locations_global_domains_backups_test_iam_permissions_task,
+    managedidentities_projects_locations_global_domains_sql_integrations_get_builder, managedidentities_projects_locations_global_domains_sql_integrations_get_task,
+    managedidentities_projects_locations_global_domains_sql_integrations_list_builder, managedidentities_projects_locations_global_domains_sql_integrations_list_task,
     managedidentities_projects_locations_global_operations_cancel_builder, managedidentities_projects_locations_global_operations_cancel_task,
     managedidentities_projects_locations_global_operations_delete_builder, managedidentities_projects_locations_global_operations_delete_task,
+    managedidentities_projects_locations_global_operations_get_builder, managedidentities_projects_locations_global_operations_get_task,
+    managedidentities_projects_locations_global_operations_list_builder, managedidentities_projects_locations_global_operations_list_task,
     managedidentities_projects_locations_global_peerings_create_builder, managedidentities_projects_locations_global_peerings_create_task,
     managedidentities_projects_locations_global_peerings_delete_builder, managedidentities_projects_locations_global_peerings_delete_task,
+    managedidentities_projects_locations_global_peerings_get_builder, managedidentities_projects_locations_global_peerings_get_task,
+    managedidentities_projects_locations_global_peerings_get_iam_policy_builder, managedidentities_projects_locations_global_peerings_get_iam_policy_task,
+    managedidentities_projects_locations_global_peerings_list_builder, managedidentities_projects_locations_global_peerings_list_task,
     managedidentities_projects_locations_global_peerings_patch_builder, managedidentities_projects_locations_global_peerings_patch_task,
     managedidentities_projects_locations_global_peerings_set_iam_policy_builder, managedidentities_projects_locations_global_peerings_set_iam_policy_task,
     managedidentities_projects_locations_global_peerings_test_iam_permissions_builder, managedidentities_projects_locations_global_peerings_test_iam_permissions_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::managedidentities::Backup;
 use crate::providers::gcp::clients::managedidentities::CheckMigrationPermissionResponse;
+use crate::providers::gcp::clients::managedidentities::Domain;
 use crate::providers::gcp::clients::managedidentities::DomainJoinMachineResponse;
 use crate::providers::gcp::clients::managedidentities::Empty;
+use crate::providers::gcp::clients::managedidentities::LDAPSSettings;
+use crate::providers::gcp::clients::managedidentities::ListBackupsResponse;
+use crate::providers::gcp::clients::managedidentities::ListDomainsResponse;
+use crate::providers::gcp::clients::managedidentities::ListLocationsResponse;
+use crate::providers::gcp::clients::managedidentities::ListOperationsResponse;
+use crate::providers::gcp::clients::managedidentities::ListPeeringsResponse;
+use crate::providers::gcp::clients::managedidentities::ListSqlIntegrationsResponse;
+use crate::providers::gcp::clients::managedidentities::Location;
 use crate::providers::gcp::clients::managedidentities::Operation;
+use crate::providers::gcp::clients::managedidentities::Peering;
 use crate::providers::gcp::clients::managedidentities::Policy;
 use crate::providers::gcp::clients::managedidentities::ResetAdminPasswordResponse;
+use crate::providers::gcp::clients::managedidentities::SqlIntegration;
 use crate::providers::gcp::clients::managedidentities::TestIamPermissionsResponse;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGetArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsAttachTrustArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsBackupsCreateArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsBackupsDeleteArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsBackupsGetArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsBackupsGetIamPolicyArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsBackupsListArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsBackupsPatchArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsBackupsSetIamPolicyArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsBackupsTestIamPermissionsArgs;
@@ -64,21 +96,33 @@ use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjects
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsDomainJoinMachineArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsEnableMigrationArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsExtendSchemaArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsGetArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsGetIamPolicyArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsGetLdapssettingsArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsListArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsPatchArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsReconfigureTrustArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsResetAdminPasswordArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsRestoreArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsSetIamPolicyArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsSqlIntegrationsGetArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsSqlIntegrationsListArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsTestIamPermissionsArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsUpdateLdapssettingsArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalDomainsValidateTrustArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalOperationsCancelArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalOperationsDeleteArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalOperationsGetArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalOperationsListArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalPeeringsCreateArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalPeeringsDeleteArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalPeeringsGetArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalPeeringsGetIamPolicyArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalPeeringsListArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalPeeringsPatchArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalPeeringsSetIamPolicyArgs;
 use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsGlobalPeeringsTestIamPermissionsArgs;
+use crate::providers::gcp::clients::managedidentities::ManagedidentitiesProjectsLocationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -118,6 +162,86 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Managedidentities projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_get(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_list(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Managedidentities projects locations global domains attach trust.
@@ -508,6 +632,163 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Managedidentities projects locations global domains get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Domain result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_domains_get(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalDomainsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Domain, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_domains_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_domains_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global domains get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_domains_get_iam_policy(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalDomainsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_domains_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_domains_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global domains get ldapssettings.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the LDAPSSettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_domains_get_ldapssettings(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalDomainsGetLdapssettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<LDAPSSettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_domains_get_ldapssettings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_domains_get_ldapssettings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global domains list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDomainsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_domains_list(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalDomainsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDomainsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_domains_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_domains_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Managedidentities projects locations global domains patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -726,7 +1007,7 @@ where
 
     /// Managedidentities projects locations global domains test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -738,7 +1019,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn managedidentities_projects_locations_global_domains_test_iam_permissions(
         &self,
         args: &ManagedidentitiesProjectsLocationsGlobalDomainsTestIamPermissionsArgs,
@@ -759,12 +1040,7 @@ where
         let task = managedidentities_projects_locations_global_domains_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Managedidentities projects locations global domains update ldapssettings.
@@ -813,7 +1089,7 @@ where
 
     /// Managedidentities projects locations global domains validate trust.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -825,7 +1101,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn managedidentities_projects_locations_global_domains_validate_trust(
         &self,
         args: &ManagedidentitiesProjectsLocationsGlobalDomainsValidateTrustArgs,
@@ -846,12 +1122,7 @@ where
         let task = managedidentities_projects_locations_global_domains_validate_trust_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Managedidentities projects locations global domains backups create.
@@ -939,6 +1210,125 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global domains backups get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Backup result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_domains_backups_get(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Backup, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_domains_backups_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_domains_backups_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global domains backups get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_domains_backups_get_iam_policy(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_domains_backups_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_domains_backups_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global domains backups list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListBackupsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_domains_backups_list(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListBackupsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_domains_backups_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_domains_backups_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Managedidentities projects locations global domains backups patch.
@@ -1030,7 +1420,7 @@ where
 
     /// Managedidentities projects locations global domains backups test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1042,7 +1432,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn managedidentities_projects_locations_global_domains_backups_test_iam_permissions(
         &self,
         args: &ManagedidentitiesProjectsLocationsGlobalDomainsBackupsTestIamPermissionsArgs,
@@ -1063,12 +1453,87 @@ where
         let task = managedidentities_projects_locations_global_domains_backups_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Managedidentities projects locations global domains sql integrations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SqlIntegration result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_domains_sql_integrations_get(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalDomainsSqlIntegrationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SqlIntegration, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_domains_sql_integrations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = managedidentities_projects_locations_global_domains_sql_integrations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global domains sql integrations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSqlIntegrationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_domains_sql_integrations_list(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalDomainsSqlIntegrationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSqlIntegrationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_domains_sql_integrations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_domains_sql_integrations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Managedidentities projects locations global operations cancel.
@@ -1157,6 +1622,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Managedidentities projects locations global operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_operations_get(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_operations_list(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Managedidentities projects locations global peerings create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1242,6 +1787,125 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global peerings get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Peering result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_peerings_get(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalPeeringsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Peering, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_peerings_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_peerings_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global peerings get iam policy.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Policy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_peerings_get_iam_policy(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalPeeringsGetIamPolicyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Policy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_peerings_get_iam_policy_builder(
+            &self.http_client,
+            &args.resource,
+            &args.options.requestedPolicyVersion,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_peerings_get_iam_policy_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Managedidentities projects locations global peerings list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListPeeringsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn managedidentities_projects_locations_global_peerings_list(
+        &self,
+        args: &ManagedidentitiesProjectsLocationsGlobalPeeringsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListPeeringsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = managedidentities_projects_locations_global_peerings_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = managedidentities_projects_locations_global_peerings_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Managedidentities projects locations global peerings patch.
@@ -1333,7 +1997,7 @@ where
 
     /// Managedidentities projects locations global peerings test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1345,7 +2009,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn managedidentities_projects_locations_global_peerings_test_iam_permissions(
         &self,
         args: &ManagedidentitiesProjectsLocationsGlobalPeeringsTestIamPermissionsArgs,
@@ -1366,12 +2030,7 @@ where
         let task = managedidentities_projects_locations_global_peerings_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

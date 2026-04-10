@@ -14,18 +14,29 @@
 use crate::providers::gcp::clients::cloudshell::{
     cloudshell_operations_cancel_builder, cloudshell_operations_cancel_task,
     cloudshell_operations_delete_builder, cloudshell_operations_delete_task,
+    cloudshell_operations_get_builder, cloudshell_operations_get_task,
+    cloudshell_operations_list_builder, cloudshell_operations_list_task,
     cloudshell_users_environments_add_public_key_builder, cloudshell_users_environments_add_public_key_task,
     cloudshell_users_environments_authorize_builder, cloudshell_users_environments_authorize_task,
+    cloudshell_users_environments_generate_access_token_builder, cloudshell_users_environments_generate_access_token_task,
+    cloudshell_users_environments_get_builder, cloudshell_users_environments_get_task,
     cloudshell_users_environments_remove_public_key_builder, cloudshell_users_environments_remove_public_key_task,
     cloudshell_users_environments_start_builder, cloudshell_users_environments_start_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::cloudshell::Empty;
+use crate::providers::gcp::clients::cloudshell::Environment;
+use crate::providers::gcp::clients::cloudshell::GenerateAccessTokenResponse;
+use crate::providers::gcp::clients::cloudshell::ListOperationsResponse;
 use crate::providers::gcp::clients::cloudshell::Operation;
 use crate::providers::gcp::clients::cloudshell::CloudshellOperationsCancelArgs;
 use crate::providers::gcp::clients::cloudshell::CloudshellOperationsDeleteArgs;
+use crate::providers::gcp::clients::cloudshell::CloudshellOperationsGetArgs;
+use crate::providers::gcp::clients::cloudshell::CloudshellOperationsListArgs;
 use crate::providers::gcp::clients::cloudshell::CloudshellUsersEnvironmentsAddPublicKeyArgs;
 use crate::providers::gcp::clients::cloudshell::CloudshellUsersEnvironmentsAuthorizeArgs;
+use crate::providers::gcp::clients::cloudshell::CloudshellUsersEnvironmentsGenerateAccessTokenArgs;
+use crate::providers::gcp::clients::cloudshell::CloudshellUsersEnvironmentsGetArgs;
 use crate::providers::gcp::clients::cloudshell::CloudshellUsersEnvironmentsRemovePublicKeyArgs;
 use crate::providers::gcp::clients::cloudshell::CloudshellUsersEnvironmentsStartArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -155,6 +166,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudshell operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudshell_operations_get(
+        &self,
+        args: &CloudshellOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudshell_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudshell_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudshell operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudshell_operations_list(
+        &self,
+        args: &CloudshellOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudshell_operations_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudshell_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudshell users environments add public key.
     ///
     /// Automatically stores the result in the state store on success.
@@ -239,6 +329,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudshell users environments generate access token.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GenerateAccessTokenResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudshell_users_environments_generate_access_token(
+        &self,
+        args: &CloudshellUsersEnvironmentsGenerateAccessTokenArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GenerateAccessTokenResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudshell_users_environments_generate_access_token_builder(
+            &self.http_client,
+            &args.environment,
+            &args.expireTime,
+            &args.ttl,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudshell_users_environments_generate_access_token_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudshell users environments get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Environment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudshell_users_environments_get(
+        &self,
+        args: &CloudshellUsersEnvironmentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Environment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudshell_users_environments_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudshell_users_environments_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudshell users environments remove public key.

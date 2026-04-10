@@ -12,15 +12,26 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::factchecktools::{
+    factchecktools_claims_image_search_builder, factchecktools_claims_image_search_task,
+    factchecktools_claims_search_builder, factchecktools_claims_search_task,
     factchecktools_pages_create_builder, factchecktools_pages_create_task,
     factchecktools_pages_delete_builder, factchecktools_pages_delete_task,
+    factchecktools_pages_get_builder, factchecktools_pages_get_task,
+    factchecktools_pages_list_builder, factchecktools_pages_list_task,
     factchecktools_pages_update_builder, factchecktools_pages_update_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::factchecktools::GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage;
+use crate::providers::gcp::clients::factchecktools::GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponse;
+use crate::providers::gcp::clients::factchecktools::GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse;
+use crate::providers::gcp::clients::factchecktools::GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse;
 use crate::providers::gcp::clients::factchecktools::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::factchecktools::FactchecktoolsClaimsImageSearchArgs;
+use crate::providers::gcp::clients::factchecktools::FactchecktoolsClaimsSearchArgs;
 use crate::providers::gcp::clients::factchecktools::FactchecktoolsPagesCreateArgs;
 use crate::providers::gcp::clients::factchecktools::FactchecktoolsPagesDeleteArgs;
+use crate::providers::gcp::clients::factchecktools::FactchecktoolsPagesGetArgs;
+use crate::providers::gcp::clients::factchecktools::FactchecktoolsPagesListArgs;
 use crate::providers::gcp::clients::factchecktools::FactchecktoolsPagesUpdateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -61,6 +72,92 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Factchecktools claims image search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn factchecktools_claims_image_search(
+        &self,
+        args: &FactchecktoolsClaimsImageSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = factchecktools_claims_image_search_builder(
+            &self.http_client,
+            &args.imageUri,
+            &args.languageCode,
+            &args.offset,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = factchecktools_claims_image_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Factchecktools claims search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn factchecktools_claims_search(
+        &self,
+        args: &FactchecktoolsClaimsSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = factchecktools_claims_search_builder(
+            &self.http_client,
+            &args.languageCode,
+            &args.maxAgeDays,
+            &args.offset,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+            &args.reviewPublisherSiteFilter,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = factchecktools_claims_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Factchecktools pages create.
@@ -146,6 +243,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Factchecktools pages get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn factchecktools_pages_get(
+        &self,
+        args: &FactchecktoolsPagesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = factchecktools_pages_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = factchecktools_pages_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Factchecktools pages list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn factchecktools_pages_list(
+        &self,
+        args: &FactchecktoolsPagesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = factchecktools_pages_list_builder(
+            &self.http_client,
+            &args.offset,
+            &args.organization,
+            &args.pageSize,
+            &args.pageToken,
+            &args.url,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = factchecktools_pages_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Factchecktools pages update.

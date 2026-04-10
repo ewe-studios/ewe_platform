@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -28,13 +28,13 @@ use serde::Serialize;
 
 pub fn pollen_forecast_lookup_builder(
     client: &SimpleHttpClient,
-    days: &Option<i32>,
-    languageCode: &Option<String>,
-    location_latitude: &Option<f64>,
-    location_longitude: &Option<f64>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    plantsDescription: &Option<bool>,
+    days: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
+    location_latitude: &Option<Option<String>>,
+    location_longitude: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    plantsDescription: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://pollen.googleapis.com/v1/forecast:lookup",);
@@ -186,19 +186,19 @@ pub fn pollen_forecast_lookup_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PollenForecastLookupArgs {
     /// Query parameter: days
-    pub days: Option<i32>,
+    pub days: Option<Option<String>>,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: location_latitude
-    pub location_latitude: Option<f64>,
+    pub location_latitude: Option<Option<String>>,
     /// Query parameter: location_longitude
-    pub location_longitude: Option<f64>,
+    pub location_longitude: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: plantsDescription
-    pub plantsDescription: Option<bool>,
+    pub plantsDescription: Option<Option<String>>,
 }
 
 /// GET v1/forecast:lookup
@@ -243,9 +243,9 @@ pub fn pollen_forecast_lookup(
 pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
     client: &SimpleHttpClient,
     mapType: &String,
-    zoom: &i32,
-    x: &i32,
-    y: &i32,
+    zoom: &String,
+    x: &String,
+    y: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -371,11 +371,11 @@ pub struct PollenMapTypesHeatmapTilesLookupHeatmapTileArgs {
     /// Path parameter: mapType
     pub mapType: String,
     /// Path parameter: zoom
-    pub zoom: i32,
+    pub zoom: String,
     /// Path parameter: x
-    pub x: i32,
+    pub x: String,
     /// Path parameter: y
-    pub y: i32,
+    pub y: String,
 }
 
 /// GET v1/mapTypes/{mapType}/heatmapTiles/{zoom}/{x}/{y}
@@ -404,4 +404,56 @@ pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile(
         &args.y,
     )?;
     pollen_map_types_heatmap_tiles_lookup_heatmap_tile_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LookupForecastResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LookupForecastResponse with PollenForecastLookupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PollenForecastLookupArgs> for LookupForecastResponse {
+    fn generate_resource_id(&self, input: &PollenForecastLookupArgs) -> String {
+        "gcp::pollen::LookupForecastResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::pollen::LookupForecastResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with PollenMapTypesHeatmapTilesLookupHeatmapTileArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PollenMapTypesHeatmapTilesLookupHeatmapTileArgs> for HttpBody {
+    fn generate_resource_id(
+        &self,
+        input: &PollenMapTypesHeatmapTilesLookupHeatmapTileArgs,
+    ) -> String {
+        format!(
+            "gcp::pollen::HttpBody/{}/{}/{}/{}",
+            input.mapType, input.zoom, input.x, input.y
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::pollen::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

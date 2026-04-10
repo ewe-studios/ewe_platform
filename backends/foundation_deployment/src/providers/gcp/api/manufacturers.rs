@@ -13,16 +13,27 @@
 
 use crate::providers::gcp::clients::manufacturers::{
     manufacturers_accounts_languages_product_certifications_delete_builder, manufacturers_accounts_languages_product_certifications_delete_task,
+    manufacturers_accounts_languages_product_certifications_get_builder, manufacturers_accounts_languages_product_certifications_get_task,
+    manufacturers_accounts_languages_product_certifications_list_builder, manufacturers_accounts_languages_product_certifications_list_task,
     manufacturers_accounts_languages_product_certifications_patch_builder, manufacturers_accounts_languages_product_certifications_patch_task,
     manufacturers_accounts_products_delete_builder, manufacturers_accounts_products_delete_task,
+    manufacturers_accounts_products_get_builder, manufacturers_accounts_products_get_task,
+    manufacturers_accounts_products_list_builder, manufacturers_accounts_products_list_task,
     manufacturers_accounts_products_update_builder, manufacturers_accounts_products_update_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::manufacturers::Empty;
+use crate::providers::gcp::clients::manufacturers::ListProductCertificationsResponse;
+use crate::providers::gcp::clients::manufacturers::ListProductsResponse;
+use crate::providers::gcp::clients::manufacturers::Product;
 use crate::providers::gcp::clients::manufacturers::ProductCertification;
 use crate::providers::gcp::clients::manufacturers::ManufacturersAccountsLanguagesProductCertificationsDeleteArgs;
+use crate::providers::gcp::clients::manufacturers::ManufacturersAccountsLanguagesProductCertificationsGetArgs;
+use crate::providers::gcp::clients::manufacturers::ManufacturersAccountsLanguagesProductCertificationsListArgs;
 use crate::providers::gcp::clients::manufacturers::ManufacturersAccountsLanguagesProductCertificationsPatchArgs;
 use crate::providers::gcp::clients::manufacturers::ManufacturersAccountsProductsDeleteArgs;
+use crate::providers::gcp::clients::manufacturers::ManufacturersAccountsProductsGetArgs;
+use crate::providers::gcp::clients::manufacturers::ManufacturersAccountsProductsListArgs;
 use crate::providers::gcp::clients::manufacturers::ManufacturersAccountsProductsUpdateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -106,6 +117,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Manufacturers accounts languages product certifications get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ProductCertification result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn manufacturers_accounts_languages_product_certifications_get(
+        &self,
+        args: &ManufacturersAccountsLanguagesProductCertificationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ProductCertification, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = manufacturers_accounts_languages_product_certifications_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = manufacturers_accounts_languages_product_certifications_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Manufacturers accounts languages product certifications list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListProductCertificationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn manufacturers_accounts_languages_product_certifications_list(
+        &self,
+        args: &ManufacturersAccountsLanguagesProductCertificationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListProductCertificationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = manufacturers_accounts_languages_product_certifications_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = manufacturers_accounts_languages_product_certifications_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Manufacturers accounts languages product certifications patch.
@@ -194,6 +283,87 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Manufacturers accounts products get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Product result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn manufacturers_accounts_products_get(
+        &self,
+        args: &ManufacturersAccountsProductsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Product, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = manufacturers_accounts_products_get_builder(
+            &self.http_client,
+            &args.parent,
+            &args.name,
+            &args.include,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = manufacturers_accounts_products_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Manufacturers accounts products list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListProductsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn manufacturers_accounts_products_list(
+        &self,
+        args: &ManufacturersAccountsProductsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListProductsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = manufacturers_accounts_products_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.include,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = manufacturers_accounts_products_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Manufacturers accounts products update.

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET games/v1/accesstokens/generatePlayGroupingApiToken
+/// POST games/v1/accesstokens/generatePlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the attached credential.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,8 +28,8 @@ use serde::Serialize;
 
 pub fn games_accesstokens_generate_play_grouping_api_token_builder(
     client: &SimpleHttpClient,
-    packageName: &Option<String>,
-    persona: &Option<String>,
+    packageName: &Option<Option<String>>,
+    persona: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -51,13 +51,13 @@ pub fn games_accesstokens_generate_play_grouping_api_token_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1/accesstokens/generatePlayGroupingApiToken
+/// POST games/v1/accesstokens/generatePlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the attached credential.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -131,7 +131,7 @@ pub fn games_accesstokens_generate_play_grouping_api_token_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/accesstokens/generatePlayGroupingApiToken
+/// POST games/v1/accesstokens/generatePlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the attached credential.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -169,12 +169,12 @@ pub fn games_accesstokens_generate_play_grouping_api_token_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesAccesstokensGeneratePlayGroupingApiTokenArgs {
     /// Query parameter: packageName
-    pub packageName: Option<String>,
+    pub packageName: Option<Option<String>>,
     /// Query parameter: persona
-    pub persona: Option<String>,
+    pub persona: Option<Option<String>>,
 }
 
-/// GET games/v1/accesstokens/generatePlayGroupingApiToken
+/// POST games/v1/accesstokens/generatePlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the attached credential.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -204,7 +204,7 @@ pub fn games_accesstokens_generate_play_grouping_api_token(
     games_accesstokens_generate_play_grouping_api_token_execute(builder)
 }
 
-/// GET games/v1/accesstokens/generateRecallPlayGroupingApiToken
+/// POST games/v1/accesstokens/generateRecallPlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the Recall session ID provided in the request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -212,9 +212,9 @@ pub fn games_accesstokens_generate_play_grouping_api_token(
 
 pub fn games_accesstokens_generate_recall_play_grouping_api_token_builder(
     client: &SimpleHttpClient,
-    packageName: &Option<String>,
-    persona: &Option<String>,
-    recallSessionId: &Option<String>,
+    packageName: &Option<Option<String>>,
+    persona: &Option<Option<String>>,
+    recallSessionId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -240,13 +240,13 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1/accesstokens/generateRecallPlayGroupingApiToken
+/// POST games/v1/accesstokens/generateRecallPlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the Recall session ID provided in the request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -321,7 +321,7 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/accesstokens/generateRecallPlayGroupingApiToken
+/// POST games/v1/accesstokens/generateRecallPlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the Recall session ID provided in the request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -359,14 +359,14 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesAccesstokensGenerateRecallPlayGroupingApiTokenArgs {
     /// Query parameter: packageName
-    pub packageName: Option<String>,
+    pub packageName: Option<Option<String>>,
     /// Query parameter: persona
-    pub persona: Option<String>,
+    pub persona: Option<Option<String>>,
     /// Query parameter: recallSessionId
-    pub recallSessionId: Option<String>,
+    pub recallSessionId: Option<Option<String>>,
 }
 
-/// GET games/v1/accesstokens/generateRecallPlayGroupingApiToken
+/// POST games/v1/accesstokens/generateRecallPlayGroupingApiToken
 /// Generates a Play Grouping API token for the PGS user identified by the Recall session ID provided in the request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -405,9 +405,9 @@ pub fn games_accesstokens_generate_recall_play_grouping_api_token(
 
 pub fn games_achievement_definitions_list_builder(
     client: &SimpleHttpClient,
-    language: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/achievements",);
@@ -549,11 +549,11 @@ pub fn games_achievement_definitions_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesAchievementDefinitionsListArgs {
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET games/v1/achievements
@@ -587,6 +587,196 @@ pub fn games_achievement_definitions_list(
     games_achievement_definitions_list_execute(builder)
 }
 
+/// POST games/v1/achievements/{achievementId}/increment
+/// Increments the steps of the achievement with the given ID for the currently authenticated player.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_achievements_increment_execute()` to send, or `games_achievements_increment` for simplest API.
+
+pub fn games_achievements_increment_builder(
+    client: &SimpleHttpClient,
+    achievementId: &String,
+    requestId: &Option<Option<String>>,
+    stepsToIncrement: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://games.googleapis.com/games/v1/achievements/{}/increment",
+        achievementId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = stepsToIncrement.as_ref() {
+        query_parts.push(format!("stepsToIncrement={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST games/v1/achievements/{achievementId}/increment
+/// Increments the steps of the achievement with the given ID for the currently authenticated player.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_achievements_increment_execute()` or `games_achievements_increment`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_achievements_increment_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_achievements_increment_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AchievementIncrementResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AchievementIncrementResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST games/v1/achievements/{achievementId}/increment
+/// Increments the steps of the achievement with the given ID for the currently authenticated player.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_achievements_increment_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_achievements_increment_task()`.
+/// For the simplest API, use `games_achievements_increment()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_achievements_increment_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_achievements_increment_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AchievementIncrementResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_achievements_increment_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_achievements_increment`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAchievementsIncrementArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: stepsToIncrement
+    pub stepsToIncrement: Option<Option<String>>,
+}
+
+/// POST games/v1/achievements/{achievementId}/increment
+/// Increments the steps of the achievement with the given ID for the currently authenticated player.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_achievements_increment_builder()` + `games_achievements_increment_execute()`.
+/// For task-level control, use `games_achievements_increment_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_achievements_increment(
+    client: &SimpleHttpClient,
+    args: &GamesAchievementsIncrementArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AchievementIncrementResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = games_achievements_increment_builder(
+        client,
+        &args.achievementId,
+        &args.requestId,
+        &args.stepsToIncrement,
+    )?;
+    games_achievements_increment_execute(builder)
+}
+
 /// GET games/v1/players/{playerId}/achievements
 /// Lists the progress for all your application's achievements for the currently authenticated player.
 ///
@@ -596,10 +786,10 @@ pub fn games_achievement_definitions_list(
 pub fn games_achievements_list_builder(
     client: &SimpleHttpClient,
     playerId: &String,
-    language: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    state: &Option<String>,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    state: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -749,13 +939,13 @@ pub struct GamesAchievementsListArgs {
     /// Path parameter: playerId
     pub playerId: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: state
-    pub state: Option<String>,
+    pub state: Option<Option<String>>,
 }
 
 /// GET games/v1/players/{playerId}/achievements
@@ -791,7 +981,7 @@ pub fn games_achievements_list(
     games_achievements_list_execute(builder)
 }
 
-/// GET games/v1/achievements/{achievementId}/reveal
+/// POST games/v1/achievements/{achievementId}/reveal
 /// Sets the state of the achievement with the given ID to REVEALED for the currently authenticated player.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -809,13 +999,13 @@ pub fn games_achievements_reveal_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1/achievements/{achievementId}/reveal
+/// POST games/v1/achievements/{achievementId}/reveal
 /// Sets the state of the achievement with the given ID to REVEALED for the currently authenticated player.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -889,7 +1079,7 @@ pub fn games_achievements_reveal_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/achievements/{achievementId}/reveal
+/// POST games/v1/achievements/{achievementId}/reveal
 /// Sets the state of the achievement with the given ID to REVEALED for the currently authenticated player.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -928,7 +1118,7 @@ pub struct GamesAchievementsRevealArgs {
     pub achievementId: String,
 }
 
-/// GET games/v1/achievements/{achievementId}/reveal
+/// POST games/v1/achievements/{achievementId}/reveal
 /// Sets the state of the achievement with the given ID to REVEALED for the currently authenticated player.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -952,7 +1142,187 @@ pub fn games_achievements_reveal(
     games_achievements_reveal_execute(builder)
 }
 
-/// GET games/v1/achievements/{achievementId}/unlock
+/// POST games/v1/achievements/{achievementId}/setStepsAtLeast
+/// Sets the steps for the currently authenticated player towards unlocking an achievement. If the steps parameter is less than the current number of steps that the player already gained for the achievement, the achievement is not modified.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_achievements_set_steps_at_least_execute()` to send, or `games_achievements_set_steps_at_least` for simplest API.
+
+pub fn games_achievements_set_steps_at_least_builder(
+    client: &SimpleHttpClient,
+    achievementId: &String,
+    steps: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://games.googleapis.com/games/v1/achievements/{}/setStepsAtLeast",
+        achievementId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = steps.as_ref() {
+        query_parts.push(format!("steps={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST games/v1/achievements/{achievementId}/setStepsAtLeast
+/// Sets the steps for the currently authenticated player towards unlocking an achievement. If the steps parameter is less than the current number of steps that the player already gained for the achievement, the achievement is not modified.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_achievements_set_steps_at_least_execute()` or `games_achievements_set_steps_at_least`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_achievements_set_steps_at_least_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_achievements_set_steps_at_least_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AchievementSetStepsAtLeastResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AchievementSetStepsAtLeastResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST games/v1/achievements/{achievementId}/setStepsAtLeast
+/// Sets the steps for the currently authenticated player towards unlocking an achievement. If the steps parameter is less than the current number of steps that the player already gained for the achievement, the achievement is not modified.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_achievements_set_steps_at_least_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_achievements_set_steps_at_least_task()`.
+/// For the simplest API, use `games_achievements_set_steps_at_least()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_achievements_set_steps_at_least_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_achievements_set_steps_at_least_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AchievementSetStepsAtLeastResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_achievements_set_steps_at_least_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_achievements_set_steps_at_least`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesAchievementsSetStepsAtLeastArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+    /// Query parameter: steps
+    pub steps: Option<Option<String>>,
+}
+
+/// POST games/v1/achievements/{achievementId}/setStepsAtLeast
+/// Sets the steps for the currently authenticated player towards unlocking an achievement. If the steps parameter is less than the current number of steps that the player already gained for the achievement, the achievement is not modified.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_achievements_set_steps_at_least_builder()` + `games_achievements_set_steps_at_least_execute()`.
+/// For task-level control, use `games_achievements_set_steps_at_least_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_achievements_set_steps_at_least(
+    client: &SimpleHttpClient,
+    args: &GamesAchievementsSetStepsAtLeastArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AchievementSetStepsAtLeastResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        games_achievements_set_steps_at_least_builder(client, &args.achievementId, &args.steps)?;
+    games_achievements_set_steps_at_least_execute(builder)
+}
+
+/// POST games/v1/achievements/{achievementId}/unlock
 /// Unlocks this achievement for the currently authenticated player.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -970,13 +1340,13 @@ pub fn games_achievements_unlock_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1/achievements/{achievementId}/unlock
+/// POST games/v1/achievements/{achievementId}/unlock
 /// Unlocks this achievement for the currently authenticated player.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1050,7 +1420,7 @@ pub fn games_achievements_unlock_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/achievements/{achievementId}/unlock
+/// POST games/v1/achievements/{achievementId}/unlock
 /// Unlocks this achievement for the currently authenticated player.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1089,7 +1459,7 @@ pub struct GamesAchievementsUnlockArgs {
     pub achievementId: String,
 }
 
-/// GET games/v1/achievements/{achievementId}/unlock
+/// POST games/v1/achievements/{achievementId}/unlock
 /// Unlocks this achievement for the currently authenticated player.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1113,7 +1483,7 @@ pub fn games_achievements_unlock(
     games_achievements_unlock_execute(builder)
 }
 
-/// GET games/v1/achievements/updateMultiple
+/// POST games/v1/achievements/updateMultiple
 /// Updates multiple achievements for the currently authenticated player.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1121,7 +1491,6 @@ pub fn games_achievements_unlock(
 
 pub fn games_achievements_update_multiple_builder(
     client: &SimpleHttpClient,
-    body: &AchievementUpdateMultipleRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1129,15 +1498,13 @@ pub fn games_achievements_update_multiple_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET games/v1/achievements/updateMultiple
+/// POST games/v1/achievements/updateMultiple
 /// Updates multiple achievements for the currently authenticated player.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1211,7 +1578,7 @@ pub fn games_achievements_update_multiple_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/achievements/updateMultiple
+/// POST games/v1/achievements/updateMultiple
 /// Updates multiple achievements for the currently authenticated player.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1245,14 +1612,7 @@ pub fn games_achievements_update_multiple_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`games_achievements_update_multiple`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesAchievementsUpdateMultipleArgs {
-    /// Request body.
-    pub body: AchievementUpdateMultipleRequest,
-}
-
-/// GET games/v1/achievements/updateMultiple
+/// POST games/v1/achievements/updateMultiple
 /// Updates multiple achievements for the currently authenticated player.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1265,7 +1625,6 @@ pub struct GamesAchievementsUpdateMultipleArgs {
 
 pub fn games_achievements_update_multiple(
     client: &SimpleHttpClient,
-    args: &GamesAchievementsUpdateMultipleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AchievementUpdateMultipleResponse>, ApiError>,
@@ -1274,7 +1633,7 @@ pub fn games_achievements_update_multiple(
         + 'static,
     ApiError,
 > {
-    let builder = games_achievements_update_multiple_builder(client, &args.body)?;
+    let builder = games_achievements_update_multiple_builder(client)?;
     games_achievements_update_multiple_execute(builder)
 }
 
@@ -1287,8 +1646,8 @@ pub fn games_achievements_update_multiple(
 pub fn games_applications_get_builder(
     client: &SimpleHttpClient,
     applicationId: &String,
-    language: &Option<String>,
-    platformType: &Option<String>,
+    language: &Option<Option<String>>,
+    platformType: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1428,9 +1787,9 @@ pub struct GamesApplicationsGetArgs {
     /// Path parameter: applicationId
     pub applicationId: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: platformType
-    pub platformType: Option<String>,
+    pub platformType: Option<Option<String>>,
 }
 
 /// GET games/v1/applications/{applicationId}
@@ -1460,7 +1819,7 @@ pub fn games_applications_get(
     games_applications_get_execute(builder)
 }
 
-/// GET games/v1/applications/getEndPoint
+/// POST games/v1/applications/getEndPoint
 /// Returns a URL for the requested end point type.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1468,8 +1827,8 @@ pub fn games_applications_get(
 
 pub fn games_applications_get_end_point_builder(
     client: &SimpleHttpClient,
-    applicationId: &Option<String>,
-    endPointType: &Option<String>,
+    applicationId: &Option<Option<String>>,
+    endPointType: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/applications/getEndPoint",);
@@ -1490,13 +1849,13 @@ pub fn games_applications_get_end_point_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1/applications/getEndPoint
+/// POST games/v1/applications/getEndPoint
 /// Returns a URL for the requested end point type.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1570,7 +1929,7 @@ pub fn games_applications_get_end_point_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/applications/getEndPoint
+/// POST games/v1/applications/getEndPoint
 /// Returns a URL for the requested end point type.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1604,12 +1963,12 @@ pub fn games_applications_get_end_point_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesApplicationsGetEndPointArgs {
     /// Query parameter: applicationId
-    pub applicationId: Option<String>,
+    pub applicationId: Option<Option<String>>,
     /// Query parameter: endPointType
-    pub endPointType: Option<String>,
+    pub endPointType: Option<Option<String>>,
 }
 
-/// GET games/v1/applications/getEndPoint
+/// POST games/v1/applications/getEndPoint
 /// Returns a URL for the requested end point type.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1632,7 +1991,7 @@ pub fn games_applications_get_end_point(
     games_applications_get_end_point_execute(builder)
 }
 
-/// GET games/v1/applications/played
+/// POST games/v1/applications/played
 /// Indicate that the currently authenticated user is playing your application.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1646,13 +2005,13 @@ pub fn games_applications_played_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1/applications/played
+/// POST games/v1/applications/played
 /// Indicate that the currently authenticated user is playing your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1723,7 +2082,7 @@ pub fn games_applications_played_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/applications/played
+/// POST games/v1/applications/played
 /// Indicate that the currently authenticated user is playing your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1753,7 +2112,7 @@ pub fn games_applications_played_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// GET games/v1/applications/played
+/// POST games/v1/applications/played
 /// Indicate that the currently authenticated user is playing your application.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1943,9 +2302,9 @@ pub fn games_applications_verify(
 
 pub fn games_events_list_by_player_builder(
     client: &SimpleHttpClient,
-    language: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/events",);
@@ -2085,11 +2444,11 @@ pub fn games_events_list_by_player_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesEventsListByPlayerArgs {
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET games/v1/events
@@ -2129,9 +2488,9 @@ pub fn games_events_list_by_player(
 
 pub fn games_events_list_definitions_builder(
     client: &SimpleHttpClient,
-    language: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/eventDefinitions",);
@@ -2273,11 +2632,11 @@ pub fn games_events_list_definitions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesEventsListDefinitionsArgs {
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET games/v1/eventDefinitions
@@ -2311,6 +2670,175 @@ pub fn games_events_list_definitions(
     games_events_list_definitions_execute(builder)
 }
 
+/// POST games/v1/events
+/// Records a batch of changes to the number of times events have occurred for the currently authenticated user of this application.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_events_record_execute()` to send, or `games_events_record` for simplest API.
+
+pub fn games_events_record_builder(
+    client: &SimpleHttpClient,
+    language: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/events",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = language.as_ref() {
+        query_parts.push(format!("language={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST games/v1/events
+/// Records a batch of changes to the number of times events have occurred for the currently authenticated user of this application.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_events_record_execute()` or `games_events_record`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_events_record_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_events_record_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventUpdateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EventUpdateResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST games/v1/events
+/// Records a batch of changes to the number of times events have occurred for the currently authenticated user of this application.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_events_record_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_events_record_task()`.
+/// For the simplest API, use `games_events_record()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_events_record_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_events_record_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EventUpdateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_events_record_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_events_record`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesEventsRecordArgs {
+    /// Query parameter: language
+    pub language: Option<Option<String>>,
+}
+
+/// POST games/v1/events
+/// Records a batch of changes to the number of times events have occurred for the currently authenticated user of this application.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_events_record_builder()` + `games_events_record_execute()`.
+/// For task-level control, use `games_events_record_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_events_record(
+    client: &SimpleHttpClient,
+    args: &GamesEventsRecordArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EventUpdateResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = games_events_record_builder(client, &args.language)?;
+    games_events_record_execute(builder)
+}
+
 /// GET games/v1/leaderboards/{leaderboardId}
 /// Retrieves the metadata of the leaderboard with the given ID.
 ///
@@ -2320,7 +2848,7 @@ pub fn games_events_list_definitions(
 pub fn games_leaderboards_get_builder(
     client: &SimpleHttpClient,
     leaderboardId: &String,
-    language: &Option<String>,
+    language: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2457,7 +2985,7 @@ pub struct GamesLeaderboardsGetArgs {
     /// Path parameter: leaderboardId
     pub leaderboardId: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
 }
 
 /// GET games/v1/leaderboards/{leaderboardId}
@@ -2490,9 +3018,9 @@ pub fn games_leaderboards_get(
 
 pub fn games_leaderboards_list_builder(
     client: &SimpleHttpClient,
-    language: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/leaderboards",);
@@ -2632,11 +3160,11 @@ pub fn games_leaderboards_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesLeaderboardsListArgs {
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET games/v1/leaderboards
@@ -2823,9 +3351,9 @@ pub fn games_metagame_list_categories_by_player_builder(
     client: &SimpleHttpClient,
     playerId: &String,
     collection: &String,
-    language: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2972,11 +3500,11 @@ pub struct GamesMetagameListCategoriesByPlayerArgs {
     /// Path parameter: collection
     pub collection: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET games/v1/players/{playerId}/categories/{collection}
@@ -3019,8 +3547,8 @@ pub fn games_metagame_list_categories_by_player(
 pub fn games_players_get_builder(
     client: &SimpleHttpClient,
     playerId: &String,
-    language: &Option<String>,
-    playerIdConsistencyToken: &Option<String>,
+    language: &Option<Option<String>>,
+    playerIdConsistencyToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/players/{}", playerId,);
@@ -3157,9 +3685,9 @@ pub struct GamesPlayersGetArgs {
     /// Path parameter: playerId
     pub playerId: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: playerIdConsistencyToken
-    pub playerIdConsistencyToken: Option<String>,
+    pub playerIdConsistencyToken: Option<Option<String>>,
 }
 
 /// GET games/v1/players/{playerId}
@@ -3197,7 +3725,7 @@ pub fn games_players_get(
 
 pub fn games_players_get_multiple_application_player_ids_builder(
     client: &SimpleHttpClient,
-    applicationIds: &Option<String>,
+    applicationIds: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3335,7 +3863,7 @@ pub fn games_players_get_multiple_application_player_ids_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesPlayersGetMultipleApplicationPlayerIdsArgs {
     /// Query parameter: applicationIds
-    pub applicationIds: Option<String>,
+    pub applicationIds: Option<Option<String>>,
 }
 
 /// GET games/v1/players/me/multipleApplicationPlayerIds
@@ -3523,9 +4051,9 @@ pub fn games_players_get_scoped_player_ids(
 pub fn games_players_list_builder(
     client: &SimpleHttpClient,
     collection: &String,
-    language: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3670,11 +4198,11 @@ pub struct GamesPlayersListArgs {
     /// Path parameter: collection
     pub collection: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET games/v1/players/me/players/{collection}
@@ -3716,7 +4244,7 @@ pub fn games_players_list(
 pub fn games_recall_games_player_tokens_builder(
     client: &SimpleHttpClient,
     sessionId: &String,
-    applicationIds: &Option<String>,
+    applicationIds: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3857,7 +4385,7 @@ pub struct GamesRecallGamesPlayerTokensArgs {
     /// Path parameter: sessionId
     pub sessionId: String,
     /// Query parameter: applicationIds
-    pub applicationIds: Option<String>,
+    pub applicationIds: Option<Option<String>>,
 }
 
 /// GET games/v1/recall/gamesPlayerTokens/{sessionId}
@@ -4054,7 +4582,7 @@ pub fn games_recall_last_token_from_all_developer_games(
     games_recall_last_token_from_all_developer_games_execute(builder)
 }
 
-/// GET games/v1/recall:linkPersona
+/// POST games/v1/recall:linkPersona
 /// Associate the PGS Player principal encoded in the provided recall session id with an in-game account
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4062,22 +4590,19 @@ pub fn games_recall_last_token_from_all_developer_games(
 
 pub fn games_recall_link_persona_builder(
     client: &SimpleHttpClient,
-    body: &LinkPersonaRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/recall:linkPersona",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET games/v1/recall:linkPersona
+/// POST games/v1/recall:linkPersona
 /// Associate the PGS Player principal encoded in the provided recall session id with an in-game account
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4151,7 +4676,7 @@ pub fn games_recall_link_persona_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/recall:linkPersona
+/// POST games/v1/recall:linkPersona
 /// Associate the PGS Player principal encoded in the provided recall session id with an in-game account
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4183,14 +4708,7 @@ pub fn games_recall_link_persona_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`games_recall_link_persona`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesRecallLinkPersonaArgs {
-    /// Request body.
-    pub body: LinkPersonaRequest,
-}
-
-/// GET games/v1/recall:linkPersona
+/// POST games/v1/recall:linkPersona
 /// Associate the PGS Player principal encoded in the provided recall session id with an in-game account
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4203,18 +4721,17 @@ pub struct GamesRecallLinkPersonaArgs {
 
 pub fn games_recall_link_persona(
     client: &SimpleHttpClient,
-    args: &GamesRecallLinkPersonaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LinkPersonaResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_link_persona_builder(client, &args.body)?;
+    let builder = games_recall_link_persona_builder(client)?;
     games_recall_link_persona_execute(builder)
 }
 
-/// GET games/v1/recall:resetPersona
+/// POST games/v1/recall:resetPersona
 /// Delete all Recall tokens linking the given persona to any player (with or without a profile).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4222,22 +4739,19 @@ pub fn games_recall_link_persona(
 
 pub fn games_recall_reset_persona_builder(
     client: &SimpleHttpClient,
-    body: &ResetPersonaRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/recall:resetPersona",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET games/v1/recall:resetPersona
+/// POST games/v1/recall:resetPersona
 /// Delete all Recall tokens linking the given persona to any player (with or without a profile).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4311,7 +4825,7 @@ pub fn games_recall_reset_persona_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/recall:resetPersona
+/// POST games/v1/recall:resetPersona
 /// Delete all Recall tokens linking the given persona to any player (with or without a profile).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4343,14 +4857,7 @@ pub fn games_recall_reset_persona_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`games_recall_reset_persona`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesRecallResetPersonaArgs {
-    /// Request body.
-    pub body: ResetPersonaRequest,
-}
-
-/// GET games/v1/recall:resetPersona
+/// POST games/v1/recall:resetPersona
 /// Delete all Recall tokens linking the given persona to any player (with or without a profile).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4363,14 +4870,13 @@ pub struct GamesRecallResetPersonaArgs {
 
 pub fn games_recall_reset_persona(
     client: &SimpleHttpClient,
-    args: &GamesRecallResetPersonaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResetPersonaResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_reset_persona_builder(client, &args.body)?;
+    let builder = games_recall_reset_persona_builder(client)?;
     games_recall_reset_persona_execute(builder)
 }
 
@@ -4539,7 +5045,7 @@ pub fn games_recall_retrieve_tokens(
     games_recall_retrieve_tokens_execute(builder)
 }
 
-/// GET games/v1/recall:unlinkPersona
+/// POST games/v1/recall:unlinkPersona
 /// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the 'persona' or by the token value.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4547,22 +5053,19 @@ pub fn games_recall_retrieve_tokens(
 
 pub fn games_recall_unlink_persona_builder(
     client: &SimpleHttpClient,
-    body: &UnlinkPersonaRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/recall:unlinkPersona",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET games/v1/recall:unlinkPersona
+/// POST games/v1/recall:unlinkPersona
 /// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the 'persona' or by the token value.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4636,7 +5139,7 @@ pub fn games_recall_unlink_persona_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/recall:unlinkPersona
+/// POST games/v1/recall:unlinkPersona
 /// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the 'persona' or by the token value.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4668,14 +5171,7 @@ pub fn games_recall_unlink_persona_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`games_recall_unlink_persona`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesRecallUnlinkPersonaArgs {
-    /// Request body.
-    pub body: UnlinkPersonaRequest,
-}
-
-/// GET games/v1/recall:unlinkPersona
+/// POST games/v1/recall:unlinkPersona
 /// Delete a Recall token linking the PGS Player principal identified by the Recall session and an in-game account identified either by the 'persona' or by the token value.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4688,15 +5184,183 @@ pub struct GamesRecallUnlinkPersonaArgs {
 
 pub fn games_recall_unlink_persona(
     client: &SimpleHttpClient,
-    args: &GamesRecallUnlinkPersonaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UnlinkPersonaResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_recall_unlink_persona_builder(client, &args.body)?;
+    let builder = games_recall_unlink_persona_builder(client)?;
     games_recall_unlink_persona_execute(builder)
+}
+
+/// GET games/v1/revisions/check
+/// Checks whether the games client is out of date.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_revisions_check_execute()` to send, or `games_revisions_check` for simplest API.
+
+pub fn games_revisions_check_builder(
+    client: &SimpleHttpClient,
+    clientRevision: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://games.googleapis.com/games/v1/revisions/check",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clientRevision.as_ref() {
+        query_parts.push(format!("clientRevision={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET games/v1/revisions/check
+/// Checks whether the games client is out of date.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_revisions_check_execute()` or `games_revisions_check`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_revisions_check_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_revisions_check_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RevisionCheckResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RevisionCheckResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET games/v1/revisions/check
+/// Checks whether the games client is out of date.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_revisions_check_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_revisions_check_task()`.
+/// For the simplest API, use `games_revisions_check()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_revisions_check_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_revisions_check_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevisionCheckResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_revisions_check_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_revisions_check`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesRevisionsCheckArgs {
+    /// Query parameter: clientRevision
+    pub clientRevision: Option<Option<String>>,
+}
+
+/// GET games/v1/revisions/check
+/// Checks whether the games client is out of date.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_revisions_check_builder()` + `games_revisions_check_execute()`.
+/// For task-level control, use `games_revisions_check_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_revisions_check(
+    client: &SimpleHttpClient,
+    args: &GamesRevisionsCheckArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RevisionCheckResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = games_revisions_check_builder(client, &args.clientRevision)?;
+    games_revisions_check_execute(builder)
 }
 
 /// GET games/v1/players/{playerId}/leaderboards/{leaderboardId}/scores/{timeSpan}
@@ -4710,10 +5374,10 @@ pub fn games_scores_get_builder(
     playerId: &String,
     leaderboardId: &String,
     timeSpan: &String,
-    includeRankType: &Option<String>,
-    language: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    includeRankType: &Option<Option<String>>,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4867,13 +5531,13 @@ pub struct GamesScoresGetArgs {
     /// Path parameter: timeSpan
     pub timeSpan: String,
     /// Query parameter: includeRankType
-    pub includeRankType: Option<String>,
+    pub includeRankType: Option<Option<String>>,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET games/v1/players/{playerId}/leaderboards/{leaderboardId}/scores/{timeSpan}
@@ -4911,7 +5575,622 @@ pub fn games_scores_get(
     games_scores_get_execute(builder)
 }
 
-/// GET games/v1/leaderboards/scores
+/// GET games/v1/leaderboards/{leaderboardId}/scores/{collection}
+/// Lists the scores in a leaderboard, starting from the top.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_scores_list_execute()` to send, or `games_scores_list` for simplest API.
+
+pub fn games_scores_list_builder(
+    client: &SimpleHttpClient,
+    leaderboardId: &String,
+    collection: &String,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    timeSpan: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://games.googleapis.com/games/v1/leaderboards/{}/scores/{}",
+        leaderboardId, collection,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = language.as_ref() {
+        query_parts.push(format!("language={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = timeSpan.as_ref() {
+        query_parts.push(format!("timeSpan={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET games/v1/leaderboards/{leaderboardId}/scores/{collection}
+/// Lists the scores in a leaderboard, starting from the top.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_scores_list_execute()` or `games_scores_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_scores_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LeaderboardScores>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LeaderboardScores = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET games/v1/leaderboards/{leaderboardId}/scores/{collection}
+/// Lists the scores in a leaderboard, starting from the top.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_scores_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_scores_list_task()`.
+/// For the simplest API, use `games_scores_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_scores_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_scores_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_scores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesScoresListArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+    /// Path parameter: collection
+    pub collection: String,
+    /// Query parameter: language
+    pub language: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: timeSpan
+    pub timeSpan: Option<Option<String>>,
+}
+
+/// GET games/v1/leaderboards/{leaderboardId}/scores/{collection}
+/// Lists the scores in a leaderboard, starting from the top.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_scores_list_builder()` + `games_scores_list_execute()`.
+/// For task-level control, use `games_scores_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_scores_list(
+    client: &SimpleHttpClient,
+    args: &GamesScoresListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = games_scores_list_builder(
+        client,
+        &args.leaderboardId,
+        &args.collection,
+        &args.language,
+        &args.maxResults,
+        &args.pageToken,
+        &args.timeSpan,
+    )?;
+    games_scores_list_execute(builder)
+}
+
+/// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
+/// Lists the scores in a leaderboard around (and including) a player's score.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_scores_list_window_execute()` to send, or `games_scores_list_window` for simplest API.
+
+pub fn games_scores_list_window_builder(
+    client: &SimpleHttpClient,
+    leaderboardId: &String,
+    collection: &String,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    resultsAbove: &Option<Option<String>>,
+    returnTopIfAbsent: &Option<Option<String>>,
+    timeSpan: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://games.googleapis.com/games/v1/leaderboards/{}/window/{}",
+        leaderboardId, collection,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = language.as_ref() {
+        query_parts.push(format!("language={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = resultsAbove.as_ref() {
+        query_parts.push(format!("resultsAbove={}", val));
+    }
+    if let Some(val) = returnTopIfAbsent.as_ref() {
+        query_parts.push(format!("returnTopIfAbsent={}", val));
+    }
+    if let Some(val) = timeSpan.as_ref() {
+        query_parts.push(format!("timeSpan={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
+/// Lists the scores in a leaderboard around (and including) a player's score.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_scores_list_window_execute()` or `games_scores_list_window`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_list_window_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_scores_list_window_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LeaderboardScores>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LeaderboardScores = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
+/// Lists the scores in a leaderboard around (and including) a player's score.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_scores_list_window_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_scores_list_window_task()`.
+/// For the simplest API, use `games_scores_list_window()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_list_window_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_scores_list_window_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_scores_list_window_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_scores_list_window`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesScoresListWindowArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+    /// Path parameter: collection
+    pub collection: String,
+    /// Query parameter: language
+    pub language: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: resultsAbove
+    pub resultsAbove: Option<Option<String>>,
+    /// Query parameter: returnTopIfAbsent
+    pub returnTopIfAbsent: Option<Option<String>>,
+    /// Query parameter: timeSpan
+    pub timeSpan: Option<Option<String>>,
+}
+
+/// GET games/v1/leaderboards/{leaderboardId}/window/{collection}
+/// Lists the scores in a leaderboard around (and including) a player's score.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_scores_list_window_builder()` + `games_scores_list_window_execute()`.
+/// For task-level control, use `games_scores_list_window_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_scores_list_window(
+    client: &SimpleHttpClient,
+    args: &GamesScoresListWindowArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LeaderboardScores>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = games_scores_list_window_builder(
+        client,
+        &args.leaderboardId,
+        &args.collection,
+        &args.language,
+        &args.maxResults,
+        &args.pageToken,
+        &args.resultsAbove,
+        &args.returnTopIfAbsent,
+        &args.timeSpan,
+    )?;
+    games_scores_list_window_execute(builder)
+}
+
+/// POST games/v1/leaderboards/{leaderboardId}/scores
+/// Submits a score to the specified leaderboard.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_scores_submit_execute()` to send, or `games_scores_submit` for simplest API.
+
+pub fn games_scores_submit_builder(
+    client: &SimpleHttpClient,
+    leaderboardId: &String,
+    language: &Option<Option<String>>,
+    score: &Option<Option<String>>,
+    scoreTag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://games.googleapis.com/games/v1/leaderboards/{}/scores",
+        leaderboardId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = language.as_ref() {
+        query_parts.push(format!("language={}", val));
+    }
+    if let Some(val) = score.as_ref() {
+        query_parts.push(format!("score={}", val));
+    }
+    if let Some(val) = scoreTag.as_ref() {
+        query_parts.push(format!("scoreTag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST games/v1/leaderboards/{leaderboardId}/scores
+/// Submits a score to the specified leaderboard.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_scores_submit_execute()` or `games_scores_submit`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_submit_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_scores_submit_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlayerScoreResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlayerScoreResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST games/v1/leaderboards/{leaderboardId}/scores
+/// Submits a score to the specified leaderboard.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_scores_submit_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_scores_submit_task()`.
+/// For the simplest API, use `games_scores_submit()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_scores_submit_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_scores_submit_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlayerScoreResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_scores_submit_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_scores_submit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesScoresSubmitArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+    /// Query parameter: language
+    pub language: Option<Option<String>>,
+    /// Query parameter: score
+    pub score: Option<Option<String>>,
+    /// Query parameter: scoreTag
+    pub scoreTag: Option<Option<String>>,
+}
+
+/// POST games/v1/leaderboards/{leaderboardId}/scores
+/// Submits a score to the specified leaderboard.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_scores_submit_builder()` + `games_scores_submit_execute()`.
+/// For task-level control, use `games_scores_submit_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_scores_submit(
+    client: &SimpleHttpClient,
+    args: &GamesScoresSubmitArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlayerScoreResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = games_scores_submit_builder(
+        client,
+        &args.leaderboardId,
+        &args.language,
+        &args.score,
+        &args.scoreTag,
+    )?;
+    games_scores_submit_execute(builder)
+}
+
+/// POST games/v1/leaderboards/scores
 /// Submits multiple scores to leaderboards.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4919,8 +6198,7 @@ pub fn games_scores_get(
 
 pub fn games_scores_submit_multiple_builder(
     client: &SimpleHttpClient,
-    language: &Option<String>,
-    body: &PlayerScoreSubmissionList,
+    language: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://games.googleapis.com/games/v1/leaderboards/scores",);
@@ -4938,15 +6216,13 @@ pub fn games_scores_submit_multiple_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET games/v1/leaderboards/scores
+/// POST games/v1/leaderboards/scores
 /// Submits multiple scores to leaderboards.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5020,7 +6296,7 @@ pub fn games_scores_submit_multiple_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1/leaderboards/scores
+/// POST games/v1/leaderboards/scores
 /// Submits multiple scores to leaderboards.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5056,12 +6332,10 @@ pub fn games_scores_submit_multiple_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct GamesScoresSubmitMultipleArgs {
     /// Query parameter: language
-    pub language: Option<String>,
-    /// Request body.
-    pub body: PlayerScoreSubmissionList,
+    pub language: Option<Option<String>>,
 }
 
-/// GET games/v1/leaderboards/scores
+/// POST games/v1/leaderboards/scores
 /// Submits multiple scores to leaderboards.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5081,7 +6355,7 @@ pub fn games_scores_submit_multiple(
         + 'static,
     ApiError,
 > {
-    let builder = games_scores_submit_multiple_builder(client, &args.language, &args.body)?;
+    let builder = games_scores_submit_multiple_builder(client, &args.language)?;
     games_scores_submit_multiple_execute(builder)
 }
 
@@ -5094,7 +6368,7 @@ pub fn games_scores_submit_multiple(
 pub fn games_snapshots_get_builder(
     client: &SimpleHttpClient,
     snapshotId: &String,
-    language: &Option<String>,
+    language: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5231,7 +6505,7 @@ pub struct GamesSnapshotsGetArgs {
     /// Path parameter: snapshotId
     pub snapshotId: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
 }
 
 /// GET games/v1/snapshots/{snapshotId}
@@ -5265,9 +6539,9 @@ pub fn games_snapshots_get(
 pub fn games_snapshots_list_builder(
     client: &SimpleHttpClient,
     playerId: &String,
-    language: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    language: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5412,11 +6686,11 @@ pub struct GamesSnapshotsListArgs {
     /// Path parameter: playerId
     pub playerId: String,
     /// Query parameter: language
-    pub language: Option<String>,
+    pub language: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET games/v1/players/{playerId}/snapshots
@@ -5596,4 +6870,941 @@ pub fn games_stats_get(
 > {
     let builder = games_stats_get_builder(client)?;
     games_stats_get_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GeneratePlayGroupingApiTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GeneratePlayGroupingApiTokenResponse with GamesAccesstokensGeneratePlayGroupingApiTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAccesstokensGeneratePlayGroupingApiTokenArgs>
+    for GeneratePlayGroupingApiTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesAccesstokensGeneratePlayGroupingApiTokenArgs,
+    ) -> String {
+        "gcp::games::GeneratePlayGroupingApiTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::GeneratePlayGroupingApiTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateRecallPlayGroupingApiTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateRecallPlayGroupingApiTokenResponse with GamesAccesstokensGenerateRecallPlayGroupingApiTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAccesstokensGenerateRecallPlayGroupingApiTokenArgs>
+    for GenerateRecallPlayGroupingApiTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesAccesstokensGenerateRecallPlayGroupingApiTokenArgs,
+    ) -> String {
+        "gcp::games::GenerateRecallPlayGroupingApiTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::GenerateRecallPlayGroupingApiTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementDefinitionsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementDefinitionsListResponse with GamesAchievementDefinitionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementDefinitionsListArgs>
+    for AchievementDefinitionsListResponse
+{
+    fn generate_resource_id(&self, input: &GamesAchievementDefinitionsListArgs) -> String {
+        "gcp::games::AchievementDefinitionsListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::AchievementDefinitionsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementIncrementResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementIncrementResponse with GamesAchievementsIncrementArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsIncrementArgs> for AchievementIncrementResponse {
+    fn generate_resource_id(&self, input: &GamesAchievementsIncrementArgs) -> String {
+        format!(
+            "gcp::games::AchievementIncrementResponse/{}",
+            input.achievementId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::AchievementIncrementResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlayerAchievementListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlayerAchievementListResponse with GamesAchievementsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsListArgs> for PlayerAchievementListResponse {
+    fn generate_resource_id(&self, input: &GamesAchievementsListArgs) -> String {
+        format!(
+            "gcp::games::PlayerAchievementListResponse/{}",
+            input.playerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::PlayerAchievementListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementRevealResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementRevealResponse with GamesAchievementsRevealArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsRevealArgs> for AchievementRevealResponse {
+    fn generate_resource_id(&self, input: &GamesAchievementsRevealArgs) -> String {
+        format!(
+            "gcp::games::AchievementRevealResponse/{}",
+            input.achievementId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::AchievementRevealResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementSetStepsAtLeastResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementSetStepsAtLeastResponse with GamesAchievementsSetStepsAtLeastArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsSetStepsAtLeastArgs>
+    for AchievementSetStepsAtLeastResponse
+{
+    fn generate_resource_id(&self, input: &GamesAchievementsSetStepsAtLeastArgs) -> String {
+        format!(
+            "gcp::games::AchievementSetStepsAtLeastResponse/{}",
+            input.achievementId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::AchievementSetStepsAtLeastResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementUnlockResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementUnlockResponse with GamesAchievementsUnlockArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsUnlockArgs> for AchievementUnlockResponse {
+    fn generate_resource_id(&self, input: &GamesAchievementsUnlockArgs) -> String {
+        format!(
+            "gcp::games::AchievementUnlockResponse/{}",
+            input.achievementId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::AchievementUnlockResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementUpdateMultipleResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementUpdateMultipleResponse with GamesAchievementsUpdateMultipleArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsUpdateMultipleArgs> for AchievementUpdateMultipleResponse {
+    fn generate_resource_id(&self, input: &GamesAchievementsUpdateMultipleArgs) -> String {
+        "gcp::games::AchievementUpdateMultipleResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::AchievementUpdateMultipleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Application
+// =============================================================================
+
+/// ResourceIdentifier implementation for Application with GamesApplicationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesApplicationsGetArgs> for Application {
+    fn generate_resource_id(&self, input: &GamesApplicationsGetArgs) -> String {
+        format!("gcp::games::Application/{}", input.applicationId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::Application"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EndPoint
+// =============================================================================
+
+/// ResourceIdentifier implementation for EndPoint with GamesApplicationsGetEndPointArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesApplicationsGetEndPointArgs> for EndPoint {
+    fn generate_resource_id(&self, input: &GamesApplicationsGetEndPointArgs) -> String {
+        "gcp::games::EndPoint".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::EndPoint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ApplicationVerifyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ApplicationVerifyResponse with GamesApplicationsVerifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesApplicationsVerifyArgs> for ApplicationVerifyResponse {
+    fn generate_resource_id(&self, input: &GamesApplicationsVerifyArgs) -> String {
+        format!(
+            "gcp::games::ApplicationVerifyResponse/{}",
+            input.applicationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::ApplicationVerifyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlayerEventListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlayerEventListResponse with GamesEventsListByPlayerArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesEventsListByPlayerArgs> for PlayerEventListResponse {
+    fn generate_resource_id(&self, input: &GamesEventsListByPlayerArgs) -> String {
+        "gcp::games::PlayerEventListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::PlayerEventListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventDefinitionListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventDefinitionListResponse with GamesEventsListDefinitionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesEventsListDefinitionsArgs> for EventDefinitionListResponse {
+    fn generate_resource_id(&self, input: &GamesEventsListDefinitionsArgs) -> String {
+        "gcp::games::EventDefinitionListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::EventDefinitionListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventUpdateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventUpdateResponse with GamesEventsRecordArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesEventsRecordArgs> for EventUpdateResponse {
+    fn generate_resource_id(&self, input: &GamesEventsRecordArgs) -> String {
+        "gcp::games::EventUpdateResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::EventUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Leaderboard
+// =============================================================================
+
+/// ResourceIdentifier implementation for Leaderboard with GamesLeaderboardsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesLeaderboardsGetArgs> for Leaderboard {
+    fn generate_resource_id(&self, input: &GamesLeaderboardsGetArgs) -> String {
+        format!("gcp::games::Leaderboard/{}", input.leaderboardId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::Leaderboard"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LeaderboardListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LeaderboardListResponse with GamesLeaderboardsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesLeaderboardsListArgs> for LeaderboardListResponse {
+    fn generate_resource_id(&self, input: &GamesLeaderboardsListArgs) -> String {
+        "gcp::games::LeaderboardListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::LeaderboardListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MetagameConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for MetagameConfig with GamesMetagameGetMetagameConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesMetagameGetMetagameConfigArgs> for MetagameConfig {
+    fn generate_resource_id(&self, input: &GamesMetagameGetMetagameConfigArgs) -> String {
+        "gcp::games::MetagameConfig".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::MetagameConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CategoryListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CategoryListResponse with GamesMetagameListCategoriesByPlayerArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesMetagameListCategoriesByPlayerArgs> for CategoryListResponse {
+    fn generate_resource_id(&self, input: &GamesMetagameListCategoriesByPlayerArgs) -> String {
+        format!(
+            "gcp::games::CategoryListResponse/{}/{}",
+            input.playerId, input.collection
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::CategoryListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Player
+// =============================================================================
+
+/// ResourceIdentifier implementation for Player with GamesPlayersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesPlayersGetArgs> for Player {
+    fn generate_resource_id(&self, input: &GamesPlayersGetArgs) -> String {
+        format!("gcp::games::Player/{}", input.playerId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::Player"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetMultipleApplicationPlayerIdsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetMultipleApplicationPlayerIdsResponse with GamesPlayersGetMultipleApplicationPlayerIdsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesPlayersGetMultipleApplicationPlayerIdsArgs>
+    for GetMultipleApplicationPlayerIdsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesPlayersGetMultipleApplicationPlayerIdsArgs,
+    ) -> String {
+        "gcp::games::GetMultipleApplicationPlayerIdsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::GetMultipleApplicationPlayerIdsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ScopedPlayerIds
+// =============================================================================
+
+/// ResourceIdentifier implementation for ScopedPlayerIds with GamesPlayersGetScopedPlayerIdsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesPlayersGetScopedPlayerIdsArgs> for ScopedPlayerIds {
+    fn generate_resource_id(&self, input: &GamesPlayersGetScopedPlayerIdsArgs) -> String {
+        "gcp::games::ScopedPlayerIds".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::ScopedPlayerIds"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlayerListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlayerListResponse with GamesPlayersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesPlayersListArgs> for PlayerListResponse {
+    fn generate_resource_id(&self, input: &GamesPlayersListArgs) -> String {
+        format!("gcp::games::PlayerListResponse/{}", input.collection)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::PlayerListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveGamesPlayerTokensResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveGamesPlayerTokensResponse with GamesRecallGamesPlayerTokensArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallGamesPlayerTokensArgs> for RetrieveGamesPlayerTokensResponse {
+    fn generate_resource_id(&self, input: &GamesRecallGamesPlayerTokensArgs) -> String {
+        format!(
+            "gcp::games::RetrieveGamesPlayerTokensResponse/{}",
+            input.sessionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::RetrieveGamesPlayerTokensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrieveDeveloperGamesLastPlayerTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveDeveloperGamesLastPlayerTokenResponse with GamesRecallLastTokenFromAllDeveloperGamesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallLastTokenFromAllDeveloperGamesArgs>
+    for RetrieveDeveloperGamesLastPlayerTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesRecallLastTokenFromAllDeveloperGamesArgs,
+    ) -> String {
+        format!(
+            "gcp::games::RetrieveDeveloperGamesLastPlayerTokenResponse/{}",
+            input.sessionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::RetrieveDeveloperGamesLastPlayerTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LinkPersonaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LinkPersonaResponse with GamesRecallLinkPersonaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallLinkPersonaArgs> for LinkPersonaResponse {
+    fn generate_resource_id(&self, input: &GamesRecallLinkPersonaArgs) -> String {
+        "gcp::games::LinkPersonaResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::LinkPersonaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResetPersonaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResetPersonaResponse with GamesRecallResetPersonaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallResetPersonaArgs> for ResetPersonaResponse {
+    fn generate_resource_id(&self, input: &GamesRecallResetPersonaArgs) -> String {
+        "gcp::games::ResetPersonaResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::ResetPersonaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetrievePlayerTokensResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrievePlayerTokensResponse with GamesRecallRetrieveTokensArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallRetrieveTokensArgs> for RetrievePlayerTokensResponse {
+    fn generate_resource_id(&self, input: &GamesRecallRetrieveTokensArgs) -> String {
+        format!(
+            "gcp::games::RetrievePlayerTokensResponse/{}",
+            input.sessionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::RetrievePlayerTokensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UnlinkPersonaResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UnlinkPersonaResponse with GamesRecallUnlinkPersonaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallUnlinkPersonaArgs> for UnlinkPersonaResponse {
+    fn generate_resource_id(&self, input: &GamesRecallUnlinkPersonaArgs) -> String {
+        "gcp::games::UnlinkPersonaResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::UnlinkPersonaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RevisionCheckResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RevisionCheckResponse with GamesRevisionsCheckArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRevisionsCheckArgs> for RevisionCheckResponse {
+    fn generate_resource_id(&self, input: &GamesRevisionsCheckArgs) -> String {
+        "gcp::games::RevisionCheckResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::RevisionCheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlayerLeaderboardScoreListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlayerLeaderboardScoreListResponse with GamesScoresGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesScoresGetArgs> for PlayerLeaderboardScoreListResponse {
+    fn generate_resource_id(&self, input: &GamesScoresGetArgs) -> String {
+        format!(
+            "gcp::games::PlayerLeaderboardScoreListResponse/{}/{}/{}",
+            input.playerId, input.leaderboardId, input.timeSpan
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::PlayerLeaderboardScoreListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LeaderboardScores
+// =============================================================================
+
+/// ResourceIdentifier implementation for LeaderboardScores with GamesScoresListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesScoresListArgs> for LeaderboardScores {
+    fn generate_resource_id(&self, input: &GamesScoresListArgs) -> String {
+        format!(
+            "gcp::games::LeaderboardScores/{}/{}",
+            input.leaderboardId, input.collection
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::LeaderboardScores"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LeaderboardScores
+// =============================================================================
+
+/// ResourceIdentifier implementation for LeaderboardScores with GamesScoresListWindowArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesScoresListWindowArgs> for LeaderboardScores {
+    fn generate_resource_id(&self, input: &GamesScoresListWindowArgs) -> String {
+        format!(
+            "gcp::games::LeaderboardScores/{}/{}",
+            input.leaderboardId, input.collection
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::LeaderboardScores"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlayerScoreResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlayerScoreResponse with GamesScoresSubmitArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesScoresSubmitArgs> for PlayerScoreResponse {
+    fn generate_resource_id(&self, input: &GamesScoresSubmitArgs) -> String {
+        format!("gcp::games::PlayerScoreResponse/{}", input.leaderboardId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::PlayerScoreResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlayerScoreListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlayerScoreListResponse with GamesScoresSubmitMultipleArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesScoresSubmitMultipleArgs> for PlayerScoreListResponse {
+    fn generate_resource_id(&self, input: &GamesScoresSubmitMultipleArgs) -> String {
+        "gcp::games::PlayerScoreListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::PlayerScoreListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Snapshot
+// =============================================================================
+
+/// ResourceIdentifier implementation for Snapshot with GamesSnapshotsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesSnapshotsGetArgs> for Snapshot {
+    fn generate_resource_id(&self, input: &GamesSnapshotsGetArgs) -> String {
+        format!("gcp::games::Snapshot/{}", input.snapshotId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::Snapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SnapshotListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SnapshotListResponse with GamesSnapshotsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesSnapshotsListArgs> for SnapshotListResponse {
+    fn generate_resource_id(&self, input: &GamesSnapshotsListArgs) -> String {
+        format!("gcp::games::SnapshotListResponse/{}", input.playerId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::SnapshotListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StatsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for StatsResponse with GamesStatsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesStatsGetArgs> for StatsResponse {
+    fn generate_resource_id(&self, input: &GamesStatsGetArgs) -> String {
+        "gcp::games::StatsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::games::StatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -15,22 +15,35 @@ use crate::providers::gcp::clients::alertcenter::{
     alertcenter_alerts_batch_delete_builder, alertcenter_alerts_batch_delete_task,
     alertcenter_alerts_batch_undelete_builder, alertcenter_alerts_batch_undelete_task,
     alertcenter_alerts_delete_builder, alertcenter_alerts_delete_task,
+    alertcenter_alerts_get_builder, alertcenter_alerts_get_task,
+    alertcenter_alerts_get_metadata_builder, alertcenter_alerts_get_metadata_task,
+    alertcenter_alerts_list_builder, alertcenter_alerts_list_task,
     alertcenter_alerts_undelete_builder, alertcenter_alerts_undelete_task,
     alertcenter_alerts_feedback_create_builder, alertcenter_alerts_feedback_create_task,
+    alertcenter_alerts_feedback_list_builder, alertcenter_alerts_feedback_list_task,
+    alertcenter_get_settings_builder, alertcenter_get_settings_task,
     alertcenter_update_settings_builder, alertcenter_update_settings_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::alertcenter::Alert;
 use crate::providers::gcp::clients::alertcenter::AlertFeedback;
+use crate::providers::gcp::clients::alertcenter::AlertMetadata;
 use crate::providers::gcp::clients::alertcenter::BatchDeleteAlertsResponse;
 use crate::providers::gcp::clients::alertcenter::BatchUndeleteAlertsResponse;
 use crate::providers::gcp::clients::alertcenter::Empty;
+use crate::providers::gcp::clients::alertcenter::ListAlertFeedbackResponse;
+use crate::providers::gcp::clients::alertcenter::ListAlertsResponse;
 use crate::providers::gcp::clients::alertcenter::Settings;
 use crate::providers::gcp::clients::alertcenter::AlertcenterAlertsBatchDeleteArgs;
 use crate::providers::gcp::clients::alertcenter::AlertcenterAlertsBatchUndeleteArgs;
 use crate::providers::gcp::clients::alertcenter::AlertcenterAlertsDeleteArgs;
 use crate::providers::gcp::clients::alertcenter::AlertcenterAlertsFeedbackCreateArgs;
+use crate::providers::gcp::clients::alertcenter::AlertcenterAlertsFeedbackListArgs;
+use crate::providers::gcp::clients::alertcenter::AlertcenterAlertsGetArgs;
+use crate::providers::gcp::clients::alertcenter::AlertcenterAlertsGetMetadataArgs;
+use crate::providers::gcp::clients::alertcenter::AlertcenterAlertsListArgs;
 use crate::providers::gcp::clients::alertcenter::AlertcenterAlertsUndeleteArgs;
+use crate::providers::gcp::clients::alertcenter::AlertcenterGetSettingsArgs;
 use crate::providers::gcp::clients::alertcenter::AlertcenterUpdateSettingsArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -201,6 +214,126 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Alertcenter alerts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Alert result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn alertcenter_alerts_get(
+        &self,
+        args: &AlertcenterAlertsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Alert, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = alertcenter_alerts_get_builder(
+            &self.http_client,
+            &args.alertId,
+            &args.customerId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = alertcenter_alerts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Alertcenter alerts get metadata.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AlertMetadata result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn alertcenter_alerts_get_metadata(
+        &self,
+        args: &AlertcenterAlertsGetMetadataArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AlertMetadata, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = alertcenter_alerts_get_metadata_builder(
+            &self.http_client,
+            &args.alertId,
+            &args.customerId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = alertcenter_alerts_get_metadata_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Alertcenter alerts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAlertsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn alertcenter_alerts_list(
+        &self,
+        args: &AlertcenterAlertsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAlertsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = alertcenter_alerts_list_builder(
+            &self.http_client,
+            &args.customerId,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = alertcenter_alerts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Alertcenter alerts undelete.
     ///
     /// Automatically stores the result in the state store on success.
@@ -286,6 +419,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Alertcenter alerts feedback list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAlertFeedbackResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn alertcenter_alerts_feedback_list(
+        &self,
+        args: &AlertcenterAlertsFeedbackListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAlertFeedbackResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = alertcenter_alerts_feedback_list_builder(
+            &self.http_client,
+            &args.alertId,
+            &args.customerId,
+            &args.filter,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = alertcenter_alerts_feedback_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Alertcenter get settings.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Settings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn alertcenter_get_settings(
+        &self,
+        args: &AlertcenterGetSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Settings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = alertcenter_get_settings_builder(
+            &self.http_client,
+            &args.customerId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = alertcenter_get_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Alertcenter update settings.

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -28,7 +28,7 @@ use serde::Serialize;
 
 pub fn indexing_url_notifications_get_metadata_builder(
     client: &SimpleHttpClient,
-    url: &Option<String>,
+    url: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://indexing.googleapis.com/v3/urlNotifications/metadata",);
@@ -162,7 +162,7 @@ pub fn indexing_url_notifications_get_metadata_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct IndexingUrlNotificationsGetMetadataArgs {
     /// Query parameter: url
-    pub url: Option<String>,
+    pub url: Option<Option<String>>,
 }
 
 /// GET v3/urlNotifications/metadata
@@ -189,7 +189,7 @@ pub fn indexing_url_notifications_get_metadata(
     indexing_url_notifications_get_metadata_execute(builder)
 }
 
-/// GET v3/urlNotifications:publish
+/// POST v3/urlNotifications:publish
 /// Notifies that a URL has been updated or deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -197,22 +197,19 @@ pub fn indexing_url_notifications_get_metadata(
 
 pub fn indexing_url_notifications_publish_builder(
     client: &SimpleHttpClient,
-    body: &UrlNotification,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://indexing.googleapis.com/v3/urlNotifications:publish",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/urlNotifications:publish
+/// POST v3/urlNotifications:publish
 /// Notifies that a URL has been updated or deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -286,7 +283,7 @@ pub fn indexing_url_notifications_publish_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/urlNotifications:publish
+/// POST v3/urlNotifications:publish
 /// Notifies that a URL has been updated or deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -320,14 +317,7 @@ pub fn indexing_url_notifications_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`indexing_url_notifications_publish`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct IndexingUrlNotificationsPublishArgs {
-    /// Request body.
-    pub body: UrlNotification,
-}
-
-/// GET v3/urlNotifications:publish
+/// POST v3/urlNotifications:publish
 /// Notifies that a URL has been updated or deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -340,7 +330,6 @@ pub struct IndexingUrlNotificationsPublishArgs {
 
 pub fn indexing_url_notifications_publish(
     client: &SimpleHttpClient,
-    args: &IndexingUrlNotificationsPublishArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PublishUrlNotificationResponse>, ApiError>,
@@ -349,6 +338,52 @@ pub fn indexing_url_notifications_publish(
         + 'static,
     ApiError,
 > {
-    let builder = indexing_url_notifications_publish_builder(client, &args.body)?;
+    let builder = indexing_url_notifications_publish_builder(client)?;
     indexing_url_notifications_publish_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UrlNotificationMetadata
+// =============================================================================
+
+/// ResourceIdentifier implementation for UrlNotificationMetadata with IndexingUrlNotificationsGetMetadataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IndexingUrlNotificationsGetMetadataArgs> for UrlNotificationMetadata {
+    fn generate_resource_id(&self, input: &IndexingUrlNotificationsGetMetadataArgs) -> String {
+        "gcp::indexing::UrlNotificationMetadata".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::indexing::UrlNotificationMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PublishUrlNotificationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PublishUrlNotificationResponse with IndexingUrlNotificationsPublishArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IndexingUrlNotificationsPublishArgs> for PublishUrlNotificationResponse {
+    fn generate_resource_id(&self, input: &IndexingUrlNotificationsPublishArgs) -> String {
+        "gcp::indexing::PublishUrlNotificationResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::indexing::PublishUrlNotificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/locations/{locationsId}/questions
+/// POST v1/locations/{locationsId}/questions
 /// Adds a question for the specified location.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +29,22 @@ use serde::Serialize;
 pub fn mybusinessqanda_locations_questions_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &Question,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://mybusinessqanda.googleapis.com/v1/locations/{}/questions",);
+    let endpoint_url = format!(
+        "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/locations/{locationsId}/questions
+/// POST v1/locations/{locationsId}/questions
 /// Adds a question for the specified location.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +118,7 @@ pub fn mybusinessqanda_locations_questions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/locations/{locationsId}/questions
+/// POST v1/locations/{locationsId}/questions
 /// Adds a question for the specified location.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -153,11 +153,9 @@ pub fn mybusinessqanda_locations_questions_create_execute(
 pub struct MybusinessqandaLocationsQuestionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: Question,
 }
 
-/// GET v1/locations/{locationsId}/questions
+/// POST v1/locations/{locationsId}/questions
 /// Adds a question for the specified location.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -175,7 +173,1222 @@ pub fn mybusinessqanda_locations_questions_create(
     impl StreamIterator<D = Result<ApiResponse<Question>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessqanda_locations_questions_create_builder(client, &args.parent, &args.body)?;
+    let builder = mybusinessqanda_locations_questions_create_builder(client, &args.parent)?;
     mybusinessqanda_locations_questions_create_execute(builder)
+}
+
+/// DELETE v1/locations/{locationsId}/questions/{questionsId}
+/// Deletes a specific question written by the current user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessqanda_locations_questions_delete_execute()` to send, or `mybusinessqanda_locations_questions_delete` for simplest API.
+
+pub fn mybusinessqanda_locations_questions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions/{questionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/locations/{locationsId}/questions/{questionsId}
+/// Deletes a specific question written by the current user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessqanda_locations_questions_delete_execute()` or `mybusinessqanda_locations_questions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/locations/{locationsId}/questions/{questionsId}
+/// Deletes a specific question written by the current user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessqanda_locations_questions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessqanda_locations_questions_delete_task()`.
+/// For the simplest API, use `mybusinessqanda_locations_questions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessqanda_locations_questions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessqanda_locations_questions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessqanda_locations_questions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/locations/{locationsId}/questions/{questionsId}
+/// Deletes a specific question written by the current user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessqanda_locations_questions_delete_builder()` + `mybusinessqanda_locations_questions_delete_execute()`.
+/// For task-level control, use `mybusinessqanda_locations_questions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_delete(
+    client: &SimpleHttpClient,
+    args: &MybusinessqandaLocationsQuestionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = mybusinessqanda_locations_questions_delete_builder(client, &args.name)?;
+    mybusinessqanda_locations_questions_delete_execute(builder)
+}
+
+/// GET v1/locations/{locationsId}/questions
+/// Returns the paginated list of questions and some of its answers for a specified location. This operation is only valid if the specified location is verified.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessqanda_locations_questions_list_execute()` to send, or `mybusinessqanda_locations_questions_list` for simplest API.
+
+pub fn mybusinessqanda_locations_questions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    answersPerQuestion: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = answersPerQuestion.as_ref() {
+        query_parts.push(format!("answersPerQuestion={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/locations/{locationsId}/questions
+/// Returns the paginated list of questions and some of its answers for a specified location. This operation is only valid if the specified location is verified.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessqanda_locations_questions_list_execute()` or `mybusinessqanda_locations_questions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListQuestionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListQuestionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/locations/{locationsId}/questions
+/// Returns the paginated list of questions and some of its answers for a specified location. This operation is only valid if the specified location is verified.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessqanda_locations_questions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessqanda_locations_questions_list_task()`.
+/// For the simplest API, use `mybusinessqanda_locations_questions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessqanda_locations_questions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListQuestionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = mybusinessqanda_locations_questions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessqanda_locations_questions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: answersPerQuestion
+    pub answersPerQuestion: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/locations/{locationsId}/questions
+/// Returns the paginated list of questions and some of its answers for a specified location. This operation is only valid if the specified location is verified.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessqanda_locations_questions_list_builder()` + `mybusinessqanda_locations_questions_list_execute()`.
+/// For task-level control, use `mybusinessqanda_locations_questions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_list(
+    client: &SimpleHttpClient,
+    args: &MybusinessqandaLocationsQuestionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListQuestionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = mybusinessqanda_locations_questions_list_builder(
+        client,
+        &args.parent,
+        &args.answersPerQuestion,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    mybusinessqanda_locations_questions_list_execute(builder)
+}
+
+/// PATCH v1/locations/{locationsId}/questions/{questionsId}
+/// Updates a specific question written by the current user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessqanda_locations_questions_patch_execute()` to send, or `mybusinessqanda_locations_questions_patch` for simplest API.
+
+pub fn mybusinessqanda_locations_questions_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions/{questionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/locations/{locationsId}/questions/{questionsId}
+/// Updates a specific question written by the current user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessqanda_locations_questions_patch_execute()` or `mybusinessqanda_locations_questions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Question>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Question = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/locations/{locationsId}/questions/{questionsId}
+/// Updates a specific question written by the current user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessqanda_locations_questions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessqanda_locations_questions_patch_task()`.
+/// For the simplest API, use `mybusinessqanda_locations_questions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessqanda_locations_questions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Question>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessqanda_locations_questions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessqanda_locations_questions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/locations/{locationsId}/questions/{questionsId}
+/// Updates a specific question written by the current user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessqanda_locations_questions_patch_builder()` + `mybusinessqanda_locations_questions_patch_execute()`.
+/// For task-level control, use `mybusinessqanda_locations_questions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_patch(
+    client: &SimpleHttpClient,
+    args: &MybusinessqandaLocationsQuestionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Question>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        mybusinessqanda_locations_questions_patch_builder(client, &args.name, &args.updateMask)?;
+    mybusinessqanda_locations_questions_patch_execute(builder)
+}
+
+/// DELETE v1/locations/{locationsId}/questions/{questionsId}/answers:delete
+/// Deletes the answer written by the current user to a question.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessqanda_locations_questions_answers_delete_execute()` to send, or `mybusinessqanda_locations_questions_answers_delete` for simplest API.
+
+pub fn mybusinessqanda_locations_questions_answers_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions/{questionsId}/answers:delete",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/locations/{locationsId}/questions/{questionsId}/answers:delete
+/// Deletes the answer written by the current user to a question.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessqanda_locations_questions_answers_delete_execute()` or `mybusinessqanda_locations_questions_answers_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_answers_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_answers_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/locations/{locationsId}/questions/{questionsId}/answers:delete
+/// Deletes the answer written by the current user to a question.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessqanda_locations_questions_answers_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessqanda_locations_questions_answers_delete_task()`.
+/// For the simplest API, use `mybusinessqanda_locations_questions_answers_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_answers_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessqanda_locations_questions_answers_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessqanda_locations_questions_answers_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessqanda_locations_questions_answers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsAnswersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/locations/{locationsId}/questions/{questionsId}/answers:delete
+/// Deletes the answer written by the current user to a question.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessqanda_locations_questions_answers_delete_builder()` + `mybusinessqanda_locations_questions_answers_delete_execute()`.
+/// For task-level control, use `mybusinessqanda_locations_questions_answers_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_answers_delete(
+    client: &SimpleHttpClient,
+    args: &MybusinessqandaLocationsQuestionsAnswersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = mybusinessqanda_locations_questions_answers_delete_builder(client, &args.name)?;
+    mybusinessqanda_locations_questions_answers_delete_execute(builder)
+}
+
+/// GET v1/locations/{locationsId}/questions/{questionsId}/answers
+/// Returns the paginated list of answers for a specified question.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessqanda_locations_questions_answers_list_execute()` to send, or `mybusinessqanda_locations_questions_answers_list` for simplest API.
+
+pub fn mybusinessqanda_locations_questions_answers_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions/{questionsId}/answers",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/locations/{locationsId}/questions/{questionsId}/answers
+/// Returns the paginated list of answers for a specified question.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessqanda_locations_questions_answers_list_execute()` or `mybusinessqanda_locations_questions_answers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_answers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_answers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAnswersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAnswersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/locations/{locationsId}/questions/{questionsId}/answers
+/// Returns the paginated list of answers for a specified question.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessqanda_locations_questions_answers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessqanda_locations_questions_answers_list_task()`.
+/// For the simplest API, use `mybusinessqanda_locations_questions_answers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_answers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessqanda_locations_questions_answers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAnswersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = mybusinessqanda_locations_questions_answers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessqanda_locations_questions_answers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsAnswersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/locations/{locationsId}/questions/{questionsId}/answers
+/// Returns the paginated list of answers for a specified question.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessqanda_locations_questions_answers_list_builder()` + `mybusinessqanda_locations_questions_answers_list_execute()`.
+/// For task-level control, use `mybusinessqanda_locations_questions_answers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_answers_list(
+    client: &SimpleHttpClient,
+    args: &MybusinessqandaLocationsQuestionsAnswersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAnswersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = mybusinessqanda_locations_questions_answers_list_builder(
+        client,
+        &args.parent,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    mybusinessqanda_locations_questions_answers_list_execute(builder)
+}
+
+/// POST v1/locations/{locationsId}/questions/{questionsId}/answers:upsert
+/// Creates an answer or updates the existing answer written by the user for the specified question. A user can only create one answer per question.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessqanda_locations_questions_answers_upsert_execute()` to send, or `mybusinessqanda_locations_questions_answers_upsert` for simplest API.
+
+pub fn mybusinessqanda_locations_questions_answers_upsert_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessqanda.googleapis.com/v1/locations/{}/questions/{questionsId}/answers:upsert",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/locations/{locationsId}/questions/{questionsId}/answers:upsert
+/// Creates an answer or updates the existing answer written by the user for the specified question. A user can only create one answer per question.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessqanda_locations_questions_answers_upsert_execute()` or `mybusinessqanda_locations_questions_answers_upsert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_answers_upsert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_answers_upsert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Answer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Answer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/locations/{locationsId}/questions/{questionsId}/answers:upsert
+/// Creates an answer or updates the existing answer written by the user for the specified question. A user can only create one answer per question.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessqanda_locations_questions_answers_upsert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessqanda_locations_questions_answers_upsert_task()`.
+/// For the simplest API, use `mybusinessqanda_locations_questions_answers_upsert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessqanda_locations_questions_answers_upsert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessqanda_locations_questions_answers_upsert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Answer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessqanda_locations_questions_answers_upsert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessqanda_locations_questions_answers_upsert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessqandaLocationsQuestionsAnswersUpsertArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/locations/{locationsId}/questions/{questionsId}/answers:upsert
+/// Creates an answer or updates the existing answer written by the user for the specified question. A user can only create one answer per question.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessqanda_locations_questions_answers_upsert_builder()` + `mybusinessqanda_locations_questions_answers_upsert_execute()`.
+/// For task-level control, use `mybusinessqanda_locations_questions_answers_upsert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessqanda_locations_questions_answers_upsert(
+    client: &SimpleHttpClient,
+    args: &MybusinessqandaLocationsQuestionsAnswersUpsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Answer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = mybusinessqanda_locations_questions_answers_upsert_builder(client, &args.parent)?;
+    mybusinessqanda_locations_questions_answers_upsert_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Question
+// =============================================================================
+
+/// ResourceIdentifier implementation for Question with MybusinessqandaLocationsQuestionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsCreateArgs> for Question {
+    fn generate_resource_id(&self, input: &MybusinessqandaLocationsQuestionsCreateArgs) -> String {
+        format!("gcp::mybusinessqanda::Question/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessqanda::Question"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with MybusinessqandaLocationsQuestionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &MybusinessqandaLocationsQuestionsDeleteArgs) -> String {
+        format!("gcp::mybusinessqanda::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessqanda::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListQuestionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListQuestionsResponse with MybusinessqandaLocationsQuestionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsListArgs> for ListQuestionsResponse {
+    fn generate_resource_id(&self, input: &MybusinessqandaLocationsQuestionsListArgs) -> String {
+        format!(
+            "gcp::mybusinessqanda::ListQuestionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessqanda::ListQuestionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Question
+// =============================================================================
+
+/// ResourceIdentifier implementation for Question with MybusinessqandaLocationsQuestionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsPatchArgs> for Question {
+    fn generate_resource_id(&self, input: &MybusinessqandaLocationsQuestionsPatchArgs) -> String {
+        format!("gcp::mybusinessqanda::Question/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessqanda::Question"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with MybusinessqandaLocationsQuestionsAnswersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsAnswersDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessqandaLocationsQuestionsAnswersDeleteArgs,
+    ) -> String {
+        format!("gcp::mybusinessqanda::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessqanda::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAnswersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAnswersResponse with MybusinessqandaLocationsQuestionsAnswersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsAnswersListArgs> for ListAnswersResponse {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessqandaLocationsQuestionsAnswersListArgs,
+    ) -> String {
+        format!("gcp::mybusinessqanda::ListAnswersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessqanda::ListAnswersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Answer
+// =============================================================================
+
+/// ResourceIdentifier implementation for Answer with MybusinessqandaLocationsQuestionsAnswersUpsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsAnswersUpsertArgs> for Answer {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessqandaLocationsQuestionsAnswersUpsertArgs,
+    ) -> String {
+        format!("gcp::mybusinessqanda::Answer/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessqanda::Answer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -181,7 +181,7 @@ pub fn storagetransfer_google_service_accounts_get(
     storagetransfer_google_service_accounts_get_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}/agentPools
+/// POST v1/projects/{projectsId}/agentPools
 /// Creates an agent pool resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -190,11 +190,13 @@ pub fn storagetransfer_google_service_accounts_get(
 pub fn storagetransfer_projects_agent_pools_create_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    agentPoolId: &Option<String>,
-    body: &AgentPool,
+    agentPoolId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/projects/{}/agentPools",);
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools",
+        projectId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -209,15 +211,13 @@ pub fn storagetransfer_projects_agent_pools_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/agentPools
+/// POST v1/projects/{projectsId}/agentPools
 /// Creates an agent pool resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -291,7 +291,7 @@ pub fn storagetransfer_projects_agent_pools_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/agentPools
+/// POST v1/projects/{projectsId}/agentPools
 /// Creates an agent pool resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -327,12 +327,10 @@ pub struct StoragetransferProjectsAgentPoolsCreateArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: agentPoolId
-    pub agentPoolId: Option<String>,
-    /// Request body.
-    pub body: AgentPool,
+    pub agentPoolId: Option<Option<String>>,
 }
 
-/// GET v1/projects/{projectsId}/agentPools
+/// POST v1/projects/{projectsId}/agentPools
 /// Creates an agent pool resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -354,12 +352,690 @@ pub fn storagetransfer_projects_agent_pools_create(
         client,
         &args.projectId,
         &args.agentPoolId,
-        &args.body,
     )?;
     storagetransfer_projects_agent_pools_create_execute(builder)
 }
 
-/// GET v1/transferJobs
+/// DELETE v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Deletes an agent pool.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagetransfer_projects_agent_pools_delete_execute()` to send, or `storagetransfer_projects_agent_pools_delete` for simplest API.
+
+pub fn storagetransfer_projects_agent_pools_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools/{agentPoolsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Deletes an agent pool.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagetransfer_projects_agent_pools_delete_execute()` or `storagetransfer_projects_agent_pools_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_projects_agent_pools_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Deletes an agent pool.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagetransfer_projects_agent_pools_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagetransfer_projects_agent_pools_delete_task()`.
+/// For the simplest API, use `storagetransfer_projects_agent_pools_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagetransfer_projects_agent_pools_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagetransfer_projects_agent_pools_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagetransfer_projects_agent_pools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferProjectsAgentPoolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Deletes an agent pool.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagetransfer_projects_agent_pools_delete_builder()` + `storagetransfer_projects_agent_pools_delete_execute()`.
+/// For task-level control, use `storagetransfer_projects_agent_pools_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_projects_agent_pools_delete(
+    client: &SimpleHttpClient,
+    args: &StoragetransferProjectsAgentPoolsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storagetransfer_projects_agent_pools_delete_builder(client, &args.name)?;
+    storagetransfer_projects_agent_pools_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Gets an agent pool.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagetransfer_projects_agent_pools_get_execute()` to send, or `storagetransfer_projects_agent_pools_get` for simplest API.
+
+pub fn storagetransfer_projects_agent_pools_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools/{agentPoolsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Gets an agent pool.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagetransfer_projects_agent_pools_get_execute()` or `storagetransfer_projects_agent_pools_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_projects_agent_pools_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AgentPool>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AgentPool = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Gets an agent pool.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagetransfer_projects_agent_pools_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagetransfer_projects_agent_pools_get_task()`.
+/// For the simplest API, use `storagetransfer_projects_agent_pools_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagetransfer_projects_agent_pools_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagetransfer_projects_agent_pools_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagetransfer_projects_agent_pools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferProjectsAgentPoolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Gets an agent pool.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagetransfer_projects_agent_pools_get_builder()` + `storagetransfer_projects_agent_pools_get_execute()`.
+/// For task-level control, use `storagetransfer_projects_agent_pools_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_projects_agent_pools_get(
+    client: &SimpleHttpClient,
+    args: &StoragetransferProjectsAgentPoolsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = storagetransfer_projects_agent_pools_get_builder(client, &args.name)?;
+    storagetransfer_projects_agent_pools_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/agentPools
+/// Lists agent pools.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagetransfer_projects_agent_pools_list_execute()` to send, or `storagetransfer_projects_agent_pools_list` for simplest API.
+
+pub fn storagetransfer_projects_agent_pools_list_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools",
+        projectId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/agentPools
+/// Lists agent pools.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagetransfer_projects_agent_pools_list_execute()` or `storagetransfer_projects_agent_pools_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_projects_agent_pools_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAgentPoolsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAgentPoolsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/agentPools
+/// Lists agent pools.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagetransfer_projects_agent_pools_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagetransfer_projects_agent_pools_list_task()`.
+/// For the simplest API, use `storagetransfer_projects_agent_pools_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagetransfer_projects_agent_pools_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAgentPoolsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storagetransfer_projects_agent_pools_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagetransfer_projects_agent_pools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferProjectsAgentPoolsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/agentPools
+/// Lists agent pools.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagetransfer_projects_agent_pools_list_builder()` + `storagetransfer_projects_agent_pools_list_execute()`.
+/// For task-level control, use `storagetransfer_projects_agent_pools_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_projects_agent_pools_list(
+    client: &SimpleHttpClient,
+    args: &StoragetransferProjectsAgentPoolsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAgentPoolsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storagetransfer_projects_agent_pools_list_builder(
+        client,
+        &args.projectId,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    storagetransfer_projects_agent_pools_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Updates an existing agent pool resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagetransfer_projects_agent_pools_patch_execute()` to send, or `storagetransfer_projects_agent_pools_patch` for simplest API.
+
+pub fn storagetransfer_projects_agent_pools_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/projects/{}/agentPools/{agentPoolsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Updates an existing agent pool resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagetransfer_projects_agent_pools_patch_execute()` or `storagetransfer_projects_agent_pools_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_projects_agent_pools_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AgentPool>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AgentPool = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Updates an existing agent pool resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagetransfer_projects_agent_pools_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagetransfer_projects_agent_pools_patch_task()`.
+/// For the simplest API, use `storagetransfer_projects_agent_pools_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_projects_agent_pools_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagetransfer_projects_agent_pools_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagetransfer_projects_agent_pools_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagetransfer_projects_agent_pools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferProjectsAgentPoolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/agentPools/{agentPoolsId}
+/// Updates an existing agent pool resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagetransfer_projects_agent_pools_patch_builder()` + `storagetransfer_projects_agent_pools_patch_execute()`.
+/// For task-level control, use `storagetransfer_projects_agent_pools_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_projects_agent_pools_patch(
+    client: &SimpleHttpClient,
+    args: &StoragetransferProjectsAgentPoolsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AgentPool>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        storagetransfer_projects_agent_pools_patch_builder(client, &args.name, &args.updateMask)?;
+    storagetransfer_projects_agent_pools_patch_execute(builder)
+}
+
+/// POST v1/transferJobs
 /// Creates a transfer job that runs periodically.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -367,22 +1043,19 @@ pub fn storagetransfer_projects_agent_pools_create(
 
 pub fn storagetransfer_transfer_jobs_create_builder(
     client: &SimpleHttpClient,
-    body: &TransferJob,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferJobs",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/transferJobs
+/// POST v1/transferJobs
 /// Creates a transfer job that runs periodically.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -456,7 +1129,7 @@ pub fn storagetransfer_transfer_jobs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/transferJobs
+/// POST v1/transferJobs
 /// Creates a transfer job that runs periodically.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -486,14 +1159,7 @@ pub fn storagetransfer_transfer_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`storagetransfer_transfer_jobs_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StoragetransferTransferJobsCreateArgs {
-    /// Request body.
-    pub body: TransferJob,
-}
-
-/// GET v1/transferJobs
+/// POST v1/transferJobs
 /// Creates a transfer job that runs periodically.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -506,16 +1172,545 @@ pub struct StoragetransferTransferJobsCreateArgs {
 
 pub fn storagetransfer_transfer_jobs_create(
     client: &SimpleHttpClient,
-    args: &StoragetransferTransferJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_create_builder(client, &args.body)?;
+    let builder = storagetransfer_transfer_jobs_create_builder(client)?;
     storagetransfer_transfer_jobs_create_execute(builder)
 }
 
+/// DELETE v1/transferJobs/{transferJobsId}
+/// Deletes a transfer job. Deleting a transfer job sets its status to DELETED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagetransfer_transfer_jobs_delete_execute()` to send, or `storagetransfer_transfer_jobs_delete` for simplest API.
+
+pub fn storagetransfer_transfer_jobs_delete_builder(
+    client: &SimpleHttpClient,
+    jobName: &String,
+    projectId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/transferJobs/{}",
+        jobName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = projectId.as_ref() {
+        query_parts.push(format!("projectId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/transferJobs/{transferJobsId}
+/// Deletes a transfer job. Deleting a transfer job sets its status to DELETED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagetransfer_transfer_jobs_delete_execute()` or `storagetransfer_transfer_jobs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_transfer_jobs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/transferJobs/{transferJobsId}
+/// Deletes a transfer job. Deleting a transfer job sets its status to DELETED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagetransfer_transfer_jobs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagetransfer_transfer_jobs_delete_task()`.
+/// For the simplest API, use `storagetransfer_transfer_jobs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagetransfer_transfer_jobs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagetransfer_transfer_jobs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagetransfer_transfer_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferJobsDeleteArgs {
+    /// Path parameter: jobName
+    pub jobName: String,
+    /// Query parameter: projectId
+    pub projectId: Option<Option<String>>,
+}
+
+/// DELETE v1/transferJobs/{transferJobsId}
+/// Deletes a transfer job. Deleting a transfer job sets its status to DELETED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagetransfer_transfer_jobs_delete_builder()` + `storagetransfer_transfer_jobs_delete_execute()`.
+/// For task-level control, use `storagetransfer_transfer_jobs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_transfer_jobs_delete(
+    client: &SimpleHttpClient,
+    args: &StoragetransferTransferJobsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        storagetransfer_transfer_jobs_delete_builder(client, &args.jobName, &args.projectId)?;
+    storagetransfer_transfer_jobs_delete_execute(builder)
+}
+
 /// GET v1/transferJobs/{transferJobsId}
+/// Gets a transfer job.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagetransfer_transfer_jobs_get_execute()` to send, or `storagetransfer_transfer_jobs_get` for simplest API.
+
+pub fn storagetransfer_transfer_jobs_get_builder(
+    client: &SimpleHttpClient,
+    jobName: &String,
+    projectId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/transferJobs/{}",
+        jobName,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = projectId.as_ref() {
+        query_parts.push(format!("projectId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/transferJobs/{transferJobsId}
+/// Gets a transfer job.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagetransfer_transfer_jobs_get_execute()` or `storagetransfer_transfer_jobs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_transfer_jobs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransferJob>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransferJob = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/transferJobs/{transferJobsId}
+/// Gets a transfer job.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagetransfer_transfer_jobs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagetransfer_transfer_jobs_get_task()`.
+/// For the simplest API, use `storagetransfer_transfer_jobs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagetransfer_transfer_jobs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = storagetransfer_transfer_jobs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagetransfer_transfer_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferJobsGetArgs {
+    /// Path parameter: jobName
+    pub jobName: String,
+    /// Query parameter: projectId
+    pub projectId: Option<Option<String>>,
+}
+
+/// GET v1/transferJobs/{transferJobsId}
+/// Gets a transfer job.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagetransfer_transfer_jobs_get_builder()` + `storagetransfer_transfer_jobs_get_execute()`.
+/// For task-level control, use `storagetransfer_transfer_jobs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_transfer_jobs_get(
+    client: &SimpleHttpClient,
+    args: &StoragetransferTransferJobsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        storagetransfer_transfer_jobs_get_builder(client, &args.jobName, &args.projectId)?;
+    storagetransfer_transfer_jobs_get_execute(builder)
+}
+
+/// GET v1/transferJobs
+/// Lists transfer jobs.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagetransfer_transfer_jobs_list_execute()` to send, or `storagetransfer_transfer_jobs_list` for simplest API.
+
+pub fn storagetransfer_transfer_jobs_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferJobs",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/transferJobs
+/// Lists transfer jobs.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagetransfer_transfer_jobs_list_execute()` or `storagetransfer_transfer_jobs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_transfer_jobs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTransferJobsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTransferJobsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/transferJobs
+/// Lists transfer jobs.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagetransfer_transfer_jobs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagetransfer_transfer_jobs_list_task()`.
+/// For the simplest API, use `storagetransfer_transfer_jobs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagetransfer_transfer_jobs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTransferJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storagetransfer_transfer_jobs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagetransfer_transfer_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferJobsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/transferJobs
+/// Lists transfer jobs.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagetransfer_transfer_jobs_list_builder()` + `storagetransfer_transfer_jobs_list_execute()`.
+/// For task-level control, use `storagetransfer_transfer_jobs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_transfer_jobs_list(
+    client: &SimpleHttpClient,
+    args: &StoragetransferTransferJobsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTransferJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storagetransfer_transfer_jobs_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    storagetransfer_transfer_jobs_list_execute(builder)
+}
+
+/// PATCH v1/transferJobs/{transferJobsId}
 /// Updates a transfer job. Updating a job's transfer spec does not affect transfer operations that are running already. **Note:** The job's status field can be modified using this RPC (for example, to set a job's status to DELETED, DISABLED, or ENABLED).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -524,22 +1719,22 @@ pub fn storagetransfer_transfer_jobs_create(
 pub fn storagetransfer_transfer_jobs_patch_builder(
     client: &SimpleHttpClient,
     jobName: &String,
-    body: &UpdateTransferJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferJobs/{}",);
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/transferJobs/{}",
+        jobName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/transferJobs/{transferJobsId}
+/// PATCH v1/transferJobs/{transferJobsId}
 /// Updates a transfer job. Updating a job's transfer spec does not affect transfer operations that are running already. **Note:** The job's status field can be modified using this RPC (for example, to set a job's status to DELETED, DISABLED, or ENABLED).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -613,7 +1808,7 @@ pub fn storagetransfer_transfer_jobs_patch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/transferJobs/{transferJobsId}
+/// PATCH v1/transferJobs/{transferJobsId}
 /// Updates a transfer job. Updating a job's transfer spec does not affect transfer operations that are running already. **Note:** The job's status field can be modified using this RPC (for example, to set a job's status to DELETED, DISABLED, or ENABLED).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -648,11 +1843,9 @@ pub fn storagetransfer_transfer_jobs_patch_execute(
 pub struct StoragetransferTransferJobsPatchArgs {
     /// Path parameter: jobName
     pub jobName: String,
-    /// Request body.
-    pub body: UpdateTransferJobRequest,
 }
 
-/// GET v1/transferJobs/{transferJobsId}
+/// PATCH v1/transferJobs/{transferJobsId}
 /// Updates a transfer job. Updating a job's transfer spec does not affect transfer operations that are running already. **Note:** The job's status field can be modified using this RPC (for example, to set a job's status to DELETED, DISABLED, or ENABLED).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -670,11 +1863,11 @@ pub fn storagetransfer_transfer_jobs_patch(
     impl StreamIterator<D = Result<ApiResponse<TransferJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_patch_builder(client, &args.jobName, &args.body)?;
+    let builder = storagetransfer_transfer_jobs_patch_builder(client, &args.jobName)?;
     storagetransfer_transfer_jobs_patch_execute(builder)
 }
 
-/// GET v1/transferJobs/{transferJobsId}:run
+/// POST v1/transferJobs/{transferJobsId}:run
 /// Starts a new operation for the specified transfer job. A TransferJob has a maximum of one active TransferOperation. If this method is called while a TransferOperation is active, an error is returned.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -683,22 +1876,22 @@ pub fn storagetransfer_transfer_jobs_patch(
 pub fn storagetransfer_transfer_jobs_run_builder(
     client: &SimpleHttpClient,
     jobName: &String,
-    body: &RunTransferJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferJobs/{}:run",);
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/transferJobs/{}:run",
+        jobName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/transferJobs/{transferJobsId}:run
+/// POST v1/transferJobs/{transferJobsId}:run
 /// Starts a new operation for the specified transfer job. A TransferJob has a maximum of one active TransferOperation. If this method is called while a TransferOperation is active, an error is returned.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -772,7 +1965,7 @@ pub fn storagetransfer_transfer_jobs_run_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/transferJobs/{transferJobsId}:run
+/// POST v1/transferJobs/{transferJobsId}:run
 /// Starts a new operation for the specified transfer job. A TransferJob has a maximum of one active TransferOperation. If this method is called while a TransferOperation is active, an error is returned.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -807,11 +2000,9 @@ pub fn storagetransfer_transfer_jobs_run_execute(
 pub struct StoragetransferTransferJobsRunArgs {
     /// Path parameter: jobName
     pub jobName: String,
-    /// Request body.
-    pub body: RunTransferJobRequest,
 }
 
-/// GET v1/transferJobs/{transferJobsId}:run
+/// POST v1/transferJobs/{transferJobsId}:run
 /// Starts a new operation for the specified transfer job. A TransferJob has a maximum of one active TransferOperation. If this method is called while a TransferOperation is active, an error is returned.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -829,11 +2020,11 @@ pub fn storagetransfer_transfer_jobs_run(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = storagetransfer_transfer_jobs_run_builder(client, &args.jobName, &args.body)?;
+    let builder = storagetransfer_transfer_jobs_run_builder(client, &args.jobName)?;
     storagetransfer_transfer_jobs_run_execute(builder)
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:cancel
+/// POST v1/transferOperations/{transferOperationsId}:cancel
 /// Cancels a transfer. Use the `transferOperations`.get method to check if the cancellation succeeded or if the operation completed despite the cancel request. When you cancel an operation, the currently running transfer is interrupted. For recurring transfer jobs, the next instance of the transfer job will still run. For example, if your job is configured to run every day at 1pm and you cancel Monday's operation at 1:05pm, Monday's transfer will stop. However, a transfer job will still be attempted on Tuesday. This applies only to currently running operations. If an operation is not currently running, cancel does nothing. *Caution:* Canceling a transfer job can leave your data in an unknown state. We recommend that you restore the state at both the destination and the source after the cancel request completes so that your data is in a consistent state. When you cancel a job, the next job computes a delta of files and may repair any inconsistent state. For instance, if you run a job every day, and today's job found 10 new files and transferred five files before you canceled the job, tomorrow's transfer operation will compute a new delta with the five files that were not copied today plus any new files discovered tomorrow.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -842,23 +2033,22 @@ pub fn storagetransfer_transfer_jobs_run(
 pub fn storagetransfer_transfer_operations_cancel_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://storagetransfer.googleapis.com/v1/transferOperations/{}:cancel",);
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/transferOperations/{}:cancel",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:cancel
+/// POST v1/transferOperations/{transferOperationsId}:cancel
 /// Cancels a transfer. Use the `transferOperations`.get method to check if the cancellation succeeded or if the operation completed despite the cancel request. When you cancel an operation, the currently running transfer is interrupted. For recurring transfer jobs, the next instance of the transfer job will still run. For example, if your job is configured to run every day at 1pm and you cancel Monday's operation at 1:05pm, Monday's transfer will stop. However, a transfer job will still be attempted on Tuesday. This applies only to currently running operations. If an operation is not currently running, cancel does nothing. *Caution:* Canceling a transfer job can leave your data in an unknown state. We recommend that you restore the state at both the destination and the source after the cancel request completes so that your data is in a consistent state. When you cancel a job, the next job computes a delta of files and may repair any inconsistent state. For instance, if you run a job every day, and today's job found 10 new files and transferred five files before you canceled the job, tomorrow's transfer operation will compute a new delta with the five files that were not copied today plus any new files discovered tomorrow.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -932,7 +2122,7 @@ pub fn storagetransfer_transfer_operations_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:cancel
+/// POST v1/transferOperations/{transferOperationsId}:cancel
 /// Cancels a transfer. Use the `transferOperations`.get method to check if the cancellation succeeded or if the operation completed despite the cancel request. When you cancel an operation, the currently running transfer is interrupted. For recurring transfer jobs, the next instance of the transfer job will still run. For example, if your job is configured to run every day at 1pm and you cancel Monday's operation at 1:05pm, Monday's transfer will stop. However, a transfer job will still be attempted on Tuesday. This applies only to currently running operations. If an operation is not currently running, cancel does nothing. *Caution:* Canceling a transfer job can leave your data in an unknown state. We recommend that you restore the state at both the destination and the source after the cancel request completes so that your data is in a consistent state. When you cancel a job, the next job computes a delta of files and may repair any inconsistent state. For instance, if you run a job every day, and today's job found 10 new files and transferred five files before you canceled the job, tomorrow's transfer operation will compute a new delta with the five files that were not copied today plus any new files discovered tomorrow.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -967,11 +2157,9 @@ pub fn storagetransfer_transfer_operations_cancel_execute(
 pub struct StoragetransferTransferOperationsCancelArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: CancelOperationRequest,
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:cancel
+/// POST v1/transferOperations/{transferOperationsId}:cancel
 /// Cancels a transfer. Use the `transferOperations`.get method to check if the cancellation succeeded or if the operation completed despite the cancel request. When you cancel an operation, the currently running transfer is interrupted. For recurring transfer jobs, the next instance of the transfer job will still run. For example, if your job is configured to run every day at 1pm and you cancel Monday's operation at 1:05pm, Monday's transfer will stop. However, a transfer job will still be attempted on Tuesday. This applies only to currently running operations. If an operation is not currently running, cancel does nothing. *Caution:* Canceling a transfer job can leave your data in an unknown state. We recommend that you restore the state at both the destination and the source after the cancel request completes so that your data is in a consistent state. When you cancel a job, the next job computes a delta of files and may repair any inconsistent state. For instance, if you run a job every day, and today's job found 10 new files and transferred five files before you canceled the job, tomorrow's transfer operation will compute a new delta with the five files that were not copied today plus any new files discovered tomorrow.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -989,8 +2177,7 @@ pub fn storagetransfer_transfer_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storagetransfer_transfer_operations_cancel_builder(client, &args.name, &args.body)?;
+    let builder = storagetransfer_transfer_operations_cancel_builder(client, &args.name)?;
     storagetransfer_transfer_operations_cancel_execute(builder)
 }
 
@@ -1005,7 +2192,10 @@ pub fn storagetransfer_transfer_operations_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferOperations/{}",);
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/transferOperations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -1148,7 +2338,200 @@ pub fn storagetransfer_transfer_operations_get(
     storagetransfer_transfer_operations_get_execute(builder)
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:pause
+/// GET v1/transferOperations
+/// Lists transfer operations. Operations are ordered by their creation time in reverse chronological order.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `storagetransfer_transfer_operations_list_execute()` to send, or `storagetransfer_transfer_operations_list` for simplest API.
+
+pub fn storagetransfer_transfer_operations_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://storagetransfer.googleapis.com/v1/transferOperations",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/transferOperations
+/// Lists transfer operations. Operations are ordered by their creation time in reverse chronological order.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `storagetransfer_transfer_operations_list_execute()` or `storagetransfer_transfer_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_transfer_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/transferOperations
+/// Lists transfer operations. Operations are ordered by their creation time in reverse chronological order.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `storagetransfer_transfer_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `storagetransfer_transfer_operations_list_task()`.
+/// For the simplest API, use `storagetransfer_transfer_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `storagetransfer_transfer_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn storagetransfer_transfer_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = storagetransfer_transfer_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`storagetransfer_transfer_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StoragetransferTransferOperationsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/transferOperations
+/// Lists transfer operations. Operations are ordered by their creation time in reverse chronological order.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `storagetransfer_transfer_operations_list_builder()` + `storagetransfer_transfer_operations_list_execute()`.
+/// For task-level control, use `storagetransfer_transfer_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn storagetransfer_transfer_operations_list(
+    client: &SimpleHttpClient,
+    args: &StoragetransferTransferOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = storagetransfer_transfer_operations_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    storagetransfer_transfer_operations_list_execute(builder)
+}
+
+/// POST v1/transferOperations/{transferOperationsId}:pause
 /// Pauses a transfer operation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1157,23 +2540,22 @@ pub fn storagetransfer_transfer_operations_get(
 pub fn storagetransfer_transfer_operations_pause_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &PauseTransferOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://storagetransfer.googleapis.com/v1/transferOperations/{}:pause",);
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/transferOperations/{}:pause",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:pause
+/// POST v1/transferOperations/{transferOperationsId}:pause
 /// Pauses a transfer operation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1247,7 +2629,7 @@ pub fn storagetransfer_transfer_operations_pause_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:pause
+/// POST v1/transferOperations/{transferOperationsId}:pause
 /// Pauses a transfer operation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1282,11 +2664,9 @@ pub fn storagetransfer_transfer_operations_pause_execute(
 pub struct StoragetransferTransferOperationsPauseArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: PauseTransferOperationRequest,
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:pause
+/// POST v1/transferOperations/{transferOperationsId}:pause
 /// Pauses a transfer operation.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1304,12 +2684,11 @@ pub fn storagetransfer_transfer_operations_pause(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storagetransfer_transfer_operations_pause_builder(client, &args.name, &args.body)?;
+    let builder = storagetransfer_transfer_operations_pause_builder(client, &args.name)?;
     storagetransfer_transfer_operations_pause_execute(builder)
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:resume
+/// POST v1/transferOperations/{transferOperationsId}:resume
 /// Resumes a transfer operation that is paused.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1318,23 +2697,22 @@ pub fn storagetransfer_transfer_operations_pause(
 pub fn storagetransfer_transfer_operations_resume_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &ResumeTransferOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://storagetransfer.googleapis.com/v1/transferOperations/{}:resume",);
+    let endpoint_url = format!(
+        "https://storagetransfer.googleapis.com/v1/transferOperations/{}:resume",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:resume
+/// POST v1/transferOperations/{transferOperationsId}:resume
 /// Resumes a transfer operation that is paused.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1408,7 +2786,7 @@ pub fn storagetransfer_transfer_operations_resume_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:resume
+/// POST v1/transferOperations/{transferOperationsId}:resume
 /// Resumes a transfer operation that is paused.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1443,11 +2821,9 @@ pub fn storagetransfer_transfer_operations_resume_execute(
 pub struct StoragetransferTransferOperationsResumeArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: ResumeTransferOperationRequest,
 }
 
-/// GET v1/transferOperations/{transferOperationsId}:resume
+/// POST v1/transferOperations/{transferOperationsId}:resume
 /// Resumes a transfer operation that is paused.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1465,7 +2841,403 @@ pub fn storagetransfer_transfer_operations_resume(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        storagetransfer_transfer_operations_resume_builder(client, &args.name, &args.body)?;
+    let builder = storagetransfer_transfer_operations_resume_builder(client, &args.name)?;
     storagetransfer_transfer_operations_resume_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleServiceAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleServiceAccount with StoragetransferGoogleServiceAccountsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferGoogleServiceAccountsGetArgs> for GoogleServiceAccount {
+    fn generate_resource_id(&self, input: &StoragetransferGoogleServiceAccountsGetArgs) -> String {
+        format!(
+            "gcp::storagetransfer::GoogleServiceAccount/{}",
+            input.projectId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::GoogleServiceAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AgentPool
+// =============================================================================
+
+/// ResourceIdentifier implementation for AgentPool with StoragetransferProjectsAgentPoolsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferProjectsAgentPoolsCreateArgs> for AgentPool {
+    fn generate_resource_id(&self, input: &StoragetransferProjectsAgentPoolsCreateArgs) -> String {
+        format!("gcp::storagetransfer::AgentPool/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::AgentPool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with StoragetransferProjectsAgentPoolsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferProjectsAgentPoolsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &StoragetransferProjectsAgentPoolsDeleteArgs) -> String {
+        format!("gcp::storagetransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AgentPool
+// =============================================================================
+
+/// ResourceIdentifier implementation for AgentPool with StoragetransferProjectsAgentPoolsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferProjectsAgentPoolsGetArgs> for AgentPool {
+    fn generate_resource_id(&self, input: &StoragetransferProjectsAgentPoolsGetArgs) -> String {
+        format!("gcp::storagetransfer::AgentPool/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::AgentPool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAgentPoolsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAgentPoolsResponse with StoragetransferProjectsAgentPoolsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferProjectsAgentPoolsListArgs> for ListAgentPoolsResponse {
+    fn generate_resource_id(&self, input: &StoragetransferProjectsAgentPoolsListArgs) -> String {
+        format!(
+            "gcp::storagetransfer::ListAgentPoolsResponse/{}",
+            input.projectId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::ListAgentPoolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AgentPool
+// =============================================================================
+
+/// ResourceIdentifier implementation for AgentPool with StoragetransferProjectsAgentPoolsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferProjectsAgentPoolsPatchArgs> for AgentPool {
+    fn generate_resource_id(&self, input: &StoragetransferProjectsAgentPoolsPatchArgs) -> String {
+        format!("gcp::storagetransfer::AgentPool/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::AgentPool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferJob
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferJob with StoragetransferTransferJobsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferJobsCreateArgs> for TransferJob {
+    fn generate_resource_id(&self, input: &StoragetransferTransferJobsCreateArgs) -> String {
+        "gcp::storagetransfer::TransferJob".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::TransferJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with StoragetransferTransferJobsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferJobsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &StoragetransferTransferJobsDeleteArgs) -> String {
+        format!("gcp::storagetransfer::Empty/{}", input.jobName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferJob
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferJob with StoragetransferTransferJobsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferJobsGetArgs> for TransferJob {
+    fn generate_resource_id(&self, input: &StoragetransferTransferJobsGetArgs) -> String {
+        format!("gcp::storagetransfer::TransferJob/{}", input.jobName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::TransferJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTransferJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTransferJobsResponse with StoragetransferTransferJobsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferJobsListArgs> for ListTransferJobsResponse {
+    fn generate_resource_id(&self, input: &StoragetransferTransferJobsListArgs) -> String {
+        "gcp::storagetransfer::ListTransferJobsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::ListTransferJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransferJob
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransferJob with StoragetransferTransferJobsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferJobsPatchArgs> for TransferJob {
+    fn generate_resource_id(&self, input: &StoragetransferTransferJobsPatchArgs) -> String {
+        format!("gcp::storagetransfer::TransferJob/{}", input.jobName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::TransferJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with StoragetransferTransferJobsRunArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferJobsRunArgs> for Operation {
+    fn generate_resource_id(&self, input: &StoragetransferTransferJobsRunArgs) -> String {
+        format!("gcp::storagetransfer::Operation/{}", input.jobName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with StoragetransferTransferOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &StoragetransferTransferOperationsCancelArgs) -> String {
+        format!("gcp::storagetransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with StoragetransferTransferOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &StoragetransferTransferOperationsGetArgs) -> String {
+        format!("gcp::storagetransfer::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with StoragetransferTransferOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &StoragetransferTransferOperationsListArgs) -> String {
+        "gcp::storagetransfer::ListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with StoragetransferTransferOperationsPauseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferOperationsPauseArgs> for Empty {
+    fn generate_resource_id(&self, input: &StoragetransferTransferOperationsPauseArgs) -> String {
+        format!("gcp::storagetransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with StoragetransferTransferOperationsResumeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StoragetransferTransferOperationsResumeArgs> for Empty {
+    fn generate_resource_id(&self, input: &StoragetransferTransferOperationsResumeArgs) -> String {
+        format!("gcp::storagetransfer::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::storagetransfer::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -15,29 +15,58 @@ use crate::providers::gcp::clients::threatintelligence::{
     threatintelligence_projects_generate_org_profile_builder, threatintelligence_projects_generate_org_profile_task,
     threatintelligence_projects_alerts_benign_builder, threatintelligence_projects_alerts_benign_task,
     threatintelligence_projects_alerts_duplicate_builder, threatintelligence_projects_alerts_duplicate_task,
+    threatintelligence_projects_alerts_enumerate_facets_builder, threatintelligence_projects_alerts_enumerate_facets_task,
     threatintelligence_projects_alerts_escalate_builder, threatintelligence_projects_alerts_escalate_task,
     threatintelligence_projects_alerts_false_positive_builder, threatintelligence_projects_alerts_false_positive_task,
+    threatintelligence_projects_alerts_get_builder, threatintelligence_projects_alerts_get_task,
+    threatintelligence_projects_alerts_list_builder, threatintelligence_projects_alerts_list_task,
     threatintelligence_projects_alerts_not_actionable_builder, threatintelligence_projects_alerts_not_actionable_task,
     threatintelligence_projects_alerts_read_builder, threatintelligence_projects_alerts_read_task,
     threatintelligence_projects_alerts_resolve_builder, threatintelligence_projects_alerts_resolve_task,
     threatintelligence_projects_alerts_track_externally_builder, threatintelligence_projects_alerts_track_externally_task,
     threatintelligence_projects_alerts_triage_builder, threatintelligence_projects_alerts_triage_task,
+    threatintelligence_projects_alerts_documents_get_builder, threatintelligence_projects_alerts_documents_get_task,
+    threatintelligence_projects_configurations_get_builder, threatintelligence_projects_configurations_get_task,
+    threatintelligence_projects_configurations_list_builder, threatintelligence_projects_configurations_list_task,
     threatintelligence_projects_configurations_upsert_builder, threatintelligence_projects_configurations_upsert_task,
+    threatintelligence_projects_configurations_revisions_list_builder, threatintelligence_projects_configurations_revisions_list_task,
+    threatintelligence_projects_findings_get_builder, threatintelligence_projects_findings_get_task,
+    threatintelligence_projects_findings_list_builder, threatintelligence_projects_findings_list_task,
+    threatintelligence_projects_findings_search_builder, threatintelligence_projects_findings_search_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::threatintelligence::Alert;
+use crate::providers::gcp::clients::threatintelligence::AlertDocument;
+use crate::providers::gcp::clients::threatintelligence::Configuration;
+use crate::providers::gcp::clients::threatintelligence::EnumerateAlertFacetsResponse;
+use crate::providers::gcp::clients::threatintelligence::Finding;
+use crate::providers::gcp::clients::threatintelligence::ListAlertsResponse;
+use crate::providers::gcp::clients::threatintelligence::ListConfigurationRevisionsResponse;
+use crate::providers::gcp::clients::threatintelligence::ListConfigurationsResponse;
+use crate::providers::gcp::clients::threatintelligence::ListFindingsResponse;
 use crate::providers::gcp::clients::threatintelligence::Operation;
+use crate::providers::gcp::clients::threatintelligence::SearchFindingsResponse;
 use crate::providers::gcp::clients::threatintelligence::UpsertConfigurationResponse;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsBenignArgs;
+use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsDocumentsGetArgs;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsDuplicateArgs;
+use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsEnumerateFacetsArgs;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsEscalateArgs;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsFalsePositiveArgs;
+use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsGetArgs;
+use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsListArgs;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsNotActionableArgs;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsReadArgs;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsResolveArgs;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsTrackExternallyArgs;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsAlertsTriageArgs;
+use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsConfigurationsGetArgs;
+use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsConfigurationsListArgs;
+use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsConfigurationsRevisionsListArgs;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsConfigurationsUpsertArgs;
+use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsFindingsGetArgs;
+use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsFindingsListArgs;
+use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsFindingsSearchArgs;
 use crate::providers::gcp::clients::threatintelligence::ThreatintelligenceProjectsGenerateOrgProfileArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -209,6 +238,45 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Threatintelligence projects alerts enumerate facets.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the EnumerateAlertFacetsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn threatintelligence_projects_alerts_enumerate_facets(
+        &self,
+        args: &ThreatintelligenceProjectsAlertsEnumerateFacetsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<EnumerateAlertFacetsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = threatintelligence_projects_alerts_enumerate_facets_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = threatintelligence_projects_alerts_enumerate_facets_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Threatintelligence projects alerts escalate.
     ///
     /// Automatically stores the result in the state store on success.
@@ -293,6 +361,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Threatintelligence projects alerts get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Alert result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn threatintelligence_projects_alerts_get(
+        &self,
+        args: &ThreatintelligenceProjectsAlertsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Alert, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = threatintelligence_projects_alerts_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = threatintelligence_projects_alerts_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Threatintelligence projects alerts list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAlertsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn threatintelligence_projects_alerts_list(
+        &self,
+        args: &ThreatintelligenceProjectsAlertsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAlertsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = threatintelligence_projects_alerts_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = threatintelligence_projects_alerts_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Threatintelligence projects alerts not actionable.
@@ -510,6 +658,124 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Threatintelligence projects alerts documents get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AlertDocument result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn threatintelligence_projects_alerts_documents_get(
+        &self,
+        args: &ThreatintelligenceProjectsAlertsDocumentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AlertDocument, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = threatintelligence_projects_alerts_documents_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = threatintelligence_projects_alerts_documents_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Threatintelligence projects configurations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Configuration result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn threatintelligence_projects_configurations_get(
+        &self,
+        args: &ThreatintelligenceProjectsConfigurationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Configuration, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = threatintelligence_projects_configurations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = threatintelligence_projects_configurations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Threatintelligence projects configurations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListConfigurationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn threatintelligence_projects_configurations_list(
+        &self,
+        args: &ThreatintelligenceProjectsConfigurationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListConfigurationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = threatintelligence_projects_configurations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = threatintelligence_projects_configurations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Threatintelligence projects configurations upsert.
     ///
     /// Automatically stores the result in the state store on success.
@@ -552,6 +818,170 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Threatintelligence projects configurations revisions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListConfigurationRevisionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn threatintelligence_projects_configurations_revisions_list(
+        &self,
+        args: &ThreatintelligenceProjectsConfigurationsRevisionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListConfigurationRevisionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = threatintelligence_projects_configurations_revisions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = threatintelligence_projects_configurations_revisions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Threatintelligence projects findings get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Finding result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn threatintelligence_projects_findings_get(
+        &self,
+        args: &ThreatintelligenceProjectsFindingsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Finding, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = threatintelligence_projects_findings_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = threatintelligence_projects_findings_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Threatintelligence projects findings list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListFindingsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn threatintelligence_projects_findings_list(
+        &self,
+        args: &ThreatintelligenceProjectsFindingsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListFindingsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = threatintelligence_projects_findings_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = threatintelligence_projects_findings_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Threatintelligence projects findings search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SearchFindingsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn threatintelligence_projects_findings_search(
+        &self,
+        args: &ThreatintelligenceProjectsFindingsSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SearchFindingsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = threatintelligence_projects_findings_search_builder(
+            &self.http_client,
+            &args.parent,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = threatintelligence_projects_findings_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

@@ -446,7 +446,7 @@
       }
     }
   },
-  "revision": "20260401",
+  "revision": "20260409",
   "rootUrl": "https://adsenseplatform.googleapis.com/",
   "schemas": {
     "Account": {

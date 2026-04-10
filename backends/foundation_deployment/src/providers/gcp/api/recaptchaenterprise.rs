@@ -16,15 +16,24 @@ use crate::providers::gcp::clients::recaptchaenterprise::{
     recaptchaenterprise_projects_assessments_create_builder, recaptchaenterprise_projects_assessments_create_task,
     recaptchaenterprise_projects_firewallpolicies_create_builder, recaptchaenterprise_projects_firewallpolicies_create_task,
     recaptchaenterprise_projects_firewallpolicies_delete_builder, recaptchaenterprise_projects_firewallpolicies_delete_task,
+    recaptchaenterprise_projects_firewallpolicies_get_builder, recaptchaenterprise_projects_firewallpolicies_get_task,
+    recaptchaenterprise_projects_firewallpolicies_list_builder, recaptchaenterprise_projects_firewallpolicies_list_task,
     recaptchaenterprise_projects_firewallpolicies_patch_builder, recaptchaenterprise_projects_firewallpolicies_patch_task,
     recaptchaenterprise_projects_firewallpolicies_reorder_builder, recaptchaenterprise_projects_firewallpolicies_reorder_task,
     recaptchaenterprise_projects_keys_add_ip_override_builder, recaptchaenterprise_projects_keys_add_ip_override_task,
     recaptchaenterprise_projects_keys_create_builder, recaptchaenterprise_projects_keys_create_task,
     recaptchaenterprise_projects_keys_delete_builder, recaptchaenterprise_projects_keys_delete_task,
+    recaptchaenterprise_projects_keys_get_builder, recaptchaenterprise_projects_keys_get_task,
+    recaptchaenterprise_projects_keys_get_metrics_builder, recaptchaenterprise_projects_keys_get_metrics_task,
+    recaptchaenterprise_projects_keys_list_builder, recaptchaenterprise_projects_keys_list_task,
+    recaptchaenterprise_projects_keys_list_ip_overrides_builder, recaptchaenterprise_projects_keys_list_ip_overrides_task,
     recaptchaenterprise_projects_keys_migrate_builder, recaptchaenterprise_projects_keys_migrate_task,
     recaptchaenterprise_projects_keys_patch_builder, recaptchaenterprise_projects_keys_patch_task,
     recaptchaenterprise_projects_keys_remove_ip_override_builder, recaptchaenterprise_projects_keys_remove_ip_override_task,
+    recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder, recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_task,
     recaptchaenterprise_projects_relatedaccountgroupmemberships_search_builder, recaptchaenterprise_projects_relatedaccountgroupmemberships_search_task,
+    recaptchaenterprise_projects_relatedaccountgroups_list_builder, recaptchaenterprise_projects_relatedaccountgroups_list_task,
+    recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder, recaptchaenterprise_projects_relatedaccountgroups_memberships_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse;
@@ -32,23 +41,39 @@ use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaent
 use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Assessment;
 use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1FirewallPolicy;
 use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Key;
+use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse;
+use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse;
+use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListKeysResponse;
+use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse;
+use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse;
+use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1Metrics;
 use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse;
 use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse;
+use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse;
 use crate::providers::gcp::clients::recaptchaenterprise::GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse;
 use crate::providers::gcp::clients::recaptchaenterprise::GoogleProtobufEmpty;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsAssessmentsAnnotateArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsAssessmentsCreateArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsFirewallpoliciesCreateArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsFirewallpoliciesDeleteArgs;
+use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsFirewallpoliciesGetArgs;
+use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsFirewallpoliciesListArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsFirewallpoliciesPatchArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsFirewallpoliciesReorderArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysAddIpOverrideArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysCreateArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysDeleteArgs;
+use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysGetArgs;
+use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysGetMetricsArgs;
+use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysListArgs;
+use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysListIpOverridesArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysMigrateArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysPatchArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysRemoveIpOverrideArgs;
+use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs;
 use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsRelatedaccountgroupmembershipsSearchArgs;
+use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsRelatedaccountgroupsListArgs;
+use crate::providers::gcp::clients::recaptchaenterprise::RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -260,6 +285,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recaptchaenterprise projects firewallpolicies get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecaptchaenterpriseV1FirewallPolicy result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recaptchaenterprise_projects_firewallpolicies_get(
+        &self,
+        args: &RecaptchaenterpriseProjectsFirewallpoliciesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecaptchaenterpriseV1FirewallPolicy, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recaptchaenterprise_projects_firewallpolicies_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recaptchaenterprise_projects_firewallpolicies_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recaptchaenterprise projects firewallpolicies list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recaptchaenterprise_projects_firewallpolicies_list(
+        &self,
+        args: &RecaptchaenterpriseProjectsFirewallpoliciesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recaptchaenterprise_projects_firewallpolicies_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recaptchaenterprise_projects_firewallpolicies_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Recaptchaenterprise projects firewallpolicies patch.
@@ -478,6 +581,162 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Recaptchaenterprise projects keys get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecaptchaenterpriseV1Key result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recaptchaenterprise_projects_keys_get(
+        &self,
+        args: &RecaptchaenterpriseProjectsKeysGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecaptchaenterpriseV1Key, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recaptchaenterprise_projects_keys_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recaptchaenterprise_projects_keys_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recaptchaenterprise projects keys get metrics.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecaptchaenterpriseV1Metrics result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recaptchaenterprise_projects_keys_get_metrics(
+        &self,
+        args: &RecaptchaenterpriseProjectsKeysGetMetricsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecaptchaenterpriseV1Metrics, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recaptchaenterprise_projects_keys_get_metrics_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recaptchaenterprise_projects_keys_get_metrics_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recaptchaenterprise projects keys list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecaptchaenterpriseV1ListKeysResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recaptchaenterprise_projects_keys_list(
+        &self,
+        args: &RecaptchaenterpriseProjectsKeysListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecaptchaenterpriseV1ListKeysResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recaptchaenterprise_projects_keys_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recaptchaenterprise_projects_keys_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recaptchaenterprise projects keys list ip overrides.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recaptchaenterprise_projects_keys_list_ip_overrides(
+        &self,
+        args: &RecaptchaenterpriseProjectsKeysListIpOverridesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recaptchaenterprise_projects_keys_list_ip_overrides_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recaptchaenterprise_projects_keys_list_ip_overrides_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Recaptchaenterprise projects keys migrate.
     ///
     /// Automatically stores the result in the state store on success.
@@ -608,9 +867,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Recaptchaenterprise projects keys retrieve legacy secret key.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key(
+        &self,
+        args: &RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder(
+            &self.http_client,
+            &args.key,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Recaptchaenterprise projects relatedaccountgroupmemberships search.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -622,7 +919,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search(
         &self,
         args: &RecaptchaenterpriseProjectsRelatedaccountgroupmembershipsSearchArgs,
@@ -643,12 +940,87 @@ where
         let task = recaptchaenterprise_projects_relatedaccountgroupmemberships_search_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Recaptchaenterprise projects relatedaccountgroups list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recaptchaenterprise_projects_relatedaccountgroups_list(
+        &self,
+        args: &RecaptchaenterpriseProjectsRelatedaccountgroupsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recaptchaenterprise_projects_relatedaccountgroups_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = recaptchaenterprise_projects_relatedaccountgroups_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Recaptchaenterprise projects relatedaccountgroups memberships list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list(
+        &self,
+        args: &RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = recaptchaenterprise_projects_relatedaccountgroups_memberships_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

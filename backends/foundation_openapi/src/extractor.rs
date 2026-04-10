@@ -7,8 +7,9 @@
 //! HOW: Iterates paths (OpenAPI) or resources (GCP) and extracts operation metadata.
 
 use crate::spec::{OpenApiSpec, Operation, Response, GcpMethod, Schema};
-use crate::endpoint::{EndpointInfo, ResponseType, GcpParameter};
+use crate::endpoint::{EndpointInfo, ResponseType, GcpParameter, OperationType};
 use crate::type_resolver::TypeResolver;
+use crate::classifier::OperationTypeClassifier;
 use std::collections::{BTreeMap, HashSet};
 use std::sync::Arc;
 
@@ -151,7 +152,7 @@ impl EndpointExtractor {
         // Extract response type from success status codes
         let (response_type, success_codes, error_types) = self.extract_responses(&operation.responses);
 
-        Some(EndpointInfo {
+        let mut endpoint = EndpointInfo {
             operation_id,
             method: method.to_string(),
             path: path.to_string(),
@@ -163,7 +164,13 @@ impl EndpointExtractor {
             success_codes,
             base_url: base_url.clone(),
             summary: operation.summary.clone(),
-        })
+            operation_type: OperationType::Read, // Temporary, will be classified below
+        };
+
+        // Classify the operation type
+        endpoint.operation_type = OperationTypeClassifier::classify(&endpoint);
+
+        Some(endpoint)
     }
 
     /// Extract responses from operation responses.
@@ -227,9 +234,6 @@ impl EndpointExtractor {
         // Use flatPath for actual URL pattern (not path which is a template)
         let path = method.flat_path.as_deref().or(method.path.as_deref()).unwrap_or("");
 
-        // Extract path parameters
-        let _path_params = method.parameter_order.clone().unwrap_or_default();
-
         // Extract parameters
         let params: BTreeMap<String, GcpParameter> = method.parameters.as_ref()
             .map(|p| {
@@ -247,10 +251,45 @@ impl EndpointExtractor {
             })
             .unwrap_or_default();
 
-        let (param_path, param_query) = EndpointInfo::extract_gcp_parameters(
-            method.parameter_order.as_deref(),
-            &params,
-        );
+        // Extract path placeholders from the path template (e.g., {folder} from /v1/folders/{folder})
+        let placeholder_re = regex::Regex::new(r"\{([^}]+)\}").unwrap();
+        let path_placeholders: Vec<String> = placeholder_re
+            .captures_iter(path)
+            .map(|cap| cap[1].to_string())
+            .collect();
+
+        // Get parameterOrder for path params
+        let parameter_order: Vec<String> = method.parameter_order.clone().unwrap_or_default();
+
+        // Match placeholders with parameterOrder by position
+        // GCP Discovery docs often have different names: {folder} in path vs "foldersId" in parameterOrder
+        let mut path_params = Vec::new();
+        let mut used_params = std::collections::HashSet::new();
+
+        // First, try to match by position (placeholder position = parameterOrder position)
+        for (i, _placeholder) in path_placeholders.iter().enumerate() {
+            if i < parameter_order.len() {
+                let param_name = &parameter_order[i];
+                if let Some(param) = params.get(param_name) {
+                    if param.location.as_deref() == Some("path") || param.location.is_none() {
+                        path_params.push(param_name.clone());
+                        used_params.insert(param_name);
+                    }
+                }
+            }
+        }
+
+        // Extract query parameters
+        let mut query_params = Vec::new();
+        for (param_name, param) in &params {
+            if !used_params.contains(param_name) {
+                match param.location.as_deref() {
+                    Some("query") => query_params.push(param_name.clone()),
+                    Some("path") => {} // Already handled
+                    _ => query_params.push(param_name.clone()), // Default to query
+                }
+            }
+        }
 
         // Extract request type
         let request_type = method.request_body.as_ref()
@@ -271,19 +310,25 @@ impl EndpointExtractor {
                 ResponseType::Generated(TypeResolver::rename_if_keyword(normalized))
             });
 
-        Some(EndpointInfo {
+        let mut endpoint = EndpointInfo {
             operation_id,
             method: method.http_method.clone().unwrap_or_else(|| "GET".to_string()),
             path: path.to_string(),
-            path_params: param_path,
-            query_params: param_query,
+            path_params: path_params,
+            query_params: query_params,
             request_type,
             response_type,
             error_types: BTreeMap::new(), // GCP typically uses a common error type
             success_codes: vec!["200".to_string()],
             base_url: base_url.clone(),
             summary: method.description.clone(),
-        })
+            operation_type: OperationType::Read, // Temporary, will be classified below
+        };
+
+        // Classify the operation type
+        endpoint.operation_type = OperationTypeClassifier::classify(&endpoint);
+
+        Some(endpoint)
     }
 }
 

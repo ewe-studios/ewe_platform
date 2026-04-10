@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/customers/{customersId}/policies:resolve
+/// POST v1/customers/{customersId}/policies:resolve
 /// Gets the resolved policy values for a list of policies that match a search query.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,23 +29,22 @@ use serde::Serialize;
 pub fn chromepolicy_customers_policies_resolve_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1ResolveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://chromepolicy.googleapis.com/v1/customers/{}/policies:resolve",);
+    let endpoint_url = format!(
+        "https://chromepolicy.googleapis.com/v1/customers/{}/policies:resolve",
+        customer,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies:resolve
+/// POST v1/customers/{customersId}/policies:resolve
 /// Gets the resolved policy values for a list of policies that match a search query.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -120,7 +119,7 @@ pub fn chromepolicy_customers_policies_resolve_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies:resolve
+/// POST v1/customers/{customersId}/policies:resolve
 /// Gets the resolved policy values for a list of policies that match a search query.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -159,11 +158,9 @@ pub fn chromepolicy_customers_policies_resolve_execute(
 pub struct ChromepolicyCustomersPoliciesResolveArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1ResolveRequest,
 }
 
-/// GET v1/customers/{customersId}/policies:resolve
+/// POST v1/customers/{customersId}/policies:resolve
 /// Gets the resolved policy values for a list of policies that match a search query.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -185,12 +182,11 @@ pub fn chromepolicy_customers_policies_resolve(
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromepolicy_customers_policies_resolve_builder(client, &args.customer, &args.body)?;
+    let builder = chromepolicy_customers_policies_resolve_builder(client, &args.customer)?;
     chromepolicy_customers_policies_resolve_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/groups:batchDelete
+/// POST v1/customers/{customersId}/policies/groups:batchDelete
 /// Delete multiple policy values that are applied to a specific group. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -199,23 +195,22 @@ pub fn chromepolicy_customers_policies_resolve(
 pub fn chromepolicy_customers_policies_groups_batch_delete_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1BatchDeleteGroupPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:batchDelete",);
+    let endpoint_url = format!(
+        "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:batchDelete",
+        customer,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/groups:batchDelete
+/// POST v1/customers/{customersId}/policies/groups:batchDelete
 /// Delete multiple policy values that are applied to a specific group. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -289,7 +284,7 @@ pub fn chromepolicy_customers_policies_groups_batch_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/groups:batchDelete
+/// POST v1/customers/{customersId}/policies/groups:batchDelete
 /// Delete multiple policy values that are applied to a specific group. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -326,11 +321,9 @@ pub fn chromepolicy_customers_policies_groups_batch_delete_execute(
 pub struct ChromepolicyCustomersPoliciesGroupsBatchDeleteArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1BatchDeleteGroupPoliciesRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/groups:batchDelete
+/// POST v1/customers/{customersId}/policies/groups:batchDelete
 /// Delete multiple policy values that are applied to a specific group. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -350,15 +343,12 @@ pub fn chromepolicy_customers_policies_groups_batch_delete(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_customers_policies_groups_batch_delete_builder(
-        client,
-        &args.customer,
-        &args.body,
-    )?;
+    let builder =
+        chromepolicy_customers_policies_groups_batch_delete_builder(client, &args.customer)?;
     chromepolicy_customers_policies_groups_batch_delete_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/groups:batchModify
+/// POST v1/customers/{customersId}/policies/groups:batchModify
 /// Modify multiple policy values that are applied to a specific group. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -367,23 +357,22 @@ pub fn chromepolicy_customers_policies_groups_batch_delete(
 pub fn chromepolicy_customers_policies_groups_batch_modify_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1BatchModifyGroupPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:batchModify",);
+    let endpoint_url = format!(
+        "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:batchModify",
+        customer,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/groups:batchModify
+/// POST v1/customers/{customersId}/policies/groups:batchModify
 /// Modify multiple policy values that are applied to a specific group. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -457,7 +446,7 @@ pub fn chromepolicy_customers_policies_groups_batch_modify_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/groups:batchModify
+/// POST v1/customers/{customersId}/policies/groups:batchModify
 /// Modify multiple policy values that are applied to a specific group. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -494,11 +483,9 @@ pub fn chromepolicy_customers_policies_groups_batch_modify_execute(
 pub struct ChromepolicyCustomersPoliciesGroupsBatchModifyArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1BatchModifyGroupPoliciesRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/groups:batchModify
+/// POST v1/customers/{customersId}/policies/groups:batchModify
 /// Modify multiple policy values that are applied to a specific group. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -518,15 +505,12 @@ pub fn chromepolicy_customers_policies_groups_batch_modify(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_customers_policies_groups_batch_modify_builder(
-        client,
-        &args.customer,
-        &args.body,
-    )?;
+    let builder =
+        chromepolicy_customers_policies_groups_batch_modify_builder(client, &args.customer)?;
     chromepolicy_customers_policies_groups_batch_modify_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/groups:listGroupPriorityOrdering
+/// POST v1/customers/{customersId}/policies/groups:listGroupPriorityOrdering
 /// Retrieve a group priority ordering for an app. The target app must be supplied in `additionalTargetKeyNames` in the PolicyTargetKey. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -535,24 +519,22 @@ pub fn chromepolicy_customers_policies_groups_batch_modify(
 pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1ListGroupPriorityOrderingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:listGroupPriorityOrdering",
+        customer,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/groups:listGroupPriorityOrdering
+/// POST v1/customers/{customersId}/policies/groups:listGroupPriorityOrdering
 /// Retrieve a group priority ordering for an app. The target app must be supplied in `additionalTargetKeyNames` in the PolicyTargetKey. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -630,7 +612,7 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/groups:listGroupPriorityOrdering
+/// POST v1/customers/{customersId}/policies/groups:listGroupPriorityOrdering
 /// Retrieve a group priority ordering for an app. The target app must be supplied in `additionalTargetKeyNames` in the PolicyTargetKey. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -672,11 +654,9 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering_execu
 pub struct ChromepolicyCustomersPoliciesGroupsListGroupPriorityOrderingArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1ListGroupPriorityOrderingRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/groups:listGroupPriorityOrdering
+/// POST v1/customers/{customersId}/policies/groups:listGroupPriorityOrdering
 /// Retrieve a group priority ordering for an app. The target app must be supplied in `additionalTargetKeyNames` in the PolicyTargetKey. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -704,12 +684,11 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering(
     let builder = chromepolicy_customers_policies_groups_list_group_priority_ordering_builder(
         client,
         &args.customer,
-        &args.body,
     )?;
     chromepolicy_customers_policies_groups_list_group_priority_ordering_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/groups:updateGroupPriorityOrdering
+/// POST v1/customers/{customersId}/policies/groups:updateGroupPriorityOrdering
 /// Update a group priority ordering for an app. The target app must be supplied in `additionalTargetKeyNames` in the PolicyTargetKey. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -718,24 +697,22 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering(
 pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1UpdateGroupPriorityOrderingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:updateGroupPriorityOrdering",
+        customer,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/groups:updateGroupPriorityOrdering
+/// POST v1/customers/{customersId}/policies/groups:updateGroupPriorityOrdering
 /// Update a group priority ordering for an app. The target app must be supplied in `additionalTargetKeyNames` in the PolicyTargetKey. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -809,7 +786,7 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_tas
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/groups:updateGroupPriorityOrdering
+/// POST v1/customers/{customersId}/policies/groups:updateGroupPriorityOrdering
 /// Update a group priority ordering for an app. The target app must be supplied in `additionalTargetKeyNames` in the PolicyTargetKey. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -846,11 +823,9 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_exe
 pub struct ChromepolicyCustomersPoliciesGroupsUpdateGroupPriorityOrderingArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1UpdateGroupPriorityOrderingRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/groups:updateGroupPriorityOrdering
+/// POST v1/customers/{customersId}/policies/groups:updateGroupPriorityOrdering
 /// Update a group priority ordering for an app. The target app must be supplied in `additionalTargetKeyNames` in the PolicyTargetKey. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -873,12 +848,11 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering(
     let builder = chromepolicy_customers_policies_groups_update_group_priority_ordering_builder(
         client,
         &args.customer,
-        &args.body,
     )?;
     chromepolicy_customers_policies_groups_update_group_priority_ordering_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/networks:defineCertificate
+/// POST v1/customers/{customersId}/policies/networks:defineCertificate
 /// Creates a certificate at a specified OU for a customer.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -887,24 +861,22 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering(
 pub fn chromepolicy_customers_policies_networks_define_certificate_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1DefineCertificateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:defineCertificate",
+        customer,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/networks:defineCertificate
+/// POST v1/customers/{customersId}/policies/networks:defineCertificate
 /// Creates a certificate at a specified OU for a customer.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -982,7 +954,7 @@ pub fn chromepolicy_customers_policies_networks_define_certificate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/networks:defineCertificate
+/// POST v1/customers/{customersId}/policies/networks:defineCertificate
 /// Creates a certificate at a specified OU for a customer.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1024,11 +996,9 @@ pub fn chromepolicy_customers_policies_networks_define_certificate_execute(
 pub struct ChromepolicyCustomersPoliciesNetworksDefineCertificateArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1DefineCertificateRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/networks:defineCertificate
+/// POST v1/customers/{customersId}/policies/networks:defineCertificate
 /// Creates a certificate at a specified OU for a customer.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1056,12 +1026,11 @@ pub fn chromepolicy_customers_policies_networks_define_certificate(
     let builder = chromepolicy_customers_policies_networks_define_certificate_builder(
         client,
         &args.customer,
-        &args.body,
     )?;
     chromepolicy_customers_policies_networks_define_certificate_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/networks:defineNetwork
+/// POST v1/customers/{customersId}/policies/networks:defineNetwork
 /// Define a new network.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1070,24 +1039,22 @@ pub fn chromepolicy_customers_policies_networks_define_certificate(
 pub fn chromepolicy_customers_policies_networks_define_network_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1DefineNetworkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:defineNetwork",
+        customer,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/networks:defineNetwork
+/// POST v1/customers/{customersId}/policies/networks:defineNetwork
 /// Define a new network.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1165,7 +1132,7 @@ pub fn chromepolicy_customers_policies_networks_define_network_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/networks:defineNetwork
+/// POST v1/customers/{customersId}/policies/networks:defineNetwork
 /// Define a new network.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1204,11 +1171,9 @@ pub fn chromepolicy_customers_policies_networks_define_network_execute(
 pub struct ChromepolicyCustomersPoliciesNetworksDefineNetworkArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1DefineNetworkRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/networks:defineNetwork
+/// POST v1/customers/{customersId}/policies/networks:defineNetwork
 /// Define a new network.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1230,15 +1195,12 @@ pub fn chromepolicy_customers_policies_networks_define_network(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_customers_policies_networks_define_network_builder(
-        client,
-        &args.customer,
-        &args.body,
-    )?;
+    let builder =
+        chromepolicy_customers_policies_networks_define_network_builder(client, &args.customer)?;
     chromepolicy_customers_policies_networks_define_network_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/networks:removeCertificate
+/// POST v1/customers/{customersId}/policies/networks:removeCertificate
 /// Remove an existing certificate by guid.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1247,24 +1209,22 @@ pub fn chromepolicy_customers_policies_networks_define_network(
 pub fn chromepolicy_customers_policies_networks_remove_certificate_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1RemoveCertificateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:removeCertificate",
+        customer,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/networks:removeCertificate
+/// POST v1/customers/{customersId}/policies/networks:removeCertificate
 /// Remove an existing certificate by guid.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1342,7 +1302,7 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/networks:removeCertificate
+/// POST v1/customers/{customersId}/policies/networks:removeCertificate
 /// Remove an existing certificate by guid.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1384,11 +1344,9 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate_execute(
 pub struct ChromepolicyCustomersPoliciesNetworksRemoveCertificateArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1RemoveCertificateRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/networks:removeCertificate
+/// POST v1/customers/{customersId}/policies/networks:removeCertificate
 /// Remove an existing certificate by guid.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1416,12 +1374,11 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate(
     let builder = chromepolicy_customers_policies_networks_remove_certificate_builder(
         client,
         &args.customer,
-        &args.body,
     )?;
     chromepolicy_customers_policies_networks_remove_certificate_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/networks:removeNetwork
+/// POST v1/customers/{customersId}/policies/networks:removeNetwork
 /// Remove an existing network by guid.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1430,24 +1387,22 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate(
 pub fn chromepolicy_customers_policies_networks_remove_network_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1RemoveNetworkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:removeNetwork",
+        customer,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/networks:removeNetwork
+/// POST v1/customers/{customersId}/policies/networks:removeNetwork
 /// Remove an existing network by guid.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1525,7 +1480,7 @@ pub fn chromepolicy_customers_policies_networks_remove_network_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/networks:removeNetwork
+/// POST v1/customers/{customersId}/policies/networks:removeNetwork
 /// Remove an existing network by guid.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1564,11 +1519,9 @@ pub fn chromepolicy_customers_policies_networks_remove_network_execute(
 pub struct ChromepolicyCustomersPoliciesNetworksRemoveNetworkArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1RemoveNetworkRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/networks:removeNetwork
+/// POST v1/customers/{customersId}/policies/networks:removeNetwork
 /// Remove an existing network by guid.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1590,15 +1543,12 @@ pub fn chromepolicy_customers_policies_networks_remove_network(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_customers_policies_networks_remove_network_builder(
-        client,
-        &args.customer,
-        &args.body,
-    )?;
+    let builder =
+        chromepolicy_customers_policies_networks_remove_network_builder(client, &args.customer)?;
     chromepolicy_customers_policies_networks_remove_network_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/orgunits:batchInherit
+/// POST v1/customers/{customersId}/policies/orgunits:batchInherit
 /// Modify multiple policy values that are applied to a specific org unit so that they now inherit the value from a parent (if applicable). All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1607,24 +1557,22 @@ pub fn chromepolicy_customers_policies_networks_remove_network(
 pub fn chromepolicy_customers_policies_orgunits_batch_inherit_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1BatchInheritOrgUnitPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/orgunits:batchInherit",
+        customer,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/orgunits:batchInherit
+/// POST v1/customers/{customersId}/policies/orgunits:batchInherit
 /// Modify multiple policy values that are applied to a specific org unit so that they now inherit the value from a parent (if applicable). All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1698,7 +1646,7 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/orgunits:batchInherit
+/// POST v1/customers/{customersId}/policies/orgunits:batchInherit
 /// Modify multiple policy values that are applied to a specific org unit so that they now inherit the value from a parent (if applicable). All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1735,11 +1683,9 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit_execute(
 pub struct ChromepolicyCustomersPoliciesOrgunitsBatchInheritArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1BatchInheritOrgUnitPoliciesRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/orgunits:batchInherit
+/// POST v1/customers/{customersId}/policies/orgunits:batchInherit
 /// Modify multiple policy values that are applied to a specific org unit so that they now inherit the value from a parent (if applicable). All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1759,15 +1705,12 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_customers_policies_orgunits_batch_inherit_builder(
-        client,
-        &args.customer,
-        &args.body,
-    )?;
+    let builder =
+        chromepolicy_customers_policies_orgunits_batch_inherit_builder(client, &args.customer)?;
     chromepolicy_customers_policies_orgunits_batch_inherit_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/orgunits:batchModify
+/// POST v1/customers/{customersId}/policies/orgunits:batchModify
 /// Modify multiple policy values that are applied to a specific org unit. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1776,24 +1719,22 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit(
 pub fn chromepolicy_customers_policies_orgunits_batch_modify_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1BatchModifyOrgUnitPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/orgunits:batchModify",
+        customer,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/orgunits:batchModify
+/// POST v1/customers/{customersId}/policies/orgunits:batchModify
 /// Modify multiple policy values that are applied to a specific org unit. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1867,7 +1808,7 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/orgunits:batchModify
+/// POST v1/customers/{customersId}/policies/orgunits:batchModify
 /// Modify multiple policy values that are applied to a specific org unit. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1904,11 +1845,9 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify_execute(
 pub struct ChromepolicyCustomersPoliciesOrgunitsBatchModifyArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1BatchModifyOrgUnitPoliciesRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/orgunits:batchModify
+/// POST v1/customers/{customersId}/policies/orgunits:batchModify
 /// Modify multiple policy values that are applied to a specific org unit. All targets must have the same target format. That is to say that they must point to the same target resource and must have the same keys specified in `additionalTargetKeyNames`, though the values for those keys may be different. On failure the request will return the error details as part of the google.rpc.Status.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1928,12 +1867,174 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_customers_policies_orgunits_batch_modify_builder(
-        client,
-        &args.customer,
-        &args.body,
-    )?;
+    let builder =
+        chromepolicy_customers_policies_orgunits_batch_modify_builder(client, &args.customer)?;
     chromepolicy_customers_policies_orgunits_batch_modify_execute(builder)
+}
+
+/// GET v1/customers/{customersId}/policySchemas/{policySchemasId}
+/// Get a specific policy schema for a customer by its resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `chromepolicy_customers_policy_schemas_get_execute()` to send, or `chromepolicy_customers_policy_schemas_get` for simplest API.
+
+pub fn chromepolicy_customers_policy_schemas_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://chromepolicy.googleapis.com/v1/customers/{}/policySchemas/{policySchemasId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/customers/{customersId}/policySchemas/{policySchemasId}
+/// Get a specific policy schema for a customer by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `chromepolicy_customers_policy_schemas_get_execute()` or `chromepolicy_customers_policy_schemas_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromepolicy_customers_policy_schemas_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromepolicy_customers_policy_schemas_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleChromePolicyVersionsV1PolicySchema>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleChromePolicyVersionsV1PolicySchema = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/customers/{customersId}/policySchemas/{policySchemasId}
+/// Get a specific policy schema for a customer by its resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `chromepolicy_customers_policy_schemas_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `chromepolicy_customers_policy_schemas_get_task()`.
+/// For the simplest API, use `chromepolicy_customers_policy_schemas_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `chromepolicy_customers_policy_schemas_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn chromepolicy_customers_policy_schemas_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromePolicyVersionsV1PolicySchema>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = chromepolicy_customers_policy_schemas_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`chromepolicy_customers_policy_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromepolicyCustomersPolicySchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/customers/{customersId}/policySchemas/{policySchemasId}
+/// Get a specific policy schema for a customer by its resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `chromepolicy_customers_policy_schemas_get_builder()` + `chromepolicy_customers_policy_schemas_get_execute()`.
+/// For task-level control, use `chromepolicy_customers_policy_schemas_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn chromepolicy_customers_policy_schemas_get(
+    client: &SimpleHttpClient,
+    args: &ChromepolicyCustomersPolicySchemasGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleChromePolicyVersionsV1PolicySchema>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = chromepolicy_customers_policy_schemas_get_builder(client, &args.name)?;
+    chromepolicy_customers_policy_schemas_get_execute(builder)
 }
 
 /// GET v1/customers/{customersId}/policySchemas
@@ -1945,13 +2046,15 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify(
 pub fn chromepolicy_customers_policy_schemas_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://chromepolicy.googleapis.com/v1/customers/{}/policySchemas",);
+    let endpoint_url = format!(
+        "https://chromepolicy.googleapis.com/v1/customers/{}/policySchemas",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2099,11 +2202,11 @@ pub struct ChromepolicyCustomersPolicySchemasListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/customers/{customersId}/policySchemas
@@ -2141,7 +2244,7 @@ pub fn chromepolicy_customers_policy_schemas_list(
     chromepolicy_customers_policy_schemas_list_execute(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/files:uploadPolicyFile
+/// POST v1/customers/{customersId}/policies/files:uploadPolicyFile
 /// Creates an enterprise file from the content provided by user. Returns a public download url for end user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2150,24 +2253,22 @@ pub fn chromepolicy_customers_policy_schemas_list(
 pub fn chromepolicy_media_upload_builder(
     client: &SimpleHttpClient,
     customer: &String,
-    body: &GoogleChromePolicyVersionsV1UploadPolicyFileRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/files:uploadPolicyFile",
+        customer,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/customers/{customersId}/policies/files:uploadPolicyFile
+/// POST v1/customers/{customersId}/policies/files:uploadPolicyFile
 /// Creates an enterprise file from the content provided by user. Returns a public download url for end user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2245,7 +2346,7 @@ pub fn chromepolicy_media_upload_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/customers/{customersId}/policies/files:uploadPolicyFile
+/// POST v1/customers/{customersId}/policies/files:uploadPolicyFile
 /// Creates an enterprise file from the content provided by user. Returns a public download url for end user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2284,11 +2385,9 @@ pub fn chromepolicy_media_upload_execute(
 pub struct ChromepolicyMediaUploadArgs {
     /// Path parameter: customer
     pub customer: String,
-    /// Request body.
-    pub body: GoogleChromePolicyVersionsV1UploadPolicyFileRequest,
 }
 
-/// GET v1/customers/{customersId}/policies/files:uploadPolicyFile
+/// POST v1/customers/{customersId}/policies/files:uploadPolicyFile
 /// Creates an enterprise file from the content provided by user. Returns a public download url for end user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2310,6 +2409,413 @@ pub fn chromepolicy_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_media_upload_builder(client, &args.customer, &args.body)?;
+    let builder = chromepolicy_media_upload_builder(client, &args.customer)?;
     chromepolicy_media_upload_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1ResolveResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1ResolveResponse with ChromepolicyCustomersPoliciesResolveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesResolveArgs>
+    for GoogleChromePolicyVersionsV1ResolveResponse
+{
+    fn generate_resource_id(&self, input: &ChromepolicyCustomersPoliciesResolveArgs) -> String {
+        format!(
+            "gcp::chromepolicy::GoogleChromePolicyVersionsV1ResolveResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleChromePolicyVersionsV1ResolveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ChromepolicyCustomersPoliciesGroupsBatchDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesGroupsBatchDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesGroupsBatchDeleteArgs,
+    ) -> String {
+        format!("gcp::chromepolicy::GoogleProtobufEmpty/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ChromepolicyCustomersPoliciesGroupsBatchModifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesGroupsBatchModifyArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesGroupsBatchModifyArgs,
+    ) -> String {
+        format!("gcp::chromepolicy::GoogleProtobufEmpty/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse with ChromepolicyCustomersPoliciesGroupsListGroupPriorityOrderingArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesGroupsListGroupPriorityOrderingArgs>
+    for GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesGroupsListGroupPriorityOrderingArgs,
+    ) -> String {
+        format!(
+            "gcp::chromepolicy::GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ChromepolicyCustomersPoliciesGroupsUpdateGroupPriorityOrderingArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesGroupsUpdateGroupPriorityOrderingArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesGroupsUpdateGroupPriorityOrderingArgs,
+    ) -> String {
+        format!("gcp::chromepolicy::GoogleProtobufEmpty/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1DefineCertificateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1DefineCertificateResponse with ChromepolicyCustomersPoliciesNetworksDefineCertificateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesNetworksDefineCertificateArgs>
+    for GoogleChromePolicyVersionsV1DefineCertificateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesNetworksDefineCertificateArgs,
+    ) -> String {
+        format!(
+            "gcp::chromepolicy::GoogleChromePolicyVersionsV1DefineCertificateResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleChromePolicyVersionsV1DefineCertificateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1DefineNetworkResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1DefineNetworkResponse with ChromepolicyCustomersPoliciesNetworksDefineNetworkArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesNetworksDefineNetworkArgs>
+    for GoogleChromePolicyVersionsV1DefineNetworkResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesNetworksDefineNetworkArgs,
+    ) -> String {
+        format!(
+            "gcp::chromepolicy::GoogleChromePolicyVersionsV1DefineNetworkResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleChromePolicyVersionsV1DefineNetworkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1RemoveCertificateResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1RemoveCertificateResponse with ChromepolicyCustomersPoliciesNetworksRemoveCertificateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesNetworksRemoveCertificateArgs>
+    for GoogleChromePolicyVersionsV1RemoveCertificateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesNetworksRemoveCertificateArgs,
+    ) -> String {
+        format!(
+            "gcp::chromepolicy::GoogleChromePolicyVersionsV1RemoveCertificateResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleChromePolicyVersionsV1RemoveCertificateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1RemoveNetworkResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1RemoveNetworkResponse with ChromepolicyCustomersPoliciesNetworksRemoveNetworkArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesNetworksRemoveNetworkArgs>
+    for GoogleChromePolicyVersionsV1RemoveNetworkResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesNetworksRemoveNetworkArgs,
+    ) -> String {
+        format!(
+            "gcp::chromepolicy::GoogleChromePolicyVersionsV1RemoveNetworkResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleChromePolicyVersionsV1RemoveNetworkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ChromepolicyCustomersPoliciesOrgunitsBatchInheritArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesOrgunitsBatchInheritArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesOrgunitsBatchInheritArgs,
+    ) -> String {
+        format!("gcp::chromepolicy::GoogleProtobufEmpty/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with ChromepolicyCustomersPoliciesOrgunitsBatchModifyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesOrgunitsBatchModifyArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesOrgunitsBatchModifyArgs,
+    ) -> String {
+        format!("gcp::chromepolicy::GoogleProtobufEmpty/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1PolicySchema
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1PolicySchema with ChromepolicyCustomersPolicySchemasGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPolicySchemasGetArgs>
+    for GoogleChromePolicyVersionsV1PolicySchema
+{
+    fn generate_resource_id(&self, input: &ChromepolicyCustomersPolicySchemasGetArgs) -> String {
+        format!(
+            "gcp::chromepolicy::GoogleChromePolicyVersionsV1PolicySchema/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleChromePolicyVersionsV1PolicySchema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1ListPolicySchemasResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1ListPolicySchemasResponse with ChromepolicyCustomersPolicySchemasListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPolicySchemasListArgs>
+    for GoogleChromePolicyVersionsV1ListPolicySchemasResponse
+{
+    fn generate_resource_id(&self, input: &ChromepolicyCustomersPolicySchemasListArgs) -> String {
+        format!(
+            "gcp::chromepolicy::GoogleChromePolicyVersionsV1ListPolicySchemasResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleChromePolicyVersionsV1ListPolicySchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1UploadPolicyFileResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1UploadPolicyFileResponse with ChromepolicyMediaUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyMediaUploadArgs>
+    for GoogleChromePolicyVersionsV1UploadPolicyFileResponse
+{
+    fn generate_resource_id(&self, input: &ChromepolicyMediaUploadArgs) -> String {
+        format!(
+            "gcp::chromepolicy::GoogleChromePolicyVersionsV1UploadPolicyFileResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::chromepolicy::GoogleChromePolicyVersionsV1UploadPolicyFileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

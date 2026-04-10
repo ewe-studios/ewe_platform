@@ -12,12 +12,26 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::advisorynotifications::{
+    advisorynotifications_organizations_locations_get_settings_builder, advisorynotifications_organizations_locations_get_settings_task,
     advisorynotifications_organizations_locations_update_settings_builder, advisorynotifications_organizations_locations_update_settings_task,
+    advisorynotifications_organizations_locations_notifications_get_builder, advisorynotifications_organizations_locations_notifications_get_task,
+    advisorynotifications_organizations_locations_notifications_list_builder, advisorynotifications_organizations_locations_notifications_list_task,
+    advisorynotifications_projects_locations_get_settings_builder, advisorynotifications_projects_locations_get_settings_task,
     advisorynotifications_projects_locations_update_settings_builder, advisorynotifications_projects_locations_update_settings_task,
+    advisorynotifications_projects_locations_notifications_get_builder, advisorynotifications_projects_locations_notifications_get_task,
+    advisorynotifications_projects_locations_notifications_list_builder, advisorynotifications_projects_locations_notifications_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::advisorynotifications::GoogleCloudAdvisorynotificationsV1ListNotificationsResponse;
+use crate::providers::gcp::clients::advisorynotifications::GoogleCloudAdvisorynotificationsV1Notification;
 use crate::providers::gcp::clients::advisorynotifications::GoogleCloudAdvisorynotificationsV1Settings;
+use crate::providers::gcp::clients::advisorynotifications::AdvisorynotificationsOrganizationsLocationsGetSettingsArgs;
+use crate::providers::gcp::clients::advisorynotifications::AdvisorynotificationsOrganizationsLocationsNotificationsGetArgs;
+use crate::providers::gcp::clients::advisorynotifications::AdvisorynotificationsOrganizationsLocationsNotificationsListArgs;
 use crate::providers::gcp::clients::advisorynotifications::AdvisorynotificationsOrganizationsLocationsUpdateSettingsArgs;
+use crate::providers::gcp::clients::advisorynotifications::AdvisorynotificationsProjectsLocationsGetSettingsArgs;
+use crate::providers::gcp::clients::advisorynotifications::AdvisorynotificationsProjectsLocationsNotificationsGetArgs;
+use crate::providers::gcp::clients::advisorynotifications::AdvisorynotificationsProjectsLocationsNotificationsListArgs;
 use crate::providers::gcp::clients::advisorynotifications::AdvisorynotificationsProjectsLocationsUpdateSettingsArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -58,6 +72,44 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Advisorynotifications organizations locations get settings.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAdvisorynotificationsV1Settings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn advisorynotifications_organizations_locations_get_settings(
+        &self,
+        args: &AdvisorynotificationsOrganizationsLocationsGetSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAdvisorynotificationsV1Settings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = advisorynotifications_organizations_locations_get_settings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = advisorynotifications_organizations_locations_get_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Advisorynotifications organizations locations update settings.
@@ -103,6 +155,125 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Advisorynotifications organizations locations notifications get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAdvisorynotificationsV1Notification result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn advisorynotifications_organizations_locations_notifications_get(
+        &self,
+        args: &AdvisorynotificationsOrganizationsLocationsNotificationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAdvisorynotificationsV1Notification, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = advisorynotifications_organizations_locations_notifications_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = advisorynotifications_organizations_locations_notifications_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Advisorynotifications organizations locations notifications list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAdvisorynotificationsV1ListNotificationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn advisorynotifications_organizations_locations_notifications_list(
+        &self,
+        args: &AdvisorynotificationsOrganizationsLocationsNotificationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAdvisorynotificationsV1ListNotificationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = advisorynotifications_organizations_locations_notifications_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = advisorynotifications_organizations_locations_notifications_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Advisorynotifications projects locations get settings.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAdvisorynotificationsV1Settings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn advisorynotifications_projects_locations_get_settings(
+        &self,
+        args: &AdvisorynotificationsProjectsLocationsGetSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAdvisorynotificationsV1Settings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = advisorynotifications_projects_locations_get_settings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = advisorynotifications_projects_locations_get_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Advisorynotifications projects locations update settings.
     ///
     /// Automatically stores the result in the state store on success.
@@ -144,6 +315,87 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Advisorynotifications projects locations notifications get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAdvisorynotificationsV1Notification result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn advisorynotifications_projects_locations_notifications_get(
+        &self,
+        args: &AdvisorynotificationsProjectsLocationsNotificationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAdvisorynotificationsV1Notification, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = advisorynotifications_projects_locations_notifications_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = advisorynotifications_projects_locations_notifications_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Advisorynotifications projects locations notifications list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudAdvisorynotificationsV1ListNotificationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn advisorynotifications_projects_locations_notifications_list(
+        &self,
+        args: &AdvisorynotificationsProjectsLocationsNotificationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudAdvisorynotificationsV1ListNotificationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = advisorynotifications_projects_locations_notifications_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = advisorynotifications_projects_locations_notifications_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

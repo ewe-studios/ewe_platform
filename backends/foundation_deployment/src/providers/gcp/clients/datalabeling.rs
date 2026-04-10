@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1beta1/projects/{projectsId}/annotationSpecSets
+/// POST v1beta1/projects/{projectsId}/annotationSpecSets
 /// Creates an annotation spec set by providing a set of labels.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,23 +29,22 @@ use serde::Serialize;
 pub fn datalabeling_projects_annotation_spec_sets_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudDatalabelingV1beta1CreateAnnotationSpecSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://datalabeling.googleapis.com/v1beta1/projects/{}/annotationSpecSets",);
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/annotationSpecSets",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/annotationSpecSets
+/// POST v1beta1/projects/{projectsId}/annotationSpecSets
 /// Creates an annotation spec set by providing a set of labels.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -120,7 +119,7 @@ pub fn datalabeling_projects_annotation_spec_sets_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/projects/{projectsId}/annotationSpecSets
+/// POST v1beta1/projects/{projectsId}/annotationSpecSets
 /// Creates an annotation spec set by providing a set of labels.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -159,11 +158,9 @@ pub fn datalabeling_projects_annotation_spec_sets_create_execute(
 pub struct DatalabelingProjectsAnnotationSpecSetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudDatalabelingV1beta1CreateAnnotationSpecSetRequest,
 }
 
-/// GET v1beta1/projects/{projectsId}/annotationSpecSets
+/// POST v1beta1/projects/{projectsId}/annotationSpecSets
 /// Creates an annotation spec set by providing a set of labels.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -185,15 +182,545 @@ pub fn datalabeling_projects_annotation_spec_sets_create(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_annotation_spec_sets_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder = datalabeling_projects_annotation_spec_sets_create_builder(client, &args.parent)?;
     datalabeling_projects_annotation_spec_sets_create_execute(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/datasets
+/// DELETE v1beta1/projects/{projectsId}/annotationSpecSets/{annotationSpecSetsId}
+/// Deletes an annotation spec set by resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_annotation_spec_sets_delete_execute()` to send, or `datalabeling_projects_annotation_spec_sets_delete` for simplest API.
+
+pub fn datalabeling_projects_annotation_spec_sets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/annotationSpecSets/{annotationSpecSetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/annotationSpecSets/{annotationSpecSetsId}
+/// Deletes an annotation spec set by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_annotation_spec_sets_delete_execute()` or `datalabeling_projects_annotation_spec_sets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_annotation_spec_sets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_annotation_spec_sets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta1/projects/{projectsId}/annotationSpecSets/{annotationSpecSetsId}
+/// Deletes an annotation spec set by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_annotation_spec_sets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_annotation_spec_sets_delete_task()`.
+/// For the simplest API, use `datalabeling_projects_annotation_spec_sets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_annotation_spec_sets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_annotation_spec_sets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_annotation_spec_sets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_annotation_spec_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsAnnotationSpecSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta1/projects/{projectsId}/annotationSpecSets/{annotationSpecSetsId}
+/// Deletes an annotation spec set by resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_annotation_spec_sets_delete_builder()` + `datalabeling_projects_annotation_spec_sets_delete_execute()`.
+/// For task-level control, use `datalabeling_projects_annotation_spec_sets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_annotation_spec_sets_delete(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsAnnotationSpecSetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_annotation_spec_sets_delete_builder(client, &args.name)?;
+    datalabeling_projects_annotation_spec_sets_delete_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/annotationSpecSets/{annotationSpecSetsId}
+/// Gets an annotation spec set by resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_annotation_spec_sets_get_execute()` to send, or `datalabeling_projects_annotation_spec_sets_get` for simplest API.
+
+pub fn datalabeling_projects_annotation_spec_sets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/annotationSpecSets/{annotationSpecSetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/annotationSpecSets/{annotationSpecSetsId}
+/// Gets an annotation spec set by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_annotation_spec_sets_get_execute()` or `datalabeling_projects_annotation_spec_sets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_annotation_spec_sets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_annotation_spec_sets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1AnnotationSpecSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1AnnotationSpecSet =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/annotationSpecSets/{annotationSpecSetsId}
+/// Gets an annotation spec set by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_annotation_spec_sets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_annotation_spec_sets_get_task()`.
+/// For the simplest API, use `datalabeling_projects_annotation_spec_sets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_annotation_spec_sets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_annotation_spec_sets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1AnnotationSpecSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_annotation_spec_sets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_annotation_spec_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsAnnotationSpecSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/annotationSpecSets/{annotationSpecSetsId}
+/// Gets an annotation spec set by resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_annotation_spec_sets_get_builder()` + `datalabeling_projects_annotation_spec_sets_get_execute()`.
+/// For task-level control, use `datalabeling_projects_annotation_spec_sets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_annotation_spec_sets_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsAnnotationSpecSetsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1AnnotationSpecSet>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_annotation_spec_sets_get_builder(client, &args.name)?;
+    datalabeling_projects_annotation_spec_sets_get_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/annotationSpecSets
+/// Lists annotation spec sets for a project. Pagination is supported.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_annotation_spec_sets_list_execute()` to send, or `datalabeling_projects_annotation_spec_sets_list` for simplest API.
+
+pub fn datalabeling_projects_annotation_spec_sets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/annotationSpecSets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/annotationSpecSets
+/// Lists annotation spec sets for a project. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_annotation_spec_sets_list_execute()` or `datalabeling_projects_annotation_spec_sets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_annotation_spec_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_annotation_spec_sets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/annotationSpecSets
+/// Lists annotation spec sets for a project. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_annotation_spec_sets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_annotation_spec_sets_list_task()`.
+/// For the simplest API, use `datalabeling_projects_annotation_spec_sets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_annotation_spec_sets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_annotation_spec_sets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_annotation_spec_sets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_annotation_spec_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsAnnotationSpecSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/annotationSpecSets
+/// Lists annotation spec sets for a project. Pagination is supported.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_annotation_spec_sets_list_builder()` + `datalabeling_projects_annotation_spec_sets_list_execute()`.
+/// For task-level control, use `datalabeling_projects_annotation_spec_sets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_annotation_spec_sets_list(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsAnnotationSpecSetsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_annotation_spec_sets_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datalabeling_projects_annotation_spec_sets_list_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets
 /// Creates dataset. If success return a Dataset resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -202,22 +729,22 @@ pub fn datalabeling_projects_annotation_spec_sets_create(
 pub fn datalabeling_projects_datasets_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudDatalabelingV1beta1CreateDatasetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets",);
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/datasets
+/// POST v1beta1/projects/{projectsId}/datasets
 /// Creates dataset. If success return a Dataset resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -291,7 +818,7 @@ pub fn datalabeling_projects_datasets_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/projects/{projectsId}/datasets
+/// POST v1beta1/projects/{projectsId}/datasets
 /// Creates dataset. If success return a Dataset resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -330,11 +857,9 @@ pub fn datalabeling_projects_datasets_create_execute(
 pub struct DatalabelingProjectsDatasetsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudDatalabelingV1beta1CreateDatasetRequest,
 }
 
-/// GET v1beta1/projects/{projectsId}/datasets
+/// POST v1beta1/projects/{projectsId}/datasets
 /// Creates dataset. If success return a Dataset resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -356,11 +881,4584 @@ pub fn datalabeling_projects_datasets_create(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_create_builder(client, &args.parent, &args.body)?;
+    let builder = datalabeling_projects_datasets_create_builder(client, &args.parent)?;
     datalabeling_projects_datasets_create_execute(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/evaluationJobs
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}
+/// Deletes a dataset by resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_delete_execute()` to send, or `datalabeling_projects_datasets_delete` for simplest API.
+
+pub fn datalabeling_projects_datasets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}
+/// Deletes a dataset by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_delete_execute()` or `datalabeling_projects_datasets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}
+/// Deletes a dataset by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_delete_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}
+/// Deletes a dataset by resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_delete_builder()` + `datalabeling_projects_datasets_delete_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_delete(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_delete_builder(client, &args.name)?;
+    datalabeling_projects_datasets_delete_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}:exportData
+/// Exports data and annotations from dataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_export_data_execute()` to send, or `datalabeling_projects_datasets_export_data` for simplest API.
+
+pub fn datalabeling_projects_datasets_export_data_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}:exportData",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}:exportData
+/// Exports data and annotations from dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_export_data_execute()` or `datalabeling_projects_datasets_export_data`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_export_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_export_data_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}:exportData
+/// Exports data and annotations from dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_export_data_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_export_data_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_export_data()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_export_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_export_data_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_export_data_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_export_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsExportDataArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}:exportData
+/// Exports data and annotations from dataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_export_data_builder()` + `datalabeling_projects_datasets_export_data_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_export_data_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_export_data(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsExportDataArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_export_data_builder(client, &args.name)?;
+    datalabeling_projects_datasets_export_data_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}
+/// Gets dataset by resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_get_execute()` to send, or `datalabeling_projects_datasets_get` for simplest API.
+
+pub fn datalabeling_projects_datasets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}
+/// Gets dataset by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_get_execute()` or `datalabeling_projects_datasets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Dataset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1Dataset = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}
+/// Gets dataset by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_get_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Dataset>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}
+/// Gets dataset by resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_get_builder()` + `datalabeling_projects_datasets_get_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Dataset>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_get_builder(client, &args.name)?;
+    datalabeling_projects_datasets_get_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}:importData
+/// Imports data into dataset based on source locations defined in request. It can be called multiple times for the same dataset. Each dataset can only have one long running operation running on it. For example, no labeling task (also long running operation) can be started while importing is still ongoing. Vice versa.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_import_data_execute()` to send, or `datalabeling_projects_datasets_import_data` for simplest API.
+
+pub fn datalabeling_projects_datasets_import_data_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}:importData",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}:importData
+/// Imports data into dataset based on source locations defined in request. It can be called multiple times for the same dataset. Each dataset can only have one long running operation running on it. For example, no labeling task (also long running operation) can be started while importing is still ongoing. Vice versa.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_import_data_execute()` or `datalabeling_projects_datasets_import_data`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_import_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_import_data_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}:importData
+/// Imports data into dataset based on source locations defined in request. It can be called multiple times for the same dataset. Each dataset can only have one long running operation running on it. For example, no labeling task (also long running operation) can be started while importing is still ongoing. Vice versa.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_import_data_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_import_data_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_import_data()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_import_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_import_data_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_import_data_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_import_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsImportDataArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}:importData
+/// Imports data into dataset based on source locations defined in request. It can be called multiple times for the same dataset. Each dataset can only have one long running operation running on it. For example, no labeling task (also long running operation) can be started while importing is still ongoing. Vice versa.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_import_data_builder()` + `datalabeling_projects_datasets_import_data_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_import_data_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_import_data(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsImportDataArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_import_data_builder(client, &args.name)?;
+    datalabeling_projects_datasets_import_data_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets
+/// Lists datasets under a project. Pagination is supported.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_list_execute()` to send, or `datalabeling_projects_datasets_list` for simplest API.
+
+pub fn datalabeling_projects_datasets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets
+/// Lists datasets under a project. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_list_execute()` or `datalabeling_projects_datasets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListDatasetsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1ListDatasetsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets
+/// Lists datasets under a project. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_list_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListDatasetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets
+/// Lists datasets under a project. Pagination is supported.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_list_builder()` + `datalabeling_projects_datasets_list_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_list(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListDatasetsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datalabeling_projects_datasets_list_execute(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}
+/// Deletes an annotated dataset by resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_delete_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_delete` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}
+/// Deletes an annotated dataset by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_delete_execute()` or `datalabeling_projects_datasets_annotated_datasets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}
+/// Deletes an annotated dataset by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_delete_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}
+/// Deletes an annotated dataset by resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_delete_builder()` + `datalabeling_projects_datasets_annotated_datasets_delete_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_delete(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datalabeling_projects_datasets_annotated_datasets_delete_builder(client, &args.name)?;
+    datalabeling_projects_datasets_annotated_datasets_delete_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}
+/// Gets an annotated dataset by resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_get_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_get` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}
+/// Gets an annotated dataset by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_get_execute()` or `datalabeling_projects_datasets_annotated_datasets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1AnnotatedDataset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1AnnotatedDataset =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}
+/// Gets an annotated dataset by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_get_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1AnnotatedDataset>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}
+/// Gets an annotated dataset by resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_get_builder()` + `datalabeling_projects_datasets_annotated_datasets_get_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1AnnotatedDataset>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datalabeling_projects_datasets_annotated_datasets_get_builder(client, &args.name)?;
+    datalabeling_projects_datasets_annotated_datasets_get_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets
+/// Lists annotated datasets for a dataset. Pagination is supported.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_list_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_list` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets
+/// Lists annotated datasets for a dataset. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_list_execute()` or `datalabeling_projects_datasets_annotated_datasets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets
+/// Lists annotated datasets for a dataset. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_list_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets
+/// Lists annotated datasets for a dataset. Pagination is supported.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_list_builder()` + `datalabeling_projects_datasets_annotated_datasets_list_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_list(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datalabeling_projects_datasets_annotated_datasets_list_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems/{dataItemsId}
+/// Gets a data item in a dataset by resource name. This API can be called after data are imported into dataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_data_items_get_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_data_items_get` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems/{dataItemsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems/{dataItemsId}
+/// Gets a data item in a dataset by resource name. This API can be called after data are imported into dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_data_items_get_execute()` or `datalabeling_projects_datasets_annotated_datasets_data_items_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_data_items_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1DataItem>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1DataItem = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems/{dataItemsId}
+/// Gets a data item in a dataset by resource name. This API can be called after data are imported into dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_data_items_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_data_items_get_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_data_items_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_data_items_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1DataItem>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_data_items_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_data_items_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems/{dataItemsId}
+/// Gets a data item in a dataset by resource name. This API can be called after data are imported into dataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_data_items_get_builder()` + `datalabeling_projects_datasets_annotated_datasets_data_items_get_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_data_items_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1DataItem>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_data_items_get_builder(
+        client, &args.name,
+    )?;
+    datalabeling_projects_datasets_annotated_datasets_data_items_get_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems
+/// Lists data items in a dataset. This API can be called after data are imported into dataset. Pagination is supported.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_data_items_list_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_data_items_list` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems
+/// Lists data items in a dataset. This API can be called after data are imported into dataset. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_data_items_list_execute()` or `datalabeling_projects_datasets_annotated_datasets_data_items_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_data_items_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListDataItemsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1ListDataItemsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems
+/// Lists data items in a dataset. This API can be called after data are imported into dataset. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_data_items_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_data_items_list_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_data_items_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_data_items_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListDataItemsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_data_items_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_data_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems
+/// Lists data items in a dataset. This API can be called after data are imported into dataset. Pagination is supported.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_data_items_list_builder()` + `datalabeling_projects_datasets_annotated_datasets_data_items_list_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_data_items_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListDataItemsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_data_items_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datalabeling_projects_datasets_annotated_datasets_data_items_list_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples/{examplesId}
+/// Gets an example by resource name, including both data and annotation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_examples_get_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_examples_get` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_examples_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples/{examplesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples/{examplesId}
+/// Gets an example by resource name, including both data and annotation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_examples_get_execute()` or `datalabeling_projects_datasets_annotated_datasets_examples_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_examples_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_examples_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Example>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1Example = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples/{examplesId}
+/// Gets an example by resource name, including both data and annotation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_examples_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_examples_get_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_examples_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_examples_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_examples_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Example>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_examples_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_examples_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples/{examplesId}
+/// Gets an example by resource name, including both data and annotation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_examples_get_builder()` + `datalabeling_projects_datasets_annotated_datasets_examples_get_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_examples_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_examples_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Example>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_examples_get_builder(
+        client,
+        &args.name,
+        &args.filter,
+    )?;
+    datalabeling_projects_datasets_annotated_datasets_examples_get_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples
+/// Lists examples in an annotated dataset. Pagination is supported.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_examples_list_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_examples_list` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_examples_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples
+/// Lists examples in an annotated dataset. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_examples_list_execute()` or `datalabeling_projects_datasets_annotated_datasets_examples_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_examples_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_examples_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListExamplesResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1ListExamplesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples
+/// Lists examples in an annotated dataset. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_examples_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_examples_list_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_examples_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_examples_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_examples_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListExamplesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_examples_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_examples_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples
+/// Lists examples in an annotated dataset. Pagination is supported.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_examples_list_builder()` + `datalabeling_projects_datasets_annotated_datasets_examples_list_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_examples_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_examples_list(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListExamplesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_examples_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datalabeling_projects_datasets_annotated_datasets_examples_list_execute(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}
+/// Delete a FeedbackThread.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}
+/// Delete a FeedbackThread.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_execute()` or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}
+/// Delete a FeedbackThread.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}
+/// Delete a FeedbackThread.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_builder()` + `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_builder(
+            client, &args.name,
+        )?;
+    datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}
+/// Get a FeedbackThread object.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}
+/// Get a FeedbackThread object.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_execute()` or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1FeedbackThread>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1FeedbackThread =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}
+/// Get a FeedbackThread object.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1FeedbackThread>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}
+/// Get a FeedbackThread object.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_builder()` + `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1FeedbackThread>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_builder(
+        client, &args.name,
+    )?;
+    datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads
+/// List FeedbackThreads with pagination.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads
+/// List FeedbackThreads with pagination.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_execute()` or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads
+/// List FeedbackThreads with pagination.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads
+/// List FeedbackThreads with pagination.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_builder()` + `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages
+/// Create a FeedbackMessage object.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages
+/// Create a FeedbackMessage object.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_execute()` or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages
+/// Create a FeedbackMessage object.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages
+/// Create a FeedbackMessage object.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_builder()` + `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_builder(client, &args.parent)?;
+    datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_execute(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}
+/// Delete a FeedbackMessage.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}
+/// Delete a FeedbackMessage.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_execute()` or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}
+/// Delete a FeedbackMessage.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}
+/// Delete a FeedbackMessage.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_builder()` + `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_builder(client, &args.name)?;
+    datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}
+/// Get a FeedbackMessage object.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}
+/// Get a FeedbackMessage object.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_execute()` or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1FeedbackMessage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1FeedbackMessage =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}
+/// Get a FeedbackMessage object.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1FeedbackMessage>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}
+/// Get a FeedbackMessage object.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_builder()` + `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1FeedbackMessage>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_builder(client, &args.name)?;
+    datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_execute(
+        builder,
+    )
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages
+/// List FeedbackMessages with pagination.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_execute()` to send, or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list` for simplest API.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages
+/// List FeedbackMessages with pagination.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_execute()` or `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages
+/// List FeedbackMessages with pagination.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages
+/// List FeedbackMessages with pagination.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_builder()` + `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
+    datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/dataItems/{dataItemsId}
+/// Gets a data item in a dataset by resource name. This API can be called after data are imported into dataset.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_data_items_get_execute()` to send, or `datalabeling_projects_datasets_data_items_get` for simplest API.
+
+pub fn datalabeling_projects_datasets_data_items_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/dataItems/{dataItemsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/dataItems/{dataItemsId}
+/// Gets a data item in a dataset by resource name. This API can be called after data are imported into dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_data_items_get_execute()` or `datalabeling_projects_datasets_data_items_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_data_items_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_data_items_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1DataItem>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1DataItem = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/dataItems/{dataItemsId}
+/// Gets a data item in a dataset by resource name. This API can be called after data are imported into dataset.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_data_items_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_data_items_get_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_data_items_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_data_items_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_data_items_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1DataItem>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_data_items_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_data_items_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsDataItemsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/dataItems/{dataItemsId}
+/// Gets a data item in a dataset by resource name. This API can be called after data are imported into dataset.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_data_items_get_builder()` + `datalabeling_projects_datasets_data_items_get_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_data_items_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_data_items_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsDataItemsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1DataItem>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_data_items_get_builder(client, &args.name)?;
+    datalabeling_projects_datasets_data_items_get_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/dataItems
+/// Lists data items in a dataset. This API can be called after data are imported into dataset. Pagination is supported.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_data_items_list_execute()` to send, or `datalabeling_projects_datasets_data_items_list` for simplest API.
+
+pub fn datalabeling_projects_datasets_data_items_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/dataItems",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/dataItems
+/// Lists data items in a dataset. This API can be called after data are imported into dataset. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_data_items_list_execute()` or `datalabeling_projects_datasets_data_items_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_data_items_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_data_items_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListDataItemsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1ListDataItemsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/dataItems
+/// Lists data items in a dataset. This API can be called after data are imported into dataset. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_data_items_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_data_items_list_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_data_items_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_data_items_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_data_items_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListDataItemsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_data_items_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_data_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsDataItemsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/dataItems
+/// Lists data items in a dataset. This API can be called after data are imported into dataset. Pagination is supported.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_data_items_list_builder()` + `datalabeling_projects_datasets_data_items_list_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_data_items_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_data_items_list(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsDataItemsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListDataItemsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_data_items_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datalabeling_projects_datasets_data_items_list_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/evaluations/{evaluationsId}
+/// Gets an evaluation by resource name (to search, use projects.evaluations.search).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_evaluations_get_execute()` to send, or `datalabeling_projects_datasets_evaluations_get` for simplest API.
+
+pub fn datalabeling_projects_datasets_evaluations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/evaluations/{evaluationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/evaluations/{evaluationsId}
+/// Gets an evaluation by resource name (to search, use projects.evaluations.search).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_evaluations_get_execute()` or `datalabeling_projects_datasets_evaluations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_evaluations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_evaluations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Evaluation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1Evaluation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/evaluations/{evaluationsId}
+/// Gets an evaluation by resource name (to search, use projects.evaluations.search).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_evaluations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_evaluations_get_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_evaluations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_evaluations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_evaluations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Evaluation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_evaluations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_evaluations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsEvaluationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/evaluations/{evaluationsId}
+/// Gets an evaluation by resource name (to search, use projects.evaluations.search).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_evaluations_get_builder()` + `datalabeling_projects_datasets_evaluations_get_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_evaluations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_evaluations_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsEvaluationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Evaluation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_evaluations_get_builder(client, &args.name)?;
+    datalabeling_projects_datasets_evaluations_get_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/evaluations/{evaluationsId}/exampleComparisons:search
+/// Searches example comparisons from an evaluation. The return format is a list of example comparisons that show ground truth and prediction(s) for a single input. Search by providing an evaluation ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_evaluations_example_comparisons_search_execute()` to send, or `datalabeling_projects_datasets_evaluations_example_comparisons_search` for simplest API.
+
+pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/evaluations/{evaluationsId}/exampleComparisons:search",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/evaluations/{evaluationsId}/exampleComparisons:search
+/// Searches example comparisons from an evaluation. The return format is a list of example comparisons that show ground truth and prediction(s) for a single input. Search by providing an evaluation ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_evaluations_example_comparisons_search_execute()` or `datalabeling_projects_datasets_evaluations_example_comparisons_search`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_evaluations_example_comparisons_search_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/evaluations/{evaluationsId}/exampleComparisons:search
+/// Searches example comparisons from an evaluation. The return format is a list of example comparisons that show ground truth and prediction(s) for a single input. Search by providing an evaluation ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_evaluations_example_comparisons_search_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_evaluations_example_comparisons_search_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_evaluations_example_comparisons_search()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_evaluations_example_comparisons_search_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_evaluations_example_comparisons_search_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_evaluations_example_comparisons_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsEvaluationsExampleComparisonsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/evaluations/{evaluationsId}/exampleComparisons:search
+/// Searches example comparisons from an evaluation. The return format is a list of example comparisons that show ground truth and prediction(s) for a single input. Search by providing an evaluation ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_evaluations_example_comparisons_search_builder()` + `datalabeling_projects_datasets_evaluations_example_comparisons_search_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_evaluations_example_comparisons_search_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsEvaluationsExampleComparisonsSearchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_evaluations_example_comparisons_search_builder(
+        client,
+        &args.parent,
+    )?;
+    datalabeling_projects_datasets_evaluations_example_comparisons_search_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/image:label
+/// Starts a labeling task for image. The type of image labeling task is configured by feature in the request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_image_label_execute()` to send, or `datalabeling_projects_datasets_image_label` for simplest API.
+
+pub fn datalabeling_projects_datasets_image_label_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/image:label",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/image:label
+/// Starts a labeling task for image. The type of image labeling task is configured by feature in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_image_label_execute()` or `datalabeling_projects_datasets_image_label`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_image_label_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_image_label_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/image:label
+/// Starts a labeling task for image. The type of image labeling task is configured by feature in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_image_label_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_image_label_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_image_label()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_image_label_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_image_label_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_image_label_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_image_label`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsImageLabelArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/image:label
+/// Starts a labeling task for image. The type of image labeling task is configured by feature in the request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_image_label_builder()` + `datalabeling_projects_datasets_image_label_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_image_label_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_image_label(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsImageLabelArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_image_label_builder(client, &args.parent)?;
+    datalabeling_projects_datasets_image_label_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/text:label
+/// Starts a labeling task for text. The type of text labeling task is configured by feature in the request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_text_label_execute()` to send, or `datalabeling_projects_datasets_text_label` for simplest API.
+
+pub fn datalabeling_projects_datasets_text_label_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/text:label",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/text:label
+/// Starts a labeling task for text. The type of text labeling task is configured by feature in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_text_label_execute()` or `datalabeling_projects_datasets_text_label`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_text_label_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_text_label_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/text:label
+/// Starts a labeling task for text. The type of text labeling task is configured by feature in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_text_label_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_text_label_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_text_label()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_text_label_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_text_label_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_text_label_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_text_label`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsTextLabelArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/text:label
+/// Starts a labeling task for text. The type of text labeling task is configured by feature in the request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_text_label_builder()` + `datalabeling_projects_datasets_text_label_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_text_label_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_text_label(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsTextLabelArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_text_label_builder(client, &args.parent)?;
+    datalabeling_projects_datasets_text_label_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/video:label
+/// Starts a labeling task for video. The type of video labeling task is configured by feature in the request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_datasets_video_label_execute()` to send, or `datalabeling_projects_datasets_video_label` for simplest API.
+
+pub fn datalabeling_projects_datasets_video_label_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/datasets/{datasetsId}/video:label",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/video:label
+/// Starts a labeling task for video. The type of video labeling task is configured by feature in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_datasets_video_label_execute()` or `datalabeling_projects_datasets_video_label`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_video_label_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_video_label_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/video:label
+/// Starts a labeling task for video. The type of video labeling task is configured by feature in the request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_datasets_video_label_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_datasets_video_label_task()`.
+/// For the simplest API, use `datalabeling_projects_datasets_video_label()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_datasets_video_label_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_datasets_video_label_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_datasets_video_label_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_datasets_video_label`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsVideoLabelArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1beta1/projects/{projectsId}/datasets/{datasetsId}/video:label
+/// Starts a labeling task for video. The type of video labeling task is configured by feature in the request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_datasets_video_label_builder()` + `datalabeling_projects_datasets_video_label_execute()`.
+/// For task-level control, use `datalabeling_projects_datasets_video_label_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_datasets_video_label(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsDatasetsVideoLabelArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_datasets_video_label_builder(client, &args.parent)?;
+    datalabeling_projects_datasets_video_label_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/evaluationJobs
 /// Creates an evaluation job.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -369,23 +5467,22 @@ pub fn datalabeling_projects_datasets_create(
 pub fn datalabeling_projects_evaluation_jobs_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudDatalabelingV1beta1CreateEvaluationJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs",);
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/evaluationJobs
+/// POST v1beta1/projects/{projectsId}/evaluationJobs
 /// Creates an evaluation job.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -460,7 +5557,7 @@ pub fn datalabeling_projects_evaluation_jobs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/projects/{projectsId}/evaluationJobs
+/// POST v1beta1/projects/{projectsId}/evaluationJobs
 /// Creates an evaluation job.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -499,11 +5596,9 @@ pub fn datalabeling_projects_evaluation_jobs_create_execute(
 pub struct DatalabelingProjectsEvaluationJobsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudDatalabelingV1beta1CreateEvaluationJobRequest,
 }
 
-/// GET v1beta1/projects/{projectsId}/evaluationJobs
+/// POST v1beta1/projects/{projectsId}/evaluationJobs
 /// Creates an evaluation job.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -525,9 +5620,1045 @@ pub fn datalabeling_projects_evaluation_jobs_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalabeling_projects_evaluation_jobs_create_builder(client, &args.parent, &args.body)?;
+    let builder = datalabeling_projects_evaluation_jobs_create_builder(client, &args.parent)?;
     datalabeling_projects_evaluation_jobs_create_execute(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Stops and deletes an evaluation job.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_evaluation_jobs_delete_execute()` to send, or `datalabeling_projects_evaluation_jobs_delete` for simplest API.
+
+pub fn datalabeling_projects_evaluation_jobs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs/{evaluationJobsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Stops and deletes an evaluation job.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_evaluation_jobs_delete_execute()` or `datalabeling_projects_evaluation_jobs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Stops and deletes an evaluation job.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_evaluation_jobs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_delete_task()`.
+/// For the simplest API, use `datalabeling_projects_evaluation_jobs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_evaluation_jobs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_evaluation_jobs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_evaluation_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Stops and deletes an evaluation job.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_evaluation_jobs_delete_builder()` + `datalabeling_projects_evaluation_jobs_delete_execute()`.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_delete(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsEvaluationJobsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_evaluation_jobs_delete_builder(client, &args.name)?;
+    datalabeling_projects_evaluation_jobs_delete_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Gets an evaluation job by resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_evaluation_jobs_get_execute()` to send, or `datalabeling_projects_evaluation_jobs_get` for simplest API.
+
+pub fn datalabeling_projects_evaluation_jobs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs/{evaluationJobsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Gets an evaluation job by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_evaluation_jobs_get_execute()` or `datalabeling_projects_evaluation_jobs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1EvaluationJob>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1EvaluationJob =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Gets an evaluation job by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_evaluation_jobs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_get_task()`.
+/// For the simplest API, use `datalabeling_projects_evaluation_jobs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_evaluation_jobs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1EvaluationJob>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_evaluation_jobs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_evaluation_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Gets an evaluation job by resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_evaluation_jobs_get_builder()` + `datalabeling_projects_evaluation_jobs_get_execute()`.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsEvaluationJobsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1EvaluationJob>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_evaluation_jobs_get_builder(client, &args.name)?;
+    datalabeling_projects_evaluation_jobs_get_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/evaluationJobs
+/// Lists all evaluation jobs within a project with possible filters. Pagination is supported.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_evaluation_jobs_list_execute()` to send, or `datalabeling_projects_evaluation_jobs_list` for simplest API.
+
+pub fn datalabeling_projects_evaluation_jobs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/evaluationJobs
+/// Lists all evaluation jobs within a project with possible filters. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_evaluation_jobs_list_execute()` or `datalabeling_projects_evaluation_jobs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/evaluationJobs
+/// Lists all evaluation jobs within a project with possible filters. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_evaluation_jobs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_list_task()`.
+/// For the simplest API, use `datalabeling_projects_evaluation_jobs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_evaluation_jobs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_evaluation_jobs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_evaluation_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/evaluationJobs
+/// Lists all evaluation jobs within a project with possible filters. Pagination is supported.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_evaluation_jobs_list_builder()` + `datalabeling_projects_evaluation_jobs_list_execute()`.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_list(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsEvaluationJobsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_evaluation_jobs_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datalabeling_projects_evaluation_jobs_list_execute(builder)
+}
+
+/// PATCH v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Updates an evaluation job. You can only update certain fields of the job's EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_evaluation_jobs_patch_execute()` to send, or `datalabeling_projects_evaluation_jobs_patch` for simplest API.
+
+pub fn datalabeling_projects_evaluation_jobs_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs/{evaluationJobsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Updates an evaluation job. You can only update certain fields of the job's EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_evaluation_jobs_patch_execute()` or `datalabeling_projects_evaluation_jobs_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1EvaluationJob>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1EvaluationJob =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Updates an evaluation job. You can only update certain fields of the job's EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_evaluation_jobs_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_patch_task()`.
+/// For the simplest API, use `datalabeling_projects_evaluation_jobs_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_evaluation_jobs_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1EvaluationJob>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_evaluation_jobs_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_evaluation_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
+/// Updates an evaluation job. You can only update certain fields of the job's EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_evaluation_jobs_patch_builder()` + `datalabeling_projects_evaluation_jobs_patch_execute()`.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_patch(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsEvaluationJobsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1EvaluationJob>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datalabeling_projects_evaluation_jobs_patch_builder(client, &args.name, &args.updateMask)?;
+    datalabeling_projects_evaluation_jobs_patch_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:pause
+/// Pauses an evaluation job. Pausing an evaluation job that is already in a PAUSED state is a no-op.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_evaluation_jobs_pause_execute()` to send, or `datalabeling_projects_evaluation_jobs_pause` for simplest API.
+
+pub fn datalabeling_projects_evaluation_jobs_pause_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs/{evaluationJobsId}:pause",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:pause
+/// Pauses an evaluation job. Pausing an evaluation job that is already in a PAUSED state is a no-op.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_evaluation_jobs_pause_execute()` or `datalabeling_projects_evaluation_jobs_pause`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_pause_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_pause_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:pause
+/// Pauses an evaluation job. Pausing an evaluation job that is already in a PAUSED state is a no-op.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_evaluation_jobs_pause_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_pause_task()`.
+/// For the simplest API, use `datalabeling_projects_evaluation_jobs_pause()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_pause_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_evaluation_jobs_pause_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_evaluation_jobs_pause_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_evaluation_jobs_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsPauseArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:pause
+/// Pauses an evaluation job. Pausing an evaluation job that is already in a PAUSED state is a no-op.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_evaluation_jobs_pause_builder()` + `datalabeling_projects_evaluation_jobs_pause_execute()`.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_pause_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_pause(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsEvaluationJobsPauseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_evaluation_jobs_pause_builder(client, &args.name)?;
+    datalabeling_projects_evaluation_jobs_pause_execute(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:resume
+/// Resumes a paused evaluation job. A deleted evaluation job can't be resumed. Resuming a running or scheduled evaluation job is a no-op.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_evaluation_jobs_resume_execute()` to send, or `datalabeling_projects_evaluation_jobs_resume` for simplest API.
+
+pub fn datalabeling_projects_evaluation_jobs_resume_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluationJobs/{evaluationJobsId}:resume",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:resume
+/// Resumes a paused evaluation job. A deleted evaluation job can't be resumed. Resuming a running or scheduled evaluation job is a no-op.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_evaluation_jobs_resume_execute()` or `datalabeling_projects_evaluation_jobs_resume`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_resume_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_resume_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:resume
+/// Resumes a paused evaluation job. A deleted evaluation job can't be resumed. Resuming a running or scheduled evaluation job is a no-op.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_evaluation_jobs_resume_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_resume_task()`.
+/// For the simplest API, use `datalabeling_projects_evaluation_jobs_resume()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_evaluation_jobs_resume_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_evaluation_jobs_resume_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_evaluation_jobs_resume_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_evaluation_jobs_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:resume
+/// Resumes a paused evaluation job. A deleted evaluation job can't be resumed. Resuming a running or scheduled evaluation job is a no-op.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_evaluation_jobs_resume_builder()` + `datalabeling_projects_evaluation_jobs_resume_execute()`.
+/// For task-level control, use `datalabeling_projects_evaluation_jobs_resume_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_evaluation_jobs_resume(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsEvaluationJobsResumeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_evaluation_jobs_resume_builder(client, &args.name)?;
+    datalabeling_projects_evaluation_jobs_resume_execute(builder)
 }
 
 /// GET v1beta1/projects/{projectsId}/evaluations:search
@@ -539,13 +6670,15 @@ pub fn datalabeling_projects_evaluation_jobs_create(
 pub fn datalabeling_projects_evaluations_search_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluations:search",);
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/evaluations:search",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -693,11 +6826,11 @@ pub struct DatalabelingProjectsEvaluationsSearchArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1beta1/projects/{projectsId}/evaluations:search
@@ -735,7 +6868,7 @@ pub fn datalabeling_projects_evaluations_search(
     datalabeling_projects_evaluations_search_execute(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/instructions
+/// POST v1beta1/projects/{projectsId}/instructions
 /// Creates an instruction for how data should be labeled.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -744,23 +6877,22 @@ pub fn datalabeling_projects_evaluations_search(
 pub fn datalabeling_projects_instructions_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleCloudDatalabelingV1beta1CreateInstructionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://datalabeling.googleapis.com/v1beta1/projects/{}/instructions",);
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/instructions",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/instructions
+/// POST v1beta1/projects/{projectsId}/instructions
 /// Creates an instruction for how data should be labeled.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -834,7 +6966,7 @@ pub fn datalabeling_projects_instructions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta1/projects/{projectsId}/instructions
+/// POST v1beta1/projects/{projectsId}/instructions
 /// Creates an instruction for how data should be labeled.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -873,11 +7005,9 @@ pub fn datalabeling_projects_instructions_create_execute(
 pub struct DatalabelingProjectsInstructionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleCloudDatalabelingV1beta1CreateInstructionRequest,
 }
 
-/// GET v1beta1/projects/{projectsId}/instructions
+/// POST v1beta1/projects/{projectsId}/instructions
 /// Creates an instruction for how data should be labeled.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -899,28 +7029,354 @@ pub fn datalabeling_projects_instructions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalabeling_projects_instructions_create_builder(client, &args.parent, &args.body)?;
+    let builder = datalabeling_projects_instructions_create_builder(client, &args.parent)?;
     datalabeling_projects_instructions_create_execute(builder)
 }
 
-/// GET v1beta1/projects/{projectsId}/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+/// DELETE v1beta1/projects/{projectsId}/instructions/{instructionsId}
+/// Deletes an instruction object by resource name.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `datalabeling_projects_operations_list_execute()` to send, or `datalabeling_projects_operations_list` for simplest API.
+/// Use `datalabeling_projects_instructions_delete_execute()` to send, or `datalabeling_projects_instructions_delete` for simplest API.
 
-pub fn datalabeling_projects_operations_list_builder(
+pub fn datalabeling_projects_instructions_delete_builder(
     client: &SimpleHttpClient,
     name: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    returnPartialSuccess: &Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://datalabeling.googleapis.com/v1beta1/projects/{}/operations",);
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/instructions/{instructionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/instructions/{instructionsId}
+/// Deletes an instruction object by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_instructions_delete_execute()` or `datalabeling_projects_instructions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_instructions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_instructions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta1/projects/{projectsId}/instructions/{instructionsId}
+/// Deletes an instruction object by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_instructions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_instructions_delete_task()`.
+/// For the simplest API, use `datalabeling_projects_instructions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_instructions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_instructions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_instructions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_instructions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsInstructionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta1/projects/{projectsId}/instructions/{instructionsId}
+/// Deletes an instruction object by resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_instructions_delete_builder()` + `datalabeling_projects_instructions_delete_execute()`.
+/// For task-level control, use `datalabeling_projects_instructions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_instructions_delete(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsInstructionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_instructions_delete_builder(client, &args.name)?;
+    datalabeling_projects_instructions_delete_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/instructions/{instructionsId}
+/// Gets an instruction by resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_instructions_get_execute()` to send, or `datalabeling_projects_instructions_get` for simplest API.
+
+pub fn datalabeling_projects_instructions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/instructions/{instructionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/instructions/{instructionsId}
+/// Gets an instruction by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_instructions_get_execute()` or `datalabeling_projects_instructions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_instructions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_instructions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Instruction>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1Instruction = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/instructions/{instructionsId}
+/// Gets an instruction by resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_instructions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_instructions_get_task()`.
+/// For the simplest API, use `datalabeling_projects_instructions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_instructions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_instructions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Instruction>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_instructions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_instructions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsInstructionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/instructions/{instructionsId}
+/// Gets an instruction by resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_instructions_get_builder()` + `datalabeling_projects_instructions_get_execute()`.
+/// For task-level control, use `datalabeling_projects_instructions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_instructions_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsInstructionsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Instruction>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_instructions_get_builder(client, &args.name)?;
+    datalabeling_projects_instructions_get_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/instructions
+/// Lists instructions for a project. Pagination is supported.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_instructions_list_execute()` to send, or `datalabeling_projects_instructions_list` for simplest API.
+
+pub fn datalabeling_projects_instructions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/instructions",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -933,8 +7389,699 @@ pub fn datalabeling_projects_operations_list_builder(
     if let Some(val) = pageToken.as_ref() {
         query_parts.push(format!("pageToken={}", val));
     }
-    if let Some(val) = returnPartialSuccess.as_ref() {
-        query_parts.push(format!("returnPartialSuccess={}", val));
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/instructions
+/// Lists instructions for a project. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_instructions_list_execute()` or `datalabeling_projects_instructions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_instructions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_instructions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListInstructionsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatalabelingV1beta1ListInstructionsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/instructions
+/// Lists instructions for a project. Pagination is supported.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_instructions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_instructions_list_task()`.
+/// For the simplest API, use `datalabeling_projects_instructions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_instructions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_instructions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListInstructionsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_instructions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_instructions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsInstructionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta1/projects/{projectsId}/instructions
+/// Lists instructions for a project. Pagination is supported.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_instructions_list_builder()` + `datalabeling_projects_instructions_list_execute()`.
+/// For task-level control, use `datalabeling_projects_instructions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_instructions_list(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsInstructionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudDatalabelingV1beta1ListInstructionsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_instructions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datalabeling_projects_instructions_list_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_operations_cancel_execute()` to send, or `datalabeling_projects_operations_cancel` for simplest API.
+
+pub fn datalabeling_projects_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_operations_cancel_execute()` or `datalabeling_projects_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_operations_cancel_task()`.
+/// For the simplest API, use `datalabeling_projects_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_operations_cancel_builder()` + `datalabeling_projects_operations_cancel_execute()`.
+/// For task-level control, use `datalabeling_projects_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_operations_cancel_builder(client, &args.name)?;
+    datalabeling_projects_operations_cancel_execute(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_operations_delete_execute()` to send, or `datalabeling_projects_operations_delete` for simplest API.
+
+pub fn datalabeling_projects_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta1/projects/{projectsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_operations_delete_execute()` or `datalabeling_projects_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta1/projects/{projectsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_operations_delete_task()`.
+/// For the simplest API, use `datalabeling_projects_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta1/projects/{projectsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_operations_delete_builder()` + `datalabeling_projects_operations_delete_execute()`.
+/// For task-level control, use `datalabeling_projects_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_operations_delete(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_operations_delete_builder(client, &args.name)?;
+    datalabeling_projects_operations_delete_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_operations_get_execute()` to send, or `datalabeling_projects_operations_get` for simplest API.
+
+pub fn datalabeling_projects_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datalabeling_projects_operations_get_execute()` or `datalabeling_projects_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datalabeling_projects_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datalabeling_projects_operations_get_task()`.
+/// For the simplest API, use `datalabeling_projects_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datalabeling_projects_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datalabeling_projects_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datalabeling_projects_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datalabeling_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta1/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datalabeling_projects_operations_get_builder()` + `datalabeling_projects_operations_get_execute()`.
+/// For task-level control, use `datalabeling_projects_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datalabeling_projects_operations_get(
+    client: &SimpleHttpClient,
+    args: &DatalabelingProjectsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datalabeling_projects_operations_get_builder(client, &args.name)?;
+    datalabeling_projects_operations_get_execute(builder)
+}
+
+/// GET v1beta1/projects/{projectsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datalabeling_projects_operations_list_execute()` to send, or `datalabeling_projects_operations_list` for simplest API.
+
+pub fn datalabeling_projects_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datalabeling.googleapis.com/v1beta1/projects/{}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
@@ -1065,13 +8212,11 @@ pub struct DatalabelingProjectsOperationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1beta1/projects/{projectsId}/operations
@@ -1102,7 +8247,1330 @@ pub fn datalabeling_projects_operations_list(
         &args.filter,
         &args.pageSize,
         &args.pageToken,
-        &args.returnPartialSuccess,
     )?;
     datalabeling_projects_operations_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1AnnotationSpecSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1AnnotationSpecSet with DatalabelingProjectsAnnotationSpecSetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsAnnotationSpecSetsCreateArgs>
+    for GoogleCloudDatalabelingV1beta1AnnotationSpecSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsAnnotationSpecSetsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1AnnotationSpecSet/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1AnnotationSpecSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsAnnotationSpecSetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsAnnotationSpecSetsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsAnnotationSpecSetsDeleteArgs,
+    ) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1AnnotationSpecSet
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1AnnotationSpecSet with DatalabelingProjectsAnnotationSpecSetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsAnnotationSpecSetsGetArgs>
+    for GoogleCloudDatalabelingV1beta1AnnotationSpecSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsAnnotationSpecSetsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1AnnotationSpecSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1AnnotationSpecSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse with DatalabelingProjectsAnnotationSpecSetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsAnnotationSpecSetsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsAnnotationSpecSetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Dataset
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Dataset with DatalabelingProjectsDatasetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsCreateArgs>
+    for GoogleCloudDatalabelingV1beta1Dataset
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsCreateArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1Dataset/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1Dataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsDatasetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsDeleteArgs) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with DatalabelingProjectsDatasetsExportDataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsExportDataArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsExportDataArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleLongrunningOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Dataset
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Dataset with DatalabelingProjectsDatasetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsGetArgs>
+    for GoogleCloudDatalabelingV1beta1Dataset
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsGetArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1Dataset/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1Dataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with DatalabelingProjectsDatasetsImportDataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsImportDataArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsImportDataArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleLongrunningOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListDatasetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListDatasetsResponse with DatalabelingProjectsDatasetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListDatasetsResponse
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsListArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListDatasetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListDatasetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsDatasetsAnnotatedDatasetsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsDeleteArgs,
+    ) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1AnnotatedDataset
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1AnnotatedDataset with DatalabelingProjectsDatasetsAnnotatedDatasetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsGetArgs>
+    for GoogleCloudDatalabelingV1beta1AnnotatedDataset
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1AnnotatedDataset/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1AnnotatedDataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse with DatalabelingProjectsDatasetsAnnotatedDatasetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1DataItem
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1DataItem with DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsGetArgs>
+    for GoogleCloudDatalabelingV1beta1DataItem
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1DataItem/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1DataItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListDataItemsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListDataItemsResponse with DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListDataItemsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsListArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListDataItemsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListDataItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Example
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Example with DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesGetArgs>
+    for GoogleCloudDatalabelingV1beta1Example
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1Example/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1Example"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListExamplesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListExamplesResponse with DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesListArgs>
+    for GoogleCloudDatalabelingV1beta1ListExamplesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesListArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListExamplesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListExamplesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsDeleteArgs,
+    ) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1FeedbackThread
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1FeedbackThread with DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsGetArgs>
+    for GoogleCloudDatalabelingV1beta1FeedbackThread
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1FeedbackThread/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1FeedbackThread"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse with DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsListArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesCreateArgs,
+    > for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesDeleteArgs,
+    > for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesDeleteArgs,
+    ) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1FeedbackMessage
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1FeedbackMessage with DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesGetArgs,
+    > for GoogleCloudDatalabelingV1beta1FeedbackMessage
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1FeedbackMessage/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1FeedbackMessage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse with DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesListArgs,
+    > for GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesListArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1DataItem
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1DataItem with DatalabelingProjectsDatasetsDataItemsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsDataItemsGetArgs>
+    for GoogleCloudDatalabelingV1beta1DataItem
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsDataItemsGetArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1DataItem/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1DataItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListDataItemsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListDataItemsResponse with DatalabelingProjectsDatasetsDataItemsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsDataItemsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListDataItemsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsDataItemsListArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListDataItemsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListDataItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Evaluation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Evaluation with DatalabelingProjectsDatasetsEvaluationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsEvaluationsGetArgs>
+    for GoogleCloudDatalabelingV1beta1Evaluation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsEvaluationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1Evaluation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1Evaluation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse with DatalabelingProjectsDatasetsEvaluationsExampleComparisonsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsEvaluationsExampleComparisonsSearchArgs>
+    for GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalabelingProjectsDatasetsEvaluationsExampleComparisonsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with DatalabelingProjectsDatasetsImageLabelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsImageLabelArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsImageLabelArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with DatalabelingProjectsDatasetsTextLabelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsTextLabelArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsTextLabelArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with DatalabelingProjectsDatasetsVideoLabelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsDatasetsVideoLabelArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsDatasetsVideoLabelArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1EvaluationJob
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1EvaluationJob with DatalabelingProjectsEvaluationJobsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationJobsCreateArgs>
+    for GoogleCloudDatalabelingV1beta1EvaluationJob
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationJobsCreateArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1EvaluationJob/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1EvaluationJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsEvaluationJobsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationJobsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationJobsDeleteArgs) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1EvaluationJob
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1EvaluationJob with DatalabelingProjectsEvaluationJobsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationJobsGetArgs>
+    for GoogleCloudDatalabelingV1beta1EvaluationJob
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationJobsGetArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1EvaluationJob/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1EvaluationJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse with DatalabelingProjectsEvaluationJobsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationJobsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationJobsListArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1EvaluationJob
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1EvaluationJob with DatalabelingProjectsEvaluationJobsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationJobsPatchArgs>
+    for GoogleCloudDatalabelingV1beta1EvaluationJob
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationJobsPatchArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1EvaluationJob/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1EvaluationJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsEvaluationJobsPauseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationJobsPauseArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationJobsPauseArgs) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsEvaluationJobsResumeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationJobsResumeArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationJobsResumeArgs) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse with DatalabelingProjectsEvaluationsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsEvaluationsSearchArgs>
+    for GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsEvaluationsSearchArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with DatalabelingProjectsInstructionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsInstructionsCreateArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsInstructionsCreateArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsInstructionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsInstructionsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsInstructionsDeleteArgs) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Instruction
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1Instruction with DatalabelingProjectsInstructionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsInstructionsGetArgs>
+    for GoogleCloudDatalabelingV1beta1Instruction
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsInstructionsGetArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1Instruction/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1Instruction"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListInstructionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatalabelingV1beta1ListInstructionsResponse with DatalabelingProjectsInstructionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsInstructionsListArgs>
+    for GoogleCloudDatalabelingV1beta1ListInstructionsResponse
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsInstructionsListArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListInstructionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleCloudDatalabelingV1beta1ListInstructionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsOperationsCancelArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsOperationsCancelArgs) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with DatalabelingProjectsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsOperationsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsOperationsDeleteArgs) -> String {
+        format!("gcp::datalabeling::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with DatalabelingProjectsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsOperationsGetArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &DatalabelingProjectsOperationsGetArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleLongrunningOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse with DatalabelingProjectsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalabelingProjectsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &DatalabelingProjectsOperationsListArgs) -> String {
+        format!(
+            "gcp::datalabeling::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datalabeling::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

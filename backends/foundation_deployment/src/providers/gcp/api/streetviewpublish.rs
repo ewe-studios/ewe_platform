@@ -14,30 +14,43 @@
 use crate::providers::gcp::clients::streetviewpublish::{
     streetviewpublish_photo_create_builder, streetviewpublish_photo_create_task,
     streetviewpublish_photo_delete_builder, streetviewpublish_photo_delete_task,
+    streetviewpublish_photo_get_builder, streetviewpublish_photo_get_task,
     streetviewpublish_photo_start_upload_builder, streetviewpublish_photo_start_upload_task,
     streetviewpublish_photo_update_builder, streetviewpublish_photo_update_task,
     streetviewpublish_photo_sequence_create_builder, streetviewpublish_photo_sequence_create_task,
     streetviewpublish_photo_sequence_delete_builder, streetviewpublish_photo_sequence_delete_task,
+    streetviewpublish_photo_sequence_get_builder, streetviewpublish_photo_sequence_get_task,
     streetviewpublish_photo_sequence_start_upload_builder, streetviewpublish_photo_sequence_start_upload_task,
+    streetviewpublish_photo_sequences_list_builder, streetviewpublish_photo_sequences_list_task,
     streetviewpublish_photos_batch_delete_builder, streetviewpublish_photos_batch_delete_task,
+    streetviewpublish_photos_batch_get_builder, streetviewpublish_photos_batch_get_task,
     streetviewpublish_photos_batch_update_builder, streetviewpublish_photos_batch_update_task,
+    streetviewpublish_photos_list_builder, streetviewpublish_photos_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::streetviewpublish::BatchDeletePhotosResponse;
+use crate::providers::gcp::clients::streetviewpublish::BatchGetPhotosResponse;
 use crate::providers::gcp::clients::streetviewpublish::BatchUpdatePhotosResponse;
 use crate::providers::gcp::clients::streetviewpublish::Empty;
+use crate::providers::gcp::clients::streetviewpublish::ListPhotoSequencesResponse;
+use crate::providers::gcp::clients::streetviewpublish::ListPhotosResponse;
 use crate::providers::gcp::clients::streetviewpublish::Operation;
 use crate::providers::gcp::clients::streetviewpublish::Photo;
 use crate::providers::gcp::clients::streetviewpublish::UploadRef;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoCreateArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoDeleteArgs;
+use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoGetArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoSequenceCreateArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoSequenceDeleteArgs;
+use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoSequenceGetArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoSequenceStartUploadArgs;
+use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoSequencesListArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoStartUploadArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotoUpdateArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotosBatchDeleteArgs;
+use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotosBatchGetArgs;
 use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotosBatchUpdateArgs;
+use crate::providers::gcp::clients::streetviewpublish::StreetviewpublishPhotosListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -162,6 +175,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Streetviewpublish photo get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Photo result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn streetviewpublish_photo_get(
+        &self,
+        args: &StreetviewpublishPhotoGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Photo, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = streetviewpublish_photo_get_builder(
+            &self.http_client,
+            &args.photoId,
+            &args.languageCode,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = streetviewpublish_photo_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Streetviewpublish photo start upload.
@@ -336,6 +389,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Streetviewpublish photo sequence get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn streetviewpublish_photo_sequence_get(
+        &self,
+        args: &StreetviewpublishPhotoSequenceGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = streetviewpublish_photo_sequence_get_builder(
+            &self.http_client,
+            &args.sequenceId,
+            &args.filter,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = streetviewpublish_photo_sequence_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Streetviewpublish photo sequence start upload.
     ///
     /// Automatically stores the result in the state store on success.
@@ -376,6 +469,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Streetviewpublish photo sequences list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListPhotoSequencesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn streetviewpublish_photo_sequences_list(
+        &self,
+        args: &StreetviewpublishPhotoSequencesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListPhotoSequencesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = streetviewpublish_photo_sequences_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = streetviewpublish_photo_sequences_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Streetviewpublish photos batch delete.
@@ -420,6 +553,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Streetviewpublish photos batch get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the BatchGetPhotosResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn streetviewpublish_photos_batch_get(
+        &self,
+        args: &StreetviewpublishPhotosBatchGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<BatchGetPhotosResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = streetviewpublish_photos_batch_get_builder(
+            &self.http_client,
+            &args.languageCode,
+            &args.photoIds,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = streetviewpublish_photos_batch_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Streetviewpublish photos batch update.
     ///
     /// Automatically stores the result in the state store on success.
@@ -460,6 +633,48 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Streetviewpublish photos list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListPhotosResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn streetviewpublish_photos_list(
+        &self,
+        args: &StreetviewpublishPhotosListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListPhotosResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = streetviewpublish_photos_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.languageCode,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = streetviewpublish_photos_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

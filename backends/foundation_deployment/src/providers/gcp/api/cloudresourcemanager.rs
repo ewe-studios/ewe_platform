@@ -12,90 +12,155 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::cloudresourcemanager::{
+    cloudresourcemanager_effective_tags_list_builder, cloudresourcemanager_effective_tags_list_task,
     cloudresourcemanager_folders_create_builder, cloudresourcemanager_folders_create_task,
     cloudresourcemanager_folders_delete_builder, cloudresourcemanager_folders_delete_task,
+    cloudresourcemanager_folders_get_builder, cloudresourcemanager_folders_get_task,
     cloudresourcemanager_folders_get_iam_policy_builder, cloudresourcemanager_folders_get_iam_policy_task,
+    cloudresourcemanager_folders_list_builder, cloudresourcemanager_folders_list_task,
     cloudresourcemanager_folders_move_builder, cloudresourcemanager_folders_move_task,
     cloudresourcemanager_folders_patch_builder, cloudresourcemanager_folders_patch_task,
+    cloudresourcemanager_folders_search_builder, cloudresourcemanager_folders_search_task,
     cloudresourcemanager_folders_set_iam_policy_builder, cloudresourcemanager_folders_set_iam_policy_task,
     cloudresourcemanager_folders_test_iam_permissions_builder, cloudresourcemanager_folders_test_iam_permissions_task,
     cloudresourcemanager_folders_undelete_builder, cloudresourcemanager_folders_undelete_task,
+    cloudresourcemanager_folders_capabilities_get_builder, cloudresourcemanager_folders_capabilities_get_task,
     cloudresourcemanager_folders_capabilities_patch_builder, cloudresourcemanager_folders_capabilities_patch_task,
     cloudresourcemanager_liens_create_builder, cloudresourcemanager_liens_create_task,
     cloudresourcemanager_liens_delete_builder, cloudresourcemanager_liens_delete_task,
+    cloudresourcemanager_liens_get_builder, cloudresourcemanager_liens_get_task,
+    cloudresourcemanager_liens_list_builder, cloudresourcemanager_liens_list_task,
+    cloudresourcemanager_locations_effective_tag_binding_collections_get_builder, cloudresourcemanager_locations_effective_tag_binding_collections_get_task,
+    cloudresourcemanager_locations_tag_binding_collections_get_builder, cloudresourcemanager_locations_tag_binding_collections_get_task,
     cloudresourcemanager_locations_tag_binding_collections_patch_builder, cloudresourcemanager_locations_tag_binding_collections_patch_task,
+    cloudresourcemanager_operations_get_builder, cloudresourcemanager_operations_get_task,
+    cloudresourcemanager_organizations_get_builder, cloudresourcemanager_organizations_get_task,
     cloudresourcemanager_organizations_get_iam_policy_builder, cloudresourcemanager_organizations_get_iam_policy_task,
+    cloudresourcemanager_organizations_search_builder, cloudresourcemanager_organizations_search_task,
     cloudresourcemanager_organizations_set_iam_policy_builder, cloudresourcemanager_organizations_set_iam_policy_task,
     cloudresourcemanager_organizations_test_iam_permissions_builder, cloudresourcemanager_organizations_test_iam_permissions_task,
     cloudresourcemanager_projects_create_builder, cloudresourcemanager_projects_create_task,
     cloudresourcemanager_projects_delete_builder, cloudresourcemanager_projects_delete_task,
+    cloudresourcemanager_projects_get_builder, cloudresourcemanager_projects_get_task,
     cloudresourcemanager_projects_get_iam_policy_builder, cloudresourcemanager_projects_get_iam_policy_task,
+    cloudresourcemanager_projects_list_builder, cloudresourcemanager_projects_list_task,
     cloudresourcemanager_projects_move_builder, cloudresourcemanager_projects_move_task,
     cloudresourcemanager_projects_patch_builder, cloudresourcemanager_projects_patch_task,
+    cloudresourcemanager_projects_search_builder, cloudresourcemanager_projects_search_task,
     cloudresourcemanager_projects_set_iam_policy_builder, cloudresourcemanager_projects_set_iam_policy_task,
     cloudresourcemanager_projects_test_iam_permissions_builder, cloudresourcemanager_projects_test_iam_permissions_task,
     cloudresourcemanager_projects_undelete_builder, cloudresourcemanager_projects_undelete_task,
     cloudresourcemanager_tag_bindings_create_builder, cloudresourcemanager_tag_bindings_create_task,
     cloudresourcemanager_tag_bindings_delete_builder, cloudresourcemanager_tag_bindings_delete_task,
+    cloudresourcemanager_tag_bindings_list_builder, cloudresourcemanager_tag_bindings_list_task,
     cloudresourcemanager_tag_keys_create_builder, cloudresourcemanager_tag_keys_create_task,
     cloudresourcemanager_tag_keys_delete_builder, cloudresourcemanager_tag_keys_delete_task,
+    cloudresourcemanager_tag_keys_get_builder, cloudresourcemanager_tag_keys_get_task,
     cloudresourcemanager_tag_keys_get_iam_policy_builder, cloudresourcemanager_tag_keys_get_iam_policy_task,
+    cloudresourcemanager_tag_keys_get_namespaced_builder, cloudresourcemanager_tag_keys_get_namespaced_task,
+    cloudresourcemanager_tag_keys_list_builder, cloudresourcemanager_tag_keys_list_task,
     cloudresourcemanager_tag_keys_patch_builder, cloudresourcemanager_tag_keys_patch_task,
     cloudresourcemanager_tag_keys_set_iam_policy_builder, cloudresourcemanager_tag_keys_set_iam_policy_task,
     cloudresourcemanager_tag_keys_test_iam_permissions_builder, cloudresourcemanager_tag_keys_test_iam_permissions_task,
     cloudresourcemanager_tag_values_create_builder, cloudresourcemanager_tag_values_create_task,
     cloudresourcemanager_tag_values_delete_builder, cloudresourcemanager_tag_values_delete_task,
+    cloudresourcemanager_tag_values_get_builder, cloudresourcemanager_tag_values_get_task,
     cloudresourcemanager_tag_values_get_iam_policy_builder, cloudresourcemanager_tag_values_get_iam_policy_task,
+    cloudresourcemanager_tag_values_get_namespaced_builder, cloudresourcemanager_tag_values_get_namespaced_task,
+    cloudresourcemanager_tag_values_list_builder, cloudresourcemanager_tag_values_list_task,
     cloudresourcemanager_tag_values_patch_builder, cloudresourcemanager_tag_values_patch_task,
     cloudresourcemanager_tag_values_set_iam_policy_builder, cloudresourcemanager_tag_values_set_iam_policy_task,
     cloudresourcemanager_tag_values_test_iam_permissions_builder, cloudresourcemanager_tag_values_test_iam_permissions_task,
     cloudresourcemanager_tag_values_tag_holds_create_builder, cloudresourcemanager_tag_values_tag_holds_create_task,
     cloudresourcemanager_tag_values_tag_holds_delete_builder, cloudresourcemanager_tag_values_tag_holds_delete_task,
+    cloudresourcemanager_tag_values_tag_holds_list_builder, cloudresourcemanager_tag_values_tag_holds_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::cloudresourcemanager::Capability;
+use crate::providers::gcp::clients::cloudresourcemanager::EffectiveTagBindingCollection;
 use crate::providers::gcp::clients::cloudresourcemanager::Empty;
+use crate::providers::gcp::clients::cloudresourcemanager::Folder;
 use crate::providers::gcp::clients::cloudresourcemanager::Lien;
+use crate::providers::gcp::clients::cloudresourcemanager::ListEffectiveTagsResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::ListFoldersResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::ListLiensResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::ListProjectsResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::ListTagBindingsResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::ListTagHoldsResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::ListTagKeysResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::ListTagValuesResponse;
 use crate::providers::gcp::clients::cloudresourcemanager::Operation;
+use crate::providers::gcp::clients::cloudresourcemanager::Organization;
 use crate::providers::gcp::clients::cloudresourcemanager::Policy;
+use crate::providers::gcp::clients::cloudresourcemanager::Project;
+use crate::providers::gcp::clients::cloudresourcemanager::SearchFoldersResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::SearchOrganizationsResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::SearchProjectsResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::TagBindingCollection;
+use crate::providers::gcp::clients::cloudresourcemanager::TagKey;
+use crate::providers::gcp::clients::cloudresourcemanager::TagValue;
 use crate::providers::gcp::clients::cloudresourcemanager::TestIamPermissionsResponse;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerEffectiveTagsListArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersCapabilitiesGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersCapabilitiesPatchArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersCreateArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersDeleteArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersGetIamPolicyArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersListArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersMoveArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersPatchArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersSearchArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersSetIamPolicyArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersTestIamPermissionsArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerFoldersUndeleteArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLiensCreateArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLiensDeleteArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLiensGetArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLiensListArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLocationsTagBindingCollectionsGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerLocationsTagBindingCollectionsPatchArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerOperationsGetArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerOrganizationsGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerOrganizationsGetIamPolicyArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerOrganizationsSearchArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerOrganizationsSetIamPolicyArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerOrganizationsTestIamPermissionsArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsCreateArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsDeleteArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsGetIamPolicyArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsListArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsMoveArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsPatchArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsSearchArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsSetIamPolicyArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsTestIamPermissionsArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerProjectsUndeleteArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagBindingsCreateArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagBindingsDeleteArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagBindingsListArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagKeysCreateArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagKeysDeleteArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagKeysGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagKeysGetIamPolicyArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagKeysGetNamespacedArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagKeysListArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagKeysPatchArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagKeysSetIamPolicyArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagKeysTestIamPermissionsArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesCreateArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesDeleteArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesGetArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesGetIamPolicyArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesGetNamespacedArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesListArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesPatchArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesSetIamPolicyArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesTagHoldsCreateArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesTagHoldsDeleteArgs;
+use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesTagHoldsListArgs;
 use crate::providers::gcp::clients::cloudresourcemanager::CloudresourcemanagerTagValuesTestIamPermissionsArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -136,6 +201,46 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Cloudresourcemanager effective tags list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListEffectiveTagsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_effective_tags_list(
+        &self,
+        args: &CloudresourcemanagerEffectiveTagsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListEffectiveTagsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_effective_tags_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_effective_tags_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager folders create.
@@ -223,9 +328,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudresourcemanager folders get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Folder result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_folders_get(
+        &self,
+        args: &CloudresourcemanagerFoldersGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Folder, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_folders_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_folders_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudresourcemanager folders get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -237,7 +380,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudresourcemanager_folders_get_iam_policy(
         &self,
         args: &CloudresourcemanagerFoldersGetIamPolicyArgs,
@@ -258,12 +401,48 @@ where
         let task = cloudresourcemanager_folders_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Cloudresourcemanager folders list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListFoldersResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_folders_list(
+        &self,
+        args: &CloudresourcemanagerFoldersListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListFoldersResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_folders_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.parent,
+            &args.showDeleted,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = cloudresourcemanager_folders_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager folders move.
@@ -353,6 +532,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudresourcemanager folders search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SearchFoldersResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_folders_search(
+        &self,
+        args: &CloudresourcemanagerFoldersSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SearchFoldersResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_folders_search_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_folders_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudresourcemanager folders set iam policy.
     ///
     /// Automatically stores the result in the state store on success.
@@ -398,7 +617,7 @@ where
 
     /// Cloudresourcemanager folders test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -410,7 +629,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudresourcemanager_folders_test_iam_permissions(
         &self,
         args: &CloudresourcemanagerFoldersTestIamPermissionsArgs,
@@ -431,12 +650,7 @@ where
         let task = cloudresourcemanager_folders_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager folders undelete.
@@ -480,6 +694,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudresourcemanager folders capabilities get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Capability result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_folders_capabilities_get(
+        &self,
+        args: &CloudresourcemanagerFoldersCapabilitiesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Capability, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_folders_capabilities_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_folders_capabilities_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager folders capabilities patch.
@@ -611,6 +863,160 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudresourcemanager liens get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Lien result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_liens_get(
+        &self,
+        args: &CloudresourcemanagerLiensGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Lien, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_liens_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_liens_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudresourcemanager liens list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLiensResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_liens_list(
+        &self,
+        args: &CloudresourcemanagerLiensListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLiensResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_liens_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_liens_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudresourcemanager locations effective tag binding collections get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the EffectiveTagBindingCollection result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get(
+        &self,
+        args: &CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<EffectiveTagBindingCollection, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_locations_effective_tag_binding_collections_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_locations_effective_tag_binding_collections_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudresourcemanager locations tag binding collections get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TagBindingCollection result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_locations_tag_binding_collections_get(
+        &self,
+        args: &CloudresourcemanagerLocationsTagBindingCollectionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TagBindingCollection, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_locations_tag_binding_collections_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_locations_tag_binding_collections_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudresourcemanager locations tag binding collections patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -655,9 +1061,85 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudresourcemanager operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_operations_get(
+        &self,
+        args: &CloudresourcemanagerOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudresourcemanager organizations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Organization result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_organizations_get(
+        &self,
+        args: &CloudresourcemanagerOrganizationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Organization, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_organizations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_organizations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudresourcemanager organizations get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -669,7 +1151,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudresourcemanager_organizations_get_iam_policy(
         &self,
         args: &CloudresourcemanagerOrganizationsGetIamPolicyArgs,
@@ -690,12 +1172,47 @@ where
         let task = cloudresourcemanager_organizations_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Cloudresourcemanager organizations search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SearchOrganizationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_organizations_search(
+        &self,
+        args: &CloudresourcemanagerOrganizationsSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SearchOrganizationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_organizations_search_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = cloudresourcemanager_organizations_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager organizations set iam policy.
@@ -743,7 +1260,7 @@ where
 
     /// Cloudresourcemanager organizations test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -755,7 +1272,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudresourcemanager_organizations_test_iam_permissions(
         &self,
         args: &CloudresourcemanagerOrganizationsTestIamPermissionsArgs,
@@ -776,12 +1293,7 @@ where
         let task = cloudresourcemanager_organizations_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager projects create.
@@ -869,9 +1381,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudresourcemanager projects get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Project result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_projects_get(
+        &self,
+        args: &CloudresourcemanagerProjectsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Project, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_projects_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_projects_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudresourcemanager projects get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -883,7 +1433,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudresourcemanager_projects_get_iam_policy(
         &self,
         args: &CloudresourcemanagerProjectsGetIamPolicyArgs,
@@ -904,12 +1454,48 @@ where
         let task = cloudresourcemanager_projects_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Cloudresourcemanager projects list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListProjectsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_projects_list(
+        &self,
+        args: &CloudresourcemanagerProjectsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListProjectsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_projects_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.parent,
+            &args.showDeleted,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = cloudresourcemanager_projects_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager projects move.
@@ -999,6 +1585,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudresourcemanager projects search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SearchProjectsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_projects_search(
+        &self,
+        args: &CloudresourcemanagerProjectsSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SearchProjectsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_projects_search_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_projects_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudresourcemanager projects set iam policy.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1044,7 +1670,7 @@ where
 
     /// Cloudresourcemanager projects test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1056,7 +1682,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudresourcemanager_projects_test_iam_permissions(
         &self,
         args: &CloudresourcemanagerProjectsTestIamPermissionsArgs,
@@ -1077,12 +1703,7 @@ where
         let task = cloudresourcemanager_projects_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager projects undelete.
@@ -1214,6 +1835,46 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudresourcemanager tag bindings list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTagBindingsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_tag_bindings_list(
+        &self,
+        args: &CloudresourcemanagerTagBindingsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTagBindingsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_tag_bindings_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_tag_bindings_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudresourcemanager tag keys create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1302,9 +1963,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudresourcemanager tag keys get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TagKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_tag_keys_get(
+        &self,
+        args: &CloudresourcemanagerTagKeysGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TagKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_tag_keys_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_tag_keys_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudresourcemanager tag keys get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1316,7 +2015,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudresourcemanager_tag_keys_get_iam_policy(
         &self,
         args: &CloudresourcemanagerTagKeysGetIamPolicyArgs,
@@ -1337,12 +2036,85 @@ where
         let task = cloudresourcemanager_tag_keys_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Cloudresourcemanager tag keys get namespaced.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TagKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_tag_keys_get_namespaced(
+        &self,
+        args: &CloudresourcemanagerTagKeysGetNamespacedArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TagKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_tag_keys_get_namespaced_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = cloudresourcemanager_tag_keys_get_namespaced_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudresourcemanager tag keys list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTagKeysResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_tag_keys_list(
+        &self,
+        args: &CloudresourcemanagerTagKeysListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTagKeysResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_tag_keys_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_tag_keys_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager tag keys patch.
@@ -1435,7 +2207,7 @@ where
 
     /// Cloudresourcemanager tag keys test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1447,7 +2219,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudresourcemanager_tag_keys_test_iam_permissions(
         &self,
         args: &CloudresourcemanagerTagKeysTestIamPermissionsArgs,
@@ -1468,12 +2240,7 @@ where
         let task = cloudresourcemanager_tag_keys_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager tag values create.
@@ -1564,9 +2331,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Cloudresourcemanager tag values get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TagValue result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_tag_values_get(
+        &self,
+        args: &CloudresourcemanagerTagValuesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TagValue, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_tag_values_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_tag_values_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Cloudresourcemanager tag values get iam policy.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1578,7 +2383,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudresourcemanager_tag_values_get_iam_policy(
         &self,
         args: &CloudresourcemanagerTagValuesGetIamPolicyArgs,
@@ -1599,12 +2404,85 @@ where
         let task = cloudresourcemanager_tag_values_get_iam_policy_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Cloudresourcemanager tag values get namespaced.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TagValue result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_tag_values_get_namespaced(
+        &self,
+        args: &CloudresourcemanagerTagValuesGetNamespacedArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TagValue, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_tag_values_get_namespaced_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = cloudresourcemanager_tag_values_get_namespaced_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudresourcemanager tag values list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTagValuesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_tag_values_list(
+        &self,
+        args: &CloudresourcemanagerTagValuesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTagValuesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_tag_values_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_tag_values_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager tag values patch.
@@ -1697,7 +2575,7 @@ where
 
     /// Cloudresourcemanager tag values test iam permissions.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1709,7 +2587,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn cloudresourcemanager_tag_values_test_iam_permissions(
         &self,
         args: &CloudresourcemanagerTagValuesTestIamPermissionsArgs,
@@ -1730,12 +2608,7 @@ where
         let task = cloudresourcemanager_tag_values_test_iam_permissions_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Cloudresourcemanager tag values tag holds create.
@@ -1824,6 +2697,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Cloudresourcemanager tag values tag holds list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTagHoldsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn cloudresourcemanager_tag_values_tag_holds_list(
+        &self,
+        args: &CloudresourcemanagerTagValuesTagHoldsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTagHoldsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = cloudresourcemanager_tag_values_tag_holds_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = cloudresourcemanager_tag_values_tag_holds_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

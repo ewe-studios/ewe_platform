@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -192,8 +192,8 @@ pub fn discovery_apis_get_rest(
 
 pub fn discovery_apis_list_builder(
     client: &SimpleHttpClient,
-    name: &Option<String>,
-    preferred: &Option<bool>,
+    name: &Option<Option<String>>,
+    preferred: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://www.googleapis.com/discovery/v1/apis",);
@@ -330,9 +330,9 @@ pub fn discovery_apis_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DiscoveryApisListArgs {
     /// Query parameter: name
-    pub name: Option<String>,
+    pub name: Option<Option<String>>,
     /// Query parameter: preferred
-    pub preferred: Option<bool>,
+    pub preferred: Option<Option<String>>,
 }
 
 /// GET apis
@@ -357,4 +357,53 @@ pub fn discovery_apis_list(
 > {
     let builder = discovery_apis_list_builder(client, &args.name, &args.preferred)?;
     discovery_apis_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RestDescription
+// =============================================================================
+
+/// ResourceIdentifier implementation for RestDescription with DiscoveryApisGetRestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryApisGetRestArgs> for RestDescription {
+    fn generate_resource_id(&self, input: &DiscoveryApisGetRestArgs) -> String {
+        format!(
+            "gcp::discovery::RestDescription/{}/{}",
+            input.api, input.version
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::discovery::RestDescription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DirectoryList
+// =============================================================================
+
+/// ResourceIdentifier implementation for DirectoryList with DiscoveryApisListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryApisListArgs> for DirectoryList {
+    fn generate_resource_id(&self, input: &DiscoveryApisListArgs) -> String {
+        "gcp::discovery::DirectoryList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::discovery::DirectoryList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

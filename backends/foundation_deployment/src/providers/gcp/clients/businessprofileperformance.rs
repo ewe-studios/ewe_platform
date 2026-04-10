@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -29,17 +29,18 @@ use serde::Serialize;
 pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_builder(
     client: &SimpleHttpClient,
     location: &String,
-    dailyMetrics: &Option<String>,
-    dailyRange_endDate_day: &Option<i32>,
-    dailyRange_endDate_month: &Option<i32>,
-    dailyRange_endDate_year: &Option<i32>,
-    dailyRange_startDate_day: &Option<i32>,
-    dailyRange_startDate_month: &Option<i32>,
-    dailyRange_startDate_year: &Option<i32>,
+    dailyMetrics: &Option<Option<String>>,
+    dailyRange_endDate_day: &Option<Option<String>>,
+    dailyRange_endDate_month: &Option<Option<String>>,
+    dailyRange_endDate_year: &Option<Option<String>>,
+    dailyRange_startDate_day: &Option<Option<String>>,
+    dailyRange_startDate_month: &Option<Option<String>>,
+    dailyRange_startDate_year: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://businessprofileperformance.googleapis.com/v1/locations/{}:fetchMultiDailyMetricsTimeSeries",
+        location,
     );
 
     // Build request
@@ -194,19 +195,19 @@ pub struct BusinessprofileperformanceLocationsFetchMultiDailyMetricsTimeSeriesAr
     /// Path parameter: location
     pub location: String,
     /// Query parameter: dailyMetrics
-    pub dailyMetrics: Option<String>,
+    pub dailyMetrics: Option<Option<String>>,
     /// Query parameter: dailyRange_endDate_day
-    pub dailyRange_endDate_day: Option<i32>,
+    pub dailyRange_endDate_day: Option<Option<String>>,
     /// Query parameter: dailyRange_endDate_month
-    pub dailyRange_endDate_month: Option<i32>,
+    pub dailyRange_endDate_month: Option<Option<String>>,
     /// Query parameter: dailyRange_endDate_year
-    pub dailyRange_endDate_year: Option<i32>,
+    pub dailyRange_endDate_year: Option<Option<String>>,
     /// Query parameter: dailyRange_startDate_day
-    pub dailyRange_startDate_day: Option<i32>,
+    pub dailyRange_startDate_day: Option<Option<String>>,
     /// Query parameter: dailyRange_startDate_month
-    pub dailyRange_startDate_month: Option<i32>,
+    pub dailyRange_startDate_month: Option<Option<String>>,
     /// Query parameter: dailyRange_startDate_year
-    pub dailyRange_startDate_year: Option<i32>,
+    pub dailyRange_startDate_year: Option<Option<String>>,
 }
 
 /// GET v1/locations/{locationsId}:fetchMultiDailyMetricsTimeSeries
@@ -255,22 +256,23 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
 pub fn businessprofileperformance_locations_get_daily_metrics_time_series_builder(
     client: &SimpleHttpClient,
     name: &String,
-    dailyMetric: &Option<String>,
-    dailyRange_endDate_day: &Option<i32>,
-    dailyRange_endDate_month: &Option<i32>,
-    dailyRange_endDate_year: &Option<i32>,
-    dailyRange_startDate_day: &Option<i32>,
-    dailyRange_startDate_month: &Option<i32>,
-    dailyRange_startDate_year: &Option<i32>,
-    dailySubEntityType_dayOfWeek: &Option<String>,
-    dailySubEntityType_timeOfDay_hours: &Option<i32>,
-    dailySubEntityType_timeOfDay_minutes: &Option<i32>,
-    dailySubEntityType_timeOfDay_nanos: &Option<i32>,
-    dailySubEntityType_timeOfDay_seconds: &Option<i32>,
+    dailyMetric: &Option<Option<String>>,
+    dailyRange_endDate_day: &Option<Option<String>>,
+    dailyRange_endDate_month: &Option<Option<String>>,
+    dailyRange_endDate_year: &Option<Option<String>>,
+    dailyRange_startDate_day: &Option<Option<String>>,
+    dailyRange_startDate_month: &Option<Option<String>>,
+    dailyRange_startDate_year: &Option<Option<String>>,
+    dailySubEntityType_dayOfWeek: &Option<Option<String>>,
+    dailySubEntityType_timeOfDay_hours: &Option<Option<String>>,
+    dailySubEntityType_timeOfDay_minutes: &Option<Option<String>>,
+    dailySubEntityType_timeOfDay_nanos: &Option<Option<String>>,
+    dailySubEntityType_timeOfDay_seconds: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://businessprofileperformance.googleapis.com/v1/locations/{}:getDailyMetricsTimeSeries",
+        name,
     );
 
     // Build request
@@ -439,29 +441,29 @@ pub struct BusinessprofileperformanceLocationsGetDailyMetricsTimeSeriesArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: dailyMetric
-    pub dailyMetric: Option<String>,
+    pub dailyMetric: Option<Option<String>>,
     /// Query parameter: dailyRange_endDate_day
-    pub dailyRange_endDate_day: Option<i32>,
+    pub dailyRange_endDate_day: Option<Option<String>>,
     /// Query parameter: dailyRange_endDate_month
-    pub dailyRange_endDate_month: Option<i32>,
+    pub dailyRange_endDate_month: Option<Option<String>>,
     /// Query parameter: dailyRange_endDate_year
-    pub dailyRange_endDate_year: Option<i32>,
+    pub dailyRange_endDate_year: Option<Option<String>>,
     /// Query parameter: dailyRange_startDate_day
-    pub dailyRange_startDate_day: Option<i32>,
+    pub dailyRange_startDate_day: Option<Option<String>>,
     /// Query parameter: dailyRange_startDate_month
-    pub dailyRange_startDate_month: Option<i32>,
+    pub dailyRange_startDate_month: Option<Option<String>>,
     /// Query parameter: dailyRange_startDate_year
-    pub dailyRange_startDate_year: Option<i32>,
+    pub dailyRange_startDate_year: Option<Option<String>>,
     /// Query parameter: dailySubEntityType_dayOfWeek
-    pub dailySubEntityType_dayOfWeek: Option<String>,
+    pub dailySubEntityType_dayOfWeek: Option<Option<String>>,
     /// Query parameter: dailySubEntityType_timeOfDay_hours
-    pub dailySubEntityType_timeOfDay_hours: Option<i32>,
+    pub dailySubEntityType_timeOfDay_hours: Option<Option<String>>,
     /// Query parameter: dailySubEntityType_timeOfDay_minutes
-    pub dailySubEntityType_timeOfDay_minutes: Option<i32>,
+    pub dailySubEntityType_timeOfDay_minutes: Option<Option<String>>,
     /// Query parameter: dailySubEntityType_timeOfDay_nanos
-    pub dailySubEntityType_timeOfDay_nanos: Option<i32>,
+    pub dailySubEntityType_timeOfDay_nanos: Option<Option<String>>,
     /// Query parameter: dailySubEntityType_timeOfDay_seconds
-    pub dailySubEntityType_timeOfDay_seconds: Option<i32>,
+    pub dailySubEntityType_timeOfDay_seconds: Option<Option<String>>,
 }
 
 /// GET v1/locations/{locationsId}:getDailyMetricsTimeSeries
@@ -514,18 +516,19 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series(
 pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    monthlyRange_endMonth_day: &Option<i32>,
-    monthlyRange_endMonth_month: &Option<i32>,
-    monthlyRange_endMonth_year: &Option<i32>,
-    monthlyRange_startMonth_day: &Option<i32>,
-    monthlyRange_startMonth_month: &Option<i32>,
-    monthlyRange_startMonth_year: &Option<i32>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    monthlyRange_endMonth_day: &Option<Option<String>>,
+    monthlyRange_endMonth_month: &Option<Option<String>>,
+    monthlyRange_endMonth_year: &Option<Option<String>>,
+    monthlyRange_startMonth_day: &Option<Option<String>>,
+    monthlyRange_startMonth_month: &Option<Option<String>>,
+    monthlyRange_startMonth_year: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://businessprofileperformance.googleapis.com/v1/locations/{}/searchkeywords/impressions/monthly",
+        parent,
     );
 
     // Build request
@@ -684,21 +687,21 @@ pub struct BusinessprofileperformanceLocationsSearchkeywordsImpressionsMonthlyLi
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: monthlyRange_endMonth_day
-    pub monthlyRange_endMonth_day: Option<i32>,
+    pub monthlyRange_endMonth_day: Option<Option<String>>,
     /// Query parameter: monthlyRange_endMonth_month
-    pub monthlyRange_endMonth_month: Option<i32>,
+    pub monthlyRange_endMonth_month: Option<Option<String>>,
     /// Query parameter: monthlyRange_endMonth_year
-    pub monthlyRange_endMonth_year: Option<i32>,
+    pub monthlyRange_endMonth_year: Option<Option<String>>,
     /// Query parameter: monthlyRange_startMonth_day
-    pub monthlyRange_startMonth_day: Option<i32>,
+    pub monthlyRange_startMonth_day: Option<Option<String>>,
     /// Query parameter: monthlyRange_startMonth_month
-    pub monthlyRange_startMonth_month: Option<i32>,
+    pub monthlyRange_startMonth_month: Option<Option<String>>,
     /// Query parameter: monthlyRange_startMonth_year
-    pub monthlyRange_startMonth_year: Option<i32>,
+    pub monthlyRange_startMonth_year: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/locations/{locationsId}/searchkeywords/impressions/monthly
@@ -737,4 +740,97 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
             &args.pageToken,
         )?;
     businessprofileperformance_locations_searchkeywords_impressions_monthly_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FetchMultiDailyMetricsTimeSeriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchMultiDailyMetricsTimeSeriesResponse with BusinessprofileperformanceLocationsFetchMultiDailyMetricsTimeSeriesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BusinessprofileperformanceLocationsFetchMultiDailyMetricsTimeSeriesArgs>
+    for FetchMultiDailyMetricsTimeSeriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BusinessprofileperformanceLocationsFetchMultiDailyMetricsTimeSeriesArgs,
+    ) -> String {
+        format!(
+            "gcp::businessprofileperformance::FetchMultiDailyMetricsTimeSeriesResponse/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::businessprofileperformance::FetchMultiDailyMetricsTimeSeriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetDailyMetricsTimeSeriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetDailyMetricsTimeSeriesResponse with BusinessprofileperformanceLocationsGetDailyMetricsTimeSeriesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BusinessprofileperformanceLocationsGetDailyMetricsTimeSeriesArgs>
+    for GetDailyMetricsTimeSeriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BusinessprofileperformanceLocationsGetDailyMetricsTimeSeriesArgs,
+    ) -> String {
+        format!(
+            "gcp::businessprofileperformance::GetDailyMetricsTimeSeriesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::businessprofileperformance::GetDailyMetricsTimeSeriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSearchKeywordImpressionsMonthlyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSearchKeywordImpressionsMonthlyResponse with BusinessprofileperformanceLocationsSearchkeywordsImpressionsMonthlyListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BusinessprofileperformanceLocationsSearchkeywordsImpressionsMonthlyListArgs>
+    for ListSearchKeywordImpressionsMonthlyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BusinessprofileperformanceLocationsSearchkeywordsImpressionsMonthlyListArgs,
+    ) -> String {
+        format!(
+            "gcp::businessprofileperformance::ListSearchKeywordImpressionsMonthlyResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::businessprofileperformance::ListSearchKeywordImpressionsMonthlyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

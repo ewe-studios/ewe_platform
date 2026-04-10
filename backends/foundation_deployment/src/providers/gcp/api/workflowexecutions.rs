@@ -16,13 +16,30 @@ use crate::providers::gcp::clients::workflowexecutions::{
     workflowexecutions_projects_locations_workflows_executions_cancel_builder, workflowexecutions_projects_locations_workflows_executions_cancel_task,
     workflowexecutions_projects_locations_workflows_executions_create_builder, workflowexecutions_projects_locations_workflows_executions_create_task,
     workflowexecutions_projects_locations_workflows_executions_delete_execution_history_builder, workflowexecutions_projects_locations_workflows_executions_delete_execution_history_task,
+    workflowexecutions_projects_locations_workflows_executions_export_data_builder, workflowexecutions_projects_locations_workflows_executions_export_data_task,
+    workflowexecutions_projects_locations_workflows_executions_get_builder, workflowexecutions_projects_locations_workflows_executions_get_task,
+    workflowexecutions_projects_locations_workflows_executions_list_builder, workflowexecutions_projects_locations_workflows_executions_list_task,
+    workflowexecutions_projects_locations_workflows_executions_callbacks_list_builder, workflowexecutions_projects_locations_workflows_executions_callbacks_list_task,
+    workflowexecutions_projects_locations_workflows_executions_step_entries_get_builder, workflowexecutions_projects_locations_workflows_executions_step_entries_get_task,
+    workflowexecutions_projects_locations_workflows_executions_step_entries_list_builder, workflowexecutions_projects_locations_workflows_executions_step_entries_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::workflowexecutions::Empty;
 use crate::providers::gcp::clients::workflowexecutions::Execution;
+use crate::providers::gcp::clients::workflowexecutions::ExportDataResponse;
+use crate::providers::gcp::clients::workflowexecutions::ListCallbacksResponse;
+use crate::providers::gcp::clients::workflowexecutions::ListExecutionsResponse;
+use crate::providers::gcp::clients::workflowexecutions::ListStepEntriesResponse;
+use crate::providers::gcp::clients::workflowexecutions::StepEntry;
+use crate::providers::gcp::clients::workflowexecutions::WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCallbacksListArgs;
 use crate::providers::gcp::clients::workflowexecutions::WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCancelArgs;
 use crate::providers::gcp::clients::workflowexecutions::WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCreateArgs;
 use crate::providers::gcp::clients::workflowexecutions::WorkflowexecutionsProjectsLocationsWorkflowsExecutionsDeleteExecutionHistoryArgs;
+use crate::providers::gcp::clients::workflowexecutions::WorkflowexecutionsProjectsLocationsWorkflowsExecutionsExportDataArgs;
+use crate::providers::gcp::clients::workflowexecutions::WorkflowexecutionsProjectsLocationsWorkflowsExecutionsGetArgs;
+use crate::providers::gcp::clients::workflowexecutions::WorkflowexecutionsProjectsLocationsWorkflowsExecutionsListArgs;
+use crate::providers::gcp::clients::workflowexecutions::WorkflowexecutionsProjectsLocationsWorkflowsExecutionsStepEntriesGetArgs;
+use crate::providers::gcp::clients::workflowexecutions::WorkflowexecutionsProjectsLocationsWorkflowsExecutionsStepEntriesListArgs;
 use crate::providers::gcp::clients::workflowexecutions::WorkflowexecutionsProjectsLocationsWorkflowsTriggerPubsubExecutionArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -235,6 +252,249 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Workflowexecutions projects locations workflows executions export data.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ExportDataResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn workflowexecutions_projects_locations_workflows_executions_export_data(
+        &self,
+        args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsExportDataArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ExportDataResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = workflowexecutions_projects_locations_workflows_executions_export_data_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = workflowexecutions_projects_locations_workflows_executions_export_data_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Workflowexecutions projects locations workflows executions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Execution result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn workflowexecutions_projects_locations_workflows_executions_get(
+        &self,
+        args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Execution, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = workflowexecutions_projects_locations_workflows_executions_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = workflowexecutions_projects_locations_workflows_executions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Workflowexecutions projects locations workflows executions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListExecutionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn workflowexecutions_projects_locations_workflows_executions_list(
+        &self,
+        args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListExecutionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = workflowexecutions_projects_locations_workflows_executions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = workflowexecutions_projects_locations_workflows_executions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Workflowexecutions projects locations workflows executions callbacks list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCallbacksResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn workflowexecutions_projects_locations_workflows_executions_callbacks_list(
+        &self,
+        args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsCallbacksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCallbacksResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = workflowexecutions_projects_locations_workflows_executions_callbacks_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = workflowexecutions_projects_locations_workflows_executions_callbacks_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Workflowexecutions projects locations workflows executions step entries get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the StepEntry result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_get(
+        &self,
+        args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsStepEntriesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<StepEntry, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = workflowexecutions_projects_locations_workflows_executions_step_entries_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = workflowexecutions_projects_locations_workflows_executions_step_entries_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Workflowexecutions projects locations workflows executions step entries list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListStepEntriesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn workflowexecutions_projects_locations_workflows_executions_step_entries_list(
+        &self,
+        args: &WorkflowexecutionsProjectsLocationsWorkflowsExecutionsStepEntriesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListStepEntriesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = workflowexecutions_projects_locations_workflows_executions_step_entries_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.skip,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = workflowexecutions_projects_locations_workflows_executions_step_entries_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

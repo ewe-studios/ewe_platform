@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET games/v1configuration/achievements/{achievementId}
+/// DELETE games/v1configuration/achievements/{achievementId}
 /// Delete the achievement configuration with the given ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -38,13 +38,13 @@ pub fn games_configuration_achievement_configurations_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1configuration/achievements/{achievementId}
+/// DELETE games/v1configuration/achievements/{achievementId}
 /// Delete the achievement configuration with the given ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -115,7 +115,7 @@ pub fn games_configuration_achievement_configurations_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1configuration/achievements/{achievementId}
+/// DELETE games/v1configuration/achievements/{achievementId}
 /// Delete the achievement configuration with the given ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -152,7 +152,7 @@ pub struct GamesConfigurationAchievementConfigurationsDeleteArgs {
     pub achievementId: String,
 }
 
-/// GET games/v1configuration/achievements/{achievementId}
+/// DELETE games/v1configuration/achievements/{achievementId}
 /// Delete the achievement configuration with the given ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -175,7 +175,169 @@ pub fn games_configuration_achievement_configurations_delete(
     games_configuration_achievement_configurations_delete_execute(builder)
 }
 
-/// GET games/v1configuration/applications/{applicationId}/achievements
+/// GET games/v1configuration/achievements/{achievementId}
+/// Retrieves the metadata of the achievement configuration with the given ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_configuration_achievement_configurations_get_execute()` to send, or `games_configuration_achievement_configurations_get` for simplest API.
+
+pub fn games_configuration_achievement_configurations_get_builder(
+    client: &SimpleHttpClient,
+    achievementId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gamesconfiguration.googleapis.com/games/v1configuration/achievements/{}",
+        achievementId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET games/v1configuration/achievements/{achievementId}
+/// Retrieves the metadata of the achievement configuration with the given ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_configuration_achievement_configurations_get_execute()` or `games_configuration_achievement_configurations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_achievement_configurations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_achievement_configurations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AchievementConfiguration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AchievementConfiguration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET games/v1configuration/achievements/{achievementId}
+/// Retrieves the metadata of the achievement configuration with the given ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_configuration_achievement_configurations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_configuration_achievement_configurations_get_task()`.
+/// For the simplest API, use `games_configuration_achievement_configurations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_achievement_configurations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_configuration_achievement_configurations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AchievementConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_configuration_achievement_configurations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_configuration_achievement_configurations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationAchievementConfigurationsGetArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+}
+
+/// GET games/v1configuration/achievements/{achievementId}
+/// Retrieves the metadata of the achievement configuration with the given ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_configuration_achievement_configurations_get_builder()` + `games_configuration_achievement_configurations_get_execute()`.
+/// For task-level control, use `games_configuration_achievement_configurations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_achievement_configurations_get(
+    client: &SimpleHttpClient,
+    args: &GamesConfigurationAchievementConfigurationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AchievementConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        games_configuration_achievement_configurations_get_builder(client, &args.achievementId)?;
+    games_configuration_achievement_configurations_get_execute(builder)
+}
+
+/// POST games/v1configuration/applications/{applicationId}/achievements
 /// Insert a new achievement configuration in this application.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -184,7 +346,6 @@ pub fn games_configuration_achievement_configurations_delete(
 pub fn games_configuration_achievement_configurations_insert_builder(
     client: &SimpleHttpClient,
     applicationId: &String,
-    body: &AchievementConfiguration,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -194,15 +355,13 @@ pub fn games_configuration_achievement_configurations_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET games/v1configuration/applications/{applicationId}/achievements
+/// POST games/v1configuration/applications/{applicationId}/achievements
 /// Insert a new achievement configuration in this application.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -276,7 +435,7 @@ pub fn games_configuration_achievement_configurations_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1configuration/applications/{applicationId}/achievements
+/// POST games/v1configuration/applications/{applicationId}/achievements
 /// Insert a new achievement configuration in this application.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -313,11 +472,9 @@ pub fn games_configuration_achievement_configurations_insert_execute(
 pub struct GamesConfigurationAchievementConfigurationsInsertArgs {
     /// Path parameter: applicationId
     pub applicationId: String,
-    /// Request body.
-    pub body: AchievementConfiguration,
 }
 
-/// GET games/v1configuration/applications/{applicationId}/achievements
+/// POST games/v1configuration/applications/{applicationId}/achievements
 /// Insert a new achievement configuration in this application.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -337,15 +494,364 @@ pub fn games_configuration_achievement_configurations_insert(
         + 'static,
     ApiError,
 > {
-    let builder = games_configuration_achievement_configurations_insert_builder(
-        client,
-        &args.applicationId,
-        &args.body,
-    )?;
+    let builder =
+        games_configuration_achievement_configurations_insert_builder(client, &args.applicationId)?;
     games_configuration_achievement_configurations_insert_execute(builder)
 }
 
-/// GET games/v1configuration/leaderboards/{leaderboardId}
+/// GET games/v1configuration/applications/{applicationId}/achievements
+/// Returns a list of the achievement configurations in this application.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_configuration_achievement_configurations_list_execute()` to send, or `games_configuration_achievement_configurations_list` for simplest API.
+
+pub fn games_configuration_achievement_configurations_list_builder(
+    client: &SimpleHttpClient,
+    applicationId: &String,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gamesconfiguration.googleapis.com/games/v1configuration/applications/{}/achievements",
+        applicationId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET games/v1configuration/applications/{applicationId}/achievements
+/// Returns a list of the achievement configurations in this application.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_configuration_achievement_configurations_list_execute()` or `games_configuration_achievement_configurations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_achievement_configurations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_achievement_configurations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AchievementConfigurationListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AchievementConfigurationListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET games/v1configuration/applications/{applicationId}/achievements
+/// Returns a list of the achievement configurations in this application.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_configuration_achievement_configurations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_configuration_achievement_configurations_list_task()`.
+/// For the simplest API, use `games_configuration_achievement_configurations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_achievement_configurations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_configuration_achievement_configurations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AchievementConfigurationListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_configuration_achievement_configurations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_configuration_achievement_configurations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationAchievementConfigurationsListArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET games/v1configuration/applications/{applicationId}/achievements
+/// Returns a list of the achievement configurations in this application.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_configuration_achievement_configurations_list_builder()` + `games_configuration_achievement_configurations_list_execute()`.
+/// For task-level control, use `games_configuration_achievement_configurations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_achievement_configurations_list(
+    client: &SimpleHttpClient,
+    args: &GamesConfigurationAchievementConfigurationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<AchievementConfigurationListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = games_configuration_achievement_configurations_list_builder(
+        client,
+        &args.applicationId,
+        &args.maxResults,
+        &args.pageToken,
+    )?;
+    games_configuration_achievement_configurations_list_execute(builder)
+}
+
+/// PUT games/v1configuration/achievements/{achievementId}
+/// Update the metadata of the achievement configuration with the given ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_configuration_achievement_configurations_update_execute()` to send, or `games_configuration_achievement_configurations_update` for simplest API.
+
+pub fn games_configuration_achievement_configurations_update_builder(
+    client: &SimpleHttpClient,
+    achievementId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gamesconfiguration.googleapis.com/games/v1configuration/achievements/{}",
+        achievementId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT games/v1configuration/achievements/{achievementId}
+/// Update the metadata of the achievement configuration with the given ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_configuration_achievement_configurations_update_execute()` or `games_configuration_achievement_configurations_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_achievement_configurations_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_achievement_configurations_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AchievementConfiguration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AchievementConfiguration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT games/v1configuration/achievements/{achievementId}
+/// Update the metadata of the achievement configuration with the given ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_configuration_achievement_configurations_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_configuration_achievement_configurations_update_task()`.
+/// For the simplest API, use `games_configuration_achievement_configurations_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_achievement_configurations_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_configuration_achievement_configurations_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AchievementConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_configuration_achievement_configurations_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_configuration_achievement_configurations_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationAchievementConfigurationsUpdateArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+}
+
+/// PUT games/v1configuration/achievements/{achievementId}
+/// Update the metadata of the achievement configuration with the given ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_configuration_achievement_configurations_update_builder()` + `games_configuration_achievement_configurations_update_execute()`.
+/// For task-level control, use `games_configuration_achievement_configurations_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_achievement_configurations_update(
+    client: &SimpleHttpClient,
+    args: &GamesConfigurationAchievementConfigurationsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AchievementConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        games_configuration_achievement_configurations_update_builder(client, &args.achievementId)?;
+    games_configuration_achievement_configurations_update_execute(builder)
+}
+
+/// DELETE games/v1configuration/leaderboards/{leaderboardId}
 /// Delete the leaderboard configuration with the given ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -363,13 +869,13 @@ pub fn games_configuration_leaderboard_configurations_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1configuration/leaderboards/{leaderboardId}
+/// DELETE games/v1configuration/leaderboards/{leaderboardId}
 /// Delete the leaderboard configuration with the given ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -440,7 +946,7 @@ pub fn games_configuration_leaderboard_configurations_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1configuration/leaderboards/{leaderboardId}
+/// DELETE games/v1configuration/leaderboards/{leaderboardId}
 /// Delete the leaderboard configuration with the given ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -477,7 +983,7 @@ pub struct GamesConfigurationLeaderboardConfigurationsDeleteArgs {
     pub leaderboardId: String,
 }
 
-/// GET games/v1configuration/leaderboards/{leaderboardId}
+/// DELETE games/v1configuration/leaderboards/{leaderboardId}
 /// Delete the leaderboard configuration with the given ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -500,7 +1006,169 @@ pub fn games_configuration_leaderboard_configurations_delete(
     games_configuration_leaderboard_configurations_delete_execute(builder)
 }
 
-/// GET games/v1configuration/applications/{applicationId}/leaderboards
+/// GET games/v1configuration/leaderboards/{leaderboardId}
+/// Retrieves the metadata of the leaderboard configuration with the given ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_configuration_leaderboard_configurations_get_execute()` to send, or `games_configuration_leaderboard_configurations_get` for simplest API.
+
+pub fn games_configuration_leaderboard_configurations_get_builder(
+    client: &SimpleHttpClient,
+    leaderboardId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gamesconfiguration.googleapis.com/games/v1configuration/leaderboards/{}",
+        leaderboardId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET games/v1configuration/leaderboards/{leaderboardId}
+/// Retrieves the metadata of the leaderboard configuration with the given ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_configuration_leaderboard_configurations_get_execute()` or `games_configuration_leaderboard_configurations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_leaderboard_configurations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_leaderboard_configurations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LeaderboardConfiguration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LeaderboardConfiguration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET games/v1configuration/leaderboards/{leaderboardId}
+/// Retrieves the metadata of the leaderboard configuration with the given ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_configuration_leaderboard_configurations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_configuration_leaderboard_configurations_get_task()`.
+/// For the simplest API, use `games_configuration_leaderboard_configurations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_leaderboard_configurations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_configuration_leaderboard_configurations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LeaderboardConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_configuration_leaderboard_configurations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_configuration_leaderboard_configurations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationLeaderboardConfigurationsGetArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+}
+
+/// GET games/v1configuration/leaderboards/{leaderboardId}
+/// Retrieves the metadata of the leaderboard configuration with the given ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_configuration_leaderboard_configurations_get_builder()` + `games_configuration_leaderboard_configurations_get_execute()`.
+/// For task-level control, use `games_configuration_leaderboard_configurations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_leaderboard_configurations_get(
+    client: &SimpleHttpClient,
+    args: &GamesConfigurationLeaderboardConfigurationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LeaderboardConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        games_configuration_leaderboard_configurations_get_builder(client, &args.leaderboardId)?;
+    games_configuration_leaderboard_configurations_get_execute(builder)
+}
+
+/// POST games/v1configuration/applications/{applicationId}/leaderboards
 /// Insert a new leaderboard configuration in this application.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -509,7 +1177,6 @@ pub fn games_configuration_leaderboard_configurations_delete(
 pub fn games_configuration_leaderboard_configurations_insert_builder(
     client: &SimpleHttpClient,
     applicationId: &String,
-    body: &LeaderboardConfiguration,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -519,15 +1186,13 @@ pub fn games_configuration_leaderboard_configurations_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET games/v1configuration/applications/{applicationId}/leaderboards
+/// POST games/v1configuration/applications/{applicationId}/leaderboards
 /// Insert a new leaderboard configuration in this application.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -601,7 +1266,7 @@ pub fn games_configuration_leaderboard_configurations_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1configuration/applications/{applicationId}/leaderboards
+/// POST games/v1configuration/applications/{applicationId}/leaderboards
 /// Insert a new leaderboard configuration in this application.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -638,11 +1303,9 @@ pub fn games_configuration_leaderboard_configurations_insert_execute(
 pub struct GamesConfigurationLeaderboardConfigurationsInsertArgs {
     /// Path parameter: applicationId
     pub applicationId: String,
-    /// Request body.
-    pub body: LeaderboardConfiguration,
 }
 
-/// GET games/v1configuration/applications/{applicationId}/leaderboards
+/// POST games/v1configuration/applications/{applicationId}/leaderboards
 /// Insert a new leaderboard configuration in this application.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -662,10 +1325,607 @@ pub fn games_configuration_leaderboard_configurations_insert(
         + 'static,
     ApiError,
 > {
-    let builder = games_configuration_leaderboard_configurations_insert_builder(
+    let builder =
+        games_configuration_leaderboard_configurations_insert_builder(client, &args.applicationId)?;
+    games_configuration_leaderboard_configurations_insert_execute(builder)
+}
+
+/// GET games/v1configuration/applications/{applicationId}/leaderboards
+/// Returns a list of the leaderboard configurations in this application.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_configuration_leaderboard_configurations_list_execute()` to send, or `games_configuration_leaderboard_configurations_list` for simplest API.
+
+pub fn games_configuration_leaderboard_configurations_list_builder(
+    client: &SimpleHttpClient,
+    applicationId: &String,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gamesconfiguration.googleapis.com/games/v1configuration/applications/{}/leaderboards",
+        applicationId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET games/v1configuration/applications/{applicationId}/leaderboards
+/// Returns a list of the leaderboard configurations in this application.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_configuration_leaderboard_configurations_list_execute()` or `games_configuration_leaderboard_configurations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_leaderboard_configurations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_leaderboard_configurations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LeaderboardConfigurationListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LeaderboardConfigurationListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET games/v1configuration/applications/{applicationId}/leaderboards
+/// Returns a list of the leaderboard configurations in this application.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_configuration_leaderboard_configurations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_configuration_leaderboard_configurations_list_task()`.
+/// For the simplest API, use `games_configuration_leaderboard_configurations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_leaderboard_configurations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_configuration_leaderboard_configurations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LeaderboardConfigurationListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_configuration_leaderboard_configurations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_configuration_leaderboard_configurations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationLeaderboardConfigurationsListArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET games/v1configuration/applications/{applicationId}/leaderboards
+/// Returns a list of the leaderboard configurations in this application.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_configuration_leaderboard_configurations_list_builder()` + `games_configuration_leaderboard_configurations_list_execute()`.
+/// For task-level control, use `games_configuration_leaderboard_configurations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_leaderboard_configurations_list(
+    client: &SimpleHttpClient,
+    args: &GamesConfigurationLeaderboardConfigurationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LeaderboardConfigurationListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = games_configuration_leaderboard_configurations_list_builder(
         client,
         &args.applicationId,
-        &args.body,
+        &args.maxResults,
+        &args.pageToken,
     )?;
-    games_configuration_leaderboard_configurations_insert_execute(builder)
+    games_configuration_leaderboard_configurations_list_execute(builder)
+}
+
+/// PUT games/v1configuration/leaderboards/{leaderboardId}
+/// Update the metadata of the leaderboard configuration with the given ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_configuration_leaderboard_configurations_update_execute()` to send, or `games_configuration_leaderboard_configurations_update` for simplest API.
+
+pub fn games_configuration_leaderboard_configurations_update_builder(
+    client: &SimpleHttpClient,
+    leaderboardId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gamesconfiguration.googleapis.com/games/v1configuration/leaderboards/{}",
+        leaderboardId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT games/v1configuration/leaderboards/{leaderboardId}
+/// Update the metadata of the leaderboard configuration with the given ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_configuration_leaderboard_configurations_update_execute()` or `games_configuration_leaderboard_configurations_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_leaderboard_configurations_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_leaderboard_configurations_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LeaderboardConfiguration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LeaderboardConfiguration = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT games/v1configuration/leaderboards/{leaderboardId}
+/// Update the metadata of the leaderboard configuration with the given ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_configuration_leaderboard_configurations_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_configuration_leaderboard_configurations_update_task()`.
+/// For the simplest API, use `games_configuration_leaderboard_configurations_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_configuration_leaderboard_configurations_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_configuration_leaderboard_configurations_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LeaderboardConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = games_configuration_leaderboard_configurations_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_configuration_leaderboard_configurations_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationLeaderboardConfigurationsUpdateArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+}
+
+/// PUT games/v1configuration/leaderboards/{leaderboardId}
+/// Update the metadata of the leaderboard configuration with the given ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_configuration_leaderboard_configurations_update_builder()` + `games_configuration_leaderboard_configurations_update_execute()`.
+/// For task-level control, use `games_configuration_leaderboard_configurations_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_configuration_leaderboard_configurations_update(
+    client: &SimpleHttpClient,
+    args: &GamesConfigurationLeaderboardConfigurationsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LeaderboardConfiguration>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        games_configuration_leaderboard_configurations_update_builder(client, &args.leaderboardId)?;
+    games_configuration_leaderboard_configurations_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementConfiguration
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementConfiguration with GamesConfigurationAchievementConfigurationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationAchievementConfigurationsGetArgs>
+    for AchievementConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationAchievementConfigurationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::gamesConfiguration::AchievementConfiguration/{}",
+            input.achievementId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesConfiguration::AchievementConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementConfiguration
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementConfiguration with GamesConfigurationAchievementConfigurationsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationAchievementConfigurationsInsertArgs>
+    for AchievementConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationAchievementConfigurationsInsertArgs,
+    ) -> String {
+        format!(
+            "gcp::gamesConfiguration::AchievementConfiguration/{}",
+            input.applicationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesConfiguration::AchievementConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementConfigurationListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementConfigurationListResponse with GamesConfigurationAchievementConfigurationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationAchievementConfigurationsListArgs>
+    for AchievementConfigurationListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationAchievementConfigurationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::gamesConfiguration::AchievementConfigurationListResponse/{}",
+            input.applicationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesConfiguration::AchievementConfigurationListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementConfiguration
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementConfiguration with GamesConfigurationAchievementConfigurationsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationAchievementConfigurationsUpdateArgs>
+    for AchievementConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationAchievementConfigurationsUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::gamesConfiguration::AchievementConfiguration/{}",
+            input.achievementId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesConfiguration::AchievementConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LeaderboardConfiguration
+// =============================================================================
+
+/// ResourceIdentifier implementation for LeaderboardConfiguration with GamesConfigurationLeaderboardConfigurationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationLeaderboardConfigurationsGetArgs>
+    for LeaderboardConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationLeaderboardConfigurationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::gamesConfiguration::LeaderboardConfiguration/{}",
+            input.leaderboardId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesConfiguration::LeaderboardConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LeaderboardConfiguration
+// =============================================================================
+
+/// ResourceIdentifier implementation for LeaderboardConfiguration with GamesConfigurationLeaderboardConfigurationsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationLeaderboardConfigurationsInsertArgs>
+    for LeaderboardConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationLeaderboardConfigurationsInsertArgs,
+    ) -> String {
+        format!(
+            "gcp::gamesConfiguration::LeaderboardConfiguration/{}",
+            input.applicationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesConfiguration::LeaderboardConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LeaderboardConfigurationListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LeaderboardConfigurationListResponse with GamesConfigurationLeaderboardConfigurationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationLeaderboardConfigurationsListArgs>
+    for LeaderboardConfigurationListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationLeaderboardConfigurationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::gamesConfiguration::LeaderboardConfigurationListResponse/{}",
+            input.applicationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesConfiguration::LeaderboardConfigurationListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LeaderboardConfiguration
+// =============================================================================
+
+/// ResourceIdentifier implementation for LeaderboardConfiguration with GamesConfigurationLeaderboardConfigurationsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesConfigurationLeaderboardConfigurationsUpdateArgs>
+    for LeaderboardConfiguration
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesConfigurationLeaderboardConfigurationsUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::gamesConfiguration::LeaderboardConfiguration/{}",
+            input.leaderboardId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesConfiguration::LeaderboardConfiguration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

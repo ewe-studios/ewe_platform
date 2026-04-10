@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudlocationfinder_projects_locations_get_execute()` to send, or `cloudlocationfinder_projects_locations_get` for simplest API.
+
+pub fn cloudlocationfinder_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudlocationfinder_projects_locations_get_execute()` or `cloudlocationfinder_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudlocationfinder_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudlocationfinder_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudlocationfinder_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudlocationfinder_projects_locations_get_task()`.
+/// For the simplest API, use `cloudlocationfinder_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudlocationfinder_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudlocationfinder_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudlocationfinder_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudlocationfinder_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudlocationfinderProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudlocationfinder_projects_locations_get_builder()` + `cloudlocationfinder_projects_locations_get_execute()`.
+/// For task-level control, use `cloudlocationfinder_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudlocationfinder_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &CloudlocationfinderProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudlocationfinder_projects_locations_get_builder(client, &args.name)?;
+    cloudlocationfinder_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,14 +186,16 @@ use serde::Serialize;
 pub fn cloudlocationfinder_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -178,13 +337,13 @@ pub struct CloudlocationfinderProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -216,4 +375,706 @@ pub fn cloudlocationfinder_projects_locations_list(
         &args.pageToken,
     )?;
     cloudlocationfinder_projects_locations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations/{cloudLocationsId}
+/// Retrieves a resource containing information about a cloud location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudlocationfinder_projects_locations_cloud_locations_get_execute()` to send, or `cloudlocationfinder_projects_locations_cloud_locations_get` for simplest API.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudLocations/{cloudLocationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations/{cloudLocationsId}
+/// Retrieves a resource containing information about a cloud location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudlocationfinder_projects_locations_cloud_locations_get_execute()` or `cloudlocationfinder_projects_locations_cloud_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudlocationfinder_projects_locations_cloud_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CloudLocation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CloudLocation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations/{cloudLocationsId}
+/// Retrieves a resource containing information about a cloud location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudlocationfinder_projects_locations_cloud_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudlocationfinder_projects_locations_cloud_locations_get_task()`.
+/// For the simplest API, use `cloudlocationfinder_projects_locations_cloud_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudlocationfinder_projects_locations_cloud_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CloudLocation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudlocationfinder_projects_locations_cloud_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudlocationfinder_projects_locations_cloud_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudlocationfinderProjectsLocationsCloudLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations/{cloudLocationsId}
+/// Retrieves a resource containing information about a cloud location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudlocationfinder_projects_locations_cloud_locations_get_builder()` + `cloudlocationfinder_projects_locations_cloud_locations_get_execute()`.
+/// For task-level control, use `cloudlocationfinder_projects_locations_cloud_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_get(
+    client: &SimpleHttpClient,
+    args: &CloudlocationfinderProjectsLocationsCloudLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CloudLocation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudlocationfinder_projects_locations_cloud_locations_get_builder(client, &args.name)?;
+    cloudlocationfinder_projects_locations_cloud_locations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations
+/// Lists cloud locations under a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudlocationfinder_projects_locations_cloud_locations_list_execute()` to send, or `cloudlocationfinder_projects_locations_cloud_locations_list` for simplest API.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudLocations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations
+/// Lists cloud locations under a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudlocationfinder_projects_locations_cloud_locations_list_execute()` or `cloudlocationfinder_projects_locations_cloud_locations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudlocationfinder_projects_locations_cloud_locations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCloudLocationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCloudLocationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations
+/// Lists cloud locations under a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudlocationfinder_projects_locations_cloud_locations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudlocationfinder_projects_locations_cloud_locations_list_task()`.
+/// For the simplest API, use `cloudlocationfinder_projects_locations_cloud_locations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudlocationfinder_projects_locations_cloud_locations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCloudLocationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudlocationfinder_projects_locations_cloud_locations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudlocationfinder_projects_locations_cloud_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudlocationfinderProjectsLocationsCloudLocationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations
+/// Lists cloud locations under a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudlocationfinder_projects_locations_cloud_locations_list_builder()` + `cloudlocationfinder_projects_locations_cloud_locations_list_execute()`.
+/// For task-level control, use `cloudlocationfinder_projects_locations_cloud_locations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_list(
+    client: &SimpleHttpClient,
+    args: &CloudlocationfinderProjectsLocationsCloudLocationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCloudLocationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudlocationfinder_projects_locations_cloud_locations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    cloudlocationfinder_projects_locations_cloud_locations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations:search
+/// Searches for cloud locations from a given source location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudlocationfinder_projects_locations_cloud_locations_search_execute()` to send, or `cloudlocationfinder_projects_locations_cloud_locations_search` for simplest API.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_search_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    query: &Option<Option<String>>,
+    sourceCloudLocation: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudlocationfinder.googleapis.com/v1/projects/{}/locations/{locationsId}/cloudLocations:search",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = query.as_ref() {
+        query_parts.push(format!("query={}", val));
+    }
+    if let Some(val) = sourceCloudLocation.as_ref() {
+        query_parts.push(format!("sourceCloudLocation={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations:search
+/// Searches for cloud locations from a given source location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudlocationfinder_projects_locations_cloud_locations_search_execute()` or `cloudlocationfinder_projects_locations_cloud_locations_search`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudlocationfinder_projects_locations_cloud_locations_search_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_search_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchCloudLocationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SearchCloudLocationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations:search
+/// Searches for cloud locations from a given source location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudlocationfinder_projects_locations_cloud_locations_search_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudlocationfinder_projects_locations_cloud_locations_search_task()`.
+/// For the simplest API, use `cloudlocationfinder_projects_locations_cloud_locations_search()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudlocationfinder_projects_locations_cloud_locations_search_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_search_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SearchCloudLocationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudlocationfinder_projects_locations_cloud_locations_search_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudlocationfinder_projects_locations_cloud_locations_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudlocationfinderProjectsLocationsCloudLocationsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: query
+    pub query: Option<Option<String>>,
+    /// Query parameter: sourceCloudLocation
+    pub sourceCloudLocation: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations:search
+/// Searches for cloud locations from a given source location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudlocationfinder_projects_locations_cloud_locations_search_builder()` + `cloudlocationfinder_projects_locations_cloud_locations_search_execute()`.
+/// For task-level control, use `cloudlocationfinder_projects_locations_cloud_locations_search_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudlocationfinder_projects_locations_cloud_locations_search(
+    client: &SimpleHttpClient,
+    args: &CloudlocationfinderProjectsLocationsCloudLocationsSearchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SearchCloudLocationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudlocationfinder_projects_locations_cloud_locations_search_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.query,
+        &args.sourceCloudLocation,
+    )?;
+    cloudlocationfinder_projects_locations_cloud_locations_search_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with CloudlocationfinderProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudlocationfinderProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &CloudlocationfinderProjectsLocationsGetArgs) -> String {
+        format!("gcp::cloudlocationfinder::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudlocationfinder::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with CloudlocationfinderProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudlocationfinderProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &CloudlocationfinderProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::cloudlocationfinder::ListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudlocationfinder::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CloudLocation
+// =============================================================================
+
+/// ResourceIdentifier implementation for CloudLocation with CloudlocationfinderProjectsLocationsCloudLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudlocationfinderProjectsLocationsCloudLocationsGetArgs>
+    for CloudLocation
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudlocationfinderProjectsLocationsCloudLocationsGetArgs,
+    ) -> String {
+        format!("gcp::cloudlocationfinder::CloudLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudlocationfinder::CloudLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCloudLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCloudLocationsResponse with CloudlocationfinderProjectsLocationsCloudLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudlocationfinderProjectsLocationsCloudLocationsListArgs>
+    for ListCloudLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudlocationfinderProjectsLocationsCloudLocationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudlocationfinder::ListCloudLocationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudlocationfinder::ListCloudLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchCloudLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchCloudLocationsResponse with CloudlocationfinderProjectsLocationsCloudLocationsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudlocationfinderProjectsLocationsCloudLocationsSearchArgs>
+    for SearchCloudLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudlocationfinderProjectsLocationsCloudLocationsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudlocationfinder::SearchCloudLocationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudlocationfinder::SearchCloudLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

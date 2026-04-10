@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/jobs
+/// POST v1/jobs
 /// Creates a job and returns it.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,8 +28,7 @@ use serde::Serialize;
 
 pub fn youtubereporting_jobs_create_builder(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: &Option<String>,
-    body: &Job,
+    onBehalfOfContentOwner: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs",);
@@ -47,15 +46,13 @@ pub fn youtubereporting_jobs_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/jobs
+/// POST v1/jobs
 /// Creates a job and returns it.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -129,7 +126,7 @@ pub fn youtubereporting_jobs_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/jobs
+/// POST v1/jobs
 /// Creates a job and returns it.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -163,12 +160,10 @@ pub fn youtubereporting_jobs_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubereportingJobsCreateArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
-    /// Request body.
-    pub body: Job,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
 }
 
-/// GET v1/jobs
+/// POST v1/jobs
 /// Creates a job and returns it.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -186,12 +181,11 @@ pub fn youtubereporting_jobs_create(
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        youtubereporting_jobs_create_builder(client, &args.onBehalfOfContentOwner, &args.body)?;
+    let builder = youtubereporting_jobs_create_builder(client, &args.onBehalfOfContentOwner)?;
     youtubereporting_jobs_create_execute(builder)
 }
 
-/// GET v1/jobs/{jobId}
+/// DELETE v1/jobs/{jobId}
 /// Deletes a job.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -200,7 +194,7 @@ pub fn youtubereporting_jobs_create(
 pub fn youtubereporting_jobs_delete_builder(
     client: &SimpleHttpClient,
     jobId: &String,
-    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs/{}", jobId,);
@@ -218,13 +212,13 @@ pub fn youtubereporting_jobs_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/jobs/{jobId}
+/// DELETE v1/jobs/{jobId}
 /// Deletes a job.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -298,7 +292,7 @@ pub fn youtubereporting_jobs_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/jobs/{jobId}
+/// DELETE v1/jobs/{jobId}
 /// Deletes a job.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -334,10 +328,10 @@ pub struct YoutubereportingJobsDeleteArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
 }
 
-/// GET v1/jobs/{jobId}
+/// DELETE v1/jobs/{jobId}
 /// Deletes a job.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -360,6 +354,368 @@ pub fn youtubereporting_jobs_delete(
     youtubereporting_jobs_delete_execute(builder)
 }
 
+/// GET v1/jobs/{jobId}
+/// Gets a job.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtubereporting_jobs_get_execute()` to send, or `youtubereporting_jobs_get` for simplest API.
+
+pub fn youtubereporting_jobs_get_builder(
+    client: &SimpleHttpClient,
+    jobId: &String,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs/{}", jobId,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/jobs/{jobId}
+/// Gets a job.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtubereporting_jobs_get_execute()` or `youtubereporting_jobs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtubereporting_jobs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtubereporting_jobs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Job = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/jobs/{jobId}
+/// Gets a job.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtubereporting_jobs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtubereporting_jobs_get_task()`.
+/// For the simplest API, use `youtubereporting_jobs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtubereporting_jobs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtubereporting_jobs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtubereporting_jobs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtubereporting_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubereportingJobsGetArgs {
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// GET v1/jobs/{jobId}
+/// Gets a job.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtubereporting_jobs_get_builder()` + `youtubereporting_jobs_get_execute()`.
+/// For task-level control, use `youtubereporting_jobs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtubereporting_jobs_get(
+    client: &SimpleHttpClient,
+    args: &YoutubereportingJobsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        youtubereporting_jobs_get_builder(client, &args.jobId, &args.onBehalfOfContentOwner)?;
+    youtubereporting_jobs_get_execute(builder)
+}
+
+/// GET v1/jobs
+/// Lists jobs.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtubereporting_jobs_list_execute()` to send, or `youtubereporting_jobs_list` for simplest API.
+
+pub fn youtubereporting_jobs_list_builder(
+    client: &SimpleHttpClient,
+    includeSystemManaged: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/jobs",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = includeSystemManaged.as_ref() {
+        query_parts.push(format!("includeSystemManaged={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/jobs
+/// Lists jobs.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtubereporting_jobs_list_execute()` or `youtubereporting_jobs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtubereporting_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtubereporting_jobs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListJobsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListJobsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/jobs
+/// Lists jobs.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtubereporting_jobs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtubereporting_jobs_list_task()`.
+/// For the simplest API, use `youtubereporting_jobs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtubereporting_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtubereporting_jobs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtubereporting_jobs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtubereporting_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubereportingJobsListArgs {
+    /// Query parameter: includeSystemManaged
+    pub includeSystemManaged: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/jobs
+/// Lists jobs.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtubereporting_jobs_list_builder()` + `youtubereporting_jobs_list_execute()`.
+/// For task-level control, use `youtubereporting_jobs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtubereporting_jobs_list(
+    client: &SimpleHttpClient,
+    args: &YoutubereportingJobsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtubereporting_jobs_list_builder(
+        client,
+        &args.includeSystemManaged,
+        &args.onBehalfOfContentOwner,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    youtubereporting_jobs_list_execute(builder)
+}
+
 /// GET v1/jobs/{jobId}/reports/{reportId}
 /// Gets the metadata of a specific report.
 ///
@@ -370,7 +726,7 @@ pub fn youtubereporting_jobs_reports_get_builder(
     client: &SimpleHttpClient,
     jobId: &String,
     reportId: &String,
-    onBehalfOfContentOwner: &Option<String>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -509,7 +865,7 @@ pub struct YoutubereportingJobsReportsGetArgs {
     /// Path parameter: reportId
     pub reportId: String,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
 }
 
 /// GET v1/jobs/{jobId}/reports/{reportId}
@@ -548,12 +904,12 @@ pub fn youtubereporting_jobs_reports_get(
 pub fn youtubereporting_jobs_reports_list_builder(
     client: &SimpleHttpClient,
     jobId: &String,
-    createdAfter: &Option<String>,
-    onBehalfOfContentOwner: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    startTimeAtOrAfter: &Option<String>,
-    startTimeBefore: &Option<String>,
+    createdAfter: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    startTimeAtOrAfter: &Option<Option<String>>,
+    startTimeBefore: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -707,17 +1063,17 @@ pub struct YoutubereportingJobsReportsListArgs {
     /// Path parameter: jobId
     pub jobId: String,
     /// Query parameter: createdAfter
-    pub createdAfter: Option<String>,
+    pub createdAfter: Option<Option<String>>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: startTimeAtOrAfter
-    pub startTimeAtOrAfter: Option<String>,
+    pub startTimeAtOrAfter: Option<Option<String>>,
     /// Query parameter: startTimeBefore
-    pub startTimeBefore: Option<String>,
+    pub startTimeBefore: Option<Option<String>>,
 }
 
 /// GET v1/jobs/{jobId}/reports
@@ -764,7 +1120,10 @@ pub fn youtubereporting_media_download_builder(
     resourceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/media/{}",);
+    let endpoint_url = format!(
+        "https://youtubereporting.googleapis.com/v1/media/{}",
+        resourceName,
+    );
 
     // Build request
     let builder = client
@@ -915,10 +1274,10 @@ pub fn youtubereporting_media_download(
 
 pub fn youtubereporting_report_types_list_builder(
     client: &SimpleHttpClient,
-    includeSystemManaged: &Option<bool>,
-    onBehalfOfContentOwner: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    includeSystemManaged: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtubereporting.googleapis.com/v1/reportTypes",);
@@ -1061,13 +1420,13 @@ pub fn youtubereporting_report_types_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubereportingReportTypesListArgs {
     /// Query parameter: includeSystemManaged
-    pub includeSystemManaged: Option<bool>,
+    pub includeSystemManaged: Option<Option<String>>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/reportTypes
@@ -1098,4 +1457,191 @@ pub fn youtubereporting_report_types_list(
         &args.pageToken,
     )?;
     youtubereporting_report_types_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with YoutubereportingJobsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubereportingJobsCreateArgs> for Job {
+    fn generate_resource_id(&self, input: &YoutubereportingJobsCreateArgs) -> String {
+        "gcp::youtubereporting::Job".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubereporting::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with YoutubereportingJobsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubereportingJobsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &YoutubereportingJobsDeleteArgs) -> String {
+        format!("gcp::youtubereporting::Empty/{}", input.jobId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubereporting::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with YoutubereportingJobsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubereportingJobsGetArgs> for Job {
+    fn generate_resource_id(&self, input: &YoutubereportingJobsGetArgs) -> String {
+        format!("gcp::youtubereporting::Job/{}", input.jobId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubereporting::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListJobsResponse with YoutubereportingJobsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubereportingJobsListArgs> for ListJobsResponse {
+    fn generate_resource_id(&self, input: &YoutubereportingJobsListArgs) -> String {
+        "gcp::youtubereporting::ListJobsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubereporting::ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Report
+// =============================================================================
+
+/// ResourceIdentifier implementation for Report with YoutubereportingJobsReportsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubereportingJobsReportsGetArgs> for Report {
+    fn generate_resource_id(&self, input: &YoutubereportingJobsReportsGetArgs) -> String {
+        format!(
+            "gcp::youtubereporting::Report/{}/{}",
+            input.jobId, input.reportId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubereporting::Report"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListReportsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListReportsResponse with YoutubereportingJobsReportsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubereportingJobsReportsListArgs> for ListReportsResponse {
+    fn generate_resource_id(&self, input: &YoutubereportingJobsReportsListArgs) -> String {
+        format!("gcp::youtubereporting::ListReportsResponse/{}", input.jobId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubereporting::ListReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GdataMedia
+// =============================================================================
+
+/// ResourceIdentifier implementation for GdataMedia with YoutubereportingMediaDownloadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubereportingMediaDownloadArgs> for GdataMedia {
+    fn generate_resource_id(&self, input: &YoutubereportingMediaDownloadArgs) -> String {
+        format!("gcp::youtubereporting::GdataMedia/{}", input.resourceName)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubereporting::GdataMedia"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListReportTypesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListReportTypesResponse with YoutubereportingReportTypesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubereportingReportTypesListArgs> for ListReportTypesResponse {
+    fn generate_resource_id(&self, input: &YoutubereportingReportTypesListArgs) -> String {
+        "gcp::youtubereporting::ListReportTypesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtubereporting::ListReportTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

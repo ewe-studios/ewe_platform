@@ -10,6 +10,41 @@
 use crate::spec::Parameter;
 use std::collections::BTreeMap;
 
+/// Classification of endpoint operation type.
+#[derive(Debug, Clone, PartialEq)]
+pub enum OperationType {
+    /// Creates a new resource (e.g., createInstance, insertRow)
+    Create,
+    /// Reads/fetches resource state without modification (e.g., get, list, search)
+    Read,
+    /// Updates existing resource (e.g., update, patch, modify)
+    Update,
+    /// Removes resource (e.g., delete, remove, destroy)
+    Delete,
+    /// Action that may or may not modify state (e.g., cancel, trigger, invoke)
+    Action(OperationEffect),
+}
+
+/// Effect classification for Action operations.
+#[derive(Debug, Clone, PartialEq)]
+pub enum OperationEffect {
+    /// Action modifies state (e.g., cancelOperation, startInstance)
+    Mutating,
+    /// Action is informational only (e.g., testIamPermissions, export)
+    ReadOnly,
+}
+
+impl OperationType {
+    /// Check if this operation type should wrap with StoreStateIdentifierTask.
+    pub fn requires_state_tracking(&self) -> bool {
+        match self {
+            OperationType::Create | OperationType::Update | OperationType::Delete => true,
+            OperationType::Read => false,
+            OperationType::Action(effect) => matches!(effect, OperationEffect::Mutating),
+        }
+    }
+}
+
 /// A single API endpoint extracted from an OpenAPI spec.
 #[derive(Debug, Clone)]
 pub struct EndpointInfo {
@@ -35,6 +70,8 @@ pub struct EndpointInfo {
     pub base_url: Option<String>,
     /// Summary/description
     pub summary: Option<String>,
+    /// Operation type classification
+    pub operation_type: OperationType,
 }
 
 /// Response type discriminator.

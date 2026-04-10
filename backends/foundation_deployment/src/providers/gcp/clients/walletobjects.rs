@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET walletobjects/v1/eventTicketClass/{resourceId}/addMessage
+/// POST walletobjects/v1/eventTicketClass/{resourceId}/addMessage
 /// Adds a message to the event ticket class referenced by the given class ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,7 +29,6 @@ use serde::Serialize;
 pub fn walletobjects_eventticketclass_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -39,15 +38,13 @@ pub fn walletobjects_eventticketclass_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/eventTicketClass/{resourceId}/addMessage
+/// POST walletobjects/v1/eventTicketClass/{resourceId}/addMessage
 /// Adds a message to the event ticket class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -121,7 +118,7 @@ pub fn walletobjects_eventticketclass_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/eventTicketClass/{resourceId}/addMessage
+/// POST walletobjects/v1/eventTicketClass/{resourceId}/addMessage
 /// Adds a message to the event ticket class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -160,11 +157,9 @@ pub fn walletobjects_eventticketclass_addmessage_execute(
 pub struct WalletobjectsEventticketclassAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/eventTicketClass/{resourceId}/addMessage
+/// POST walletobjects/v1/eventTicketClass/{resourceId}/addMessage
 /// Adds a message to the event ticket class referenced by the given class ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -186,8 +181,7 @@ pub fn walletobjects_eventticketclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_eventticketclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_eventticketclass_addmessage_builder(client, &args.resourceId)?;
     walletobjects_eventticketclass_addmessage_execute(builder)
 }
 
@@ -352,7 +346,7 @@ pub fn walletobjects_eventticketclass_get(
     walletobjects_eventticketclass_get_execute(builder)
 }
 
-/// GET walletobjects/v1/eventTicketClass
+/// POST walletobjects/v1/eventTicketClass
 /// Inserts an event ticket class with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -360,7 +354,6 @@ pub fn walletobjects_eventticketclass_get(
 
 pub fn walletobjects_eventticketclass_insert_builder(
     client: &SimpleHttpClient,
-    body: &EventTicketClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -368,15 +361,13 @@ pub fn walletobjects_eventticketclass_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/eventTicketClass
+/// POST walletobjects/v1/eventTicketClass
 /// Inserts an event ticket class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -450,7 +441,7 @@ pub fn walletobjects_eventticketclass_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/eventTicketClass
+/// POST walletobjects/v1/eventTicketClass
 /// Inserts an event ticket class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -482,14 +473,7 @@ pub fn walletobjects_eventticketclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_eventticketclass_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsEventticketclassInsertArgs {
-    /// Request body.
-    pub body: EventTicketClass,
-}
-
-/// GET walletobjects/v1/eventTicketClass
+/// POST walletobjects/v1/eventTicketClass
 /// Inserts an event ticket class with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -502,18 +486,530 @@ pub struct WalletobjectsEventticketclassInsertArgs {
 
 pub fn walletobjects_eventticketclass_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsEventticketclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketclass_insert_builder(client, &args.body)?;
+    let builder = walletobjects_eventticketclass_insert_builder(client)?;
     walletobjects_eventticketclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/eventTicketObject/{resourceId}/addMessage
+/// GET walletobjects/v1/eventTicketClass
+/// Returns a list of all event ticket classes for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_eventticketclass_list_execute()` to send, or `walletobjects_eventticketclass_list` for simplest API.
+
+pub fn walletobjects_eventticketclass_list_builder(
+    client: &SimpleHttpClient,
+    issuerId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = issuerId.as_ref() {
+        query_parts.push(format!("issuerId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/eventTicketClass
+/// Returns a list of all event ticket classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_eventticketclass_list_execute()` or `walletobjects_eventticketclass_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketclass_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketClassListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EventTicketClassListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/eventTicketClass
+/// Returns a list of all event ticket classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_eventticketclass_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_eventticketclass_list_task()`.
+/// For the simplest API, use `walletobjects_eventticketclass_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_eventticketclass_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<EventTicketClassListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_eventticketclass_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_eventticketclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/eventTicketClass
+/// Returns a list of all event ticket classes for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_eventticketclass_list_builder()` + `walletobjects_eventticketclass_list_execute()`.
+/// For task-level control, use `walletobjects_eventticketclass_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketclass_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsEventticketclassListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<EventTicketClassListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_eventticketclass_list_builder(
+        client,
+        &args.issuerId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_eventticketclass_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/eventTicketClass/{resourceId}
+/// Updates the event ticket class referenced by the given class ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_eventticketclass_patch_execute()` to send, or `walletobjects_eventticketclass_patch` for simplest API.
+
+pub fn walletobjects_eventticketclass_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/eventTicketClass/{resourceId}
+/// Updates the event ticket class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_eventticketclass_patch_execute()` or `walletobjects_eventticketclass_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketclass_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EventTicketClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/eventTicketClass/{resourceId}
+/// Updates the event ticket class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_eventticketclass_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_eventticketclass_patch_task()`.
+/// For the simplest API, use `walletobjects_eventticketclass_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_eventticketclass_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_eventticketclass_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_eventticketclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/eventTicketClass/{resourceId}
+/// Updates the event ticket class referenced by the given class ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_eventticketclass_patch_builder()` + `walletobjects_eventticketclass_patch_execute()`.
+/// For task-level control, use `walletobjects_eventticketclass_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketclass_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsEventticketclassPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_eventticketclass_patch_builder(client, &args.resourceId)?;
+    walletobjects_eventticketclass_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/eventTicketClass/{resourceId}
+/// Updates the event ticket class referenced by the given class ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_eventticketclass_update_execute()` to send, or `walletobjects_eventticketclass_update` for simplest API.
+
+pub fn walletobjects_eventticketclass_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/eventTicketClass/{resourceId}
+/// Updates the event ticket class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_eventticketclass_update_execute()` or `walletobjects_eventticketclass_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketclass_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EventTicketClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/eventTicketClass/{resourceId}
+/// Updates the event ticket class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_eventticketclass_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_eventticketclass_update_task()`.
+/// For the simplest API, use `walletobjects_eventticketclass_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_eventticketclass_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_eventticketclass_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_eventticketclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/eventTicketClass/{resourceId}
+/// Updates the event ticket class referenced by the given class ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_eventticketclass_update_builder()` + `walletobjects_eventticketclass_update_execute()`.
+/// For task-level control, use `walletobjects_eventticketclass_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketclass_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsEventticketclassUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_eventticketclass_update_builder(client, &args.resourceId)?;
+    walletobjects_eventticketclass_update_execute(builder)
+}
+
+/// POST walletobjects/v1/eventTicketObject/{resourceId}/addMessage
 /// Adds a message to the event ticket object referenced by the given object ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -522,7 +1018,6 @@ pub fn walletobjects_eventticketclass_insert(
 pub fn walletobjects_eventticketobject_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -532,15 +1027,13 @@ pub fn walletobjects_eventticketobject_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/eventTicketObject/{resourceId}/addMessage
+/// POST walletobjects/v1/eventTicketObject/{resourceId}/addMessage
 /// Adds a message to the event ticket object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -614,7 +1107,7 @@ pub fn walletobjects_eventticketobject_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/eventTicketObject/{resourceId}/addMessage
+/// POST walletobjects/v1/eventTicketObject/{resourceId}/addMessage
 /// Adds a message to the event ticket object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -653,11 +1146,9 @@ pub fn walletobjects_eventticketobject_addmessage_execute(
 pub struct WalletobjectsEventticketobjectAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/eventTicketObject/{resourceId}/addMessage
+/// POST walletobjects/v1/eventTicketObject/{resourceId}/addMessage
 /// Adds a message to the event ticket object referenced by the given object ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -679,8 +1170,7 @@ pub fn walletobjects_eventticketobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_eventticketobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_eventticketobject_addmessage_builder(client, &args.resourceId)?;
     walletobjects_eventticketobject_addmessage_execute(builder)
 }
 
@@ -845,7 +1335,7 @@ pub fn walletobjects_eventticketobject_get(
     walletobjects_eventticketobject_get_execute(builder)
 }
 
-/// GET walletobjects/v1/eventTicketObject
+/// POST walletobjects/v1/eventTicketObject
 /// Inserts an event ticket object with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -853,7 +1343,6 @@ pub fn walletobjects_eventticketobject_get(
 
 pub fn walletobjects_eventticketobject_insert_builder(
     client: &SimpleHttpClient,
-    body: &EventTicketObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -861,15 +1350,13 @@ pub fn walletobjects_eventticketobject_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/eventTicketObject
+/// POST walletobjects/v1/eventTicketObject
 /// Inserts an event ticket object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -943,7 +1430,7 @@ pub fn walletobjects_eventticketobject_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/eventTicketObject
+/// POST walletobjects/v1/eventTicketObject
 /// Inserts an event ticket object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -975,14 +1462,7 @@ pub fn walletobjects_eventticketobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_eventticketobject_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsEventticketobjectInsertArgs {
-    /// Request body.
-    pub body: EventTicketObject,
-}
-
-/// GET walletobjects/v1/eventTicketObject
+/// POST walletobjects/v1/eventTicketObject
 /// Inserts an event ticket object with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -995,18 +1475,208 @@ pub struct WalletobjectsEventticketobjectInsertArgs {
 
 pub fn walletobjects_eventticketobject_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsEventticketobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_insert_builder(client, &args.body)?;
+    let builder = walletobjects_eventticketobject_insert_builder(client)?;
     walletobjects_eventticketobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/eventTicketObject/{resourceId}/modifyLinkedOfferObjects
+/// GET walletobjects/v1/eventTicketObject
+/// Returns a list of all event ticket objects for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_eventticketobject_list_execute()` to send, or `walletobjects_eventticketobject_list` for simplest API.
+
+pub fn walletobjects_eventticketobject_list_builder(
+    client: &SimpleHttpClient,
+    classId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = classId.as_ref() {
+        query_parts.push(format!("classId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/eventTicketObject
+/// Returns a list of all event ticket objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_eventticketobject_list_execute()` or `walletobjects_eventticketobject_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketobject_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketObjectListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EventTicketObjectListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/eventTicketObject
+/// Returns a list of all event ticket objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_eventticketobject_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_eventticketobject_list_task()`.
+/// For the simplest API, use `walletobjects_eventticketobject_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_eventticketobject_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<EventTicketObjectListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_eventticketobject_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_eventticketobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/eventTicketObject
+/// Returns a list of all event ticket objects for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_eventticketobject_list_builder()` + `walletobjects_eventticketobject_list_execute()`.
+/// For task-level control, use `walletobjects_eventticketobject_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketobject_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsEventticketobjectListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<EventTicketObjectListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_eventticketobject_list_builder(
+        client,
+        &args.classId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_eventticketobject_list_execute(builder)
+}
+
+/// POST walletobjects/v1/eventTicketObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the event ticket object with the given ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1015,7 +1685,6 @@ pub fn walletobjects_eventticketobject_insert(
 pub fn walletobjects_eventticketobject_modifylinkedofferobjects_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &ModifyLinkedOfferObjectsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1025,15 +1694,13 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/eventTicketObject/{resourceId}/modifyLinkedOfferObjects
+/// POST walletobjects/v1/eventTicketObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the event ticket object with the given ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1107,7 +1774,7 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/eventTicketObject/{resourceId}/modifyLinkedOfferObjects
+/// POST walletobjects/v1/eventTicketObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the event ticket object with the given ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1144,11 +1811,9 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects_execute(
 pub struct WalletobjectsEventticketobjectModifylinkedofferobjectsArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: ModifyLinkedOfferObjectsRequest,
 }
 
-/// GET walletobjects/v1/eventTicketObject/{resourceId}/modifyLinkedOfferObjects
+/// POST walletobjects/v1/eventTicketObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the event ticket object with the given ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1168,15 +1833,334 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_modifylinkedofferobjects_builder(
-        client,
-        &args.resourceId,
-        &args.body,
-    )?;
+    let builder =
+        walletobjects_eventticketobject_modifylinkedofferobjects_builder(client, &args.resourceId)?;
     walletobjects_eventticketobject_modifylinkedofferobjects_execute(builder)
 }
 
-/// GET walletobjects/v1/flightClass/{resourceId}/addMessage
+/// PATCH walletobjects/v1/eventTicketObject/{resourceId}
+/// Updates the event ticket object referenced by the given object ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_eventticketobject_patch_execute()` to send, or `walletobjects_eventticketobject_patch` for simplest API.
+
+pub fn walletobjects_eventticketobject_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/eventTicketObject/{resourceId}
+/// Updates the event ticket object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_eventticketobject_patch_execute()` or `walletobjects_eventticketobject_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketobject_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EventTicketObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/eventTicketObject/{resourceId}
+/// Updates the event ticket object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_eventticketobject_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_eventticketobject_patch_task()`.
+/// For the simplest API, use `walletobjects_eventticketobject_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_eventticketobject_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_eventticketobject_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_eventticketobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/eventTicketObject/{resourceId}
+/// Updates the event ticket object referenced by the given object ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_eventticketobject_patch_builder()` + `walletobjects_eventticketobject_patch_execute()`.
+/// For task-level control, use `walletobjects_eventticketobject_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketobject_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsEventticketobjectPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_eventticketobject_patch_builder(client, &args.resourceId)?;
+    walletobjects_eventticketobject_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/eventTicketObject/{resourceId}
+/// Updates the event ticket object referenced by the given object ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_eventticketobject_update_execute()` to send, or `walletobjects_eventticketobject_update` for simplest API.
+
+pub fn walletobjects_eventticketobject_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/eventTicketObject/{resourceId}
+/// Updates the event ticket object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_eventticketobject_update_execute()` or `walletobjects_eventticketobject_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketobject_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EventTicketObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/eventTicketObject/{resourceId}
+/// Updates the event ticket object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_eventticketobject_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_eventticketobject_update_task()`.
+/// For the simplest API, use `walletobjects_eventticketobject_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_eventticketobject_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_eventticketobject_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_eventticketobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/eventTicketObject/{resourceId}
+/// Updates the event ticket object referenced by the given object ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_eventticketobject_update_builder()` + `walletobjects_eventticketobject_update_execute()`.
+/// For task-level control, use `walletobjects_eventticketobject_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_eventticketobject_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsEventticketobjectUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_eventticketobject_update_builder(client, &args.resourceId)?;
+    walletobjects_eventticketobject_update_execute(builder)
+}
+
+/// POST walletobjects/v1/flightClass/{resourceId}/addMessage
 /// Adds a message to the flight class referenced by the given class ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1185,7 +2169,6 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects(
 pub fn walletobjects_flightclass_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1195,15 +2178,13 @@ pub fn walletobjects_flightclass_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/flightClass/{resourceId}/addMessage
+/// POST walletobjects/v1/flightClass/{resourceId}/addMessage
 /// Adds a message to the flight class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1277,7 +2258,7 @@ pub fn walletobjects_flightclass_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/flightClass/{resourceId}/addMessage
+/// POST walletobjects/v1/flightClass/{resourceId}/addMessage
 /// Adds a message to the flight class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1316,11 +2297,9 @@ pub fn walletobjects_flightclass_addmessage_execute(
 pub struct WalletobjectsFlightclassAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/flightClass/{resourceId}/addMessage
+/// POST walletobjects/v1/flightClass/{resourceId}/addMessage
 /// Adds a message to the flight class referenced by the given class ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1342,8 +2321,7 @@ pub fn walletobjects_flightclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_flightclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_flightclass_addmessage_builder(client, &args.resourceId)?;
     walletobjects_flightclass_addmessage_execute(builder)
 }
 
@@ -1504,7 +2482,7 @@ pub fn walletobjects_flightclass_get(
     walletobjects_flightclass_get_execute(builder)
 }
 
-/// GET walletobjects/v1/flightClass
+/// POST walletobjects/v1/flightClass
 /// Inserts an flight class with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1512,7 +2490,6 @@ pub fn walletobjects_flightclass_get(
 
 pub fn walletobjects_flightclass_insert_builder(
     client: &SimpleHttpClient,
-    body: &FlightClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1520,15 +2497,13 @@ pub fn walletobjects_flightclass_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/flightClass
+/// POST walletobjects/v1/flightClass
 /// Inserts an flight class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1602,7 +2577,7 @@ pub fn walletobjects_flightclass_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/flightClass
+/// POST walletobjects/v1/flightClass
 /// Inserts an flight class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1632,14 +2607,7 @@ pub fn walletobjects_flightclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_flightclass_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsFlightclassInsertArgs {
-    /// Request body.
-    pub body: FlightClass,
-}
-
-/// GET walletobjects/v1/flightClass
+/// POST walletobjects/v1/flightClass
 /// Inserts an flight class with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1652,16 +2620,516 @@ pub struct WalletobjectsFlightclassInsertArgs {
 
 pub fn walletobjects_flightclass_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsFlightclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightclass_insert_builder(client, &args.body)?;
+    let builder = walletobjects_flightclass_insert_builder(client)?;
     walletobjects_flightclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/flightObject/{resourceId}/addMessage
+/// GET walletobjects/v1/flightClass
+/// Returns a list of all flight classes for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_flightclass_list_execute()` to send, or `walletobjects_flightclass_list` for simplest API.
+
+pub fn walletobjects_flightclass_list_builder(
+    client: &SimpleHttpClient,
+    issuerId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/flightClass",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = issuerId.as_ref() {
+        query_parts.push(format!("issuerId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/flightClass
+/// Returns a list of all flight classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_flightclass_list_execute()` or `walletobjects_flightclass_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightclass_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FlightClassListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FlightClassListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/flightClass
+/// Returns a list of all flight classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_flightclass_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_flightclass_list_task()`.
+/// For the simplest API, use `walletobjects_flightclass_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_flightclass_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_flightclass_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_flightclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/flightClass
+/// Returns a list of all flight classes for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_flightclass_list_builder()` + `walletobjects_flightclass_list_execute()`.
+/// For task-level control, use `walletobjects_flightclass_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightclass_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsFlightclassListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_flightclass_list_builder(
+        client,
+        &args.issuerId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_flightclass_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/flightClass/{resourceId}
+/// Updates the flight class referenced by the given class ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_flightclass_patch_execute()` to send, or `walletobjects_flightclass_patch` for simplest API.
+
+pub fn walletobjects_flightclass_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/flightClass/{resourceId}
+/// Updates the flight class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_flightclass_patch_execute()` or `walletobjects_flightclass_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightclass_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FlightClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FlightClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/flightClass/{resourceId}
+/// Updates the flight class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_flightclass_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_flightclass_patch_task()`.
+/// For the simplest API, use `walletobjects_flightclass_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_flightclass_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = walletobjects_flightclass_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_flightclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/flightClass/{resourceId}
+/// Updates the flight class referenced by the given class ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_flightclass_patch_builder()` + `walletobjects_flightclass_patch_execute()`.
+/// For task-level control, use `walletobjects_flightclass_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightclass_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsFlightclassPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_flightclass_patch_builder(client, &args.resourceId)?;
+    walletobjects_flightclass_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/flightClass/{resourceId}
+/// Updates the flight class referenced by the given class ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_flightclass_update_execute()` to send, or `walletobjects_flightclass_update` for simplest API.
+
+pub fn walletobjects_flightclass_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/flightClass/{resourceId}
+/// Updates the flight class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_flightclass_update_execute()` or `walletobjects_flightclass_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightclass_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FlightClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FlightClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/flightClass/{resourceId}
+/// Updates the flight class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_flightclass_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_flightclass_update_task()`.
+/// For the simplest API, use `walletobjects_flightclass_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_flightclass_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = walletobjects_flightclass_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_flightclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/flightClass/{resourceId}
+/// Updates the flight class referenced by the given class ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_flightclass_update_builder()` + `walletobjects_flightclass_update_execute()`.
+/// For task-level control, use `walletobjects_flightclass_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightclass_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsFlightclassUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_flightclass_update_builder(client, &args.resourceId)?;
+    walletobjects_flightclass_update_execute(builder)
+}
+
+/// POST walletobjects/v1/flightObject/{resourceId}/addMessage
 /// Adds a message to the flight object referenced by the given object ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1670,7 +3138,6 @@ pub fn walletobjects_flightclass_insert(
 pub fn walletobjects_flightobject_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1680,15 +3147,13 @@ pub fn walletobjects_flightobject_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/flightObject/{resourceId}/addMessage
+/// POST walletobjects/v1/flightObject/{resourceId}/addMessage
 /// Adds a message to the flight object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1762,7 +3227,7 @@ pub fn walletobjects_flightobject_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/flightObject/{resourceId}/addMessage
+/// POST walletobjects/v1/flightObject/{resourceId}/addMessage
 /// Adds a message to the flight object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1801,11 +3266,9 @@ pub fn walletobjects_flightobject_addmessage_execute(
 pub struct WalletobjectsFlightobjectAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/flightObject/{resourceId}/addMessage
+/// POST walletobjects/v1/flightObject/{resourceId}/addMessage
 /// Adds a message to the flight object referenced by the given object ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1827,8 +3290,7 @@ pub fn walletobjects_flightobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_flightobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_flightobject_addmessage_builder(client, &args.resourceId)?;
     walletobjects_flightobject_addmessage_execute(builder)
 }
 
@@ -1993,7 +3455,7 @@ pub fn walletobjects_flightobject_get(
     walletobjects_flightobject_get_execute(builder)
 }
 
-/// GET walletobjects/v1/flightObject
+/// POST walletobjects/v1/flightObject
 /// Inserts an flight object with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2001,7 +3463,6 @@ pub fn walletobjects_flightobject_get(
 
 pub fn walletobjects_flightobject_insert_builder(
     client: &SimpleHttpClient,
-    body: &FlightObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2009,15 +3470,13 @@ pub fn walletobjects_flightobject_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/flightObject
+/// POST walletobjects/v1/flightObject
 /// Inserts an flight object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2091,7 +3550,7 @@ pub fn walletobjects_flightobject_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/flightObject
+/// POST walletobjects/v1/flightObject
 /// Inserts an flight object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2123,14 +3582,7 @@ pub fn walletobjects_flightobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_flightobject_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsFlightobjectInsertArgs {
-    /// Request body.
-    pub body: FlightObject,
-}
-
-/// GET walletobjects/v1/flightObject
+/// POST walletobjects/v1/flightObject
 /// Inserts an flight object with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2143,18 +3595,526 @@ pub struct WalletobjectsFlightobjectInsertArgs {
 
 pub fn walletobjects_flightobject_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsFlightobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightobject_insert_builder(client, &args.body)?;
+    let builder = walletobjects_flightobject_insert_builder(client)?;
     walletobjects_flightobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/genericClass/{resourceId}/addMessage
+/// GET walletobjects/v1/flightObject
+/// Returns a list of all flight objects for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_flightobject_list_execute()` to send, or `walletobjects_flightobject_list` for simplest API.
+
+pub fn walletobjects_flightobject_list_builder(
+    client: &SimpleHttpClient,
+    classId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/flightObject",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = classId.as_ref() {
+        query_parts.push(format!("classId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/flightObject
+/// Returns a list of all flight objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_flightobject_list_execute()` or `walletobjects_flightobject_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightobject_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FlightObjectListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FlightObjectListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/flightObject
+/// Returns a list of all flight objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_flightobject_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_flightobject_list_task()`.
+/// For the simplest API, use `walletobjects_flightobject_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_flightobject_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightObjectListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_flightobject_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_flightobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/flightObject
+/// Returns a list of all flight objects for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_flightobject_list_builder()` + `walletobjects_flightobject_list_execute()`.
+/// For task-level control, use `walletobjects_flightobject_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightobject_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsFlightobjectListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightObjectListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_flightobject_list_builder(
+        client,
+        &args.classId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_flightobject_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/flightObject/{resourceId}
+/// Updates the flight object referenced by the given object ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_flightobject_patch_execute()` to send, or `walletobjects_flightobject_patch` for simplest API.
+
+pub fn walletobjects_flightobject_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/flightObject/{resourceId}
+/// Updates the flight object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_flightobject_patch_execute()` or `walletobjects_flightobject_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightobject_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FlightObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FlightObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/flightObject/{resourceId}
+/// Updates the flight object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_flightobject_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_flightobject_patch_task()`.
+/// For the simplest API, use `walletobjects_flightobject_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_flightobject_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_flightobject_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_flightobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/flightObject/{resourceId}
+/// Updates the flight object referenced by the given object ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_flightobject_patch_builder()` + `walletobjects_flightobject_patch_execute()`.
+/// For task-level control, use `walletobjects_flightobject_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightobject_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsFlightobjectPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_flightobject_patch_builder(client, &args.resourceId)?;
+    walletobjects_flightobject_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/flightObject/{resourceId}
+/// Updates the flight object referenced by the given object ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_flightobject_update_execute()` to send, or `walletobjects_flightobject_update` for simplest API.
+
+pub fn walletobjects_flightobject_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/flightObject/{resourceId}
+/// Updates the flight object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_flightobject_update_execute()` or `walletobjects_flightobject_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightobject_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FlightObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FlightObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/flightObject/{resourceId}
+/// Updates the flight object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_flightobject_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_flightobject_update_task()`.
+/// For the simplest API, use `walletobjects_flightobject_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_flightobject_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_flightobject_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_flightobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/flightObject/{resourceId}
+/// Updates the flight object referenced by the given object ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_flightobject_update_builder()` + `walletobjects_flightobject_update_execute()`.
+/// For task-level control, use `walletobjects_flightobject_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_flightobject_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsFlightobjectUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_flightobject_update_builder(client, &args.resourceId)?;
+    walletobjects_flightobject_update_execute(builder)
+}
+
+/// POST walletobjects/v1/genericClass/{resourceId}/addMessage
 /// Adds a message to the generic class referenced by the given class ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2163,7 +4123,6 @@ pub fn walletobjects_flightobject_insert(
 pub fn walletobjects_genericclass_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2173,15 +4132,13 @@ pub fn walletobjects_genericclass_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/genericClass/{resourceId}/addMessage
+/// POST walletobjects/v1/genericClass/{resourceId}/addMessage
 /// Adds a message to the generic class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2255,7 +4212,7 @@ pub fn walletobjects_genericclass_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/genericClass/{resourceId}/addMessage
+/// POST walletobjects/v1/genericClass/{resourceId}/addMessage
 /// Adds a message to the generic class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2294,11 +4251,9 @@ pub fn walletobjects_genericclass_addmessage_execute(
 pub struct WalletobjectsGenericclassAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/genericClass/{resourceId}/addMessage
+/// POST walletobjects/v1/genericClass/{resourceId}/addMessage
 /// Adds a message to the generic class referenced by the given class ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2320,8 +4275,7 @@ pub fn walletobjects_genericclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_genericclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_genericclass_addmessage_builder(client, &args.resourceId)?;
     walletobjects_genericclass_addmessage_execute(builder)
 }
 
@@ -2486,7 +4440,7 @@ pub fn walletobjects_genericclass_get(
     walletobjects_genericclass_get_execute(builder)
 }
 
-/// GET walletobjects/v1/genericClass
+/// POST walletobjects/v1/genericClass
 /// Inserts a generic class with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2494,7 +4448,6 @@ pub fn walletobjects_genericclass_get(
 
 pub fn walletobjects_genericclass_insert_builder(
     client: &SimpleHttpClient,
-    body: &GenericClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2502,15 +4455,13 @@ pub fn walletobjects_genericclass_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/genericClass
+/// POST walletobjects/v1/genericClass
 /// Inserts a generic class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2584,7 +4535,7 @@ pub fn walletobjects_genericclass_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/genericClass
+/// POST walletobjects/v1/genericClass
 /// Inserts a generic class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2616,14 +4567,7 @@ pub fn walletobjects_genericclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_genericclass_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGenericclassInsertArgs {
-    /// Request body.
-    pub body: GenericClass,
-}
-
-/// GET walletobjects/v1/genericClass
+/// POST walletobjects/v1/genericClass
 /// Inserts a generic class with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2636,18 +4580,526 @@ pub struct WalletobjectsGenericclassInsertArgs {
 
 pub fn walletobjects_genericclass_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsGenericclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericclass_insert_builder(client, &args.body)?;
+    let builder = walletobjects_genericclass_insert_builder(client)?;
     walletobjects_genericclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/genericObject/{resourceId}/addMessage
+/// GET walletobjects/v1/genericClass
+/// Returns a list of all generic classes for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_genericclass_list_execute()` to send, or `walletobjects_genericclass_list` for simplest API.
+
+pub fn walletobjects_genericclass_list_builder(
+    client: &SimpleHttpClient,
+    issuerId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/genericClass",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = issuerId.as_ref() {
+        query_parts.push(format!("issuerId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/genericClass
+/// Returns a list of all generic classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_genericclass_list_execute()` or `walletobjects_genericclass_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericclass_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenericClassListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenericClassListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/genericClass
+/// Returns a list of all generic classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_genericclass_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_genericclass_list_task()`.
+/// For the simplest API, use `walletobjects_genericclass_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_genericclass_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_genericclass_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_genericclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/genericClass
+/// Returns a list of all generic classes for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_genericclass_list_builder()` + `walletobjects_genericclass_list_execute()`.
+/// For task-level control, use `walletobjects_genericclass_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericclass_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGenericclassListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_genericclass_list_builder(
+        client,
+        &args.issuerId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_genericclass_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/genericClass/{resourceId}
+/// Updates the generic class referenced by the given class ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_genericclass_patch_execute()` to send, or `walletobjects_genericclass_patch` for simplest API.
+
+pub fn walletobjects_genericclass_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/genericClass/{resourceId}
+/// Updates the generic class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_genericclass_patch_execute()` or `walletobjects_genericclass_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericclass_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenericClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenericClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/genericClass/{resourceId}
+/// Updates the generic class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_genericclass_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_genericclass_patch_task()`.
+/// For the simplest API, use `walletobjects_genericclass_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_genericclass_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_genericclass_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_genericclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/genericClass/{resourceId}
+/// Updates the generic class referenced by the given class ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_genericclass_patch_builder()` + `walletobjects_genericclass_patch_execute()`.
+/// For task-level control, use `walletobjects_genericclass_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericclass_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGenericclassPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_genericclass_patch_builder(client, &args.resourceId)?;
+    walletobjects_genericclass_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/genericClass/{resourceId}
+/// Updates the Generic class referenced by the given class ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_genericclass_update_execute()` to send, or `walletobjects_genericclass_update` for simplest API.
+
+pub fn walletobjects_genericclass_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/genericClass/{resourceId}
+/// Updates the Generic class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_genericclass_update_execute()` or `walletobjects_genericclass_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericclass_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenericClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenericClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/genericClass/{resourceId}
+/// Updates the Generic class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_genericclass_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_genericclass_update_task()`.
+/// For the simplest API, use `walletobjects_genericclass_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_genericclass_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_genericclass_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_genericclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/genericClass/{resourceId}
+/// Updates the Generic class referenced by the given class ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_genericclass_update_builder()` + `walletobjects_genericclass_update_execute()`.
+/// For task-level control, use `walletobjects_genericclass_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericclass_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGenericclassUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_genericclass_update_builder(client, &args.resourceId)?;
+    walletobjects_genericclass_update_execute(builder)
+}
+
+/// POST walletobjects/v1/genericObject/{resourceId}/addMessage
 /// Adds a message to the generic object referenced by the given object ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2656,7 +5108,6 @@ pub fn walletobjects_genericclass_insert(
 pub fn walletobjects_genericobject_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2666,15 +5117,13 @@ pub fn walletobjects_genericobject_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/genericObject/{resourceId}/addMessage
+/// POST walletobjects/v1/genericObject/{resourceId}/addMessage
 /// Adds a message to the generic object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2748,7 +5197,7 @@ pub fn walletobjects_genericobject_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/genericObject/{resourceId}/addMessage
+/// POST walletobjects/v1/genericObject/{resourceId}/addMessage
 /// Adds a message to the generic object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2787,11 +5236,9 @@ pub fn walletobjects_genericobject_addmessage_execute(
 pub struct WalletobjectsGenericobjectAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/genericObject/{resourceId}/addMessage
+/// POST walletobjects/v1/genericObject/{resourceId}/addMessage
 /// Adds a message to the generic object referenced by the given object ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2813,8 +5260,7 @@ pub fn walletobjects_genericobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_genericobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_genericobject_addmessage_builder(client, &args.resourceId)?;
     walletobjects_genericobject_addmessage_execute(builder)
 }
 
@@ -2979,7 +5425,7 @@ pub fn walletobjects_genericobject_get(
     walletobjects_genericobject_get_execute(builder)
 }
 
-/// GET walletobjects/v1/genericObject
+/// POST walletobjects/v1/genericObject
 /// Inserts a generic object with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2987,7 +5433,6 @@ pub fn walletobjects_genericobject_get(
 
 pub fn walletobjects_genericobject_insert_builder(
     client: &SimpleHttpClient,
-    body: &GenericObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2995,15 +5440,13 @@ pub fn walletobjects_genericobject_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/genericObject
+/// POST walletobjects/v1/genericObject
 /// Inserts a generic object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3077,7 +5520,7 @@ pub fn walletobjects_genericobject_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/genericObject
+/// POST walletobjects/v1/genericObject
 /// Inserts a generic object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3109,14 +5552,7 @@ pub fn walletobjects_genericobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_genericobject_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGenericobjectInsertArgs {
-    /// Request body.
-    pub body: GenericObject,
-}
-
-/// GET walletobjects/v1/genericObject
+/// POST walletobjects/v1/genericObject
 /// Inserts a generic object with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3129,18 +5565,526 @@ pub struct WalletobjectsGenericobjectInsertArgs {
 
 pub fn walletobjects_genericobject_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsGenericobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericobject_insert_builder(client, &args.body)?;
+    let builder = walletobjects_genericobject_insert_builder(client)?;
     walletobjects_genericobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/giftCardClass/{resourceId}/addMessage
+/// GET walletobjects/v1/genericObject
+/// Returns a list of all generic objects for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_genericobject_list_execute()` to send, or `walletobjects_genericobject_list` for simplest API.
+
+pub fn walletobjects_genericobject_list_builder(
+    client: &SimpleHttpClient,
+    classId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/genericObject",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = classId.as_ref() {
+        query_parts.push(format!("classId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/genericObject
+/// Returns a list of all generic objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_genericobject_list_execute()` or `walletobjects_genericobject_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericobject_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenericObjectListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenericObjectListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/genericObject
+/// Returns a list of all generic objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_genericobject_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_genericobject_list_task()`.
+/// For the simplest API, use `walletobjects_genericobject_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_genericobject_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericObjectListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_genericobject_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_genericobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/genericObject
+/// Returns a list of all generic objects for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_genericobject_list_builder()` + `walletobjects_genericobject_list_execute()`.
+/// For task-level control, use `walletobjects_genericobject_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericobject_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGenericobjectListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericObjectListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_genericobject_list_builder(
+        client,
+        &args.classId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_genericobject_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/genericObject/{resourceId}
+/// Updates the generic object referenced by the given object ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_genericobject_patch_execute()` to send, or `walletobjects_genericobject_patch` for simplest API.
+
+pub fn walletobjects_genericobject_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/genericObject/{resourceId}
+/// Updates the generic object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_genericobject_patch_execute()` or `walletobjects_genericobject_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericobject_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenericObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenericObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/genericObject/{resourceId}
+/// Updates the generic object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_genericobject_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_genericobject_patch_task()`.
+/// For the simplest API, use `walletobjects_genericobject_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_genericobject_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_genericobject_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_genericobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/genericObject/{resourceId}
+/// Updates the generic object referenced by the given object ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_genericobject_patch_builder()` + `walletobjects_genericobject_patch_execute()`.
+/// For task-level control, use `walletobjects_genericobject_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericobject_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGenericobjectPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_genericobject_patch_builder(client, &args.resourceId)?;
+    walletobjects_genericobject_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/genericObject/{resourceId}
+/// Updates the generic object referenced by the given object ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_genericobject_update_execute()` to send, or `walletobjects_genericobject_update` for simplest API.
+
+pub fn walletobjects_genericobject_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/genericObject/{resourceId}
+/// Updates the generic object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_genericobject_update_execute()` or `walletobjects_genericobject_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericobject_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenericObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenericObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/genericObject/{resourceId}
+/// Updates the generic object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_genericobject_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_genericobject_update_task()`.
+/// For the simplest API, use `walletobjects_genericobject_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_genericobject_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_genericobject_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_genericobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/genericObject/{resourceId}
+/// Updates the generic object referenced by the given object ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_genericobject_update_builder()` + `walletobjects_genericobject_update_execute()`.
+/// For task-level control, use `walletobjects_genericobject_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_genericobject_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGenericobjectUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_genericobject_update_builder(client, &args.resourceId)?;
+    walletobjects_genericobject_update_execute(builder)
+}
+
+/// POST walletobjects/v1/giftCardClass/{resourceId}/addMessage
 /// Adds a message to the gift card class referenced by the given class ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3149,7 +6093,6 @@ pub fn walletobjects_genericobject_insert(
 pub fn walletobjects_giftcardclass_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3159,15 +6102,13 @@ pub fn walletobjects_giftcardclass_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/giftCardClass/{resourceId}/addMessage
+/// POST walletobjects/v1/giftCardClass/{resourceId}/addMessage
 /// Adds a message to the gift card class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3241,7 +6182,7 @@ pub fn walletobjects_giftcardclass_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/giftCardClass/{resourceId}/addMessage
+/// POST walletobjects/v1/giftCardClass/{resourceId}/addMessage
 /// Adds a message to the gift card class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3280,11 +6221,9 @@ pub fn walletobjects_giftcardclass_addmessage_execute(
 pub struct WalletobjectsGiftcardclassAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/giftCardClass/{resourceId}/addMessage
+/// POST walletobjects/v1/giftCardClass/{resourceId}/addMessage
 /// Adds a message to the gift card class referenced by the given class ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3306,8 +6245,7 @@ pub fn walletobjects_giftcardclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_giftcardclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_giftcardclass_addmessage_builder(client, &args.resourceId)?;
     walletobjects_giftcardclass_addmessage_execute(builder)
 }
 
@@ -3472,7 +6410,7 @@ pub fn walletobjects_giftcardclass_get(
     walletobjects_giftcardclass_get_execute(builder)
 }
 
-/// GET walletobjects/v1/giftCardClass
+/// POST walletobjects/v1/giftCardClass
 /// Inserts an gift card class with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3480,7 +6418,6 @@ pub fn walletobjects_giftcardclass_get(
 
 pub fn walletobjects_giftcardclass_insert_builder(
     client: &SimpleHttpClient,
-    body: &GiftCardClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3488,15 +6425,13 @@ pub fn walletobjects_giftcardclass_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/giftCardClass
+/// POST walletobjects/v1/giftCardClass
 /// Inserts an gift card class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3570,7 +6505,7 @@ pub fn walletobjects_giftcardclass_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/giftCardClass
+/// POST walletobjects/v1/giftCardClass
 /// Inserts an gift card class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3602,14 +6537,7 @@ pub fn walletobjects_giftcardclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_giftcardclass_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGiftcardclassInsertArgs {
-    /// Request body.
-    pub body: GiftCardClass,
-}
-
-/// GET walletobjects/v1/giftCardClass
+/// POST walletobjects/v1/giftCardClass
 /// Inserts an gift card class with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3622,18 +6550,526 @@ pub struct WalletobjectsGiftcardclassInsertArgs {
 
 pub fn walletobjects_giftcardclass_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsGiftcardclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardclass_insert_builder(client, &args.body)?;
+    let builder = walletobjects_giftcardclass_insert_builder(client)?;
     walletobjects_giftcardclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/giftCardObject/{resourceId}/addMessage
+/// GET walletobjects/v1/giftCardClass
+/// Returns a list of all gift card classes for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_giftcardclass_list_execute()` to send, or `walletobjects_giftcardclass_list` for simplest API.
+
+pub fn walletobjects_giftcardclass_list_builder(
+    client: &SimpleHttpClient,
+    issuerId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = issuerId.as_ref() {
+        query_parts.push(format!("issuerId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/giftCardClass
+/// Returns a list of all gift card classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_giftcardclass_list_execute()` or `walletobjects_giftcardclass_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardclass_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GiftCardClassListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GiftCardClassListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/giftCardClass
+/// Returns a list of all gift card classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_giftcardclass_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_giftcardclass_list_task()`.
+/// For the simplest API, use `walletobjects_giftcardclass_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_giftcardclass_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GiftCardClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_giftcardclass_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_giftcardclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/giftCardClass
+/// Returns a list of all gift card classes for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_giftcardclass_list_builder()` + `walletobjects_giftcardclass_list_execute()`.
+/// For task-level control, use `walletobjects_giftcardclass_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardclass_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGiftcardclassListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GiftCardClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_giftcardclass_list_builder(
+        client,
+        &args.issuerId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_giftcardclass_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/giftCardClass/{resourceId}
+/// Updates the gift card class referenced by the given class ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_giftcardclass_patch_execute()` to send, or `walletobjects_giftcardclass_patch` for simplest API.
+
+pub fn walletobjects_giftcardclass_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/giftCardClass/{resourceId}
+/// Updates the gift card class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_giftcardclass_patch_execute()` or `walletobjects_giftcardclass_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardclass_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GiftCardClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GiftCardClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/giftCardClass/{resourceId}
+/// Updates the gift card class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_giftcardclass_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_giftcardclass_patch_task()`.
+/// For the simplest API, use `walletobjects_giftcardclass_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_giftcardclass_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_giftcardclass_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_giftcardclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/giftCardClass/{resourceId}
+/// Updates the gift card class referenced by the given class ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_giftcardclass_patch_builder()` + `walletobjects_giftcardclass_patch_execute()`.
+/// For task-level control, use `walletobjects_giftcardclass_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardclass_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGiftcardclassPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_giftcardclass_patch_builder(client, &args.resourceId)?;
+    walletobjects_giftcardclass_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/giftCardClass/{resourceId}
+/// Updates the gift card class referenced by the given class ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_giftcardclass_update_execute()` to send, or `walletobjects_giftcardclass_update` for simplest API.
+
+pub fn walletobjects_giftcardclass_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/giftCardClass/{resourceId}
+/// Updates the gift card class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_giftcardclass_update_execute()` or `walletobjects_giftcardclass_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardclass_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GiftCardClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GiftCardClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/giftCardClass/{resourceId}
+/// Updates the gift card class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_giftcardclass_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_giftcardclass_update_task()`.
+/// For the simplest API, use `walletobjects_giftcardclass_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_giftcardclass_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_giftcardclass_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_giftcardclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/giftCardClass/{resourceId}
+/// Updates the gift card class referenced by the given class ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_giftcardclass_update_builder()` + `walletobjects_giftcardclass_update_execute()`.
+/// For task-level control, use `walletobjects_giftcardclass_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardclass_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGiftcardclassUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_giftcardclass_update_builder(client, &args.resourceId)?;
+    walletobjects_giftcardclass_update_execute(builder)
+}
+
+/// POST walletobjects/v1/giftCardObject/{resourceId}/addMessage
 /// Adds a message to the gift card object referenced by the given object ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3642,7 +7078,6 @@ pub fn walletobjects_giftcardclass_insert(
 pub fn walletobjects_giftcardobject_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3652,15 +7087,13 @@ pub fn walletobjects_giftcardobject_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/giftCardObject/{resourceId}/addMessage
+/// POST walletobjects/v1/giftCardObject/{resourceId}/addMessage
 /// Adds a message to the gift card object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3734,7 +7167,7 @@ pub fn walletobjects_giftcardobject_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/giftCardObject/{resourceId}/addMessage
+/// POST walletobjects/v1/giftCardObject/{resourceId}/addMessage
 /// Adds a message to the gift card object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3773,11 +7206,9 @@ pub fn walletobjects_giftcardobject_addmessage_execute(
 pub struct WalletobjectsGiftcardobjectAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/giftCardObject/{resourceId}/addMessage
+/// POST walletobjects/v1/giftCardObject/{resourceId}/addMessage
 /// Adds a message to the gift card object referenced by the given object ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3799,8 +7230,7 @@ pub fn walletobjects_giftcardobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_giftcardobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_giftcardobject_addmessage_builder(client, &args.resourceId)?;
     walletobjects_giftcardobject_addmessage_execute(builder)
 }
 
@@ -3965,7 +7395,7 @@ pub fn walletobjects_giftcardobject_get(
     walletobjects_giftcardobject_get_execute(builder)
 }
 
-/// GET walletobjects/v1/giftCardObject
+/// POST walletobjects/v1/giftCardObject
 /// Inserts an gift card object with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3973,7 +7403,6 @@ pub fn walletobjects_giftcardobject_get(
 
 pub fn walletobjects_giftcardobject_insert_builder(
     client: &SimpleHttpClient,
-    body: &GiftCardObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -3981,15 +7410,13 @@ pub fn walletobjects_giftcardobject_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/giftCardObject
+/// POST walletobjects/v1/giftCardObject
 /// Inserts an gift card object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4063,7 +7490,7 @@ pub fn walletobjects_giftcardobject_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/giftCardObject
+/// POST walletobjects/v1/giftCardObject
 /// Inserts an gift card object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4095,14 +7522,7 @@ pub fn walletobjects_giftcardobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_giftcardobject_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGiftcardobjectInsertArgs {
-    /// Request body.
-    pub body: GiftCardObject,
-}
-
-/// GET walletobjects/v1/giftCardObject
+/// POST walletobjects/v1/giftCardObject
 /// Inserts an gift card object with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4115,15 +7535,527 @@ pub struct WalletobjectsGiftcardobjectInsertArgs {
 
 pub fn walletobjects_giftcardobject_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsGiftcardobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardobject_insert_builder(client, &args.body)?;
+    let builder = walletobjects_giftcardobject_insert_builder(client)?;
     walletobjects_giftcardobject_insert_execute(builder)
+}
+
+/// GET walletobjects/v1/giftCardObject
+/// Returns a list of all gift card objects for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_giftcardobject_list_execute()` to send, or `walletobjects_giftcardobject_list` for simplest API.
+
+pub fn walletobjects_giftcardobject_list_builder(
+    client: &SimpleHttpClient,
+    classId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = classId.as_ref() {
+        query_parts.push(format!("classId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/giftCardObject
+/// Returns a list of all gift card objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_giftcardobject_list_execute()` or `walletobjects_giftcardobject_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardobject_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GiftCardObjectListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GiftCardObjectListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/giftCardObject
+/// Returns a list of all gift card objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_giftcardobject_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_giftcardobject_list_task()`.
+/// For the simplest API, use `walletobjects_giftcardobject_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_giftcardobject_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GiftCardObjectListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_giftcardobject_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_giftcardobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/giftCardObject
+/// Returns a list of all gift card objects for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_giftcardobject_list_builder()` + `walletobjects_giftcardobject_list_execute()`.
+/// For task-level control, use `walletobjects_giftcardobject_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardobject_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGiftcardobjectListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GiftCardObjectListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_giftcardobject_list_builder(
+        client,
+        &args.classId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_giftcardobject_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/giftCardObject/{resourceId}
+/// Updates the gift card object referenced by the given object ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_giftcardobject_patch_execute()` to send, or `walletobjects_giftcardobject_patch` for simplest API.
+
+pub fn walletobjects_giftcardobject_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/giftCardObject/{resourceId}
+/// Updates the gift card object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_giftcardobject_patch_execute()` or `walletobjects_giftcardobject_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardobject_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GiftCardObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GiftCardObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/giftCardObject/{resourceId}
+/// Updates the gift card object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_giftcardobject_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_giftcardobject_patch_task()`.
+/// For the simplest API, use `walletobjects_giftcardobject_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_giftcardobject_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_giftcardobject_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_giftcardobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/giftCardObject/{resourceId}
+/// Updates the gift card object referenced by the given object ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_giftcardobject_patch_builder()` + `walletobjects_giftcardobject_patch_execute()`.
+/// For task-level control, use `walletobjects_giftcardobject_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardobject_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGiftcardobjectPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_giftcardobject_patch_builder(client, &args.resourceId)?;
+    walletobjects_giftcardobject_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/giftCardObject/{resourceId}
+/// Updates the gift card object referenced by the given object ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_giftcardobject_update_execute()` to send, or `walletobjects_giftcardobject_update` for simplest API.
+
+pub fn walletobjects_giftcardobject_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/giftCardObject/{resourceId}
+/// Updates the gift card object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_giftcardobject_update_execute()` or `walletobjects_giftcardobject_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardobject_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GiftCardObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GiftCardObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/giftCardObject/{resourceId}
+/// Updates the gift card object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_giftcardobject_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_giftcardobject_update_task()`.
+/// For the simplest API, use `walletobjects_giftcardobject_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_giftcardobject_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_giftcardobject_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_giftcardobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/giftCardObject/{resourceId}
+/// Updates the gift card object referenced by the given object ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_giftcardobject_update_builder()` + `walletobjects_giftcardobject_update_execute()`.
+/// For task-level control, use `walletobjects_giftcardobject_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_giftcardobject_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsGiftcardobjectUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_giftcardobject_update_builder(client, &args.resourceId)?;
+    walletobjects_giftcardobject_update_execute(builder)
 }
 
 /// GET walletobjects/v1/issuer/{resourceId}
@@ -4283,7 +8215,7 @@ pub fn walletobjects_issuer_get(
     walletobjects_issuer_get_execute(builder)
 }
 
-/// GET walletobjects/v1/issuer
+/// POST walletobjects/v1/issuer
 /// Inserts an issuer with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4291,22 +8223,19 @@ pub fn walletobjects_issuer_get(
 
 pub fn walletobjects_issuer_insert_builder(
     client: &SimpleHttpClient,
-    body: &Issuer,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/issuer",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/issuer
+/// POST walletobjects/v1/issuer
 /// Inserts an issuer with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4380,7 +8309,7 @@ pub fn walletobjects_issuer_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/issuer
+/// POST walletobjects/v1/issuer
 /// Inserts an issuer with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4410,14 +8339,7 @@ pub fn walletobjects_issuer_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_issuer_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsIssuerInsertArgs {
-    /// Request body.
-    pub body: Issuer,
-}
-
-/// GET walletobjects/v1/issuer
+/// POST walletobjects/v1/issuer
 /// Inserts an issuer with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4430,16 +8352,478 @@ pub struct WalletobjectsIssuerInsertArgs {
 
 pub fn walletobjects_issuer_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsIssuerInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_issuer_insert_builder(client, &args.body)?;
+    let builder = walletobjects_issuer_insert_builder(client)?;
     walletobjects_issuer_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/jwt
+/// GET walletobjects/v1/issuer
+/// Returns a list of all issuers shared to the caller.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_issuer_list_execute()` to send, or `walletobjects_issuer_list` for simplest API.
+
+pub fn walletobjects_issuer_list_builder(
+    client: &SimpleHttpClient,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/issuer",);
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/issuer
+/// Returns a list of all issuers shared to the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_issuer_list_execute()` or `walletobjects_issuer_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_issuer_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IssuerListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: IssuerListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/issuer
+/// Returns a list of all issuers shared to the caller.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_issuer_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_issuer_list_task()`.
+/// For the simplest API, use `walletobjects_issuer_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_issuer_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IssuerListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_issuer_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// GET walletobjects/v1/issuer
+/// Returns a list of all issuers shared to the caller.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_issuer_list_builder()` + `walletobjects_issuer_list_execute()`.
+/// For task-level control, use `walletobjects_issuer_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_issuer_list(
+    client: &SimpleHttpClient,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IssuerListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_issuer_list_builder(client)?;
+    walletobjects_issuer_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/issuer/{resourceId}
+/// Updates the issuer referenced by the given issuer ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_issuer_patch_execute()` to send, or `walletobjects_issuer_patch` for simplest API.
+
+pub fn walletobjects_issuer_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/issuer/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/issuer/{resourceId}
+/// Updates the issuer referenced by the given issuer ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_issuer_patch_execute()` or `walletobjects_issuer_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_issuer_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Issuer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Issuer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/issuer/{resourceId}
+/// Updates the issuer referenced by the given issuer ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_issuer_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_issuer_patch_task()`.
+/// For the simplest API, use `walletobjects_issuer_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_issuer_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = walletobjects_issuer_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_issuer_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsIssuerPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/issuer/{resourceId}
+/// Updates the issuer referenced by the given issuer ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_issuer_patch_builder()` + `walletobjects_issuer_patch_execute()`.
+/// For task-level control, use `walletobjects_issuer_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_issuer_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsIssuerPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_issuer_patch_builder(client, &args.resourceId)?;
+    walletobjects_issuer_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/issuer/{resourceId}
+/// Updates the issuer referenced by the given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_issuer_update_execute()` to send, or `walletobjects_issuer_update` for simplest API.
+
+pub fn walletobjects_issuer_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/issuer/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/issuer/{resourceId}
+/// Updates the issuer referenced by the given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_issuer_update_execute()` or `walletobjects_issuer_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_issuer_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Issuer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Issuer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/issuer/{resourceId}
+/// Updates the issuer referenced by the given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_issuer_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_issuer_update_task()`.
+/// For the simplest API, use `walletobjects_issuer_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_issuer_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = walletobjects_issuer_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_issuer_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsIssuerUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/issuer/{resourceId}
+/// Updates the issuer referenced by the given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_issuer_update_builder()` + `walletobjects_issuer_update_execute()`.
+/// For task-level control, use `walletobjects_issuer_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_issuer_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsIssuerUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_issuer_update_builder(client, &args.resourceId)?;
+    walletobjects_issuer_update_execute(builder)
+}
+
+/// POST walletobjects/v1/jwt
 /// Inserts the resources in the JWT.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4447,22 +8831,19 @@ pub fn walletobjects_issuer_insert(
 
 pub fn walletobjects_jwt_insert_builder(
     client: &SimpleHttpClient,
-    body: &JwtResource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/jwt",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/jwt
+/// POST walletobjects/v1/jwt
 /// Inserts the resources in the JWT.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4536,7 +8917,7 @@ pub fn walletobjects_jwt_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/jwt
+/// POST walletobjects/v1/jwt
 /// Inserts the resources in the JWT.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4568,14 +8949,7 @@ pub fn walletobjects_jwt_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_jwt_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsJwtInsertArgs {
-    /// Request body.
-    pub body: JwtResource,
-}
-
-/// GET walletobjects/v1/jwt
+/// POST walletobjects/v1/jwt
 /// Inserts the resources in the JWT.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4588,18 +8962,17 @@ pub struct WalletobjectsJwtInsertArgs {
 
 pub fn walletobjects_jwt_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsJwtInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JwtInsertResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_jwt_insert_builder(client, &args.body)?;
+    let builder = walletobjects_jwt_insert_builder(client)?;
     walletobjects_jwt_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/loyaltyClass/{resourceId}/addMessage
+/// POST walletobjects/v1/loyaltyClass/{resourceId}/addMessage
 /// Adds a message to the loyalty class referenced by the given class ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4608,7 +8981,6 @@ pub fn walletobjects_jwt_insert(
 pub fn walletobjects_loyaltyclass_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4618,15 +8990,13 @@ pub fn walletobjects_loyaltyclass_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/loyaltyClass/{resourceId}/addMessage
+/// POST walletobjects/v1/loyaltyClass/{resourceId}/addMessage
 /// Adds a message to the loyalty class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4700,7 +9070,7 @@ pub fn walletobjects_loyaltyclass_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/loyaltyClass/{resourceId}/addMessage
+/// POST walletobjects/v1/loyaltyClass/{resourceId}/addMessage
 /// Adds a message to the loyalty class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4739,11 +9109,9 @@ pub fn walletobjects_loyaltyclass_addmessage_execute(
 pub struct WalletobjectsLoyaltyclassAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/loyaltyClass/{resourceId}/addMessage
+/// POST walletobjects/v1/loyaltyClass/{resourceId}/addMessage
 /// Adds a message to the loyalty class referenced by the given class ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4765,8 +9133,7 @@ pub fn walletobjects_loyaltyclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_loyaltyclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_loyaltyclass_addmessage_builder(client, &args.resourceId)?;
     walletobjects_loyaltyclass_addmessage_execute(builder)
 }
 
@@ -4931,7 +9298,7 @@ pub fn walletobjects_loyaltyclass_get(
     walletobjects_loyaltyclass_get_execute(builder)
 }
 
-/// GET walletobjects/v1/loyaltyClass
+/// POST walletobjects/v1/loyaltyClass
 /// Inserts an loyalty class with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4939,7 +9306,6 @@ pub fn walletobjects_loyaltyclass_get(
 
 pub fn walletobjects_loyaltyclass_insert_builder(
     client: &SimpleHttpClient,
-    body: &LoyaltyClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -4947,15 +9313,13 @@ pub fn walletobjects_loyaltyclass_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/loyaltyClass
+/// POST walletobjects/v1/loyaltyClass
 /// Inserts an loyalty class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5029,7 +9393,7 @@ pub fn walletobjects_loyaltyclass_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/loyaltyClass
+/// POST walletobjects/v1/loyaltyClass
 /// Inserts an loyalty class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5061,14 +9425,7 @@ pub fn walletobjects_loyaltyclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_loyaltyclass_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsLoyaltyclassInsertArgs {
-    /// Request body.
-    pub body: LoyaltyClass,
-}
-
-/// GET walletobjects/v1/loyaltyClass
+/// POST walletobjects/v1/loyaltyClass
 /// Inserts an loyalty class with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5081,18 +9438,526 @@ pub struct WalletobjectsLoyaltyclassInsertArgs {
 
 pub fn walletobjects_loyaltyclass_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsLoyaltyclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyclass_insert_builder(client, &args.body)?;
+    let builder = walletobjects_loyaltyclass_insert_builder(client)?;
     walletobjects_loyaltyclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/loyaltyObject/{resourceId}/addMessage
+/// GET walletobjects/v1/loyaltyClass
+/// Returns a list of all loyalty classes for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_loyaltyclass_list_execute()` to send, or `walletobjects_loyaltyclass_list` for simplest API.
+
+pub fn walletobjects_loyaltyclass_list_builder(
+    client: &SimpleHttpClient,
+    issuerId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = issuerId.as_ref() {
+        query_parts.push(format!("issuerId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/loyaltyClass
+/// Returns a list of all loyalty classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_loyaltyclass_list_execute()` or `walletobjects_loyaltyclass_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyclass_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyClassListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LoyaltyClassListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/loyaltyClass
+/// Returns a list of all loyalty classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_loyaltyclass_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_loyaltyclass_list_task()`.
+/// For the simplest API, use `walletobjects_loyaltyclass_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_loyaltyclass_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_loyaltyclass_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_loyaltyclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/loyaltyClass
+/// Returns a list of all loyalty classes for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_loyaltyclass_list_builder()` + `walletobjects_loyaltyclass_list_execute()`.
+/// For task-level control, use `walletobjects_loyaltyclass_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyclass_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsLoyaltyclassListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_loyaltyclass_list_builder(
+        client,
+        &args.issuerId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_loyaltyclass_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/loyaltyClass/{resourceId}
+/// Updates the loyalty class referenced by the given class ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_loyaltyclass_patch_execute()` to send, or `walletobjects_loyaltyclass_patch` for simplest API.
+
+pub fn walletobjects_loyaltyclass_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/loyaltyClass/{resourceId}
+/// Updates the loyalty class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_loyaltyclass_patch_execute()` or `walletobjects_loyaltyclass_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyclass_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LoyaltyClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/loyaltyClass/{resourceId}
+/// Updates the loyalty class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_loyaltyclass_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_loyaltyclass_patch_task()`.
+/// For the simplest API, use `walletobjects_loyaltyclass_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_loyaltyclass_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_loyaltyclass_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_loyaltyclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/loyaltyClass/{resourceId}
+/// Updates the loyalty class referenced by the given class ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_loyaltyclass_patch_builder()` + `walletobjects_loyaltyclass_patch_execute()`.
+/// For task-level control, use `walletobjects_loyaltyclass_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyclass_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsLoyaltyclassPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_loyaltyclass_patch_builder(client, &args.resourceId)?;
+    walletobjects_loyaltyclass_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/loyaltyClass/{resourceId}
+/// Updates the loyalty class referenced by the given class ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_loyaltyclass_update_execute()` to send, or `walletobjects_loyaltyclass_update` for simplest API.
+
+pub fn walletobjects_loyaltyclass_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/loyaltyClass/{resourceId}
+/// Updates the loyalty class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_loyaltyclass_update_execute()` or `walletobjects_loyaltyclass_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyclass_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LoyaltyClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/loyaltyClass/{resourceId}
+/// Updates the loyalty class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_loyaltyclass_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_loyaltyclass_update_task()`.
+/// For the simplest API, use `walletobjects_loyaltyclass_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_loyaltyclass_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_loyaltyclass_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_loyaltyclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/loyaltyClass/{resourceId}
+/// Updates the loyalty class referenced by the given class ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_loyaltyclass_update_builder()` + `walletobjects_loyaltyclass_update_execute()`.
+/// For task-level control, use `walletobjects_loyaltyclass_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyclass_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsLoyaltyclassUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_loyaltyclass_update_builder(client, &args.resourceId)?;
+    walletobjects_loyaltyclass_update_execute(builder)
+}
+
+/// POST walletobjects/v1/loyaltyObject/{resourceId}/addMessage
 /// Adds a message to the loyalty object referenced by the given object ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5101,7 +9966,6 @@ pub fn walletobjects_loyaltyclass_insert(
 pub fn walletobjects_loyaltyobject_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5111,15 +9975,13 @@ pub fn walletobjects_loyaltyobject_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/loyaltyObject/{resourceId}/addMessage
+/// POST walletobjects/v1/loyaltyObject/{resourceId}/addMessage
 /// Adds a message to the loyalty object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5193,7 +10055,7 @@ pub fn walletobjects_loyaltyobject_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/loyaltyObject/{resourceId}/addMessage
+/// POST walletobjects/v1/loyaltyObject/{resourceId}/addMessage
 /// Adds a message to the loyalty object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5232,11 +10094,9 @@ pub fn walletobjects_loyaltyobject_addmessage_execute(
 pub struct WalletobjectsLoyaltyobjectAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/loyaltyObject/{resourceId}/addMessage
+/// POST walletobjects/v1/loyaltyObject/{resourceId}/addMessage
 /// Adds a message to the loyalty object referenced by the given object ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5258,8 +10118,7 @@ pub fn walletobjects_loyaltyobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_loyaltyobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_loyaltyobject_addmessage_builder(client, &args.resourceId)?;
     walletobjects_loyaltyobject_addmessage_execute(builder)
 }
 
@@ -5424,7 +10283,7 @@ pub fn walletobjects_loyaltyobject_get(
     walletobjects_loyaltyobject_get_execute(builder)
 }
 
-/// GET walletobjects/v1/loyaltyObject
+/// POST walletobjects/v1/loyaltyObject
 /// Inserts an loyalty object with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5432,7 +10291,6 @@ pub fn walletobjects_loyaltyobject_get(
 
 pub fn walletobjects_loyaltyobject_insert_builder(
     client: &SimpleHttpClient,
-    body: &LoyaltyObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5440,15 +10298,13 @@ pub fn walletobjects_loyaltyobject_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/loyaltyObject
+/// POST walletobjects/v1/loyaltyObject
 /// Inserts an loyalty object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5522,7 +10378,7 @@ pub fn walletobjects_loyaltyobject_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/loyaltyObject
+/// POST walletobjects/v1/loyaltyObject
 /// Inserts an loyalty object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5554,14 +10410,7 @@ pub fn walletobjects_loyaltyobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_loyaltyobject_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsLoyaltyobjectInsertArgs {
-    /// Request body.
-    pub body: LoyaltyObject,
-}
-
-/// GET walletobjects/v1/loyaltyObject
+/// POST walletobjects/v1/loyaltyObject
 /// Inserts an loyalty object with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5574,18 +10423,204 @@ pub struct WalletobjectsLoyaltyobjectInsertArgs {
 
 pub fn walletobjects_loyaltyobject_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsLoyaltyobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_insert_builder(client, &args.body)?;
+    let builder = walletobjects_loyaltyobject_insert_builder(client)?;
     walletobjects_loyaltyobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/loyaltyObject/{resourceId}/modifyLinkedOfferObjects
+/// GET walletobjects/v1/loyaltyObject
+/// Returns a list of all loyalty objects for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_loyaltyobject_list_execute()` to send, or `walletobjects_loyaltyobject_list` for simplest API.
+
+pub fn walletobjects_loyaltyobject_list_builder(
+    client: &SimpleHttpClient,
+    classId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = classId.as_ref() {
+        query_parts.push(format!("classId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/loyaltyObject
+/// Returns a list of all loyalty objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_loyaltyobject_list_execute()` or `walletobjects_loyaltyobject_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyobject_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyObjectListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LoyaltyObjectListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/loyaltyObject
+/// Returns a list of all loyalty objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_loyaltyobject_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_loyaltyobject_list_task()`.
+/// For the simplest API, use `walletobjects_loyaltyobject_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_loyaltyobject_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyObjectListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_loyaltyobject_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_loyaltyobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/loyaltyObject
+/// Returns a list of all loyalty objects for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_loyaltyobject_list_builder()` + `walletobjects_loyaltyobject_list_execute()`.
+/// For task-level control, use `walletobjects_loyaltyobject_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyobject_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsLoyaltyobjectListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyObjectListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_loyaltyobject_list_builder(
+        client,
+        &args.classId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_loyaltyobject_list_execute(builder)
+}
+
+/// POST walletobjects/v1/loyaltyObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the loyalty object with the given ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5594,7 +10629,6 @@ pub fn walletobjects_loyaltyobject_insert(
 pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &ModifyLinkedOfferObjectsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5604,15 +10638,13 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/loyaltyObject/{resourceId}/modifyLinkedOfferObjects
+/// POST walletobjects/v1/loyaltyObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the loyalty object with the given ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5686,7 +10718,7 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/loyaltyObject/{resourceId}/modifyLinkedOfferObjects
+/// POST walletobjects/v1/loyaltyObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the loyalty object with the given ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5723,11 +10755,9 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_execute(
 pub struct WalletobjectsLoyaltyobjectModifylinkedofferobjectsArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: ModifyLinkedOfferObjectsRequest,
 }
 
-/// GET walletobjects/v1/loyaltyObject/{resourceId}/modifyLinkedOfferObjects
+/// POST walletobjects/v1/loyaltyObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the loyalty object with the given ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5747,12 +10777,331 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_modifylinkedofferobjects_builder(
-        client,
-        &args.resourceId,
-        &args.body,
-    )?;
+    let builder =
+        walletobjects_loyaltyobject_modifylinkedofferobjects_builder(client, &args.resourceId)?;
     walletobjects_loyaltyobject_modifylinkedofferobjects_execute(builder)
+}
+
+/// PATCH walletobjects/v1/loyaltyObject/{resourceId}
+/// Updates the loyalty object referenced by the given object ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_loyaltyobject_patch_execute()` to send, or `walletobjects_loyaltyobject_patch` for simplest API.
+
+pub fn walletobjects_loyaltyobject_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/loyaltyObject/{resourceId}
+/// Updates the loyalty object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_loyaltyobject_patch_execute()` or `walletobjects_loyaltyobject_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyobject_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LoyaltyObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/loyaltyObject/{resourceId}
+/// Updates the loyalty object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_loyaltyobject_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_loyaltyobject_patch_task()`.
+/// For the simplest API, use `walletobjects_loyaltyobject_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_loyaltyobject_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_loyaltyobject_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_loyaltyobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/loyaltyObject/{resourceId}
+/// Updates the loyalty object referenced by the given object ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_loyaltyobject_patch_builder()` + `walletobjects_loyaltyobject_patch_execute()`.
+/// For task-level control, use `walletobjects_loyaltyobject_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyobject_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsLoyaltyobjectPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_loyaltyobject_patch_builder(client, &args.resourceId)?;
+    walletobjects_loyaltyobject_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/loyaltyObject/{resourceId}
+/// Updates the loyalty object referenced by the given object ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_loyaltyobject_update_execute()` to send, or `walletobjects_loyaltyobject_update` for simplest API.
+
+pub fn walletobjects_loyaltyobject_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/loyaltyObject/{resourceId}
+/// Updates the loyalty object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_loyaltyobject_update_execute()` or `walletobjects_loyaltyobject_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyobject_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LoyaltyObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/loyaltyObject/{resourceId}
+/// Updates the loyalty object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_loyaltyobject_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_loyaltyobject_update_task()`.
+/// For the simplest API, use `walletobjects_loyaltyobject_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_loyaltyobject_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_loyaltyobject_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_loyaltyobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/loyaltyObject/{resourceId}
+/// Updates the loyalty object referenced by the given object ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_loyaltyobject_update_builder()` + `walletobjects_loyaltyobject_update_execute()`.
+/// For task-level control, use `walletobjects_loyaltyobject_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_loyaltyobject_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsLoyaltyobjectUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_loyaltyobject_update_builder(client, &args.resourceId)?;
+    walletobjects_loyaltyobject_update_execute(builder)
 }
 
 /// GET walletobjects/v1/transitObject/{resourceId}/downloadRotatingBarcodeValues
@@ -5912,7 +11261,7 @@ pub fn walletobjects_media_download(
     walletobjects_media_download_execute(builder)
 }
 
-/// GET walletobjects/v1/transitObject/{resourceId}/uploadRotatingBarcodeValues
+/// POST walletobjects/v1/transitObject/{resourceId}/uploadRotatingBarcodeValues
 /// Uploads rotating barcode values for the transit object referenced by the given object ID. Note the max upload size is specified in google3/`production/config/cdd/apps-upload/customers/payments-consumer-passes/config`.gcl and enforced by Scotty.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5921,7 +11270,6 @@ pub fn walletobjects_media_download(
 pub fn walletobjects_media_upload_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &TransitObjectUploadRotatingBarcodeValuesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5931,15 +11279,13 @@ pub fn walletobjects_media_upload_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/transitObject/{resourceId}/uploadRotatingBarcodeValues
+/// POST walletobjects/v1/transitObject/{resourceId}/uploadRotatingBarcodeValues
 /// Uploads rotating barcode values for the transit object referenced by the given object ID. Note the max upload size is specified in google3/`production/config/cdd/apps-upload/customers/payments-consumer-passes/config`.gcl and enforced by Scotty.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6014,7 +11360,7 @@ pub fn walletobjects_media_upload_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/transitObject/{resourceId}/uploadRotatingBarcodeValues
+/// POST walletobjects/v1/transitObject/{resourceId}/uploadRotatingBarcodeValues
 /// Uploads rotating barcode values for the transit object referenced by the given object ID. Note the max upload size is specified in google3/`production/config/cdd/apps-upload/customers/payments-consumer-passes/config`.gcl and enforced by Scotty.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6053,11 +11399,9 @@ pub fn walletobjects_media_upload_execute(
 pub struct WalletobjectsMediaUploadArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: TransitObjectUploadRotatingBarcodeValuesRequest,
 }
 
-/// GET walletobjects/v1/transitObject/{resourceId}/uploadRotatingBarcodeValues
+/// POST walletobjects/v1/transitObject/{resourceId}/uploadRotatingBarcodeValues
 /// Uploads rotating barcode values for the transit object referenced by the given object ID. Note the max upload size is specified in google3/`production/config/cdd/apps-upload/customers/payments-consumer-passes/config`.gcl and enforced by Scotty.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6079,11 +11423,11 @@ pub fn walletobjects_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_media_upload_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_media_upload_builder(client, &args.resourceId)?;
     walletobjects_media_upload_execute(builder)
 }
 
-/// GET walletobjects/v1/offerClass/{resourceId}/addMessage
+/// POST walletobjects/v1/offerClass/{resourceId}/addMessage
 /// Adds a message to the offer class referenced by the given class ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6092,7 +11436,6 @@ pub fn walletobjects_media_upload(
 pub fn walletobjects_offerclass_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6102,15 +11445,13 @@ pub fn walletobjects_offerclass_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/offerClass/{resourceId}/addMessage
+/// POST walletobjects/v1/offerClass/{resourceId}/addMessage
 /// Adds a message to the offer class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6184,7 +11525,7 @@ pub fn walletobjects_offerclass_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/offerClass/{resourceId}/addMessage
+/// POST walletobjects/v1/offerClass/{resourceId}/addMessage
 /// Adds a message to the offer class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6223,11 +11564,9 @@ pub fn walletobjects_offerclass_addmessage_execute(
 pub struct WalletobjectsOfferclassAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/offerClass/{resourceId}/addMessage
+/// POST walletobjects/v1/offerClass/{resourceId}/addMessage
 /// Adds a message to the offer class referenced by the given class ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6249,8 +11588,7 @@ pub fn walletobjects_offerclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_offerclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_offerclass_addmessage_builder(client, &args.resourceId)?;
     walletobjects_offerclass_addmessage_execute(builder)
 }
 
@@ -6411,7 +11749,7 @@ pub fn walletobjects_offerclass_get(
     walletobjects_offerclass_get_execute(builder)
 }
 
-/// GET walletobjects/v1/offerClass
+/// POST walletobjects/v1/offerClass
 /// Inserts an offer class with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6419,22 +11757,19 @@ pub fn walletobjects_offerclass_get(
 
 pub fn walletobjects_offerclass_insert_builder(
     client: &SimpleHttpClient,
-    body: &OfferClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/offerClass",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/offerClass
+/// POST walletobjects/v1/offerClass
 /// Inserts an offer class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6508,7 +11843,7 @@ pub fn walletobjects_offerclass_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/offerClass
+/// POST walletobjects/v1/offerClass
 /// Inserts an offer class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6538,14 +11873,7 @@ pub fn walletobjects_offerclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_offerclass_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsOfferclassInsertArgs {
-    /// Request body.
-    pub body: OfferClass,
-}
-
-/// GET walletobjects/v1/offerClass
+/// POST walletobjects/v1/offerClass
 /// Inserts an offer class with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6558,16 +11886,515 @@ pub struct WalletobjectsOfferclassInsertArgs {
 
 pub fn walletobjects_offerclass_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsOfferclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerclass_insert_builder(client, &args.body)?;
+    let builder = walletobjects_offerclass_insert_builder(client)?;
     walletobjects_offerclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/offerObject/{resourceId}/addMessage
+/// GET walletobjects/v1/offerClass
+/// Returns a list of all offer classes for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_offerclass_list_execute()` to send, or `walletobjects_offerclass_list` for simplest API.
+
+pub fn walletobjects_offerclass_list_builder(
+    client: &SimpleHttpClient,
+    issuerId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/offerClass",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = issuerId.as_ref() {
+        query_parts.push(format!("issuerId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/offerClass
+/// Returns a list of all offer classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_offerclass_list_execute()` or `walletobjects_offerclass_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerclass_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OfferClassListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OfferClassListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/offerClass
+/// Returns a list of all offer classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_offerclass_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_offerclass_list_task()`.
+/// For the simplest API, use `walletobjects_offerclass_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_offerclass_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_offerclass_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_offerclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/offerClass
+/// Returns a list of all offer classes for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_offerclass_list_builder()` + `walletobjects_offerclass_list_execute()`.
+/// For task-level control, use `walletobjects_offerclass_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerclass_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsOfferclassListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_offerclass_list_builder(
+        client,
+        &args.issuerId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_offerclass_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/offerClass/{resourceId}
+/// Updates the offer class referenced by the given class ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_offerclass_patch_execute()` to send, or `walletobjects_offerclass_patch` for simplest API.
+
+pub fn walletobjects_offerclass_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/offerClass/{resourceId}
+/// Updates the offer class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_offerclass_patch_execute()` or `walletobjects_offerclass_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerclass_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OfferClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OfferClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/offerClass/{resourceId}
+/// Updates the offer class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_offerclass_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_offerclass_patch_task()`.
+/// For the simplest API, use `walletobjects_offerclass_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_offerclass_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = walletobjects_offerclass_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_offerclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/offerClass/{resourceId}
+/// Updates the offer class referenced by the given class ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_offerclass_patch_builder()` + `walletobjects_offerclass_patch_execute()`.
+/// For task-level control, use `walletobjects_offerclass_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerclass_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsOfferclassPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_offerclass_patch_builder(client, &args.resourceId)?;
+    walletobjects_offerclass_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/offerClass/{resourceId}
+/// Updates the offer class referenced by the given class ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_offerclass_update_execute()` to send, or `walletobjects_offerclass_update` for simplest API.
+
+pub fn walletobjects_offerclass_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/offerClass/{resourceId}
+/// Updates the offer class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_offerclass_update_execute()` or `walletobjects_offerclass_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerclass_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OfferClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OfferClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/offerClass/{resourceId}
+/// Updates the offer class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_offerclass_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_offerclass_update_task()`.
+/// For the simplest API, use `walletobjects_offerclass_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_offerclass_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = walletobjects_offerclass_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_offerclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/offerClass/{resourceId}
+/// Updates the offer class referenced by the given class ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_offerclass_update_builder()` + `walletobjects_offerclass_update_execute()`.
+/// For task-level control, use `walletobjects_offerclass_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerclass_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsOfferclassUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_offerclass_update_builder(client, &args.resourceId)?;
+    walletobjects_offerclass_update_execute(builder)
+}
+
+/// POST walletobjects/v1/offerObject/{resourceId}/addMessage
 /// Adds a message to the offer object referenced by the given object ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6576,7 +12403,6 @@ pub fn walletobjects_offerclass_insert(
 pub fn walletobjects_offerobject_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6586,15 +12412,13 @@ pub fn walletobjects_offerobject_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/offerObject/{resourceId}/addMessage
+/// POST walletobjects/v1/offerObject/{resourceId}/addMessage
 /// Adds a message to the offer object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6668,7 +12492,7 @@ pub fn walletobjects_offerobject_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/offerObject/{resourceId}/addMessage
+/// POST walletobjects/v1/offerObject/{resourceId}/addMessage
 /// Adds a message to the offer object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6707,11 +12531,9 @@ pub fn walletobjects_offerobject_addmessage_execute(
 pub struct WalletobjectsOfferobjectAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/offerObject/{resourceId}/addMessage
+/// POST walletobjects/v1/offerObject/{resourceId}/addMessage
 /// Adds a message to the offer object referenced by the given object ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6733,8 +12555,7 @@ pub fn walletobjects_offerobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_offerobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_offerobject_addmessage_builder(client, &args.resourceId)?;
     walletobjects_offerobject_addmessage_execute(builder)
 }
 
@@ -6895,7 +12716,7 @@ pub fn walletobjects_offerobject_get(
     walletobjects_offerobject_get_execute(builder)
 }
 
-/// GET walletobjects/v1/offerObject
+/// POST walletobjects/v1/offerObject
 /// Inserts an offer object with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6903,7 +12724,6 @@ pub fn walletobjects_offerobject_get(
 
 pub fn walletobjects_offerobject_insert_builder(
     client: &SimpleHttpClient,
-    body: &OfferObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -6911,15 +12731,13 @@ pub fn walletobjects_offerobject_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/offerObject
+/// POST walletobjects/v1/offerObject
 /// Inserts an offer object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6993,7 +12811,7 @@ pub fn walletobjects_offerobject_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/offerObject
+/// POST walletobjects/v1/offerObject
 /// Inserts an offer object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7023,14 +12841,7 @@ pub fn walletobjects_offerobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_offerobject_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsOfferobjectInsertArgs {
-    /// Request body.
-    pub body: OfferObject,
-}
-
-/// GET walletobjects/v1/offerObject
+/// POST walletobjects/v1/offerObject
 /// Inserts an offer object with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7043,13 +12854,513 @@ pub struct WalletobjectsOfferobjectInsertArgs {
 
 pub fn walletobjects_offerobject_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsOfferobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerobject_insert_builder(client, &args.body)?;
+    let builder = walletobjects_offerobject_insert_builder(client)?;
     walletobjects_offerobject_insert_execute(builder)
+}
+
+/// GET walletobjects/v1/offerObject
+/// Returns a list of all offer objects for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_offerobject_list_execute()` to send, or `walletobjects_offerobject_list` for simplest API.
+
+pub fn walletobjects_offerobject_list_builder(
+    client: &SimpleHttpClient,
+    classId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/offerObject",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = classId.as_ref() {
+        query_parts.push(format!("classId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/offerObject
+/// Returns a list of all offer objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_offerobject_list_execute()` or `walletobjects_offerobject_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerobject_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OfferObjectListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OfferObjectListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/offerObject
+/// Returns a list of all offer objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_offerobject_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_offerobject_list_task()`.
+/// For the simplest API, use `walletobjects_offerobject_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_offerobject_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferObjectListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_offerobject_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_offerobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/offerObject
+/// Returns a list of all offer objects for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_offerobject_list_builder()` + `walletobjects_offerobject_list_execute()`.
+/// For task-level control, use `walletobjects_offerobject_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerobject_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsOfferobjectListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferObjectListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_offerobject_list_builder(
+        client,
+        &args.classId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_offerobject_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/offerObject/{resourceId}
+/// Updates the offer object referenced by the given object ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_offerobject_patch_execute()` to send, or `walletobjects_offerobject_patch` for simplest API.
+
+pub fn walletobjects_offerobject_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/offerObject/{resourceId}
+/// Updates the offer object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_offerobject_patch_execute()` or `walletobjects_offerobject_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerobject_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OfferObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OfferObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/offerObject/{resourceId}
+/// Updates the offer object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_offerobject_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_offerobject_patch_task()`.
+/// For the simplest API, use `walletobjects_offerobject_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_offerobject_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = walletobjects_offerobject_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_offerobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/offerObject/{resourceId}
+/// Updates the offer object referenced by the given object ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_offerobject_patch_builder()` + `walletobjects_offerobject_patch_execute()`.
+/// For task-level control, use `walletobjects_offerobject_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerobject_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsOfferobjectPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_offerobject_patch_builder(client, &args.resourceId)?;
+    walletobjects_offerobject_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/offerObject/{resourceId}
+/// Updates the offer object referenced by the given object ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_offerobject_update_execute()` to send, or `walletobjects_offerobject_update` for simplest API.
+
+pub fn walletobjects_offerobject_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/offerObject/{resourceId}
+/// Updates the offer object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_offerobject_update_execute()` or `walletobjects_offerobject_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerobject_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OfferObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: OfferObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/offerObject/{resourceId}
+/// Updates the offer object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_offerobject_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_offerobject_update_task()`.
+/// For the simplest API, use `walletobjects_offerobject_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_offerobject_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = walletobjects_offerobject_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_offerobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/offerObject/{resourceId}
+/// Updates the offer object referenced by the given object ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_offerobject_update_builder()` + `walletobjects_offerobject_update_execute()`.
+/// For task-level control, use `walletobjects_offerobject_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_offerobject_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsOfferobjectUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_offerobject_update_builder(client, &args.resourceId)?;
+    walletobjects_offerobject_update_execute(builder)
 }
 
 /// GET walletobjects/v1/permissions/{resourceId}
@@ -7209,7 +13520,164 @@ pub fn walletobjects_permissions_get(
     walletobjects_permissions_get_execute(builder)
 }
 
-/// GET walletobjects/v1/smartTap
+/// PUT walletobjects/v1/permissions/{resourceId}
+/// Updates the permissions for the given issuer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_permissions_update_execute()` to send, or `walletobjects_permissions_update` for simplest API.
+
+pub fn walletobjects_permissions_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/permissions/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/permissions/{resourceId}
+/// Updates the permissions for the given issuer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_permissions_update_execute()` or `walletobjects_permissions_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_permissions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_permissions_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Permissions>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Permissions = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/permissions/{resourceId}
+/// Updates the permissions for the given issuer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_permissions_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_permissions_update_task()`.
+/// For the simplest API, use `walletobjects_permissions_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_permissions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_permissions_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Permissions>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = walletobjects_permissions_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_permissions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsPermissionsUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/permissions/{resourceId}
+/// Updates the permissions for the given issuer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_permissions_update_builder()` + `walletobjects_permissions_update_execute()`.
+/// For task-level control, use `walletobjects_permissions_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_permissions_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsPermissionsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Permissions>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_permissions_update_builder(client, &args.resourceId)?;
+    walletobjects_permissions_update_execute(builder)
+}
+
+/// POST walletobjects/v1/smartTap
 /// Inserts the smart tap.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7217,22 +13685,19 @@ pub fn walletobjects_permissions_get(
 
 pub fn walletobjects_smarttap_insert_builder(
     client: &SimpleHttpClient,
-    body: &SmartTap,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/smartTap",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/smartTap
+/// POST walletobjects/v1/smartTap
 /// Inserts the smart tap.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7306,7 +13771,7 @@ pub fn walletobjects_smarttap_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/smartTap
+/// POST walletobjects/v1/smartTap
 /// Inserts the smart tap.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7336,14 +13801,7 @@ pub fn walletobjects_smarttap_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_smarttap_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsSmarttapInsertArgs {
-    /// Request body.
-    pub body: SmartTap,
-}
-
-/// GET walletobjects/v1/smartTap
+/// POST walletobjects/v1/smartTap
 /// Inserts the smart tap.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7356,16 +13814,15 @@ pub struct WalletobjectsSmarttapInsertArgs {
 
 pub fn walletobjects_smarttap_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsSmarttapInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SmartTap>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_smarttap_insert_builder(client, &args.body)?;
+    let builder = walletobjects_smarttap_insert_builder(client)?;
     walletobjects_smarttap_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/transitClass/{resourceId}/addMessage
+/// POST walletobjects/v1/transitClass/{resourceId}/addMessage
 /// Adds a message to the transit class referenced by the given class ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7374,7 +13831,6 @@ pub fn walletobjects_smarttap_insert(
 pub fn walletobjects_transitclass_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7384,15 +13840,13 @@ pub fn walletobjects_transitclass_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/transitClass/{resourceId}/addMessage
+/// POST walletobjects/v1/transitClass/{resourceId}/addMessage
 /// Adds a message to the transit class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7466,7 +13920,7 @@ pub fn walletobjects_transitclass_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/transitClass/{resourceId}/addMessage
+/// POST walletobjects/v1/transitClass/{resourceId}/addMessage
 /// Adds a message to the transit class referenced by the given class ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7505,11 +13959,9 @@ pub fn walletobjects_transitclass_addmessage_execute(
 pub struct WalletobjectsTransitclassAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/transitClass/{resourceId}/addMessage
+/// POST walletobjects/v1/transitClass/{resourceId}/addMessage
 /// Adds a message to the transit class referenced by the given class ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7531,8 +13983,7 @@ pub fn walletobjects_transitclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_transitclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_transitclass_addmessage_builder(client, &args.resourceId)?;
     walletobjects_transitclass_addmessage_execute(builder)
 }
 
@@ -7697,7 +14148,7 @@ pub fn walletobjects_transitclass_get(
     walletobjects_transitclass_get_execute(builder)
 }
 
-/// GET walletobjects/v1/transitClass
+/// POST walletobjects/v1/transitClass
 /// Inserts a transit class with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7705,7 +14156,6 @@ pub fn walletobjects_transitclass_get(
 
 pub fn walletobjects_transitclass_insert_builder(
     client: &SimpleHttpClient,
-    body: &TransitClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -7713,15 +14163,13 @@ pub fn walletobjects_transitclass_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/transitClass
+/// POST walletobjects/v1/transitClass
 /// Inserts a transit class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7795,7 +14243,7 @@ pub fn walletobjects_transitclass_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/transitClass
+/// POST walletobjects/v1/transitClass
 /// Inserts a transit class with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7827,14 +14275,7 @@ pub fn walletobjects_transitclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_transitclass_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsTransitclassInsertArgs {
-    /// Request body.
-    pub body: TransitClass,
-}
-
-/// GET walletobjects/v1/transitClass
+/// POST walletobjects/v1/transitClass
 /// Inserts a transit class with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7847,18 +14288,526 @@ pub struct WalletobjectsTransitclassInsertArgs {
 
 pub fn walletobjects_transitclass_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsTransitclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitclass_insert_builder(client, &args.body)?;
+    let builder = walletobjects_transitclass_insert_builder(client)?;
     walletobjects_transitclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/transitObject/{resourceId}/addMessage
+/// GET walletobjects/v1/transitClass
+/// Returns a list of all transit classes for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_transitclass_list_execute()` to send, or `walletobjects_transitclass_list` for simplest API.
+
+pub fn walletobjects_transitclass_list_builder(
+    client: &SimpleHttpClient,
+    issuerId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/transitClass",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = issuerId.as_ref() {
+        query_parts.push(format!("issuerId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/transitClass
+/// Returns a list of all transit classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_transitclass_list_execute()` or `walletobjects_transitclass_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitclass_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransitClassListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransitClassListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/transitClass
+/// Returns a list of all transit classes for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_transitclass_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_transitclass_list_task()`.
+/// For the simplest API, use `walletobjects_transitclass_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_transitclass_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_transitclass_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_transitclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/transitClass
+/// Returns a list of all transit classes for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_transitclass_list_builder()` + `walletobjects_transitclass_list_execute()`.
+/// For task-level control, use `walletobjects_transitclass_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitclass_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsTransitclassListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitClassListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_transitclass_list_builder(
+        client,
+        &args.issuerId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_transitclass_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/transitClass/{resourceId}
+/// Updates the transit class referenced by the given class ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_transitclass_patch_execute()` to send, or `walletobjects_transitclass_patch` for simplest API.
+
+pub fn walletobjects_transitclass_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/transitClass/{resourceId}
+/// Updates the transit class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_transitclass_patch_execute()` or `walletobjects_transitclass_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitclass_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransitClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransitClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/transitClass/{resourceId}
+/// Updates the transit class referenced by the given class ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_transitclass_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_transitclass_patch_task()`.
+/// For the simplest API, use `walletobjects_transitclass_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_transitclass_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_transitclass_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_transitclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/transitClass/{resourceId}
+/// Updates the transit class referenced by the given class ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_transitclass_patch_builder()` + `walletobjects_transitclass_patch_execute()`.
+/// For task-level control, use `walletobjects_transitclass_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitclass_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsTransitclassPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_transitclass_patch_builder(client, &args.resourceId)?;
+    walletobjects_transitclass_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/transitClass/{resourceId}
+/// Updates the transit class referenced by the given class ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_transitclass_update_execute()` to send, or `walletobjects_transitclass_update` for simplest API.
+
+pub fn walletobjects_transitclass_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/transitClass/{resourceId}
+/// Updates the transit class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_transitclass_update_execute()` or `walletobjects_transitclass_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitclass_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransitClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransitClass = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/transitClass/{resourceId}
+/// Updates the transit class referenced by the given class ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_transitclass_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_transitclass_update_task()`.
+/// For the simplest API, use `walletobjects_transitclass_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_transitclass_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_transitclass_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_transitclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/transitClass/{resourceId}
+/// Updates the transit class referenced by the given class ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_transitclass_update_builder()` + `walletobjects_transitclass_update_execute()`.
+/// For task-level control, use `walletobjects_transitclass_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitclass_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsTransitclassUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_transitclass_update_builder(client, &args.resourceId)?;
+    walletobjects_transitclass_update_execute(builder)
+}
+
+/// POST walletobjects/v1/transitObject/{resourceId}/addMessage
 /// Adds a message to the transit object referenced by the given object ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7867,7 +14816,6 @@ pub fn walletobjects_transitclass_insert(
 pub fn walletobjects_transitobject_addmessage_builder(
     client: &SimpleHttpClient,
     resourceId: &String,
-    body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7877,15 +14825,13 @@ pub fn walletobjects_transitobject_addmessage_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/transitObject/{resourceId}/addMessage
+/// POST walletobjects/v1/transitObject/{resourceId}/addMessage
 /// Adds a message to the transit object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7959,7 +14905,7 @@ pub fn walletobjects_transitobject_addmessage_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/transitObject/{resourceId}/addMessage
+/// POST walletobjects/v1/transitObject/{resourceId}/addMessage
 /// Adds a message to the transit object referenced by the given object ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7998,11 +14944,9 @@ pub fn walletobjects_transitobject_addmessage_execute(
 pub struct WalletobjectsTransitobjectAddmessageArgs {
     /// Path parameter: resourceId
     pub resourceId: String,
-    /// Request body.
-    pub body: AddMessageRequest,
 }
 
-/// GET walletobjects/v1/transitObject/{resourceId}/addMessage
+/// POST walletobjects/v1/transitObject/{resourceId}/addMessage
 /// Adds a message to the transit object referenced by the given object ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8024,8 +14968,7 @@ pub fn walletobjects_transitobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_transitobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_transitobject_addmessage_builder(client, &args.resourceId)?;
     walletobjects_transitobject_addmessage_execute(builder)
 }
 
@@ -8190,7 +15133,7 @@ pub fn walletobjects_transitobject_get(
     walletobjects_transitobject_get_execute(builder)
 }
 
-/// GET walletobjects/v1/transitObject
+/// POST walletobjects/v1/transitObject
 /// Inserts an transit object with the given ID and properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8198,7 +15141,6 @@ pub fn walletobjects_transitobject_get(
 
 pub fn walletobjects_transitobject_insert_builder(
     client: &SimpleHttpClient,
-    body: &TransitObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -8206,15 +15148,13 @@ pub fn walletobjects_transitobject_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/transitObject
+/// POST walletobjects/v1/transitObject
 /// Inserts an transit object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8288,7 +15228,7 @@ pub fn walletobjects_transitobject_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/transitObject
+/// POST walletobjects/v1/transitObject
 /// Inserts an transit object with the given ID and properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8320,14 +15260,7 @@ pub fn walletobjects_transitobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_transitobject_insert`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsTransitobjectInsertArgs {
-    /// Request body.
-    pub body: TransitObject,
-}
-
-/// GET walletobjects/v1/transitObject
+/// POST walletobjects/v1/transitObject
 /// Inserts an transit object with the given ID and properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8340,18 +15273,526 @@ pub struct WalletobjectsTransitobjectInsertArgs {
 
 pub fn walletobjects_transitobject_insert(
     client: &SimpleHttpClient,
-    args: &WalletobjectsTransitobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitobject_insert_builder(client, &args.body)?;
+    let builder = walletobjects_transitobject_insert_builder(client)?;
     walletobjects_transitobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/privateContent/setPassUpdateNotice
+/// GET walletobjects/v1/transitObject
+/// Returns a list of all transit objects for a given issuer ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_transitobject_list_execute()` to send, or `walletobjects_transitobject_list` for simplest API.
+
+pub fn walletobjects_transitobject_list_builder(
+    client: &SimpleHttpClient,
+    classId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    token: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/transitObject",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = classId.as_ref() {
+        query_parts.push(format!("classId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = token.as_ref() {
+        query_parts.push(format!("token={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET walletobjects/v1/transitObject
+/// Returns a list of all transit objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_transitobject_list_execute()` or `walletobjects_transitobject_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitobject_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransitObjectListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransitObjectListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET walletobjects/v1/transitObject
+/// Returns a list of all transit objects for a given issuer ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_transitobject_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_transitobject_list_task()`.
+/// For the simplest API, use `walletobjects_transitobject_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_transitobject_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitObjectListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_transitobject_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_transitobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: token
+    pub token: Option<Option<String>>,
+}
+
+/// GET walletobjects/v1/transitObject
+/// Returns a list of all transit objects for a given issuer ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_transitobject_list_builder()` + `walletobjects_transitobject_list_execute()`.
+/// For task-level control, use `walletobjects_transitobject_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitobject_list(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsTransitobjectListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitObjectListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_transitobject_list_builder(
+        client,
+        &args.classId,
+        &args.maxResults,
+        &args.token,
+    )?;
+    walletobjects_transitobject_list_execute(builder)
+}
+
+/// PATCH walletobjects/v1/transitObject/{resourceId}
+/// Updates the transit object referenced by the given object ID. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_transitobject_patch_execute()` to send, or `walletobjects_transitobject_patch` for simplest API.
+
+pub fn walletobjects_transitobject_patch_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH walletobjects/v1/transitObject/{resourceId}
+/// Updates the transit object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_transitobject_patch_execute()` or `walletobjects_transitobject_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitobject_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransitObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransitObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH walletobjects/v1/transitObject/{resourceId}
+/// Updates the transit object referenced by the given object ID. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_transitobject_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_transitobject_patch_task()`.
+/// For the simplest API, use `walletobjects_transitobject_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_transitobject_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_transitobject_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_transitobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PATCH walletobjects/v1/transitObject/{resourceId}
+/// Updates the transit object referenced by the given object ID. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_transitobject_patch_builder()` + `walletobjects_transitobject_patch_execute()`.
+/// For task-level control, use `walletobjects_transitobject_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitobject_patch(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsTransitobjectPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_transitobject_patch_builder(client, &args.resourceId)?;
+    walletobjects_transitobject_patch_execute(builder)
+}
+
+/// PUT walletobjects/v1/transitObject/{resourceId}
+/// Updates the transit object referenced by the given object ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `walletobjects_transitobject_update_execute()` to send, or `walletobjects_transitobject_update` for simplest API.
+
+pub fn walletobjects_transitobject_update_builder(
+    client: &SimpleHttpClient,
+    resourceId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}",
+        resourceId,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT walletobjects/v1/transitObject/{resourceId}
+/// Updates the transit object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `walletobjects_transitobject_update_execute()` or `walletobjects_transitobject_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitobject_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransitObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TransitObject = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT walletobjects/v1/transitObject/{resourceId}
+/// Updates the transit object referenced by the given object ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `walletobjects_transitobject_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `walletobjects_transitobject_update_task()`.
+/// For the simplest API, use `walletobjects_transitobject_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn walletobjects_transitobject_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = walletobjects_transitobject_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`walletobjects_transitobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
+/// PUT walletobjects/v1/transitObject/{resourceId}
+/// Updates the transit object referenced by the given object ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `walletobjects_transitobject_update_builder()` + `walletobjects_transitobject_update_execute()`.
+/// For task-level control, use `walletobjects_transitobject_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn walletobjects_transitobject_update(
+    client: &SimpleHttpClient,
+    args: &WalletobjectsTransitobjectUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = walletobjects_transitobject_update_builder(client, &args.resourceId)?;
+    walletobjects_transitobject_update_execute(builder)
+}
+
+/// POST walletobjects/v1/privateContent/setPassUpdateNotice
 /// Provide Google with information about awaiting private pass update. This will allow Google to provide the update notification to the device that currently holds this pass.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8359,7 +15800,6 @@ pub fn walletobjects_transitobject_insert(
 
 pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_builder(
     client: &SimpleHttpClient,
-    body: &SetPassUpdateNoticeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8368,15 +15808,13 @@ pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_bui
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET walletobjects/v1/privateContent/setPassUpdateNotice
+/// POST walletobjects/v1/privateContent/setPassUpdateNotice
 /// Provide Google with information about awaiting private pass update. This will allow Google to provide the update notification to the device that currently holds this pass.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8450,7 +15888,7 @@ pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_tas
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET walletobjects/v1/privateContent/setPassUpdateNotice
+/// POST walletobjects/v1/privateContent/setPassUpdateNotice
 /// Provide Google with information about awaiting private pass update. This will allow Google to provide the update notification to the device that currently holds this pass.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8484,14 +15922,7 @@ pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`walletobjects_walletobjects_v1_private_content_set_pass_update_notice`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs {
-    /// Request body.
-    pub body: SetPassUpdateNoticeRequest,
-}
-
-/// GET walletobjects/v1/privateContent/setPassUpdateNotice
+/// POST walletobjects/v1/privateContent/setPassUpdateNotice
 /// Provide Google with information about awaiting private pass update. This will allow Google to provide the update notification to the device that currently holds this pass.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8504,7 +15935,6 @@ pub struct WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs {
 
 pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice(
     client: &SimpleHttpClient,
-    args: &WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SetPassUpdateNoticeResponse>, ApiError>,
@@ -8513,8 +15943,2343 @@ pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_walletobjects_v1_private_content_set_pass_update_notice_builder(
-        client, &args.body,
-    )?;
+    let builder =
+        walletobjects_walletobjects_v1_private_content_set_pass_update_notice_builder(client)?;
     walletobjects_walletobjects_v1_private_content_set_pass_update_notice_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketClassAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketClassAddMessageResponse with WalletobjectsEventticketclassAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketclassAddmessageArgs>
+    for EventTicketClassAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketclassAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::EventTicketClassAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketClassAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketClass with WalletobjectsEventticketclassGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketclassGetArgs> for EventTicketClass {
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketclassGetArgs) -> String {
+        format!("gcp::walletobjects::EventTicketClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketClass with WalletobjectsEventticketclassInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketclassInsertArgs> for EventTicketClass {
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketclassInsertArgs) -> String {
+        "gcp::walletobjects::EventTicketClass".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketClassListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketClassListResponse with WalletobjectsEventticketclassListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketclassListArgs> for EventTicketClassListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketclassListArgs) -> String {
+        "gcp::walletobjects::EventTicketClassListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketClassListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketClass with WalletobjectsEventticketclassPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketclassPatchArgs> for EventTicketClass {
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketclassPatchArgs) -> String {
+        format!("gcp::walletobjects::EventTicketClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketClass with WalletobjectsEventticketclassUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketclassUpdateArgs> for EventTicketClass {
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketclassUpdateArgs) -> String {
+        format!("gcp::walletobjects::EventTicketClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketObjectAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketObjectAddMessageResponse with WalletobjectsEventticketobjectAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketobjectAddmessageArgs>
+    for EventTicketObjectAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketobjectAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::EventTicketObjectAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketObjectAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketObject with WalletobjectsEventticketobjectGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketobjectGetArgs> for EventTicketObject {
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketobjectGetArgs) -> String {
+        format!("gcp::walletobjects::EventTicketObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketObject with WalletobjectsEventticketobjectInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketobjectInsertArgs> for EventTicketObject {
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketobjectInsertArgs) -> String {
+        "gcp::walletobjects::EventTicketObject".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketObjectListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketObjectListResponse with WalletobjectsEventticketobjectListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketobjectListArgs> for EventTicketObjectListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketobjectListArgs) -> String {
+        "gcp::walletobjects::EventTicketObjectListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketObjectListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketObject with WalletobjectsEventticketobjectModifylinkedofferobjectsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketobjectModifylinkedofferobjectsArgs>
+    for EventTicketObject
+{
+    fn generate_resource_id(
+        &self,
+        input: &WalletobjectsEventticketobjectModifylinkedofferobjectsArgs,
+    ) -> String {
+        format!("gcp::walletobjects::EventTicketObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketObject with WalletobjectsEventticketobjectPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketobjectPatchArgs> for EventTicketObject {
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketobjectPatchArgs) -> String {
+        format!("gcp::walletobjects::EventTicketObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EventTicketObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for EventTicketObject with WalletobjectsEventticketobjectUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsEventticketobjectUpdateArgs> for EventTicketObject {
+    fn generate_resource_id(&self, input: &WalletobjectsEventticketobjectUpdateArgs) -> String {
+        format!("gcp::walletobjects::EventTicketObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::EventTicketObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightClassAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightClassAddMessageResponse with WalletobjectsFlightclassAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightclassAddmessageArgs> for FlightClassAddMessageResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightclassAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::FlightClassAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightClassAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightClass with WalletobjectsFlightclassGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightclassGetArgs> for FlightClass {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightclassGetArgs) -> String {
+        format!("gcp::walletobjects::FlightClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightClass with WalletobjectsFlightclassInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightclassInsertArgs> for FlightClass {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightclassInsertArgs) -> String {
+        "gcp::walletobjects::FlightClass".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightClassListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightClassListResponse with WalletobjectsFlightclassListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightclassListArgs> for FlightClassListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightclassListArgs) -> String {
+        "gcp::walletobjects::FlightClassListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightClassListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightClass with WalletobjectsFlightclassPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightclassPatchArgs> for FlightClass {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightclassPatchArgs) -> String {
+        format!("gcp::walletobjects::FlightClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightClass with WalletobjectsFlightclassUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightclassUpdateArgs> for FlightClass {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightclassUpdateArgs) -> String {
+        format!("gcp::walletobjects::FlightClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightObjectAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightObjectAddMessageResponse with WalletobjectsFlightobjectAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightobjectAddmessageArgs>
+    for FlightObjectAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsFlightobjectAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::FlightObjectAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightObjectAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightObject with WalletobjectsFlightobjectGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightobjectGetArgs> for FlightObject {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightobjectGetArgs) -> String {
+        format!("gcp::walletobjects::FlightObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightObject with WalletobjectsFlightobjectInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightobjectInsertArgs> for FlightObject {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightobjectInsertArgs) -> String {
+        "gcp::walletobjects::FlightObject".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightObjectListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightObjectListResponse with WalletobjectsFlightobjectListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightobjectListArgs> for FlightObjectListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightobjectListArgs) -> String {
+        "gcp::walletobjects::FlightObjectListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightObjectListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightObject with WalletobjectsFlightobjectPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightobjectPatchArgs> for FlightObject {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightobjectPatchArgs) -> String {
+        format!("gcp::walletobjects::FlightObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlightObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlightObject with WalletobjectsFlightobjectUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsFlightobjectUpdateArgs> for FlightObject {
+    fn generate_resource_id(&self, input: &WalletobjectsFlightobjectUpdateArgs) -> String {
+        format!("gcp::walletobjects::FlightObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::FlightObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericClassAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericClassAddMessageResponse with WalletobjectsGenericclassAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericclassAddmessageArgs>
+    for GenericClassAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsGenericclassAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::GenericClassAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericClassAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericClass with WalletobjectsGenericclassGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericclassGetArgs> for GenericClass {
+    fn generate_resource_id(&self, input: &WalletobjectsGenericclassGetArgs) -> String {
+        format!("gcp::walletobjects::GenericClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericClass with WalletobjectsGenericclassInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericclassInsertArgs> for GenericClass {
+    fn generate_resource_id(&self, input: &WalletobjectsGenericclassInsertArgs) -> String {
+        "gcp::walletobjects::GenericClass".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericClassListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericClassListResponse with WalletobjectsGenericclassListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericclassListArgs> for GenericClassListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsGenericclassListArgs) -> String {
+        "gcp::walletobjects::GenericClassListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericClassListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericClass with WalletobjectsGenericclassPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericclassPatchArgs> for GenericClass {
+    fn generate_resource_id(&self, input: &WalletobjectsGenericclassPatchArgs) -> String {
+        format!("gcp::walletobjects::GenericClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericClass with WalletobjectsGenericclassUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericclassUpdateArgs> for GenericClass {
+    fn generate_resource_id(&self, input: &WalletobjectsGenericclassUpdateArgs) -> String {
+        format!("gcp::walletobjects::GenericClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericObjectAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericObjectAddMessageResponse with WalletobjectsGenericobjectAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericobjectAddmessageArgs>
+    for GenericObjectAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsGenericobjectAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::GenericObjectAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericObjectAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericObject with WalletobjectsGenericobjectGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericobjectGetArgs> for GenericObject {
+    fn generate_resource_id(&self, input: &WalletobjectsGenericobjectGetArgs) -> String {
+        format!("gcp::walletobjects::GenericObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericObject with WalletobjectsGenericobjectInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericobjectInsertArgs> for GenericObject {
+    fn generate_resource_id(&self, input: &WalletobjectsGenericobjectInsertArgs) -> String {
+        "gcp::walletobjects::GenericObject".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericObjectListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericObjectListResponse with WalletobjectsGenericobjectListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericobjectListArgs> for GenericObjectListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsGenericobjectListArgs) -> String {
+        "gcp::walletobjects::GenericObjectListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericObjectListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericObject with WalletobjectsGenericobjectPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericobjectPatchArgs> for GenericObject {
+    fn generate_resource_id(&self, input: &WalletobjectsGenericobjectPatchArgs) -> String {
+        format!("gcp::walletobjects::GenericObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenericObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenericObject with WalletobjectsGenericobjectUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGenericobjectUpdateArgs> for GenericObject {
+    fn generate_resource_id(&self, input: &WalletobjectsGenericobjectUpdateArgs) -> String {
+        format!("gcp::walletobjects::GenericObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GenericObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardClassAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardClassAddMessageResponse with WalletobjectsGiftcardclassAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardclassAddmessageArgs>
+    for GiftCardClassAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardclassAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::GiftCardClassAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardClassAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardClass with WalletobjectsGiftcardclassGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardclassGetArgs> for GiftCardClass {
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardclassGetArgs) -> String {
+        format!("gcp::walletobjects::GiftCardClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardClass with WalletobjectsGiftcardclassInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardclassInsertArgs> for GiftCardClass {
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardclassInsertArgs) -> String {
+        "gcp::walletobjects::GiftCardClass".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardClassListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardClassListResponse with WalletobjectsGiftcardclassListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardclassListArgs> for GiftCardClassListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardclassListArgs) -> String {
+        "gcp::walletobjects::GiftCardClassListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardClassListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardClass with WalletobjectsGiftcardclassPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardclassPatchArgs> for GiftCardClass {
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardclassPatchArgs) -> String {
+        format!("gcp::walletobjects::GiftCardClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardClass with WalletobjectsGiftcardclassUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardclassUpdateArgs> for GiftCardClass {
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardclassUpdateArgs) -> String {
+        format!("gcp::walletobjects::GiftCardClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardObjectAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardObjectAddMessageResponse with WalletobjectsGiftcardobjectAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardobjectAddmessageArgs>
+    for GiftCardObjectAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardobjectAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::GiftCardObjectAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardObjectAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardObject with WalletobjectsGiftcardobjectGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardobjectGetArgs> for GiftCardObject {
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardobjectGetArgs) -> String {
+        format!("gcp::walletobjects::GiftCardObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardObject with WalletobjectsGiftcardobjectInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardobjectInsertArgs> for GiftCardObject {
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardobjectInsertArgs) -> String {
+        "gcp::walletobjects::GiftCardObject".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardObjectListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardObjectListResponse with WalletobjectsGiftcardobjectListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardobjectListArgs> for GiftCardObjectListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardobjectListArgs) -> String {
+        "gcp::walletobjects::GiftCardObjectListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardObjectListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardObject with WalletobjectsGiftcardobjectPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardobjectPatchArgs> for GiftCardObject {
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardobjectPatchArgs) -> String {
+        format!("gcp::walletobjects::GiftCardObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GiftCardObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for GiftCardObject with WalletobjectsGiftcardobjectUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsGiftcardobjectUpdateArgs> for GiftCardObject {
+    fn generate_resource_id(&self, input: &WalletobjectsGiftcardobjectUpdateArgs) -> String {
+        format!("gcp::walletobjects::GiftCardObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::GiftCardObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Issuer
+// =============================================================================
+
+/// ResourceIdentifier implementation for Issuer with WalletobjectsIssuerGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsIssuerGetArgs> for Issuer {
+    fn generate_resource_id(&self, input: &WalletobjectsIssuerGetArgs) -> String {
+        format!("gcp::walletobjects::Issuer/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::Issuer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Issuer
+// =============================================================================
+
+/// ResourceIdentifier implementation for Issuer with WalletobjectsIssuerInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsIssuerInsertArgs> for Issuer {
+    fn generate_resource_id(&self, input: &WalletobjectsIssuerInsertArgs) -> String {
+        "gcp::walletobjects::Issuer".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::Issuer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for IssuerListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for IssuerListResponse with WalletobjectsIssuerListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsIssuerListArgs> for IssuerListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsIssuerListArgs) -> String {
+        "gcp::walletobjects::IssuerListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::IssuerListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Issuer
+// =============================================================================
+
+/// ResourceIdentifier implementation for Issuer with WalletobjectsIssuerPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsIssuerPatchArgs> for Issuer {
+    fn generate_resource_id(&self, input: &WalletobjectsIssuerPatchArgs) -> String {
+        format!("gcp::walletobjects::Issuer/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::Issuer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Issuer
+// =============================================================================
+
+/// ResourceIdentifier implementation for Issuer with WalletobjectsIssuerUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsIssuerUpdateArgs> for Issuer {
+    fn generate_resource_id(&self, input: &WalletobjectsIssuerUpdateArgs) -> String {
+        format!("gcp::walletobjects::Issuer/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::Issuer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for JwtInsertResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for JwtInsertResponse with WalletobjectsJwtInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsJwtInsertArgs> for JwtInsertResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsJwtInsertArgs) -> String {
+        "gcp::walletobjects::JwtInsertResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::JwtInsertResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyClassAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyClassAddMessageResponse with WalletobjectsLoyaltyclassAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyclassAddmessageArgs>
+    for LoyaltyClassAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyclassAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::LoyaltyClassAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyClassAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyClass with WalletobjectsLoyaltyclassGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyclassGetArgs> for LoyaltyClass {
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyclassGetArgs) -> String {
+        format!("gcp::walletobjects::LoyaltyClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyClass with WalletobjectsLoyaltyclassInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyclassInsertArgs> for LoyaltyClass {
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyclassInsertArgs) -> String {
+        "gcp::walletobjects::LoyaltyClass".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyClassListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyClassListResponse with WalletobjectsLoyaltyclassListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyclassListArgs> for LoyaltyClassListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyclassListArgs) -> String {
+        "gcp::walletobjects::LoyaltyClassListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyClassListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyClass with WalletobjectsLoyaltyclassPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyclassPatchArgs> for LoyaltyClass {
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyclassPatchArgs) -> String {
+        format!("gcp::walletobjects::LoyaltyClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyClass with WalletobjectsLoyaltyclassUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyclassUpdateArgs> for LoyaltyClass {
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyclassUpdateArgs) -> String {
+        format!("gcp::walletobjects::LoyaltyClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyObjectAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyObjectAddMessageResponse with WalletobjectsLoyaltyobjectAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyobjectAddmessageArgs>
+    for LoyaltyObjectAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyobjectAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::LoyaltyObjectAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyObjectAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyObject with WalletobjectsLoyaltyobjectGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyobjectGetArgs> for LoyaltyObject {
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyobjectGetArgs) -> String {
+        format!("gcp::walletobjects::LoyaltyObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyObject with WalletobjectsLoyaltyobjectInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyobjectInsertArgs> for LoyaltyObject {
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyobjectInsertArgs) -> String {
+        "gcp::walletobjects::LoyaltyObject".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyObjectListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyObjectListResponse with WalletobjectsLoyaltyobjectListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyobjectListArgs> for LoyaltyObjectListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyobjectListArgs) -> String {
+        "gcp::walletobjects::LoyaltyObjectListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyObjectListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyObject with WalletobjectsLoyaltyobjectModifylinkedofferobjectsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyobjectModifylinkedofferobjectsArgs> for LoyaltyObject {
+    fn generate_resource_id(
+        &self,
+        input: &WalletobjectsLoyaltyobjectModifylinkedofferobjectsArgs,
+    ) -> String {
+        format!("gcp::walletobjects::LoyaltyObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyObject with WalletobjectsLoyaltyobjectPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyobjectPatchArgs> for LoyaltyObject {
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyobjectPatchArgs) -> String {
+        format!("gcp::walletobjects::LoyaltyObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LoyaltyObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for LoyaltyObject with WalletobjectsLoyaltyobjectUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsLoyaltyobjectUpdateArgs> for LoyaltyObject {
+    fn generate_resource_id(&self, input: &WalletobjectsLoyaltyobjectUpdateArgs) -> String {
+        format!("gcp::walletobjects::LoyaltyObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::LoyaltyObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Media
+// =============================================================================
+
+/// ResourceIdentifier implementation for Media with WalletobjectsMediaDownloadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsMediaDownloadArgs> for Media {
+    fn generate_resource_id(&self, input: &WalletobjectsMediaDownloadArgs) -> String {
+        format!("gcp::walletobjects::Media/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::Media"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitObjectUploadRotatingBarcodeValuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitObjectUploadRotatingBarcodeValuesResponse with WalletobjectsMediaUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsMediaUploadArgs>
+    for TransitObjectUploadRotatingBarcodeValuesResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsMediaUploadArgs) -> String {
+        format!(
+            "gcp::walletobjects::TransitObjectUploadRotatingBarcodeValuesResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitObjectUploadRotatingBarcodeValuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferClassAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferClassAddMessageResponse with WalletobjectsOfferclassAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferclassAddmessageArgs> for OfferClassAddMessageResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferclassAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::OfferClassAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferClassAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferClass with WalletobjectsOfferclassGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferclassGetArgs> for OfferClass {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferclassGetArgs) -> String {
+        format!("gcp::walletobjects::OfferClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferClass with WalletobjectsOfferclassInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferclassInsertArgs> for OfferClass {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferclassInsertArgs) -> String {
+        "gcp::walletobjects::OfferClass".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferClassListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferClassListResponse with WalletobjectsOfferclassListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferclassListArgs> for OfferClassListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferclassListArgs) -> String {
+        "gcp::walletobjects::OfferClassListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferClassListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferClass with WalletobjectsOfferclassPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferclassPatchArgs> for OfferClass {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferclassPatchArgs) -> String {
+        format!("gcp::walletobjects::OfferClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferClass with WalletobjectsOfferclassUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferclassUpdateArgs> for OfferClass {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferclassUpdateArgs) -> String {
+        format!("gcp::walletobjects::OfferClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferObjectAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferObjectAddMessageResponse with WalletobjectsOfferobjectAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferobjectAddmessageArgs> for OfferObjectAddMessageResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferobjectAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::OfferObjectAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferObjectAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferObject with WalletobjectsOfferobjectGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferobjectGetArgs> for OfferObject {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferobjectGetArgs) -> String {
+        format!("gcp::walletobjects::OfferObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferObject with WalletobjectsOfferobjectInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferobjectInsertArgs> for OfferObject {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferobjectInsertArgs) -> String {
+        "gcp::walletobjects::OfferObject".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferObjectListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferObjectListResponse with WalletobjectsOfferobjectListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferobjectListArgs> for OfferObjectListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferobjectListArgs) -> String {
+        "gcp::walletobjects::OfferObjectListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferObjectListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferObject with WalletobjectsOfferobjectPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferobjectPatchArgs> for OfferObject {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferobjectPatchArgs) -> String {
+        format!("gcp::walletobjects::OfferObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OfferObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for OfferObject with WalletobjectsOfferobjectUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsOfferobjectUpdateArgs> for OfferObject {
+    fn generate_resource_id(&self, input: &WalletobjectsOfferobjectUpdateArgs) -> String {
+        format!("gcp::walletobjects::OfferObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::OfferObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Permissions
+// =============================================================================
+
+/// ResourceIdentifier implementation for Permissions with WalletobjectsPermissionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsPermissionsGetArgs> for Permissions {
+    fn generate_resource_id(&self, input: &WalletobjectsPermissionsGetArgs) -> String {
+        format!("gcp::walletobjects::Permissions/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::Permissions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Permissions
+// =============================================================================
+
+/// ResourceIdentifier implementation for Permissions with WalletobjectsPermissionsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsPermissionsUpdateArgs> for Permissions {
+    fn generate_resource_id(&self, input: &WalletobjectsPermissionsUpdateArgs) -> String {
+        format!("gcp::walletobjects::Permissions/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::Permissions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SmartTap
+// =============================================================================
+
+/// ResourceIdentifier implementation for SmartTap with WalletobjectsSmarttapInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsSmarttapInsertArgs> for SmartTap {
+    fn generate_resource_id(&self, input: &WalletobjectsSmarttapInsertArgs) -> String {
+        "gcp::walletobjects::SmartTap".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::SmartTap"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitClassAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitClassAddMessageResponse with WalletobjectsTransitclassAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitclassAddmessageArgs>
+    for TransitClassAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsTransitclassAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::TransitClassAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitClassAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitClass with WalletobjectsTransitclassGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitclassGetArgs> for TransitClass {
+    fn generate_resource_id(&self, input: &WalletobjectsTransitclassGetArgs) -> String {
+        format!("gcp::walletobjects::TransitClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitClass with WalletobjectsTransitclassInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitclassInsertArgs> for TransitClass {
+    fn generate_resource_id(&self, input: &WalletobjectsTransitclassInsertArgs) -> String {
+        "gcp::walletobjects::TransitClass".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitClassListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitClassListResponse with WalletobjectsTransitclassListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitclassListArgs> for TransitClassListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsTransitclassListArgs) -> String {
+        "gcp::walletobjects::TransitClassListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitClassListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitClass with WalletobjectsTransitclassPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitclassPatchArgs> for TransitClass {
+    fn generate_resource_id(&self, input: &WalletobjectsTransitclassPatchArgs) -> String {
+        format!("gcp::walletobjects::TransitClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitClass
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitClass with WalletobjectsTransitclassUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitclassUpdateArgs> for TransitClass {
+    fn generate_resource_id(&self, input: &WalletobjectsTransitclassUpdateArgs) -> String {
+        format!("gcp::walletobjects::TransitClass/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitClass"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitObjectAddMessageResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitObjectAddMessageResponse with WalletobjectsTransitobjectAddmessageArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitobjectAddmessageArgs>
+    for TransitObjectAddMessageResponse
+{
+    fn generate_resource_id(&self, input: &WalletobjectsTransitobjectAddmessageArgs) -> String {
+        format!(
+            "gcp::walletobjects::TransitObjectAddMessageResponse/{}",
+            input.resourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitObjectAddMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitObject with WalletobjectsTransitobjectGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitobjectGetArgs> for TransitObject {
+    fn generate_resource_id(&self, input: &WalletobjectsTransitobjectGetArgs) -> String {
+        format!("gcp::walletobjects::TransitObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitObject with WalletobjectsTransitobjectInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitobjectInsertArgs> for TransitObject {
+    fn generate_resource_id(&self, input: &WalletobjectsTransitobjectInsertArgs) -> String {
+        "gcp::walletobjects::TransitObject".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitObjectListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitObjectListResponse with WalletobjectsTransitobjectListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitobjectListArgs> for TransitObjectListResponse {
+    fn generate_resource_id(&self, input: &WalletobjectsTransitobjectListArgs) -> String {
+        "gcp::walletobjects::TransitObjectListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitObjectListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitObject with WalletobjectsTransitobjectPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitobjectPatchArgs> for TransitObject {
+    fn generate_resource_id(&self, input: &WalletobjectsTransitobjectPatchArgs) -> String {
+        format!("gcp::walletobjects::TransitObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TransitObject
+// =============================================================================
+
+/// ResourceIdentifier implementation for TransitObject with WalletobjectsTransitobjectUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsTransitobjectUpdateArgs> for TransitObject {
+    fn generate_resource_id(&self, input: &WalletobjectsTransitobjectUpdateArgs) -> String {
+        format!("gcp::walletobjects::TransitObject/{}", input.resourceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::TransitObject"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SetPassUpdateNoticeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SetPassUpdateNoticeResponse with WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs>
+    for SetPassUpdateNoticeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs,
+    ) -> String {
+        "gcp::walletobjects::SetPassUpdateNoticeResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::walletobjects::SetPassUpdateNoticeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

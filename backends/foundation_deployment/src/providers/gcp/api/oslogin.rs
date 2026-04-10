@@ -13,25 +13,30 @@
 
 use crate::providers::gcp::clients::oslogin::{
     oslogin_projects_locations_sign_ssh_public_key_builder, oslogin_projects_locations_sign_ssh_public_key_task,
+    oslogin_users_get_login_profile_builder, oslogin_users_get_login_profile_task,
     oslogin_users_import_ssh_public_key_builder, oslogin_users_import_ssh_public_key_task,
     oslogin_users_projects_delete_builder, oslogin_users_projects_delete_task,
     oslogin_users_projects_provision_posix_account_builder, oslogin_users_projects_provision_posix_account_task,
     oslogin_users_ssh_public_keys_create_builder, oslogin_users_ssh_public_keys_create_task,
     oslogin_users_ssh_public_keys_delete_builder, oslogin_users_ssh_public_keys_delete_task,
+    oslogin_users_ssh_public_keys_get_builder, oslogin_users_ssh_public_keys_get_task,
     oslogin_users_ssh_public_keys_patch_builder, oslogin_users_ssh_public_keys_patch_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::oslogin::Empty;
 use crate::providers::gcp::clients::oslogin::ImportSshPublicKeyResponse;
+use crate::providers::gcp::clients::oslogin::LoginProfile;
 use crate::providers::gcp::clients::oslogin::PosixAccount;
 use crate::providers::gcp::clients::oslogin::SignSshPublicKeyResponse;
 use crate::providers::gcp::clients::oslogin::SshPublicKey;
 use crate::providers::gcp::clients::oslogin::OsloginProjectsLocationsSignSshPublicKeyArgs;
+use crate::providers::gcp::clients::oslogin::OsloginUsersGetLoginProfileArgs;
 use crate::providers::gcp::clients::oslogin::OsloginUsersImportSshPublicKeyArgs;
 use crate::providers::gcp::clients::oslogin::OsloginUsersProjectsDeleteArgs;
 use crate::providers::gcp::clients::oslogin::OsloginUsersProjectsProvisionPosixAccountArgs;
 use crate::providers::gcp::clients::oslogin::OsloginUsersSshPublicKeysCreateArgs;
 use crate::providers::gcp::clients::oslogin::OsloginUsersSshPublicKeysDeleteArgs;
+use crate::providers::gcp::clients::oslogin::OsloginUsersSshPublicKeysGetArgs;
 use crate::providers::gcp::clients::oslogin::OsloginUsersSshPublicKeysPatchArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -115,6 +120,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Oslogin users get login profile.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the LoginProfile result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn oslogin_users_get_login_profile(
+        &self,
+        args: &OsloginUsersGetLoginProfileArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<LoginProfile, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = oslogin_users_get_login_profile_builder(
+            &self.http_client,
+            &args.name,
+            &args.projectId,
+            &args.systemId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = oslogin_users_get_login_profile_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Oslogin users import ssh public key.
@@ -332,6 +377,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Oslogin users ssh public keys get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SshPublicKey result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn oslogin_users_ssh_public_keys_get(
+        &self,
+        args: &OsloginUsersSshPublicKeysGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SshPublicKey, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = oslogin_users_ssh_public_keys_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = oslogin_users_ssh_public_keys_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Oslogin users ssh public keys patch.

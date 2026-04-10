@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_get_execute()` to send, or `servicedirectory_projects_locations_get` for simplest API.
+
+pub fn servicedirectory_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_get_execute()` or `servicedirectory_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_get_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_get_builder()` + `servicedirectory_projects_locations_get_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_get_builder(client, &args.name)?;
+    servicedirectory_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +186,16 @@ use serde::Serialize;
 pub fn servicedirectory_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://servicedirectory.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +337,13 @@ pub struct ServicedirectoryProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +375,4413 @@ pub fn servicedirectory_projects_locations_list(
         &args.pageToken,
     )?;
     servicedirectory_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces
+/// Creates a namespace, and returns the new namespace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_create_execute()` to send, or `servicedirectory_projects_locations_namespaces_create` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    namespaceId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = namespaceId.as_ref() {
+        query_parts.push(format!("namespaceId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces
+/// Creates a namespace, and returns the new namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_create_execute()` or `servicedirectory_projects_locations_namespaces_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Namespace>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Namespace = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces
+/// Creates a namespace, and returns the new namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_create_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Namespace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: namespaceId
+    pub namespaceId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces
+/// Creates a namespace, and returns the new namespace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_create_builder()` + `servicedirectory_projects_locations_namespaces_create_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_create(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Namespace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_create_builder(
+        client,
+        &args.parent,
+        &args.namespaceId,
+    )?;
+    servicedirectory_projects_locations_namespaces_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Deletes a namespace. This also deletes all services and endpoints in the namespace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_delete_execute()` to send, or `servicedirectory_projects_locations_namespaces_delete` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Deletes a namespace. This also deletes all services and endpoints in the namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_delete_execute()` or `servicedirectory_projects_locations_namespaces_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Deletes a namespace. This also deletes all services and endpoints in the namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_delete_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Deletes a namespace. This also deletes all services and endpoints in the namespace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_delete_builder()` + `servicedirectory_projects_locations_namespaces_delete_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_delete(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        servicedirectory_projects_locations_namespaces_delete_builder(client, &args.name)?;
+    servicedirectory_projects_locations_namespaces_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Gets a namespace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_get_execute()` to send, or `servicedirectory_projects_locations_namespaces_get` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Gets a namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_get_execute()` or `servicedirectory_projects_locations_namespaces_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Namespace>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Namespace = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Gets a namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_get_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Namespace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Gets a namespace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_get_builder()` + `servicedirectory_projects_locations_namespaces_get_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_get(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Namespace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_get_builder(client, &args.name)?;
+    servicedirectory_projects_locations_namespaces_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:getIamPolicy
+/// Gets the IAM Policy for a resource (namespace or service only).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_get_iam_policy_execute()` to send, or `servicedirectory_projects_locations_namespaces_get_iam_policy` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:getIamPolicy
+/// Gets the IAM Policy for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_get_iam_policy_execute()` or `servicedirectory_projects_locations_namespaces_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:getIamPolicy
+/// Gets the IAM Policy for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_get_iam_policy_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:getIamPolicy
+/// Gets the IAM Policy for a resource (namespace or service only).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_get_iam_policy_builder()` + `servicedirectory_projects_locations_namespaces_get_iam_policy_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    servicedirectory_projects_locations_namespaces_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces
+/// Lists all namespaces.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_list_execute()` to send, or `servicedirectory_projects_locations_namespaces_list` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces
+/// Lists all namespaces.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_list_execute()` or `servicedirectory_projects_locations_namespaces_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNamespacesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNamespacesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces
+/// Lists all namespaces.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_list_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNamespacesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces
+/// Lists all namespaces.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_list_builder()` + `servicedirectory_projects_locations_namespaces_list_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_list(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListNamespacesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    servicedirectory_projects_locations_namespaces_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Updates a namespace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_patch_execute()` to send, or `servicedirectory_projects_locations_namespaces_patch` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Updates a namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_patch_execute()` or `servicedirectory_projects_locations_namespaces_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Namespace>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Namespace = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Updates a namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_patch_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Namespace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
+/// Updates a namespace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_patch_builder()` + `servicedirectory_projects_locations_namespaces_patch_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_patch(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Namespace>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    servicedirectory_projects_locations_namespaces_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:setIamPolicy
+/// Sets the IAM Policy for a resource (namespace or service only).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_set_iam_policy_execute()` to send, or `servicedirectory_projects_locations_namespaces_set_iam_policy` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:setIamPolicy
+/// Sets the IAM Policy for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_set_iam_policy_execute()` or `servicedirectory_projects_locations_namespaces_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:setIamPolicy
+/// Sets the IAM Policy for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_set_iam_policy_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:setIamPolicy
+/// Sets the IAM Policy for a resource (namespace or service only).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_set_iam_policy_builder()` + `servicedirectory_projects_locations_namespaces_set_iam_policy_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    servicedirectory_projects_locations_namespaces_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:testIamPermissions
+/// Tests IAM permissions for a resource (namespace or service only).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_test_iam_permissions_execute()` to send, or `servicedirectory_projects_locations_namespaces_test_iam_permissions` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:testIamPermissions
+/// Tests IAM permissions for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_test_iam_permissions_execute()` or `servicedirectory_projects_locations_namespaces_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:testIamPermissions
+/// Tests IAM permissions for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_test_iam_permissions_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:testIamPermissions
+/// Tests IAM permissions for a resource (namespace or service only).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_test_iam_permissions_builder()` + `servicedirectory_projects_locations_namespaces_test_iam_permissions_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    servicedirectory_projects_locations_namespaces_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
+/// Creates a service, and returns the new service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_create_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_create` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    serviceId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = serviceId.as_ref() {
+        query_parts.push(format!("serviceId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
+/// Creates a service, and returns the new service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_create_execute()` or `servicedirectory_projects_locations_namespaces_services_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Service>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Service = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
+/// Creates a service, and returns the new service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_create_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_services_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serviceId
+    pub serviceId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
+/// Creates a service, and returns the new service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_create_builder()` + `servicedirectory_projects_locations_namespaces_services_create_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_create(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_create_builder(
+        client,
+        &args.parent,
+        &args.serviceId,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Deletes a service. This also deletes all endpoints associated with the service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_delete_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_delete` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Deletes a service. This also deletes all endpoints associated with the service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_delete_execute()` or `servicedirectory_projects_locations_namespaces_services_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Deletes a service. This also deletes all endpoints associated with the service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_delete_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_services_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Deletes a service. This also deletes all endpoints associated with the service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_delete_builder()` + `servicedirectory_projects_locations_namespaces_services_delete_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_delete(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        servicedirectory_projects_locations_namespaces_services_delete_builder(client, &args.name)?;
+    servicedirectory_projects_locations_namespaces_services_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Gets a service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_get_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_get` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Gets a service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_get_execute()` or `servicedirectory_projects_locations_namespaces_services_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Service>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Service = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Gets a service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_get_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_services_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Gets a service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_get_builder()` + `servicedirectory_projects_locations_namespaces_services_get_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_get(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        servicedirectory_projects_locations_namespaces_services_get_builder(client, &args.name)?;
+    servicedirectory_projects_locations_namespaces_services_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:getIamPolicy
+/// Gets the IAM Policy for a resource (namespace or service only).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_get_iam_policy_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_get_iam_policy` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:getIamPolicy
+/// Gets the IAM Policy for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_get_iam_policy_execute()` or `servicedirectory_projects_locations_namespaces_services_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:getIamPolicy
+/// Gets the IAM Policy for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_get_iam_policy_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        servicedirectory_projects_locations_namespaces_services_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:getIamPolicy
+/// Gets the IAM Policy for a resource (namespace or service only).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_get_iam_policy_builder()` + `servicedirectory_projects_locations_namespaces_services_get_iam_policy_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
+/// Lists all services belonging to a namespace.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_list_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_list` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
+/// Lists all services belonging to a namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_list_execute()` or `servicedirectory_projects_locations_namespaces_services_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListServicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListServicesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
+/// Lists all services belonging to a namespace.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_list_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_services_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
+/// Lists all services belonging to a namespace.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_list_builder()` + `servicedirectory_projects_locations_namespaces_services_list_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_list(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Updates a service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_patch_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_patch` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Updates a service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_patch_execute()` or `servicedirectory_projects_locations_namespaces_services_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Service>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Service = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Updates a service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_patch_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_services_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
+/// Updates a service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_patch_builder()` + `servicedirectory_projects_locations_namespaces_services_patch_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_patch(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:resolve
+/// Returns a service and its associated endpoints. Resolving a service is not considered an active developer method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_resolve_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_resolve` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_resolve_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:resolve",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:resolve
+/// Returns a service and its associated endpoints. Resolving a service is not considered an active developer method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_resolve_execute()` or `servicedirectory_projects_locations_namespaces_services_resolve`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_resolve_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_resolve_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResolveServiceResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResolveServiceResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:resolve
+/// Returns a service and its associated endpoints. Resolving a service is not considered an active developer method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_resolve_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_resolve_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_resolve()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_resolve_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_resolve_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResolveServiceResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_services_resolve_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_resolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesResolveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:resolve
+/// Returns a service and its associated endpoints. Resolving a service is not considered an active developer method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_resolve_builder()` + `servicedirectory_projects_locations_namespaces_services_resolve_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_resolve_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_resolve(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesResolveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResolveServiceResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_resolve_builder(
+        client, &args.name,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_resolve_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:setIamPolicy
+/// Sets the IAM Policy for a resource (namespace or service only).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_set_iam_policy_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_set_iam_policy` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:setIamPolicy
+/// Sets the IAM Policy for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_set_iam_policy_execute()` or `servicedirectory_projects_locations_namespaces_services_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:setIamPolicy
+/// Sets the IAM Policy for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_set_iam_policy_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        servicedirectory_projects_locations_namespaces_services_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:setIamPolicy
+/// Sets the IAM Policy for a resource (namespace or service only).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_set_iam_policy_builder()` + `servicedirectory_projects_locations_namespaces_services_set_iam_policy_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:testIamPermissions
+/// Tests IAM permissions for a resource (namespace or service only).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_test_iam_permissions_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_test_iam_permissions` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:testIamPermissions
+/// Tests IAM permissions for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_test_iam_permissions_execute()` or `servicedirectory_projects_locations_namespaces_services_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:testIamPermissions
+/// Tests IAM permissions for a resource (namespace or service only).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_test_iam_permissions_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        servicedirectory_projects_locations_namespaces_services_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:testIamPermissions
+/// Tests IAM permissions for a resource (namespace or service only).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_test_iam_permissions_builder()` + `servicedirectory_projects_locations_namespaces_services_test_iam_permissions_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        servicedirectory_projects_locations_namespaces_services_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    servicedirectory_projects_locations_namespaces_services_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
+/// Creates an endpoint, and returns the new endpoint.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_endpoints_create_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_endpoints_create` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    endpointId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = endpointId.as_ref() {
+        query_parts.push(format!("endpointId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
+/// Creates an endpoint, and returns the new endpoint.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_endpoints_create_execute()` or `servicedirectory_projects_locations_namespaces_services_endpoints_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_endpoints_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Endpoint>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Endpoint = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
+/// Creates an endpoint, and returns the new endpoint.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_endpoints_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_endpoints_create_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_endpoints_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_endpoints_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        servicedirectory_projects_locations_namespaces_services_endpoints_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_endpoints_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: endpointId
+    pub endpointId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
+/// Creates an endpoint, and returns the new endpoint.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_endpoints_create_builder()` + `servicedirectory_projects_locations_namespaces_services_endpoints_create_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_endpoints_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_endpoints_create_builder(
+        client,
+        &args.parent,
+        &args.endpointId,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_endpoints_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Deletes an endpoint.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_endpoints_delete_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_endpoints_delete` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Deletes an endpoint.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_endpoints_delete_execute()` or `servicedirectory_projects_locations_namespaces_services_endpoints_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_endpoints_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Deletes an endpoint.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_endpoints_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_endpoints_delete_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_endpoints_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_endpoints_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        servicedirectory_projects_locations_namespaces_services_endpoints_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_endpoints_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Deletes an endpoint.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_endpoints_delete_builder()` + `servicedirectory_projects_locations_namespaces_services_endpoints_delete_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_endpoints_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_delete(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_endpoints_delete_builder(
+        client, &args.name,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_endpoints_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Gets an endpoint.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_endpoints_get_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_endpoints_get` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Gets an endpoint.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_endpoints_get_execute()` or `servicedirectory_projects_locations_namespaces_services_endpoints_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_endpoints_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Endpoint>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Endpoint = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Gets an endpoint.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_endpoints_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_endpoints_get_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_endpoints_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_endpoints_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = servicedirectory_projects_locations_namespaces_services_endpoints_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_endpoints_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Gets an endpoint.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_endpoints_get_builder()` + `servicedirectory_projects_locations_namespaces_services_endpoints_get_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_endpoints_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_endpoints_get_builder(
+        client, &args.name,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_endpoints_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
+/// Lists all endpoints.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_endpoints_list_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_endpoints_list` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
+/// Lists all endpoints.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_endpoints_list_execute()` or `servicedirectory_projects_locations_namespaces_services_endpoints_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_endpoints_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListEndpointsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListEndpointsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
+/// Lists all endpoints.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_endpoints_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_endpoints_list_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_endpoints_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_endpoints_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEndpointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        servicedirectory_projects_locations_namespaces_services_endpoints_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_endpoints_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
+/// Lists all endpoints.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_endpoints_list_builder()` + `servicedirectory_projects_locations_namespaces_services_endpoints_list_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_endpoints_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEndpointsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_endpoints_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_endpoints_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Updates an endpoint.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `servicedirectory_projects_locations_namespaces_services_endpoints_patch_execute()` to send, or `servicedirectory_projects_locations_namespaces_services_endpoints_patch` for simplest API.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://servicedirectory.googleapis.com/v1/projects/{}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Updates an endpoint.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `servicedirectory_projects_locations_namespaces_services_endpoints_patch_execute()` or `servicedirectory_projects_locations_namespaces_services_endpoints_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Endpoint>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Endpoint = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Updates an endpoint.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_endpoints_patch_task()`.
+/// For the simplest API, use `servicedirectory_projects_locations_namespaces_services_endpoints_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        servicedirectory_projects_locations_namespaces_services_endpoints_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_endpoints_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
+/// Updates an endpoint.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder()` + `servicedirectory_projects_locations_namespaces_services_endpoints_patch_execute()`.
+/// For task-level control, use `servicedirectory_projects_locations_namespaces_services_endpoints_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn servicedirectory_projects_locations_namespaces_services_endpoints_patch(
+    client: &SimpleHttpClient,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    servicedirectory_projects_locations_namespaces_services_endpoints_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with ServicedirectoryProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &ServicedirectoryProjectsLocationsGetArgs) -> String {
+        format!("gcp::servicedirectory::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with ServicedirectoryProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &ServicedirectoryProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::servicedirectory::ListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Namespace
+// =============================================================================
+
+/// ResourceIdentifier implementation for Namespace with ServicedirectoryProjectsLocationsNamespacesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesCreateArgs> for Namespace {
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesCreateArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Namespace/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Namespace"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ServicedirectoryProjectsLocationsNamespacesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesDeleteArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Namespace
+// =============================================================================
+
+/// ResourceIdentifier implementation for Namespace with ServicedirectoryProjectsLocationsNamespacesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesGetArgs> for Namespace {
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesGetArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Namespace/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Namespace"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ServicedirectoryProjectsLocationsNamespacesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNamespacesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNamespacesResponse with ServicedirectoryProjectsLocationsNamespacesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesListArgs>
+    for ListNamespacesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesListArgs,
+    ) -> String {
+        format!(
+            "gcp::servicedirectory::ListNamespacesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::ListNamespacesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Namespace
+// =============================================================================
+
+/// ResourceIdentifier implementation for Namespace with ServicedirectoryProjectsLocationsNamespacesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesPatchArgs> for Namespace {
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesPatchArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Namespace/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Namespace"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ServicedirectoryProjectsLocationsNamespacesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with ServicedirectoryProjectsLocationsNamespacesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::servicedirectory::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Service
+// =============================================================================
+
+/// ResourceIdentifier implementation for Service with ServicedirectoryProjectsLocationsNamespacesServicesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesCreateArgs> for Service {
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesCreateArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Service/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ServicedirectoryProjectsLocationsNamespacesServicesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesDeleteArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Service
+// =============================================================================
+
+/// ResourceIdentifier implementation for Service with ServicedirectoryProjectsLocationsNamespacesServicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesGetArgs> for Service {
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesGetArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Service/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ServicedirectoryProjectsLocationsNamespacesServicesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListServicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListServicesResponse with ServicedirectoryProjectsLocationsNamespacesServicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesListArgs>
+    for ListServicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesListArgs,
+    ) -> String {
+        format!(
+            "gcp::servicedirectory::ListServicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Service
+// =============================================================================
+
+/// ResourceIdentifier implementation for Service with ServicedirectoryProjectsLocationsNamespacesServicesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesPatchArgs> for Service {
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesPatchArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Service/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResolveServiceResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResolveServiceResponse with ServicedirectoryProjectsLocationsNamespacesServicesResolveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesResolveArgs>
+    for ResolveServiceResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesResolveArgs,
+    ) -> String {
+        format!(
+            "gcp::servicedirectory::ResolveServiceResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::ResolveServiceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with ServicedirectoryProjectsLocationsNamespacesServicesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with ServicedirectoryProjectsLocationsNamespacesServicesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::servicedirectory::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Endpoint
+// =============================================================================
+
+/// ResourceIdentifier implementation for Endpoint with ServicedirectoryProjectsLocationsNamespacesServicesEndpointsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesEndpointsCreateArgs>
+    for Endpoint
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsCreateArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Endpoint/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Endpoint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ServicedirectoryProjectsLocationsNamespacesServicesEndpointsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesEndpointsDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsDeleteArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Endpoint
+// =============================================================================
+
+/// ResourceIdentifier implementation for Endpoint with ServicedirectoryProjectsLocationsNamespacesServicesEndpointsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesEndpointsGetArgs>
+    for Endpoint
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsGetArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Endpoint/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Endpoint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListEndpointsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEndpointsResponse with ServicedirectoryProjectsLocationsNamespacesServicesEndpointsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesEndpointsListArgs>
+    for ListEndpointsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsListArgs,
+    ) -> String {
+        format!(
+            "gcp::servicedirectory::ListEndpointsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::ListEndpointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Endpoint
+// =============================================================================
+
+/// ResourceIdentifier implementation for Endpoint with ServicedirectoryProjectsLocationsNamespacesServicesEndpointsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ServicedirectoryProjectsLocationsNamespacesServicesEndpointsPatchArgs>
+    for Endpoint
+{
+    fn generate_resource_id(
+        &self,
+        input: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsPatchArgs,
+    ) -> String {
+        format!("gcp::servicedirectory::Endpoint/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::servicedirectory::Endpoint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

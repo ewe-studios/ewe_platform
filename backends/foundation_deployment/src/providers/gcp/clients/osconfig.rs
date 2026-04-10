@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
+/// POST v2/folders/{foldersId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given folder resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,13 +29,13 @@ use serde::Serialize;
 pub fn osconfig_folders_locations_global_policy_orchestrators_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    policyOrchestratorId: &Option<String>,
-    requestId: &Option<String>,
-    body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
+    policyOrchestratorId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/folders/{}/locations/global/policyOrchestrators",
+        parent,
     );
 
     // Build request
@@ -54,15 +54,13 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
+/// POST v2/folders/{foldersId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given folder resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -136,7 +134,7 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
+/// POST v2/folders/{foldersId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given folder resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -172,14 +170,12 @@ pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: policyOrchestratorId
-    pub policyOrchestratorId: Option<String>,
+    pub policyOrchestratorId: Option<Option<String>>,
     /// Query parameter: requestId
-    pub requestId: Option<String>,
-    /// Request body.
-    pub body: GoogleCloudOsconfigV2__PolicyOrchestrator,
+    pub requestId: Option<Option<String>>,
 }
 
-/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
+/// POST v2/folders/{foldersId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given folder resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -202,12 +198,1414 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create(
         &args.parent,
         &args.policyOrchestratorId,
         &args.requestId,
-        &args.body,
     )?;
     osconfig_folders_locations_global_policy_orchestrators_create_execute(builder)
 }
 
-/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
+/// DELETE v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by a folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_folders_locations_global_policy_orchestrators_delete_execute()` to send, or `osconfig_folders_locations_global_policy_orchestrators_delete` for simplest API.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/folders/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by a folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_folders_locations_global_policy_orchestrators_delete_execute()` or `osconfig_folders_locations_global_policy_orchestrators_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_global_policy_orchestrators_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by a folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_folders_locations_global_policy_orchestrators_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_folders_locations_global_policy_orchestrators_delete_task()`.
+/// For the simplest API, use `osconfig_folders_locations_global_policy_orchestrators_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_global_policy_orchestrators_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_folders_locations_global_policy_orchestrators_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_folders_locations_global_policy_orchestrators_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by a folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_folders_locations_global_policy_orchestrators_delete_builder()` + `osconfig_folders_locations_global_policy_orchestrators_delete_execute()`.
+/// For task-level control, use `osconfig_folders_locations_global_policy_orchestrators_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_delete(
+    client: &SimpleHttpClient,
+    args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_folders_locations_global_policy_orchestrators_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+    )?;
+    osconfig_folders_locations_global_policy_orchestrators_delete_execute(builder)
+}
+
+/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by a folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_folders_locations_global_policy_orchestrators_get_execute()` to send, or `osconfig_folders_locations_global_policy_orchestrators_get` for simplest API.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/folders/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by a folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_folders_locations_global_policy_orchestrators_get_execute()` or `osconfig_folders_locations_global_policy_orchestrators_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_global_policy_orchestrators_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOsconfigV2PolicyOrchestrator>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOsconfigV2PolicyOrchestrator =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by a folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_folders_locations_global_policy_orchestrators_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_folders_locations_global_policy_orchestrators_get_task()`.
+/// For the simplest API, use `osconfig_folders_locations_global_policy_orchestrators_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_global_policy_orchestrators_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2PolicyOrchestrator>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = osconfig_folders_locations_global_policy_orchestrators_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_folders_locations_global_policy_orchestrators_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by a folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_folders_locations_global_policy_orchestrators_get_builder()` + `osconfig_folders_locations_global_policy_orchestrators_get_execute()`.
+/// For task-level control, use `osconfig_folders_locations_global_policy_orchestrators_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_get(
+    client: &SimpleHttpClient,
+    args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2PolicyOrchestrator>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        osconfig_folders_locations_global_policy_orchestrators_get_builder(client, &args.name)?;
+    osconfig_folders_locations_global_policy_orchestrators_get_execute(builder)
+}
+
+/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent folder resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_folders_locations_global_policy_orchestrators_list_execute()` to send, or `osconfig_folders_locations_global_policy_orchestrators_list` for simplest API.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/folders/{}/locations/global/policyOrchestrators",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent folder resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_folders_locations_global_policy_orchestrators_list_execute()` or `osconfig_folders_locations_global_policy_orchestrators_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_global_policy_orchestrators_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent folder resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_folders_locations_global_policy_orchestrators_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_folders_locations_global_policy_orchestrators_list_task()`.
+/// For the simplest API, use `osconfig_folders_locations_global_policy_orchestrators_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_global_policy_orchestrators_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = osconfig_folders_locations_global_policy_orchestrators_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_folders_locations_global_policy_orchestrators_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent folder resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_folders_locations_global_policy_orchestrators_list_builder()` + `osconfig_folders_locations_global_policy_orchestrators_list_execute()`.
+/// For task-level control, use `osconfig_folders_locations_global_policy_orchestrators_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_list(
+    client: &SimpleHttpClient,
+    args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = osconfig_folders_locations_global_policy_orchestrators_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    osconfig_folders_locations_global_policy_orchestrators_list_execute(builder)
+}
+
+/// PATCH v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by a folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_folders_locations_global_policy_orchestrators_patch_execute()` to send, or `osconfig_folders_locations_global_policy_orchestrators_patch` for simplest API.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/folders/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by a folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_folders_locations_global_policy_orchestrators_patch_execute()` or `osconfig_folders_locations_global_policy_orchestrators_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_global_policy_orchestrators_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by a folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_folders_locations_global_policy_orchestrators_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_folders_locations_global_policy_orchestrators_patch_task()`.
+/// For the simplest API, use `osconfig_folders_locations_global_policy_orchestrators_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_global_policy_orchestrators_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_folders_locations_global_policy_orchestrators_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_folders_locations_global_policy_orchestrators_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by a folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_folders_locations_global_policy_orchestrators_patch_builder()` + `osconfig_folders_locations_global_policy_orchestrators_patch_execute()`.
+/// For task-level control, use `osconfig_folders_locations_global_policy_orchestrators_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_global_policy_orchestrators_patch(
+    client: &SimpleHttpClient,
+    args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_folders_locations_global_policy_orchestrators_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    osconfig_folders_locations_global_policy_orchestrators_patch_execute(builder)
+}
+
+/// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_folders_locations_operations_cancel_execute()` to send, or `osconfig_folders_locations_operations_cancel` for simplest API.
+
+pub fn osconfig_folders_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/folders/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_folders_locations_operations_cancel_execute()` or `osconfig_folders_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_folders_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_folders_locations_operations_cancel_task()`.
+/// For the simplest API, use `osconfig_folders_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_folders_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_folders_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_folders_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_folders_locations_operations_cancel_builder()` + `osconfig_folders_locations_operations_cancel_execute()`.
+/// For task-level control, use `osconfig_folders_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &OsconfigFoldersLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_folders_locations_operations_cancel_builder(client, &args.name)?;
+    osconfig_folders_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_folders_locations_operations_delete_execute()` to send, or `osconfig_folders_locations_operations_delete` for simplest API.
+
+pub fn osconfig_folders_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/folders/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_folders_locations_operations_delete_execute()` or `osconfig_folders_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_folders_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_folders_locations_operations_delete_task()`.
+/// For the simplest API, use `osconfig_folders_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_folders_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_folders_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_folders_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_folders_locations_operations_delete_builder()` + `osconfig_folders_locations_operations_delete_execute()`.
+/// For task-level control, use `osconfig_folders_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &OsconfigFoldersLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_folders_locations_operations_delete_builder(client, &args.name)?;
+    osconfig_folders_locations_operations_delete_execute(builder)
+}
+
+/// GET v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_folders_locations_operations_get_execute()` to send, or `osconfig_folders_locations_operations_get` for simplest API.
+
+pub fn osconfig_folders_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/folders/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_folders_locations_operations_get_execute()` or `osconfig_folders_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_folders_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_folders_locations_operations_get_task()`.
+/// For the simplest API, use `osconfig_folders_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_folders_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_folders_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_folders_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_folders_locations_operations_get_builder()` + `osconfig_folders_locations_operations_get_execute()`.
+/// For task-level control, use `osconfig_folders_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &OsconfigFoldersLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_folders_locations_operations_get_builder(client, &args.name)?;
+    osconfig_folders_locations_operations_get_execute(builder)
+}
+
+/// GET v2/folders/{foldersId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_folders_locations_operations_list_execute()` to send, or `osconfig_folders_locations_operations_list` for simplest API.
+
+pub fn osconfig_folders_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/folders/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/folders/{foldersId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_folders_locations_operations_list_execute()` or `osconfig_folders_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/folders/{foldersId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_folders_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_folders_locations_operations_list_task()`.
+/// For the simplest API, use `osconfig_folders_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_folders_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_folders_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = osconfig_folders_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_folders_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v2/folders/{foldersId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_folders_locations_operations_list_builder()` + `osconfig_folders_locations_operations_list_execute()`.
+/// For task-level control, use `osconfig_folders_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_folders_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &OsconfigFoldersLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = osconfig_folders_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    osconfig_folders_locations_operations_list_execute(builder)
+}
+
+/// POST v2/organizations/{organizationsId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given organizations resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -216,13 +1614,13 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create(
 pub fn osconfig_organizations_locations_global_policy_orchestrators_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    policyOrchestratorId: &Option<String>,
-    requestId: &Option<String>,
-    body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
+    policyOrchestratorId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/organizations/{}/locations/global/policyOrchestrators",
+        parent,
     );
 
     // Build request
@@ -241,15 +1639,13 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create_build
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
+/// POST v2/organizations/{organizationsId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given organizations resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -323,7 +1719,7 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
+/// POST v2/organizations/{organizationsId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given organizations resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -359,14 +1755,12 @@ pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: policyOrchestratorId
-    pub policyOrchestratorId: Option<String>,
+    pub policyOrchestratorId: Option<Option<String>>,
     /// Query parameter: requestId
-    pub requestId: Option<String>,
-    /// Request body.
-    pub body: GoogleCloudOsconfigV2__PolicyOrchestrator,
+    pub requestId: Option<Option<String>>,
 }
 
-/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
+/// POST v2/organizations/{organizationsId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given organizations resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -389,12 +1783,1415 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create(
         &args.parent,
         &args.policyOrchestratorId,
         &args.requestId,
-        &args.body,
     )?;
     osconfig_organizations_locations_global_policy_orchestrators_create_execute(builder)
 }
 
-/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
+/// DELETE v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by an organization.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_organizations_locations_global_policy_orchestrators_delete_execute()` to send, or `osconfig_organizations_locations_global_policy_orchestrators_delete` for simplest API.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/organizations/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by an organization.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_organizations_locations_global_policy_orchestrators_delete_execute()` or `osconfig_organizations_locations_global_policy_orchestrators_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_global_policy_orchestrators_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by an organization.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_organizations_locations_global_policy_orchestrators_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_organizations_locations_global_policy_orchestrators_delete_task()`.
+/// For the simplest API, use `osconfig_organizations_locations_global_policy_orchestrators_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_global_policy_orchestrators_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_organizations_locations_global_policy_orchestrators_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_organizations_locations_global_policy_orchestrators_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by an organization.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_organizations_locations_global_policy_orchestrators_delete_builder()` + `osconfig_organizations_locations_global_policy_orchestrators_delete_execute()`.
+/// For task-level control, use `osconfig_organizations_locations_global_policy_orchestrators_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_delete(
+    client: &SimpleHttpClient,
+    args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_organizations_locations_global_policy_orchestrators_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+    )?;
+    osconfig_organizations_locations_global_policy_orchestrators_delete_execute(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by an organization.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_organizations_locations_global_policy_orchestrators_get_execute()` to send, or `osconfig_organizations_locations_global_policy_orchestrators_get` for simplest API.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/organizations/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by an organization.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_organizations_locations_global_policy_orchestrators_get_execute()` or `osconfig_organizations_locations_global_policy_orchestrators_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_global_policy_orchestrators_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOsconfigV2PolicyOrchestrator>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOsconfigV2PolicyOrchestrator =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by an organization.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_organizations_locations_global_policy_orchestrators_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_organizations_locations_global_policy_orchestrators_get_task()`.
+/// For the simplest API, use `osconfig_organizations_locations_global_policy_orchestrators_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_global_policy_orchestrators_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2PolicyOrchestrator>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = osconfig_organizations_locations_global_policy_orchestrators_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_organizations_locations_global_policy_orchestrators_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by an organization.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_organizations_locations_global_policy_orchestrators_get_builder()` + `osconfig_organizations_locations_global_policy_orchestrators_get_execute()`.
+/// For task-level control, use `osconfig_organizations_locations_global_policy_orchestrators_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_get(
+    client: &SimpleHttpClient,
+    args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2PolicyOrchestrator>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = osconfig_organizations_locations_global_policy_orchestrators_get_builder(
+        client, &args.name,
+    )?;
+    osconfig_organizations_locations_global_policy_orchestrators_get_execute(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent organization resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_organizations_locations_global_policy_orchestrators_list_execute()` to send, or `osconfig_organizations_locations_global_policy_orchestrators_list` for simplest API.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/organizations/{}/locations/global/policyOrchestrators",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent organization resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_organizations_locations_global_policy_orchestrators_list_execute()` or `osconfig_organizations_locations_global_policy_orchestrators_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_global_policy_orchestrators_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent organization resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_organizations_locations_global_policy_orchestrators_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_organizations_locations_global_policy_orchestrators_list_task()`.
+/// For the simplest API, use `osconfig_organizations_locations_global_policy_orchestrators_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_global_policy_orchestrators_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = osconfig_organizations_locations_global_policy_orchestrators_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_organizations_locations_global_policy_orchestrators_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent organization resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_organizations_locations_global_policy_orchestrators_list_builder()` + `osconfig_organizations_locations_global_policy_orchestrators_list_execute()`.
+/// For task-level control, use `osconfig_organizations_locations_global_policy_orchestrators_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_list(
+    client: &SimpleHttpClient,
+    args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = osconfig_organizations_locations_global_policy_orchestrators_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    osconfig_organizations_locations_global_policy_orchestrators_list_execute(builder)
+}
+
+/// PATCH v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by an organization.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_organizations_locations_global_policy_orchestrators_patch_execute()` to send, or `osconfig_organizations_locations_global_policy_orchestrators_patch` for simplest API.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/organizations/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by an organization.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_organizations_locations_global_policy_orchestrators_patch_execute()` or `osconfig_organizations_locations_global_policy_orchestrators_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_global_policy_orchestrators_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by an organization.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_organizations_locations_global_policy_orchestrators_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_organizations_locations_global_policy_orchestrators_patch_task()`.
+/// For the simplest API, use `osconfig_organizations_locations_global_policy_orchestrators_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_global_policy_orchestrators_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_organizations_locations_global_policy_orchestrators_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_organizations_locations_global_policy_orchestrators_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by an organization.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_organizations_locations_global_policy_orchestrators_patch_builder()` + `osconfig_organizations_locations_global_policy_orchestrators_patch_execute()`.
+/// For task-level control, use `osconfig_organizations_locations_global_policy_orchestrators_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_global_policy_orchestrators_patch(
+    client: &SimpleHttpClient,
+    args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_organizations_locations_global_policy_orchestrators_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    osconfig_organizations_locations_global_policy_orchestrators_patch_execute(builder)
+}
+
+/// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_organizations_locations_operations_cancel_execute()` to send, or `osconfig_organizations_locations_operations_cancel` for simplest API.
+
+pub fn osconfig_organizations_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_organizations_locations_operations_cancel_execute()` or `osconfig_organizations_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_organizations_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_organizations_locations_operations_cancel_task()`.
+/// For the simplest API, use `osconfig_organizations_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_organizations_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_organizations_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_organizations_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_organizations_locations_operations_cancel_builder()` + `osconfig_organizations_locations_operations_cancel_execute()`.
+/// For task-level control, use `osconfig_organizations_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &OsconfigOrganizationsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_organizations_locations_operations_cancel_builder(client, &args.name)?;
+    osconfig_organizations_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_organizations_locations_operations_delete_execute()` to send, or `osconfig_organizations_locations_operations_delete` for simplest API.
+
+pub fn osconfig_organizations_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_organizations_locations_operations_delete_execute()` or `osconfig_organizations_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_organizations_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_organizations_locations_operations_delete_task()`.
+/// For the simplest API, use `osconfig_organizations_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_organizations_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_organizations_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_organizations_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_organizations_locations_operations_delete_builder()` + `osconfig_organizations_locations_operations_delete_execute()`.
+/// For task-level control, use `osconfig_organizations_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &OsconfigOrganizationsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_organizations_locations_operations_delete_builder(client, &args.name)?;
+    osconfig_organizations_locations_operations_delete_execute(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_organizations_locations_operations_get_execute()` to send, or `osconfig_organizations_locations_operations_get` for simplest API.
+
+pub fn osconfig_organizations_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_organizations_locations_operations_get_execute()` or `osconfig_organizations_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_organizations_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_organizations_locations_operations_get_task()`.
+/// For the simplest API, use `osconfig_organizations_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_organizations_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_organizations_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_organizations_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_organizations_locations_operations_get_builder()` + `osconfig_organizations_locations_operations_get_execute()`.
+/// For task-level control, use `osconfig_organizations_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &OsconfigOrganizationsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_organizations_locations_operations_get_builder(client, &args.name)?;
+    osconfig_organizations_locations_operations_get_execute(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_organizations_locations_operations_list_execute()` to send, or `osconfig_organizations_locations_operations_list` for simplest API.
+
+pub fn osconfig_organizations_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/organizations/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_organizations_locations_operations_list_execute()` or `osconfig_organizations_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_organizations_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_organizations_locations_operations_list_task()`.
+/// For the simplest API, use `osconfig_organizations_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_organizations_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_organizations_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = osconfig_organizations_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_organizations_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_organizations_locations_operations_list_builder()` + `osconfig_organizations_locations_operations_list_execute()`.
+/// For task-level control, use `osconfig_organizations_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_organizations_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &OsconfigOrganizationsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = osconfig_organizations_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    osconfig_organizations_locations_operations_list_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given project resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -403,13 +3200,13 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create(
 pub fn osconfig_projects_locations_global_policy_orchestrators_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    policyOrchestratorId: &Option<String>,
-    requestId: &Option<String>,
-    body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
+    policyOrchestratorId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://osconfig.googleapis.com/v2/projects/{}/locations/global/policyOrchestrators",
+        parent,
     );
 
     // Build request
@@ -428,15 +3225,13 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
+/// POST v2/projects/{projectsId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given project resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -510,7 +3305,7 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
+/// POST v2/projects/{projectsId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given project resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -546,14 +3341,12 @@ pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: policyOrchestratorId
-    pub policyOrchestratorId: Option<String>,
+    pub policyOrchestratorId: Option<Option<String>>,
     /// Query parameter: requestId
-    pub requestId: Option<String>,
-    /// Request body.
-    pub body: GoogleCloudOsconfigV2__PolicyOrchestrator,
+    pub requestId: Option<Option<String>>,
 }
 
-/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
+/// POST v2/projects/{projectsId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given project resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -576,7 +3369,2135 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_create(
         &args.parent,
         &args.policyOrchestratorId,
         &args.requestId,
-        &args.body,
     )?;
     osconfig_projects_locations_global_policy_orchestrators_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_projects_locations_global_policy_orchestrators_delete_execute()` to send, or `osconfig_projects_locations_global_policy_orchestrators_delete` for simplest API.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/projects/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_projects_locations_global_policy_orchestrators_delete_execute()` or `osconfig_projects_locations_global_policy_orchestrators_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_global_policy_orchestrators_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_projects_locations_global_policy_orchestrators_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_projects_locations_global_policy_orchestrators_delete_task()`.
+/// For the simplest API, use `osconfig_projects_locations_global_policy_orchestrators_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_global_policy_orchestrators_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_projects_locations_global_policy_orchestrators_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_projects_locations_global_policy_orchestrators_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Deletes an existing policy orchestrator resource, parented by a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_projects_locations_global_policy_orchestrators_delete_builder()` + `osconfig_projects_locations_global_policy_orchestrators_delete_execute()`.
+/// For task-level control, use `osconfig_projects_locations_global_policy_orchestrators_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_delete(
+    client: &SimpleHttpClient,
+    args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_projects_locations_global_policy_orchestrators_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.requestId,
+    )?;
+    osconfig_projects_locations_global_policy_orchestrators_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_projects_locations_global_policy_orchestrators_get_execute()` to send, or `osconfig_projects_locations_global_policy_orchestrators_get` for simplest API.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/projects/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_projects_locations_global_policy_orchestrators_get_execute()` or `osconfig_projects_locations_global_policy_orchestrators_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_global_policy_orchestrators_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudOsconfigV2PolicyOrchestrator>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOsconfigV2PolicyOrchestrator =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_projects_locations_global_policy_orchestrators_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_projects_locations_global_policy_orchestrators_get_task()`.
+/// For the simplest API, use `osconfig_projects_locations_global_policy_orchestrators_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_global_policy_orchestrators_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2PolicyOrchestrator>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = osconfig_projects_locations_global_policy_orchestrators_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_projects_locations_global_policy_orchestrators_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Retrieves an existing policy orchestrator, parented by a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_projects_locations_global_policy_orchestrators_get_builder()` + `osconfig_projects_locations_global_policy_orchestrators_get_execute()`.
+/// For task-level control, use `osconfig_projects_locations_global_policy_orchestrators_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_get(
+    client: &SimpleHttpClient,
+    args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2PolicyOrchestrator>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        osconfig_projects_locations_global_policy_orchestrators_get_builder(client, &args.name)?;
+    osconfig_projects_locations_global_policy_orchestrators_get_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent project resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_projects_locations_global_policy_orchestrators_list_execute()` to send, or `osconfig_projects_locations_global_policy_orchestrators_list` for simplest API.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/projects/{}/locations/global/policyOrchestrators",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent project resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_projects_locations_global_policy_orchestrators_list_execute()` or `osconfig_projects_locations_global_policy_orchestrators_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_global_policy_orchestrators_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent project resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_projects_locations_global_policy_orchestrators_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_projects_locations_global_policy_orchestrators_list_task()`.
+/// For the simplest API, use `osconfig_projects_locations_global_policy_orchestrators_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_global_policy_orchestrators_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = osconfig_projects_locations_global_policy_orchestrators_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_projects_locations_global_policy_orchestrators_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
+/// Lists the policy orchestrators under the given parent project resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_projects_locations_global_policy_orchestrators_list_builder()` + `osconfig_projects_locations_global_policy_orchestrators_list_execute()`.
+/// For task-level control, use `osconfig_projects_locations_global_policy_orchestrators_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_list(
+    client: &SimpleHttpClient,
+    args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = osconfig_projects_locations_global_policy_orchestrators_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    osconfig_projects_locations_global_policy_orchestrators_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by a project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_projects_locations_global_policy_orchestrators_patch_execute()` to send, or `osconfig_projects_locations_global_policy_orchestrators_patch` for simplest API.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/projects/{}/locations/global/policyOrchestrators/{policyOrchestratorsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by a project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_projects_locations_global_policy_orchestrators_patch_execute()` or `osconfig_projects_locations_global_policy_orchestrators_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_global_policy_orchestrators_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by a project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_projects_locations_global_policy_orchestrators_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_projects_locations_global_policy_orchestrators_patch_task()`.
+/// For the simplest API, use `osconfig_projects_locations_global_policy_orchestrators_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_global_policy_orchestrators_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_projects_locations_global_policy_orchestrators_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_projects_locations_global_policy_orchestrators_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
+/// Updates an existing policy orchestrator, parented by a project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_projects_locations_global_policy_orchestrators_patch_builder()` + `osconfig_projects_locations_global_policy_orchestrators_patch_execute()`.
+/// For task-level control, use `osconfig_projects_locations_global_policy_orchestrators_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_global_policy_orchestrators_patch(
+    client: &SimpleHttpClient,
+    args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_projects_locations_global_policy_orchestrators_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    osconfig_projects_locations_global_policy_orchestrators_patch_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_projects_locations_operations_cancel_execute()` to send, or `osconfig_projects_locations_operations_cancel` for simplest API.
+
+pub fn osconfig_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_projects_locations_operations_cancel_execute()` or `osconfig_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `osconfig_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_projects_locations_operations_cancel_builder()` + `osconfig_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `osconfig_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &OsconfigProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_projects_locations_operations_cancel_builder(client, &args.name)?;
+    osconfig_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_projects_locations_operations_delete_execute()` to send, or `osconfig_projects_locations_operations_delete` for simplest API.
+
+pub fn osconfig_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_projects_locations_operations_delete_execute()` or `osconfig_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `osconfig_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_projects_locations_operations_delete_builder()` + `osconfig_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `osconfig_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &OsconfigProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_projects_locations_operations_delete_builder(client, &args.name)?;
+    osconfig_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_projects_locations_operations_get_execute()` to send, or `osconfig_projects_locations_operations_get` for simplest API.
+
+pub fn osconfig_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_projects_locations_operations_get_execute()` or `osconfig_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_projects_locations_operations_get_task()`.
+/// For the simplest API, use `osconfig_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = osconfig_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_projects_locations_operations_get_builder()` + `osconfig_projects_locations_operations_get_execute()`.
+/// For task-level control, use `osconfig_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &OsconfigProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = osconfig_projects_locations_operations_get_builder(client, &args.name)?;
+    osconfig_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `osconfig_projects_locations_operations_list_execute()` to send, or `osconfig_projects_locations_operations_list` for simplest API.
+
+pub fn osconfig_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://osconfig.googleapis.com/v2/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `osconfig_projects_locations_operations_list_execute()` or `osconfig_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `osconfig_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `osconfig_projects_locations_operations_list_task()`.
+/// For the simplest API, use `osconfig_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `osconfig_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn osconfig_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = osconfig_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`osconfig_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `osconfig_projects_locations_operations_list_builder()` + `osconfig_projects_locations_operations_list_execute()`.
+/// For task-level control, use `osconfig_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn osconfig_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &OsconfigProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = osconfig_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    osconfig_projects_locations_operations_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigFoldersLocationsGlobalPolicyOrchestratorsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsGlobalPolicyOrchestratorsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsCreateArgs,
+    ) -> String {
+        format!("gcp::osconfig::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigFoldersLocationsGlobalPolicyOrchestratorsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsGlobalPolicyOrchestratorsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsDeleteArgs,
+    ) -> String {
+        format!("gcp::osconfig::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOsconfigV2PolicyOrchestrator
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOsconfigV2PolicyOrchestrator with OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs>
+    for GoogleCloudOsconfigV2PolicyOrchestrator
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::osconfig::GoogleCloudOsconfigV2PolicyOrchestrator/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::GoogleCloudOsconfigV2PolicyOrchestrator"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse with OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs>
+    for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::osconfig::GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigFoldersLocationsGlobalPolicyOrchestratorsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsGlobalPolicyOrchestratorsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsPatchArgs,
+    ) -> String {
+        format!("gcp::osconfig::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with OsconfigFoldersLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &OsconfigFoldersLocationsOperationsCancelArgs) -> String {
+        format!("gcp::osconfig::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with OsconfigFoldersLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &OsconfigFoldersLocationsOperationsDeleteArgs) -> String {
+        format!("gcp::osconfig::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigFoldersLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &OsconfigFoldersLocationsOperationsGetArgs) -> String {
+        format!("gcp::osconfig::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with OsconfigFoldersLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &OsconfigFoldersLocationsOperationsListArgs) -> String {
+        format!("gcp::osconfig::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsCreateArgs,
+    ) -> String {
+        format!("gcp::osconfig::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsDeleteArgs,
+    ) -> String {
+        format!("gcp::osconfig::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOsconfigV2PolicyOrchestrator
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOsconfigV2PolicyOrchestrator with OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsGetArgs>
+    for GoogleCloudOsconfigV2PolicyOrchestrator
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::osconfig::GoogleCloudOsconfigV2PolicyOrchestrator/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::GoogleCloudOsconfigV2PolicyOrchestrator"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse with OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsListArgs>
+    for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::osconfig::GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsPatchArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsPatchArgs,
+    ) -> String {
+        format!("gcp::osconfig::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with OsconfigOrganizationsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigOrganizationsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigOrganizationsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::osconfig::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with OsconfigOrganizationsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigOrganizationsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigOrganizationsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::osconfig::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigOrganizationsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigOrganizationsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigOrganizationsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::osconfig::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with OsconfigOrganizationsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigOrganizationsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigOrganizationsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::osconfig::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigProjectsLocationsGlobalPolicyOrchestratorsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigProjectsLocationsGlobalPolicyOrchestratorsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsCreateArgs,
+    ) -> String {
+        format!("gcp::osconfig::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigProjectsLocationsGlobalPolicyOrchestratorsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigProjectsLocationsGlobalPolicyOrchestratorsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsDeleteArgs,
+    ) -> String {
+        format!("gcp::osconfig::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOsconfigV2PolicyOrchestrator
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOsconfigV2PolicyOrchestrator with OsconfigProjectsLocationsGlobalPolicyOrchestratorsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigProjectsLocationsGlobalPolicyOrchestratorsGetArgs>
+    for GoogleCloudOsconfigV2PolicyOrchestrator
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::osconfig::GoogleCloudOsconfigV2PolicyOrchestrator/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::GoogleCloudOsconfigV2PolicyOrchestrator"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse with OsconfigProjectsLocationsGlobalPolicyOrchestratorsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigProjectsLocationsGlobalPolicyOrchestratorsListArgs>
+    for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::osconfig::GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigProjectsLocationsGlobalPolicyOrchestratorsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigProjectsLocationsGlobalPolicyOrchestratorsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsPatchArgs,
+    ) -> String {
+        format!("gcp::osconfig::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with OsconfigProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::osconfig::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with OsconfigProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::osconfig::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with OsconfigProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &OsconfigProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::osconfig::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with OsconfigProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &OsconfigProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::osconfig::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::osconfig::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

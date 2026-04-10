@@ -14,11 +14,14 @@
 use crate::providers::gcp::clients::firebaseml::{
     firebaseml_operations_cancel_builder, firebaseml_operations_cancel_task,
     firebaseml_operations_delete_builder, firebaseml_operations_delete_task,
+    firebaseml_operations_list_builder, firebaseml_operations_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::firebaseml::Empty;
+use crate::providers::gcp::clients::firebaseml::ListOperationsResponse;
 use crate::providers::gcp::clients::firebaseml::FirebasemlOperationsCancelArgs;
 use crate::providers::gcp::clients::firebaseml::FirebasemlOperationsDeleteArgs;
+use crate::providers::gcp::clients::firebaseml::FirebasemlOperationsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -144,6 +147,47 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Firebaseml operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn firebaseml_operations_list(
+        &self,
+        args: &FirebasemlOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = firebaseml_operations_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = firebaseml_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

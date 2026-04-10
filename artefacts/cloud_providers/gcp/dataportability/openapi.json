@@ -896,7 +896,7 @@
       }
     }
   },
-  "revision": "20260402",
+  "revision": "20260408",
   "rootUrl": "https://dataportability.googleapis.com/",
   "schemas": {
     "CancelPortabilityArchiveRequest": {

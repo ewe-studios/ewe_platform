@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v2/documents:analyzeEntities
+/// POST v2/documents:analyzeEntities
 /// Finds named entities (currently proper names and common nouns) in the text along with entity types, probability, mentions for each entity, and other properties.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn language_documents_analyze_entities_builder(
     client: &SimpleHttpClient,
-    body: &AnalyzeEntitiesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://language.googleapis.com/v2/documents:analyzeEntities",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/documents:analyzeEntities
+/// POST v2/documents:analyzeEntities
 /// Finds named entities (currently proper names and common nouns) in the text along with entity types, probability, mentions for each entity, and other properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn language_documents_analyze_entities_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/documents:analyzeEntities
+/// POST v2/documents:analyzeEntities
 /// Finds named entities (currently proper names and common nouns) in the text along with entity types, probability, mentions for each entity, and other properties.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -149,14 +146,7 @@ pub fn language_documents_analyze_entities_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`language_documents_analyze_entities`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct LanguageDocumentsAnalyzeEntitiesArgs {
-    /// Request body.
-    pub body: AnalyzeEntitiesRequest,
-}
-
-/// GET v2/documents:analyzeEntities
+/// POST v2/documents:analyzeEntities
 /// Finds named entities (currently proper names and common nouns) in the text along with entity types, probability, mentions for each entity, and other properties.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -169,18 +159,17 @@ pub struct LanguageDocumentsAnalyzeEntitiesArgs {
 
 pub fn language_documents_analyze_entities(
     client: &SimpleHttpClient,
-    args: &LanguageDocumentsAnalyzeEntitiesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnalyzeEntitiesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = language_documents_analyze_entities_builder(client, &args.body)?;
+    let builder = language_documents_analyze_entities_builder(client)?;
     language_documents_analyze_entities_execute(builder)
 }
 
-/// GET v2/documents:analyzeSentiment
+/// POST v2/documents:analyzeSentiment
 /// Analyzes the sentiment of the provided text.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -188,22 +177,19 @@ pub fn language_documents_analyze_entities(
 
 pub fn language_documents_analyze_sentiment_builder(
     client: &SimpleHttpClient,
-    body: &AnalyzeSentimentRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://language.googleapis.com/v2/documents:analyzeSentiment",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/documents:analyzeSentiment
+/// POST v2/documents:analyzeSentiment
 /// Analyzes the sentiment of the provided text.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -277,7 +263,7 @@ pub fn language_documents_analyze_sentiment_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/documents:analyzeSentiment
+/// POST v2/documents:analyzeSentiment
 /// Analyzes the sentiment of the provided text.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -309,14 +295,7 @@ pub fn language_documents_analyze_sentiment_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`language_documents_analyze_sentiment`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct LanguageDocumentsAnalyzeSentimentArgs {
-    /// Request body.
-    pub body: AnalyzeSentimentRequest,
-}
-
-/// GET v2/documents:analyzeSentiment
+/// POST v2/documents:analyzeSentiment
 /// Analyzes the sentiment of the provided text.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -329,18 +308,17 @@ pub struct LanguageDocumentsAnalyzeSentimentArgs {
 
 pub fn language_documents_analyze_sentiment(
     client: &SimpleHttpClient,
-    args: &LanguageDocumentsAnalyzeSentimentArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnalyzeSentimentResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = language_documents_analyze_sentiment_builder(client, &args.body)?;
+    let builder = language_documents_analyze_sentiment_builder(client)?;
     language_documents_analyze_sentiment_execute(builder)
 }
 
-/// GET v2/documents:annotateText
+/// POST v2/documents:annotateText
 /// A convenience method that provides all features in one call.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -348,22 +326,19 @@ pub fn language_documents_analyze_sentiment(
 
 pub fn language_documents_annotate_text_builder(
     client: &SimpleHttpClient,
-    body: &AnnotateTextRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://language.googleapis.com/v2/documents:annotateText",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/documents:annotateText
+/// POST v2/documents:annotateText
 /// A convenience method that provides all features in one call.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -437,7 +412,7 @@ pub fn language_documents_annotate_text_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/documents:annotateText
+/// POST v2/documents:annotateText
 /// A convenience method that provides all features in one call.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -469,14 +444,7 @@ pub fn language_documents_annotate_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`language_documents_annotate_text`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct LanguageDocumentsAnnotateTextArgs {
-    /// Request body.
-    pub body: AnnotateTextRequest,
-}
-
-/// GET v2/documents:annotateText
+/// POST v2/documents:annotateText
 /// A convenience method that provides all features in one call.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -489,18 +457,17 @@ pub struct LanguageDocumentsAnnotateTextArgs {
 
 pub fn language_documents_annotate_text(
     client: &SimpleHttpClient,
-    args: &LanguageDocumentsAnnotateTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnnotateTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = language_documents_annotate_text_builder(client, &args.body)?;
+    let builder = language_documents_annotate_text_builder(client)?;
     language_documents_annotate_text_execute(builder)
 }
 
-/// GET v2/documents:classifyText
+/// POST v2/documents:classifyText
 /// Classifies a document into categories.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -508,22 +475,19 @@ pub fn language_documents_annotate_text(
 
 pub fn language_documents_classify_text_builder(
     client: &SimpleHttpClient,
-    body: &ClassifyTextRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://language.googleapis.com/v2/documents:classifyText",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/documents:classifyText
+/// POST v2/documents:classifyText
 /// Classifies a document into categories.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -597,7 +561,7 @@ pub fn language_documents_classify_text_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/documents:classifyText
+/// POST v2/documents:classifyText
 /// Classifies a document into categories.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -629,14 +593,7 @@ pub fn language_documents_classify_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`language_documents_classify_text`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct LanguageDocumentsClassifyTextArgs {
-    /// Request body.
-    pub body: ClassifyTextRequest,
-}
-
-/// GET v2/documents:classifyText
+/// POST v2/documents:classifyText
 /// Classifies a document into categories.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -649,18 +606,17 @@ pub struct LanguageDocumentsClassifyTextArgs {
 
 pub fn language_documents_classify_text(
     client: &SimpleHttpClient,
-    args: &LanguageDocumentsClassifyTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClassifyTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = language_documents_classify_text_builder(client, &args.body)?;
+    let builder = language_documents_classify_text_builder(client)?;
     language_documents_classify_text_execute(builder)
 }
 
-/// GET v2/documents:moderateText
+/// POST v2/documents:moderateText
 /// Moderates a document for harmful and sensitive categories.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -668,22 +624,19 @@ pub fn language_documents_classify_text(
 
 pub fn language_documents_moderate_text_builder(
     client: &SimpleHttpClient,
-    body: &ModerateTextRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://language.googleapis.com/v2/documents:moderateText",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v2/documents:moderateText
+/// POST v2/documents:moderateText
 /// Moderates a document for harmful and sensitive categories.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -757,7 +710,7 @@ pub fn language_documents_moderate_text_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v2/documents:moderateText
+/// POST v2/documents:moderateText
 /// Moderates a document for harmful and sensitive categories.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -789,14 +742,7 @@ pub fn language_documents_moderate_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`language_documents_moderate_text`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct LanguageDocumentsModerateTextArgs {
-    /// Request body.
-    pub body: ModerateTextRequest,
-}
-
-/// GET v2/documents:moderateText
+/// POST v2/documents:moderateText
 /// Moderates a document for harmful and sensitive categories.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -809,13 +755,127 @@ pub struct LanguageDocumentsModerateTextArgs {
 
 pub fn language_documents_moderate_text(
     client: &SimpleHttpClient,
-    args: &LanguageDocumentsModerateTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ModerateTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = language_documents_moderate_text_builder(client, &args.body)?;
+    let builder = language_documents_moderate_text_builder(client)?;
     language_documents_moderate_text_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AnalyzeEntitiesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnalyzeEntitiesResponse with LanguageDocumentsAnalyzeEntitiesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LanguageDocumentsAnalyzeEntitiesArgs> for AnalyzeEntitiesResponse {
+    fn generate_resource_id(&self, input: &LanguageDocumentsAnalyzeEntitiesArgs) -> String {
+        "gcp::language::AnalyzeEntitiesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::language::AnalyzeEntitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AnalyzeSentimentResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnalyzeSentimentResponse with LanguageDocumentsAnalyzeSentimentArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LanguageDocumentsAnalyzeSentimentArgs> for AnalyzeSentimentResponse {
+    fn generate_resource_id(&self, input: &LanguageDocumentsAnalyzeSentimentArgs) -> String {
+        "gcp::language::AnalyzeSentimentResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::language::AnalyzeSentimentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AnnotateTextResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnnotateTextResponse with LanguageDocumentsAnnotateTextArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LanguageDocumentsAnnotateTextArgs> for AnnotateTextResponse {
+    fn generate_resource_id(&self, input: &LanguageDocumentsAnnotateTextArgs) -> String {
+        "gcp::language::AnnotateTextResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::language::AnnotateTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ClassifyTextResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ClassifyTextResponse with LanguageDocumentsClassifyTextArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LanguageDocumentsClassifyTextArgs> for ClassifyTextResponse {
+    fn generate_resource_id(&self, input: &LanguageDocumentsClassifyTextArgs) -> String {
+        "gcp::language::ClassifyTextResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::language::ClassifyTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ModerateTextResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ModerateTextResponse with LanguageDocumentsModerateTextArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LanguageDocumentsModerateTextArgs> for ModerateTextResponse {
+    fn generate_resource_id(&self, input: &LanguageDocumentsModerateTextArgs) -> String {
+        "gcp::language::ModerateTextResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::language::ModerateTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

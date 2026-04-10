@@ -13,21 +13,30 @@
 
 use crate::providers::gcp::clients::marketingplatformadmin::{
     marketingplatformadmin_organizations_find_sales_partner_managed_clients_builder, marketingplatformadmin_organizations_find_sales_partner_managed_clients_task,
+    marketingplatformadmin_organizations_get_builder, marketingplatformadmin_organizations_get_task,
+    marketingplatformadmin_organizations_list_builder, marketingplatformadmin_organizations_list_task,
     marketingplatformadmin_organizations_report_property_usage_builder, marketingplatformadmin_organizations_report_property_usage_task,
     marketingplatformadmin_organizations_analytics_account_links_create_builder, marketingplatformadmin_organizations_analytics_account_links_create_task,
     marketingplatformadmin_organizations_analytics_account_links_delete_builder, marketingplatformadmin_organizations_analytics_account_links_delete_task,
+    marketingplatformadmin_organizations_analytics_account_links_list_builder, marketingplatformadmin_organizations_analytics_account_links_list_task,
     marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder, marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::marketingplatformadmin::AnalyticsAccountLink;
 use crate::providers::gcp::clients::marketingplatformadmin::Empty;
 use crate::providers::gcp::clients::marketingplatformadmin::FindSalesPartnerManagedClientsResponse;
+use crate::providers::gcp::clients::marketingplatformadmin::ListAnalyticsAccountLinksResponse;
+use crate::providers::gcp::clients::marketingplatformadmin::ListOrganizationsResponse;
+use crate::providers::gcp::clients::marketingplatformadmin::Organization;
 use crate::providers::gcp::clients::marketingplatformadmin::ReportPropertyUsageResponse;
 use crate::providers::gcp::clients::marketingplatformadmin::SetPropertyServiceLevelResponse;
 use crate::providers::gcp::clients::marketingplatformadmin::MarketingplatformadminOrganizationsAnalyticsAccountLinksCreateArgs;
 use crate::providers::gcp::clients::marketingplatformadmin::MarketingplatformadminOrganizationsAnalyticsAccountLinksDeleteArgs;
+use crate::providers::gcp::clients::marketingplatformadmin::MarketingplatformadminOrganizationsAnalyticsAccountLinksListArgs;
 use crate::providers::gcp::clients::marketingplatformadmin::MarketingplatformadminOrganizationsAnalyticsAccountLinksSetPropertyServiceLevelArgs;
 use crate::providers::gcp::clients::marketingplatformadmin::MarketingplatformadminOrganizationsFindSalesPartnerManagedClientsArgs;
+use crate::providers::gcp::clients::marketingplatformadmin::MarketingplatformadminOrganizationsGetArgs;
+use crate::providers::gcp::clients::marketingplatformadmin::MarketingplatformadminOrganizationsListArgs;
 use crate::providers::gcp::clients::marketingplatformadmin::MarketingplatformadminOrganizationsReportPropertyUsageArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -111,6 +120,83 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Marketingplatformadmin organizations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Organization result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn marketingplatformadmin_organizations_get(
+        &self,
+        args: &MarketingplatformadminOrganizationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Organization, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = marketingplatformadmin_organizations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = marketingplatformadmin_organizations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Marketingplatformadmin organizations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOrganizationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn marketingplatformadmin_organizations_list(
+        &self,
+        args: &MarketingplatformadminOrganizationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOrganizationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = marketingplatformadmin_organizations_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = marketingplatformadmin_organizations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Marketingplatformadmin organizations report property usage.
@@ -240,6 +326,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Marketingplatformadmin organizations analytics account links list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListAnalyticsAccountLinksResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn marketingplatformadmin_organizations_analytics_account_links_list(
+        &self,
+        args: &MarketingplatformadminOrganizationsAnalyticsAccountLinksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListAnalyticsAccountLinksResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = marketingplatformadmin_organizations_analytics_account_links_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = marketingplatformadmin_organizations_analytics_account_links_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Marketingplatformadmin organizations analytics account links set property service level.

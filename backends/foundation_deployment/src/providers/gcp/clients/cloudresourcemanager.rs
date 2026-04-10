@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -28,9 +28,9 @@ use serde::Serialize;
 
 pub fn cloudresourcemanager_effective_tags_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    parent: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/effectiveTags",);
@@ -170,11 +170,11 @@ pub fn cloudresourcemanager_effective_tags_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerEffectiveTagsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: parent
-    pub parent: Option<String>,
+    pub parent: Option<Option<String>>,
 }
 
 /// GET v3/effectiveTags
@@ -206,7 +206,7 @@ pub fn cloudresourcemanager_effective_tags_list(
     cloudresourcemanager_effective_tags_list_execute(builder)
 }
 
-/// GET v3/folders
+/// POST v3/folders
 /// Creates a folder in the resource hierarchy. Returns an Operation which can be used to track the progress of the folder creation workflow. Upon success, the Operation.response field will be populated with the created Folder. In order to succeed, the addition of this new folder must not violate the folder naming, height, or fanout constraints. + The folder's display_name must be distinct from all other folders that share its parent. + The addition of the folder must not cause the active folder hierarchy to exceed a height of 10. Note, the full active + deleted folder hierarchy is allowed to reach a height of 20; this provides additional headroom when moving folders that contain deleted folders. + The addition of the folder must not cause the total number of folders under its parent to exceed 300. If the operation fails due to a folder constraint violation, some errors may be returned by the CreateFolder request, with status code FAILED_PRECONDITION and an error description. Other folder constraint violations will be communicated in the Operation, with the specific PreconditionFailure returned in the details list in the Operation.error field. The caller must have resourcemanager.folders.create permission on the identified parent.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -214,22 +214,19 @@ pub fn cloudresourcemanager_effective_tags_list(
 
 pub fn cloudresourcemanager_folders_create_builder(
     client: &SimpleHttpClient,
-    body: &Folder,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/folders",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/folders
+/// POST v3/folders
 /// Creates a folder in the resource hierarchy. Returns an Operation which can be used to track the progress of the folder creation workflow. Upon success, the Operation.response field will be populated with the created Folder. In order to succeed, the addition of this new folder must not violate the folder naming, height, or fanout constraints. + The folder's display_name must be distinct from all other folders that share its parent. + The addition of the folder must not cause the active folder hierarchy to exceed a height of 10. Note, the full active + deleted folder hierarchy is allowed to reach a height of 20; this provides additional headroom when moving folders that contain deleted folders. + The addition of the folder must not cause the total number of folders under its parent to exceed 300. If the operation fails due to a folder constraint violation, some errors may be returned by the CreateFolder request, with status code FAILED_PRECONDITION and an error description. Other folder constraint violations will be communicated in the Operation, with the specific PreconditionFailure returned in the details list in the Operation.error field. The caller must have resourcemanager.folders.create permission on the identified parent.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -303,7 +300,7 @@ pub fn cloudresourcemanager_folders_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/folders
+/// POST v3/folders
 /// Creates a folder in the resource hierarchy. Returns an Operation which can be used to track the progress of the folder creation workflow. Upon success, the Operation.response field will be populated with the created Folder. In order to succeed, the addition of this new folder must not violate the folder naming, height, or fanout constraints. + The folder's display_name must be distinct from all other folders that share its parent. + The addition of the folder must not cause the active folder hierarchy to exceed a height of 10. Note, the full active + deleted folder hierarchy is allowed to reach a height of 20; this provides additional headroom when moving folders that contain deleted folders. + The addition of the folder must not cause the total number of folders under its parent to exceed 300. If the operation fails due to a folder constraint violation, some errors may be returned by the CreateFolder request, with status code FAILED_PRECONDITION and an error description. Other folder constraint violations will be communicated in the Operation, with the specific PreconditionFailure returned in the details list in the Operation.error field. The caller must have resourcemanager.folders.create permission on the identified parent.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -333,14 +330,7 @@ pub fn cloudresourcemanager_folders_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudresourcemanager_folders_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudresourcemanagerFoldersCreateArgs {
-    /// Request body.
-    pub body: Folder,
-}
-
-/// GET v3/folders
+/// POST v3/folders
 /// Creates a folder in the resource hierarchy. Returns an Operation which can be used to track the progress of the folder creation workflow. Upon success, the Operation.response field will be populated with the created Folder. In order to succeed, the addition of this new folder must not violate the folder naming, height, or fanout constraints. + The folder's display_name must be distinct from all other folders that share its parent. + The addition of the folder must not cause the active folder hierarchy to exceed a height of 10. Note, the full active + deleted folder hierarchy is allowed to reach a height of 20; this provides additional headroom when moving folders that contain deleted folders. + The addition of the folder must not cause the total number of folders under its parent to exceed 300. If the operation fails due to a folder constraint violation, some errors may be returned by the CreateFolder request, with status code FAILED_PRECONDITION and an error description. Other folder constraint violations will be communicated in the Operation, with the specific PreconditionFailure returned in the details list in the Operation.error field. The caller must have resourcemanager.folders.create permission on the identified parent.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -353,16 +343,15 @@ pub struct CloudresourcemanagerFoldersCreateArgs {
 
 pub fn cloudresourcemanager_folders_create(
     client: &SimpleHttpClient,
-    args: &CloudresourcemanagerFoldersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_create_builder(client, &args.body)?;
+    let builder = cloudresourcemanager_folders_create_builder(client)?;
     cloudresourcemanager_folders_create_execute(builder)
 }
 
-/// GET v3/folders/{foldersId}
+/// DELETE v3/folders/{foldersId}
 /// Requests deletion of a folder. The folder is moved into the DELETE_REQUESTED state immediately, and is deleted approximately 30 days later. This method may only be called on an empty folder, where a folder is empty if it doesn't contain any folders or projects in the `ACTIVE` state. If called on a folder in DELETE_REQUESTED state the operation will result in a no-op success. The caller must have resourcemanager.folders.delete permission on the identified folder.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -373,17 +362,20 @@ pub fn cloudresourcemanager_folders_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/folders/{}",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/folders/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v3/folders/{foldersId}
+/// DELETE v3/folders/{foldersId}
 /// Requests deletion of a folder. The folder is moved into the DELETE_REQUESTED state immediately, and is deleted approximately 30 days later. This method may only be called on an empty folder, where a folder is empty if it doesn't contain any folders or projects in the `ACTIVE` state. If called on a folder in DELETE_REQUESTED state the operation will result in a no-op success. The caller must have resourcemanager.folders.delete permission on the identified folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -457,7 +449,7 @@ pub fn cloudresourcemanager_folders_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/folders/{foldersId}
+/// DELETE v3/folders/{foldersId}
 /// Requests deletion of a folder. The folder is moved into the DELETE_REQUESTED state immediately, and is deleted approximately 30 days later. This method may only be called on an empty folder, where a folder is empty if it doesn't contain any folders or projects in the `ACTIVE` state. If called on a folder in DELETE_REQUESTED state the operation will result in a no-op success. The caller must have resourcemanager.folders.delete permission on the identified folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -494,7 +486,7 @@ pub struct CloudresourcemanagerFoldersDeleteArgs {
     pub name: String,
 }
 
-/// GET v3/folders/{foldersId}
+/// DELETE v3/folders/{foldersId}
 /// Requests deletion of a folder. The folder is moved into the DELETE_REQUESTED state immediately, and is deleted approximately 30 days later. This method may only be called on an empty folder, where a folder is empty if it doesn't contain any folders or projects in the `ACTIVE` state. If called on a folder in DELETE_REQUESTED state the operation will result in a no-op success. The caller must have resourcemanager.folders.delete permission on the identified folder.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -516,7 +508,164 @@ pub fn cloudresourcemanager_folders_delete(
     cloudresourcemanager_folders_delete_execute(builder)
 }
 
-/// GET v3/folders/{foldersId}:getIamPolicy
+/// GET v3/folders/{foldersId}
+/// Retrieves a folder identified by the supplied resource name. Valid folder resource names have the format `folders/{folder_id}` (for example, `folders/1234`). The caller must have resourcemanager.folders.get permission on the identified folder.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_folders_get_execute()` to send, or `cloudresourcemanager_folders_get` for simplest API.
+
+pub fn cloudresourcemanager_folders_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/folders/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/folders/{foldersId}
+/// Retrieves a folder identified by the supplied resource name. Valid folder resource names have the format `folders/{folder_id}` (for example, `folders/1234`). The caller must have resourcemanager.folders.get permission on the identified folder.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_folders_get_execute()` or `cloudresourcemanager_folders_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_folders_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_folders_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Folder>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Folder = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/folders/{foldersId}
+/// Retrieves a folder identified by the supplied resource name. Valid folder resource names have the format `folders/{folder_id}` (for example, `folders/1234`). The caller must have resourcemanager.folders.get permission on the identified folder.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_folders_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_folders_get_task()`.
+/// For the simplest API, use `cloudresourcemanager_folders_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_folders_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_folders_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_folders_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_folders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/folders/{foldersId}
+/// Retrieves a folder identified by the supplied resource name. Valid folder resource names have the format `folders/{folder_id}` (for example, `folders/1234`). The caller must have resourcemanager.folders.get permission on the identified folder.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_folders_get_builder()` + `cloudresourcemanager_folders_get_execute()`.
+/// For task-level control, use `cloudresourcemanager_folders_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_folders_get(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerFoldersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_folders_get_builder(client, &args.name)?;
+    cloudresourcemanager_folders_get_execute(builder)
+}
+
+/// POST v3/folders/{foldersId}:getIamPolicy
 /// Gets the access control policy for a folder. The returned policy may be empty if no such policy or resource exists. The resource field should be the folder's resource name, for example: "`folders/1234`". The caller must have resourcemanager.folders.`getIamPolicy` permission on the identified folder.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -525,23 +674,22 @@ pub fn cloudresourcemanager_folders_delete(
 pub fn cloudresourcemanager_folders_get_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/folders/{}:getIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/folders/{}:getIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/folders/{foldersId}:getIamPolicy
+/// POST v3/folders/{foldersId}:getIamPolicy
 /// Gets the access control policy for a folder. The returned policy may be empty if no such policy or resource exists. The resource field should be the folder's resource name, for example: "`folders/1234`". The caller must have resourcemanager.folders.`getIamPolicy` permission on the identified folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -615,7 +763,7 @@ pub fn cloudresourcemanager_folders_get_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/folders/{foldersId}:getIamPolicy
+/// POST v3/folders/{foldersId}:getIamPolicy
 /// Gets the access control policy for a folder. The returned policy may be empty if no such policy or resource exists. The resource field should be the folder's resource name, for example: "`folders/1234`". The caller must have resourcemanager.folders.`getIamPolicy` permission on the identified folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -650,11 +798,9 @@ pub fn cloudresourcemanager_folders_get_iam_policy_execute(
 pub struct CloudresourcemanagerFoldersGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
 }
 
-/// GET v3/folders/{foldersId}:getIamPolicy
+/// POST v3/folders/{foldersId}:getIamPolicy
 /// Gets the access control policy for a folder. The returned policy may be empty if no such policy or resource exists. The resource field should be the folder's resource name, for example: "`folders/1234`". The caller must have resourcemanager.folders.`getIamPolicy` permission on the identified folder.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -672,12 +818,204 @@ pub fn cloudresourcemanager_folders_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_folders_get_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = cloudresourcemanager_folders_get_iam_policy_builder(client, &args.resource)?;
     cloudresourcemanager_folders_get_iam_policy_execute(builder)
 }
 
-/// GET v3/folders/{foldersId}:move
+/// GET v3/folders
+/// Lists the folders that are direct descendants of supplied parent resource. list() provides a strongly consistent view of the folders underneath the specified parent resource. list() returns folders sorted based upon the (ascending) lexical ordering of their display_name. The caller must have resourcemanager.folders.list permission on the identified parent.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_folders_list_execute()` to send, or `cloudresourcemanager_folders_list` for simplest API.
+
+pub fn cloudresourcemanager_folders_list_builder(
+    client: &SimpleHttpClient,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/folders",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+    if let Some(val) = showDeleted.as_ref() {
+        query_parts.push(format!("showDeleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/folders
+/// Lists the folders that are direct descendants of supplied parent resource. list() provides a strongly consistent view of the folders underneath the specified parent resource. list() returns folders sorted based upon the (ascending) lexical ordering of their display_name. The caller must have resourcemanager.folders.list permission on the identified parent.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_folders_list_execute()` or `cloudresourcemanager_folders_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_folders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_folders_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListFoldersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListFoldersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/folders
+/// Lists the folders that are direct descendants of supplied parent resource. list() provides a strongly consistent view of the folders underneath the specified parent resource. list() returns folders sorted based upon the (ascending) lexical ordering of their display_name. The caller must have resourcemanager.folders.list permission on the identified parent.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_folders_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_folders_list_task()`.
+/// For the simplest API, use `cloudresourcemanager_folders_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_folders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_folders_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListFoldersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_folders_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_folders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<Option<String>>,
+}
+
+/// GET v3/folders
+/// Lists the folders that are direct descendants of supplied parent resource. list() provides a strongly consistent view of the folders underneath the specified parent resource. list() returns folders sorted based upon the (ascending) lexical ordering of their display_name. The caller must have resourcemanager.folders.list permission on the identified parent.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_folders_list_builder()` + `cloudresourcemanager_folders_list_execute()`.
+/// For task-level control, use `cloudresourcemanager_folders_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_folders_list(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerFoldersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListFoldersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_folders_list_builder(
+        client,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
+        &args.showDeleted,
+    )?;
+    cloudresourcemanager_folders_list_execute(builder)
+}
+
+/// POST v3/folders/{foldersId}:move
 /// Moves a folder under a new resource parent. Returns an Operation which can be used to track the progress of the folder move workflow. Upon success, the Operation.response field will be populated with the moved folder. Upon failure, a FolderOperationError categorizing the failure cause will be returned - if the failure occurs synchronously then the FolderOperationError will be returned in the Status.details field. If it occurs asynchronously, then the FolderOperation will be returned in the Operation.error field. In addition, the Operation.metadata field will be populated with a FolderOperation message as an aid to stateless clients. Folder moves will be rejected if they violate either the naming, height, or fanout constraints described in the CreateFolder documentation. The caller must have resourcemanager.folders.move permission on the folder's current and proposed new parent.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -686,22 +1024,22 @@ pub fn cloudresourcemanager_folders_get_iam_policy(
 pub fn cloudresourcemanager_folders_move_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &MoveFolderRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/folders/{}:move",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/folders/{}:move",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/folders/{foldersId}:move
+/// POST v3/folders/{foldersId}:move
 /// Moves a folder under a new resource parent. Returns an Operation which can be used to track the progress of the folder move workflow. Upon success, the Operation.response field will be populated with the moved folder. Upon failure, a FolderOperationError categorizing the failure cause will be returned - if the failure occurs synchronously then the FolderOperationError will be returned in the Status.details field. If it occurs asynchronously, then the FolderOperation will be returned in the Operation.error field. In addition, the Operation.metadata field will be populated with a FolderOperation message as an aid to stateless clients. Folder moves will be rejected if they violate either the naming, height, or fanout constraints described in the CreateFolder documentation. The caller must have resourcemanager.folders.move permission on the folder's current and proposed new parent.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -775,7 +1113,7 @@ pub fn cloudresourcemanager_folders_move_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/folders/{foldersId}:move
+/// POST v3/folders/{foldersId}:move
 /// Moves a folder under a new resource parent. Returns an Operation which can be used to track the progress of the folder move workflow. Upon success, the Operation.response field will be populated with the moved folder. Upon failure, a FolderOperationError categorizing the failure cause will be returned - if the failure occurs synchronously then the FolderOperationError will be returned in the Status.details field. If it occurs asynchronously, then the FolderOperation will be returned in the Operation.error field. In addition, the Operation.metadata field will be populated with a FolderOperation message as an aid to stateless clients. Folder moves will be rejected if they violate either the naming, height, or fanout constraints described in the CreateFolder documentation. The caller must have resourcemanager.folders.move permission on the folder's current and proposed new parent.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -810,11 +1148,9 @@ pub fn cloudresourcemanager_folders_move_execute(
 pub struct CloudresourcemanagerFoldersMoveArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: MoveFolderRequest,
 }
 
-/// GET v3/folders/{foldersId}:move
+/// POST v3/folders/{foldersId}:move
 /// Moves a folder under a new resource parent. Returns an Operation which can be used to track the progress of the folder move workflow. Upon success, the Operation.response field will be populated with the moved folder. Upon failure, a FolderOperationError categorizing the failure cause will be returned - if the failure occurs synchronously then the FolderOperationError will be returned in the Status.details field. If it occurs asynchronously, then the FolderOperation will be returned in the Operation.error field. In addition, the Operation.metadata field will be populated with a FolderOperation message as an aid to stateless clients. Folder moves will be rejected if they violate either the naming, height, or fanout constraints described in the CreateFolder documentation. The caller must have resourcemanager.folders.move permission on the folder's current and proposed new parent.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -832,8 +1168,179 @@ pub fn cloudresourcemanager_folders_move(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_move_builder(client, &args.name, &args.body)?;
+    let builder = cloudresourcemanager_folders_move_builder(client, &args.name)?;
     cloudresourcemanager_folders_move_execute(builder)
+}
+
+/// PATCH v3/folders/{foldersId}
+/// Updates a folder, changing its display_name. Changes to the folder display_name will be rejected if they violate either the display_name formatting rules or the naming constraints described in the CreateFolder documentation. The folder's display_name must start and end with a letter or digit, may contain letters, digits, spaces, hyphens and underscores and can be between 3 and 30 characters. This is captured by the regular expression: \p{L}\p{N}{1,28}[\p{L}\p{N}]. The caller must have resourcemanager.folders.update permission on the identified folder. If the update fails due to the unique name constraint then a PreconditionFailure explaining this violation will be returned in the Status.details field.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_folders_patch_execute()` to send, or `cloudresourcemanager_folders_patch` for simplest API.
+
+pub fn cloudresourcemanager_folders_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/folders/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v3/folders/{foldersId}
+/// Updates a folder, changing its display_name. Changes to the folder display_name will be rejected if they violate either the display_name formatting rules or the naming constraints described in the CreateFolder documentation. The folder's display_name must start and end with a letter or digit, may contain letters, digits, spaces, hyphens and underscores and can be between 3 and 30 characters. This is captured by the regular expression: \p{L}\p{N}{1,28}[\p{L}\p{N}]. The caller must have resourcemanager.folders.update permission on the identified folder. If the update fails due to the unique name constraint then a PreconditionFailure explaining this violation will be returned in the Status.details field.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_folders_patch_execute()` or `cloudresourcemanager_folders_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_folders_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_folders_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v3/folders/{foldersId}
+/// Updates a folder, changing its display_name. Changes to the folder display_name will be rejected if they violate either the display_name formatting rules or the naming constraints described in the CreateFolder documentation. The folder's display_name must start and end with a letter or digit, may contain letters, digits, spaces, hyphens and underscores and can be between 3 and 30 characters. This is captured by the regular expression: \p{L}\p{N}{1,28}[\p{L}\p{N}]. The caller must have resourcemanager.folders.update permission on the identified folder. If the update fails due to the unique name constraint then a PreconditionFailure explaining this violation will be returned in the Status.details field.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_folders_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_folders_patch_task()`.
+/// For the simplest API, use `cloudresourcemanager_folders_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_folders_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_folders_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_folders_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_folders_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v3/folders/{foldersId}
+/// Updates a folder, changing its display_name. Changes to the folder display_name will be rejected if they violate either the display_name formatting rules or the naming constraints described in the CreateFolder documentation. The folder's display_name must start and end with a letter or digit, may contain letters, digits, spaces, hyphens and underscores and can be between 3 and 30 characters. This is captured by the regular expression: \p{L}\p{N}{1,28}[\p{L}\p{N}]. The caller must have resourcemanager.folders.update permission on the identified folder. If the update fails due to the unique name constraint then a PreconditionFailure explaining this violation will be returned in the Status.details field.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_folders_patch_builder()` + `cloudresourcemanager_folders_patch_execute()`.
+/// For task-level control, use `cloudresourcemanager_folders_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_folders_patch(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerFoldersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_folders_patch_builder(client, &args.name, &args.updateMask)?;
+    cloudresourcemanager_folders_patch_execute(builder)
 }
 
 /// GET v3/folders:search
@@ -844,9 +1351,9 @@ pub fn cloudresourcemanager_folders_move(
 
 pub fn cloudresourcemanager_folders_search_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    query: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    query: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/folders:search",);
@@ -986,11 +1493,11 @@ pub fn cloudresourcemanager_folders_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerFoldersSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
 }
 
 /// GET v3/folders:search
@@ -1022,7 +1529,7 @@ pub fn cloudresourcemanager_folders_search(
     cloudresourcemanager_folders_search_execute(builder)
 }
 
-/// GET v3/folders/{foldersId}:setIamPolicy
+/// POST v3/folders/{foldersId}:setIamPolicy
 /// Sets the access control policy on a folder, replacing any existing policy. The resource field should be the folder's resource name, for example: "`folders/1234`". The caller must have resourcemanager.folders.`setIamPolicy` permission on the identified folder.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1031,23 +1538,22 @@ pub fn cloudresourcemanager_folders_search(
 pub fn cloudresourcemanager_folders_set_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/folders/{}:setIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/folders/{}:setIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/folders/{foldersId}:setIamPolicy
+/// POST v3/folders/{foldersId}:setIamPolicy
 /// Sets the access control policy on a folder, replacing any existing policy. The resource field should be the folder's resource name, for example: "`folders/1234`". The caller must have resourcemanager.folders.`setIamPolicy` permission on the identified folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1121,7 +1627,7 @@ pub fn cloudresourcemanager_folders_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/folders/{foldersId}:setIamPolicy
+/// POST v3/folders/{foldersId}:setIamPolicy
 /// Sets the access control policy on a folder, replacing any existing policy. The resource field should be the folder's resource name, for example: "`folders/1234`". The caller must have resourcemanager.folders.`setIamPolicy` permission on the identified folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1156,11 +1662,9 @@ pub fn cloudresourcemanager_folders_set_iam_policy_execute(
 pub struct CloudresourcemanagerFoldersSetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
 }
 
-/// GET v3/folders/{foldersId}:setIamPolicy
+/// POST v3/folders/{foldersId}:setIamPolicy
 /// Sets the access control policy on a folder, replacing any existing policy. The resource field should be the folder's resource name, for example: "`folders/1234`". The caller must have resourcemanager.folders.`setIamPolicy` permission on the identified folder.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1178,12 +1682,11 @@ pub fn cloudresourcemanager_folders_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_folders_set_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = cloudresourcemanager_folders_set_iam_policy_builder(client, &args.resource)?;
     cloudresourcemanager_folders_set_iam_policy_execute(builder)
 }
 
-/// GET v3/folders/{foldersId}:testIamPermissions
+/// POST v3/folders/{foldersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified folder. The resource field should be the folder's resource name, for example: "`folders/1234`". There are no permissions required for making this API call.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1192,23 +1695,22 @@ pub fn cloudresourcemanager_folders_set_iam_policy(
 pub fn cloudresourcemanager_folders_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/folders/{}:testIamPermissions",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/folders/{}:testIamPermissions",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/folders/{foldersId}:testIamPermissions
+/// POST v3/folders/{foldersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified folder. The resource field should be the folder's resource name, for example: "`folders/1234`". There are no permissions required for making this API call.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1282,7 +1784,7 @@ pub fn cloudresourcemanager_folders_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/folders/{foldersId}:testIamPermissions
+/// POST v3/folders/{foldersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified folder. The resource field should be the folder's resource name, for example: "`folders/1234`". There are no permissions required for making this API call.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1321,11 +1823,9 @@ pub fn cloudresourcemanager_folders_test_iam_permissions_execute(
 pub struct CloudresourcemanagerFoldersTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
 }
 
-/// GET v3/folders/{foldersId}:testIamPermissions
+/// POST v3/folders/{foldersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified folder. The resource field should be the folder's resource name, for example: "`folders/1234`". There are no permissions required for making this API call.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1347,15 +1847,12 @@ pub fn cloudresourcemanager_folders_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_folders_test_iam_permissions_builder(client, &args.resource)?;
     cloudresourcemanager_folders_test_iam_permissions_execute(builder)
 }
 
-/// GET v3/folders/{foldersId}:undelete
+/// POST v3/folders/{foldersId}:undelete
 /// Cancels the deletion request for a folder. This method may be called on a folder in any state. If the folder is in the `ACTIVE` state the result will be a no-op success. In order to succeed, the folder's parent must be in the `ACTIVE` state. In addition, reintroducing the folder into the tree must not violate folder naming, height, and fanout constraints described in the CreateFolder documentation. The caller must have resourcemanager.folders.undelete permission on the identified folder.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1364,23 +1861,22 @@ pub fn cloudresourcemanager_folders_test_iam_permissions(
 pub fn cloudresourcemanager_folders_undelete_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &UndeleteFolderRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/folders/{}:undelete",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/folders/{}:undelete",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/folders/{foldersId}:undelete
+/// POST v3/folders/{foldersId}:undelete
 /// Cancels the deletion request for a folder. This method may be called on a folder in any state. If the folder is in the `ACTIVE` state the result will be a no-op success. In order to succeed, the folder's parent must be in the `ACTIVE` state. In addition, reintroducing the folder into the tree must not violate folder naming, height, and fanout constraints described in the CreateFolder documentation. The caller must have resourcemanager.folders.undelete permission on the identified folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1454,7 +1950,7 @@ pub fn cloudresourcemanager_folders_undelete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/folders/{foldersId}:undelete
+/// POST v3/folders/{foldersId}:undelete
 /// Cancels the deletion request for a folder. This method may be called on a folder in any state. If the folder is in the `ACTIVE` state the result will be a no-op success. In order to succeed, the folder's parent must be in the `ACTIVE` state. In addition, reintroducing the folder into the tree must not violate folder naming, height, and fanout constraints described in the CreateFolder documentation. The caller must have resourcemanager.folders.undelete permission on the identified folder.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1489,11 +1985,9 @@ pub fn cloudresourcemanager_folders_undelete_execute(
 pub struct CloudresourcemanagerFoldersUndeleteArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: UndeleteFolderRequest,
 }
 
-/// GET v3/folders/{foldersId}:undelete
+/// POST v3/folders/{foldersId}:undelete
 /// Cancels the deletion request for a folder. This method may be called on a folder in any state. If the folder is in the `ACTIVE` state the result will be a no-op success. In order to succeed, the folder's parent must be in the `ACTIVE` state. In addition, reintroducing the folder into the tree must not violate folder naming, height, and fanout constraints described in the CreateFolder documentation. The caller must have resourcemanager.folders.undelete permission on the identified folder.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1511,11 +2005,343 @@ pub fn cloudresourcemanager_folders_undelete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_folders_undelete_builder(client, &args.name, &args.body)?;
+    let builder = cloudresourcemanager_folders_undelete_builder(client, &args.name)?;
     cloudresourcemanager_folders_undelete_execute(builder)
 }
 
-/// GET v3/liens
+/// GET v3/folders/{foldersId}/capabilities/{capabilitiesId}
+/// Retrieves the Capability identified by the supplied resource name.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_folders_capabilities_get_execute()` to send, or `cloudresourcemanager_folders_capabilities_get` for simplest API.
+
+pub fn cloudresourcemanager_folders_capabilities_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/folders/{}/capabilities/{capabilitiesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/folders/{foldersId}/capabilities/{capabilitiesId}
+/// Retrieves the Capability identified by the supplied resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_folders_capabilities_get_execute()` or `cloudresourcemanager_folders_capabilities_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_folders_capabilities_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_folders_capabilities_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Capability>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Capability = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/folders/{foldersId}/capabilities/{capabilitiesId}
+/// Retrieves the Capability identified by the supplied resource name.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_folders_capabilities_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_folders_capabilities_get_task()`.
+/// For the simplest API, use `cloudresourcemanager_folders_capabilities_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_folders_capabilities_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_folders_capabilities_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Capability>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_folders_capabilities_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_folders_capabilities_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersCapabilitiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/folders/{foldersId}/capabilities/{capabilitiesId}
+/// Retrieves the Capability identified by the supplied resource name.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_folders_capabilities_get_builder()` + `cloudresourcemanager_folders_capabilities_get_execute()`.
+/// For task-level control, use `cloudresourcemanager_folders_capabilities_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_folders_capabilities_get(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerFoldersCapabilitiesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Capability>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_folders_capabilities_get_builder(client, &args.name)?;
+    cloudresourcemanager_folders_capabilities_get_execute(builder)
+}
+
+/// PATCH v3/folders/{foldersId}/capabilities/{capabilitiesId}
+/// Updates the Capability.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_folders_capabilities_patch_execute()` to send, or `cloudresourcemanager_folders_capabilities_patch` for simplest API.
+
+pub fn cloudresourcemanager_folders_capabilities_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/folders/{}/capabilities/{capabilitiesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v3/folders/{foldersId}/capabilities/{capabilitiesId}
+/// Updates the Capability.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_folders_capabilities_patch_execute()` or `cloudresourcemanager_folders_capabilities_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_folders_capabilities_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_folders_capabilities_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v3/folders/{foldersId}/capabilities/{capabilitiesId}
+/// Updates the Capability.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_folders_capabilities_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_folders_capabilities_patch_task()`.
+/// For the simplest API, use `cloudresourcemanager_folders_capabilities_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_folders_capabilities_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_folders_capabilities_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_folders_capabilities_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_folders_capabilities_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerFoldersCapabilitiesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v3/folders/{foldersId}/capabilities/{capabilitiesId}
+/// Updates the Capability.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_folders_capabilities_patch_builder()` + `cloudresourcemanager_folders_capabilities_patch_execute()`.
+/// For task-level control, use `cloudresourcemanager_folders_capabilities_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_folders_capabilities_patch(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerFoldersCapabilitiesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_folders_capabilities_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    cloudresourcemanager_folders_capabilities_patch_execute(builder)
+}
+
+/// POST v3/liens
 /// Create a Lien which applies to the resource denoted by the parent field. Callers of this method will require permission on the parent resource. For example, applying to `projects/1234` requires permission resourcemanager.projects.`updateLiens`. NOTE: Some resources may limit the number of Liens which may be applied.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1523,22 +2349,19 @@ pub fn cloudresourcemanager_folders_undelete(
 
 pub fn cloudresourcemanager_liens_create_builder(
     client: &SimpleHttpClient,
-    body: &Lien,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/liens",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/liens
+/// POST v3/liens
 /// Create a Lien which applies to the resource denoted by the parent field. Callers of this method will require permission on the parent resource. For example, applying to `projects/1234` requires permission resourcemanager.projects.`updateLiens`. NOTE: Some resources may limit the number of Liens which may be applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1612,7 +2435,7 @@ pub fn cloudresourcemanager_liens_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/liens
+/// POST v3/liens
 /// Create a Lien which applies to the resource denoted by the parent field. Callers of this method will require permission on the parent resource. For example, applying to `projects/1234` requires permission resourcemanager.projects.`updateLiens`. NOTE: Some resources may limit the number of Liens which may be applied.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1642,14 +2465,7 @@ pub fn cloudresourcemanager_liens_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudresourcemanager_liens_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudresourcemanagerLiensCreateArgs {
-    /// Request body.
-    pub body: Lien,
-}
-
-/// GET v3/liens
+/// POST v3/liens
 /// Create a Lien which applies to the resource denoted by the parent field. Callers of this method will require permission on the parent resource. For example, applying to `projects/1234` requires permission resourcemanager.projects.`updateLiens`. NOTE: Some resources may limit the number of Liens which may be applied.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1662,16 +2478,15 @@ pub struct CloudresourcemanagerLiensCreateArgs {
 
 pub fn cloudresourcemanager_liens_create(
     client: &SimpleHttpClient,
-    args: &CloudresourcemanagerLiensCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lien>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_liens_create_builder(client, &args.body)?;
+    let builder = cloudresourcemanager_liens_create_builder(client)?;
     cloudresourcemanager_liens_create_execute(builder)
 }
 
-/// GET v3/liens/{liensId}
+/// DELETE v3/liens/{liensId}
 /// Delete a Lien by name. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.`updateLiens`.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1682,17 +2497,20 @@ pub fn cloudresourcemanager_liens_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/liens/{}",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/liens/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v3/liens/{liensId}
+/// DELETE v3/liens/{liensId}
 /// Delete a Lien by name. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.`updateLiens`.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1766,7 +2584,7 @@ pub fn cloudresourcemanager_liens_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/liens/{liensId}
+/// DELETE v3/liens/{liensId}
 /// Delete a Lien by name. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.`updateLiens`.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1803,7 +2621,7 @@ pub struct CloudresourcemanagerLiensDeleteArgs {
     pub name: String,
 }
 
-/// GET v3/liens/{liensId}
+/// DELETE v3/liens/{liensId}
 /// Delete a Lien by name. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.`updateLiens`.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1825,6 +2643,853 @@ pub fn cloudresourcemanager_liens_delete(
     cloudresourcemanager_liens_delete_execute(builder)
 }
 
+/// GET v3/liens/{liensId}
+/// Retrieve a Lien by name. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.get
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_liens_get_execute()` to send, or `cloudresourcemanager_liens_get` for simplest API.
+
+pub fn cloudresourcemanager_liens_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/liens/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/liens/{liensId}
+/// Retrieve a Lien by name. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.get
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_liens_get_execute()` or `cloudresourcemanager_liens_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_liens_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_liens_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Lien>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Lien = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/liens/{liensId}
+/// Retrieve a Lien by name. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.get
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_liens_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_liens_get_task()`.
+/// For the simplest API, use `cloudresourcemanager_liens_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_liens_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_liens_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Lien>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_liens_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_liens_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLiensGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/liens/{liensId}
+/// Retrieve a Lien by name. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.get
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_liens_get_builder()` + `cloudresourcemanager_liens_get_execute()`.
+/// For task-level control, use `cloudresourcemanager_liens_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_liens_get(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerLiensGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Lien>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_liens_get_builder(client, &args.name)?;
+    cloudresourcemanager_liens_get_execute(builder)
+}
+
+/// GET v3/liens
+/// List all Liens applied to the parent resource. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.get.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_liens_list_execute()` to send, or `cloudresourcemanager_liens_list` for simplest API.
+
+pub fn cloudresourcemanager_liens_list_builder(
+    client: &SimpleHttpClient,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/liens",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/liens
+/// List all Liens applied to the parent resource. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.get.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_liens_list_execute()` or `cloudresourcemanager_liens_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_liens_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_liens_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLiensResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLiensResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/liens
+/// List all Liens applied to the parent resource. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.get.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_liens_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_liens_list_task()`.
+/// For the simplest API, use `cloudresourcemanager_liens_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_liens_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_liens_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLiensResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_liens_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_liens_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLiensListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+}
+
+/// GET v3/liens
+/// List all Liens applied to the parent resource. Callers of this method will require permission on the parent resource. For example, a Lien with a parent of `projects/1234` requires permission resourcemanager.projects.get.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_liens_list_builder()` + `cloudresourcemanager_liens_list_execute()`.
+/// For task-level control, use `cloudresourcemanager_liens_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_liens_list(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerLiensListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLiensResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_liens_list_builder(
+        client,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
+    )?;
+    cloudresourcemanager_liens_list_execute(builder)
+}
+
+/// GET v3/locations/{locationsId}/effectiveTagBindingCollections/{effectiveTagBindingCollectionsId}
+/// Returns effective tag bindings on a GCP resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_locations_effective_tag_binding_collections_get_execute()` to send, or `cloudresourcemanager_locations_effective_tag_binding_collections_get` for simplest API.
+
+pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/locations/{}/effectiveTagBindingCollections/{effectiveTagBindingCollectionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/locations/{locationsId}/effectiveTagBindingCollections/{effectiveTagBindingCollectionsId}
+/// Returns effective tag bindings on a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_locations_effective_tag_binding_collections_get_execute()` or `cloudresourcemanager_locations_effective_tag_binding_collections_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_locations_effective_tag_binding_collections_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EffectiveTagBindingCollection>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: EffectiveTagBindingCollection = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/locations/{locationsId}/effectiveTagBindingCollections/{effectiveTagBindingCollectionsId}
+/// Returns effective tag bindings on a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_locations_effective_tag_binding_collections_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_locations_effective_tag_binding_collections_get_task()`.
+/// For the simplest API, use `cloudresourcemanager_locations_effective_tag_binding_collections_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_locations_effective_tag_binding_collections_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<EffectiveTagBindingCollection>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_locations_effective_tag_binding_collections_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_locations_effective_tag_binding_collections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/locations/{locationsId}/effectiveTagBindingCollections/{effectiveTagBindingCollectionsId}
+/// Returns effective tag bindings on a GCP resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_locations_effective_tag_binding_collections_get_builder()` + `cloudresourcemanager_locations_effective_tag_binding_collections_get_execute()`.
+/// For task-level control, use `cloudresourcemanager_locations_effective_tag_binding_collections_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_locations_effective_tag_binding_collections_get(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<EffectiveTagBindingCollection>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_locations_effective_tag_binding_collections_get_builder(
+        client, &args.name,
+    )?;
+    cloudresourcemanager_locations_effective_tag_binding_collections_get_execute(builder)
+}
+
+/// GET v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
+/// Returns tag bindings directly attached to a GCP resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_locations_tag_binding_collections_get_execute()` to send, or `cloudresourcemanager_locations_tag_binding_collections_get` for simplest API.
+
+pub fn cloudresourcemanager_locations_tag_binding_collections_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/locations/{}/tagBindingCollections/{tagBindingCollectionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
+/// Returns tag bindings directly attached to a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_locations_tag_binding_collections_get_execute()` or `cloudresourcemanager_locations_tag_binding_collections_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_locations_tag_binding_collections_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_locations_tag_binding_collections_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TagBindingCollection>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TagBindingCollection = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
+/// Returns tag bindings directly attached to a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_locations_tag_binding_collections_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_locations_tag_binding_collections_get_task()`.
+/// For the simplest API, use `cloudresourcemanager_locations_tag_binding_collections_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_locations_tag_binding_collections_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_locations_tag_binding_collections_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TagBindingCollection>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_locations_tag_binding_collections_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_locations_tag_binding_collections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLocationsTagBindingCollectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
+/// Returns tag bindings directly attached to a GCP resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_locations_tag_binding_collections_get_builder()` + `cloudresourcemanager_locations_tag_binding_collections_get_execute()`.
+/// For task-level control, use `cloudresourcemanager_locations_tag_binding_collections_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_locations_tag_binding_collections_get(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerLocationsTagBindingCollectionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TagBindingCollection>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudresourcemanager_locations_tag_binding_collections_get_builder(client, &args.name)?;
+    cloudresourcemanager_locations_tag_binding_collections_get_execute(builder)
+}
+
+/// PATCH v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
+/// Updates tag bindings directly attached to a GCP resource. Update_mask can be kept empty or "*".
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_locations_tag_binding_collections_patch_execute()` to send, or `cloudresourcemanager_locations_tag_binding_collections_patch` for simplest API.
+
+pub fn cloudresourcemanager_locations_tag_binding_collections_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/locations/{}/tagBindingCollections/{tagBindingCollectionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
+/// Updates tag bindings directly attached to a GCP resource. Update_mask can be kept empty or "*".
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_locations_tag_binding_collections_patch_execute()` or `cloudresourcemanager_locations_tag_binding_collections_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_locations_tag_binding_collections_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_locations_tag_binding_collections_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
+/// Updates tag bindings directly attached to a GCP resource. Update_mask can be kept empty or "*".
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_locations_tag_binding_collections_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_locations_tag_binding_collections_patch_task()`.
+/// For the simplest API, use `cloudresourcemanager_locations_tag_binding_collections_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_locations_tag_binding_collections_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_locations_tag_binding_collections_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_locations_tag_binding_collections_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_locations_tag_binding_collections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerLocationsTagBindingCollectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v3/locations/{locationsId}/tagBindingCollections/{tagBindingCollectionsId}
+/// Updates tag bindings directly attached to a GCP resource. Update_mask can be kept empty or "*".
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_locations_tag_binding_collections_patch_builder()` + `cloudresourcemanager_locations_tag_binding_collections_patch_execute()`.
+/// For task-level control, use `cloudresourcemanager_locations_tag_binding_collections_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_locations_tag_binding_collections_patch(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerLocationsTagBindingCollectionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_locations_tag_binding_collections_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    cloudresourcemanager_locations_tag_binding_collections_patch_execute(builder)
+}
+
 /// GET v3/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1836,7 +3501,10 @@ pub fn cloudresourcemanager_operations_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/operations/{}",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/operations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -1990,7 +3658,10 @@ pub fn cloudresourcemanager_organizations_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/organizations/{}",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/organizations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -2137,7 +3808,7 @@ pub fn cloudresourcemanager_organizations_get(
     cloudresourcemanager_organizations_get_execute(builder)
 }
 
-/// GET v3/organizations/{organizationsId}:getIamPolicy
+/// POST v3/organizations/{organizationsId}:getIamPolicy
 /// Gets the access control policy for an organization resource. The policy may be empty if no such policy or resource exists. The resource field should be the organization's resource name, for example: "`organizations/123`". Authorization requires the IAM permission resourcemanager.organizations.`getIamPolicy` on the specified organization.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2146,23 +3817,22 @@ pub fn cloudresourcemanager_organizations_get(
 pub fn cloudresourcemanager_organizations_get_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/organizations/{}:getIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/organizations/{}:getIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/organizations/{organizationsId}:getIamPolicy
+/// POST v3/organizations/{organizationsId}:getIamPolicy
 /// Gets the access control policy for an organization resource. The policy may be empty if no such policy or resource exists. The resource field should be the organization's resource name, for example: "`organizations/123`". Authorization requires the IAM permission resourcemanager.organizations.`getIamPolicy` on the specified organization.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2236,7 +3906,7 @@ pub fn cloudresourcemanager_organizations_get_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/organizations/{organizationsId}:getIamPolicy
+/// POST v3/organizations/{organizationsId}:getIamPolicy
 /// Gets the access control policy for an organization resource. The policy may be empty if no such policy or resource exists. The resource field should be the organization's resource name, for example: "`organizations/123`". Authorization requires the IAM permission resourcemanager.organizations.`getIamPolicy` on the specified organization.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2271,11 +3941,9 @@ pub fn cloudresourcemanager_organizations_get_iam_policy_execute(
 pub struct CloudresourcemanagerOrganizationsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
 }
 
-/// GET v3/organizations/{organizationsId}:getIamPolicy
+/// POST v3/organizations/{organizationsId}:getIamPolicy
 /// Gets the access control policy for an organization resource. The policy may be empty if no such policy or resource exists. The resource field should be the organization's resource name, for example: "`organizations/123`". Authorization requires the IAM permission resourcemanager.organizations.`getIamPolicy` on the specified organization.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2293,11 +3961,8 @@ pub fn cloudresourcemanager_organizations_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_organizations_get_iam_policy_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_organizations_get_iam_policy_builder(client, &args.resource)?;
     cloudresourcemanager_organizations_get_iam_policy_execute(builder)
 }
 
@@ -2309,9 +3974,9 @@ pub fn cloudresourcemanager_organizations_get_iam_policy(
 
 pub fn cloudresourcemanager_organizations_search_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    query: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    query: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -2454,11 +4119,11 @@ pub fn cloudresourcemanager_organizations_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerOrganizationsSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
 }
 
 /// GET v3/organizations:search
@@ -2492,7 +4157,7 @@ pub fn cloudresourcemanager_organizations_search(
     cloudresourcemanager_organizations_search_execute(builder)
 }
 
-/// GET v3/organizations/{organizationsId}:setIamPolicy
+/// POST v3/organizations/{organizationsId}:setIamPolicy
 /// Sets the access control policy on an organization resource. Replaces any existing policy. The resource field should be the organization's resource name, for example: "`organizations/123`". Authorization requires the IAM permission resourcemanager.organizations.`setIamPolicy` on the specified organization.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2501,23 +4166,22 @@ pub fn cloudresourcemanager_organizations_search(
 pub fn cloudresourcemanager_organizations_set_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/organizations/{}:setIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/organizations/{}:setIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/organizations/{organizationsId}:setIamPolicy
+/// POST v3/organizations/{organizationsId}:setIamPolicy
 /// Sets the access control policy on an organization resource. Replaces any existing policy. The resource field should be the organization's resource name, for example: "`organizations/123`". Authorization requires the IAM permission resourcemanager.organizations.`setIamPolicy` on the specified organization.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2591,7 +4255,7 @@ pub fn cloudresourcemanager_organizations_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/organizations/{organizationsId}:setIamPolicy
+/// POST v3/organizations/{organizationsId}:setIamPolicy
 /// Sets the access control policy on an organization resource. Replaces any existing policy. The resource field should be the organization's resource name, for example: "`organizations/123`". Authorization requires the IAM permission resourcemanager.organizations.`setIamPolicy` on the specified organization.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2626,11 +4290,9 @@ pub fn cloudresourcemanager_organizations_set_iam_policy_execute(
 pub struct CloudresourcemanagerOrganizationsSetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
 }
 
-/// GET v3/organizations/{organizationsId}:setIamPolicy
+/// POST v3/organizations/{organizationsId}:setIamPolicy
 /// Sets the access control policy on an organization resource. Replaces any existing policy. The resource field should be the organization's resource name, for example: "`organizations/123`". Authorization requires the IAM permission resourcemanager.organizations.`setIamPolicy` on the specified organization.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2648,15 +4310,12 @@ pub fn cloudresourcemanager_organizations_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_organizations_set_iam_policy_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_organizations_set_iam_policy_builder(client, &args.resource)?;
     cloudresourcemanager_organizations_set_iam_policy_execute(builder)
 }
 
-/// GET v3/organizations/{organizationsId}:testIamPermissions
+/// POST v3/organizations/{organizationsId}:testIamPermissions
 /// Returns the permissions that a caller has on the specified organization. The resource field should be the organization's resource name, for example: "`organizations/123`". There are no permissions required for making this API call.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2665,24 +4324,22 @@ pub fn cloudresourcemanager_organizations_set_iam_policy(
 pub fn cloudresourcemanager_organizations_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://cloudresourcemanager.googleapis.com/v3/organizations/{}:testIamPermissions",
+        resource,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/organizations/{organizationsId}:testIamPermissions
+/// POST v3/organizations/{organizationsId}:testIamPermissions
 /// Returns the permissions that a caller has on the specified organization. The resource field should be the organization's resource name, for example: "`organizations/123`". There are no permissions required for making this API call.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2756,7 +4413,7 @@ pub fn cloudresourcemanager_organizations_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/organizations/{organizationsId}:testIamPermissions
+/// POST v3/organizations/{organizationsId}:testIamPermissions
 /// Returns the permissions that a caller has on the specified organization. The resource field should be the organization's resource name, for example: "`organizations/123`". There are no permissions required for making this API call.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2795,11 +4452,9 @@ pub fn cloudresourcemanager_organizations_test_iam_permissions_execute(
 pub struct CloudresourcemanagerOrganizationsTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
 }
 
-/// GET v3/organizations/{organizationsId}:testIamPermissions
+/// POST v3/organizations/{organizationsId}:testIamPermissions
 /// Returns the permissions that a caller has on the specified organization. The resource field should be the organization's resource name, for example: "`organizations/123`". There are no permissions required for making this API call.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2821,15 +4476,12 @@ pub fn cloudresourcemanager_organizations_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_organizations_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_organizations_test_iam_permissions_builder(client, &args.resource)?;
     cloudresourcemanager_organizations_test_iam_permissions_execute(builder)
 }
 
-/// GET v3/projects
+/// POST v3/projects
 /// Request that a new project be created. The result is an Operation which can be used to track the creation process. This process usually takes a few seconds, but can sometimes take much longer. The tracking Operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2837,22 +4489,19 @@ pub fn cloudresourcemanager_organizations_test_iam_permissions(
 
 pub fn cloudresourcemanager_projects_create_builder(
     client: &SimpleHttpClient,
-    body: &Project,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/projects",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/projects
+/// POST v3/projects
 /// Request that a new project be created. The result is an Operation which can be used to track the creation process. This process usually takes a few seconds, but can sometimes take much longer. The tracking Operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2926,7 +4575,7 @@ pub fn cloudresourcemanager_projects_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/projects
+/// POST v3/projects
 /// Request that a new project be created. The result is an Operation which can be used to track the creation process. This process usually takes a few seconds, but can sometimes take much longer. The tracking Operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2956,14 +4605,7 @@ pub fn cloudresourcemanager_projects_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`cloudresourcemanager_projects_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct CloudresourcemanagerProjectsCreateArgs {
-    /// Request body.
-    pub body: Project,
-}
-
-/// GET v3/projects
+/// POST v3/projects
 /// Request that a new project be created. The result is an Operation which can be used to track the creation process. This process usually takes a few seconds, but can sometimes take much longer. The tracking Operation is automatically deleted after a few hours, so there is no need to call DeleteOperation.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2976,16 +4618,15 @@ pub struct CloudresourcemanagerProjectsCreateArgs {
 
 pub fn cloudresourcemanager_projects_create(
     client: &SimpleHttpClient,
-    args: &CloudresourcemanagerProjectsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_create_builder(client, &args.body)?;
+    let builder = cloudresourcemanager_projects_create_builder(client)?;
     cloudresourcemanager_projects_create_execute(builder)
 }
 
-/// GET v3/projects/{projectsId}
+/// DELETE v3/projects/{projectsId}
 /// Marks the project identified by the specified name (for example, `projects/415104041262`) for deletion. This method will only affect the project if it has a lifecycle state of `ACTIVE`. This method changes the Project's lifecycle state from `ACTIVE` to DELETE_REQUESTED. The deletion starts at an unspecified time, at which point the Project is no longer accessible. Until the deletion completes, you can check the lifecycle state checked by retrieving the project with GetProject, and the project remains visible to ListProjects. However, you cannot update the project. After the deletion completes, the project is not retrievable by the GetProject, ListProjects, and SearchProjects methods. The caller must have resourcemanager.projects.delete permissions for this project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2996,17 +4637,20 @@ pub fn cloudresourcemanager_projects_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/projects/{}",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/projects/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v3/projects/{projectsId}
+/// DELETE v3/projects/{projectsId}
 /// Marks the project identified by the specified name (for example, `projects/415104041262`) for deletion. This method will only affect the project if it has a lifecycle state of `ACTIVE`. This method changes the Project's lifecycle state from `ACTIVE` to DELETE_REQUESTED. The deletion starts at an unspecified time, at which point the Project is no longer accessible. Until the deletion completes, you can check the lifecycle state checked by retrieving the project with GetProject, and the project remains visible to ListProjects. However, you cannot update the project. After the deletion completes, the project is not retrievable by the GetProject, ListProjects, and SearchProjects methods. The caller must have resourcemanager.projects.delete permissions for this project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3080,7 +4724,7 @@ pub fn cloudresourcemanager_projects_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/projects/{projectsId}
+/// DELETE v3/projects/{projectsId}
 /// Marks the project identified by the specified name (for example, `projects/415104041262`) for deletion. This method will only affect the project if it has a lifecycle state of `ACTIVE`. This method changes the Project's lifecycle state from `ACTIVE` to DELETE_REQUESTED. The deletion starts at an unspecified time, at which point the Project is no longer accessible. Until the deletion completes, you can check the lifecycle state checked by retrieving the project with GetProject, and the project remains visible to ListProjects. However, you cannot update the project. After the deletion completes, the project is not retrievable by the GetProject, ListProjects, and SearchProjects methods. The caller must have resourcemanager.projects.delete permissions for this project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3117,7 +4761,7 @@ pub struct CloudresourcemanagerProjectsDeleteArgs {
     pub name: String,
 }
 
-/// GET v3/projects/{projectsId}
+/// DELETE v3/projects/{projectsId}
 /// Marks the project identified by the specified name (for example, `projects/415104041262`) for deletion. This method will only affect the project if it has a lifecycle state of `ACTIVE`. This method changes the Project's lifecycle state from `ACTIVE` to DELETE_REQUESTED. The deletion starts at an unspecified time, at which point the Project is no longer accessible. Until the deletion completes, you can check the lifecycle state checked by retrieving the project with GetProject, and the project remains visible to ListProjects. However, you cannot update the project. After the deletion completes, the project is not retrievable by the GetProject, ListProjects, and SearchProjects methods. The caller must have resourcemanager.projects.delete permissions for this project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3139,7 +4783,164 @@ pub fn cloudresourcemanager_projects_delete(
     cloudresourcemanager_projects_delete_execute(builder)
 }
 
-/// GET v3/projects/{projectsId}:getIamPolicy
+/// GET v3/projects/{projectsId}
+/// Retrieves the project identified by the specified name (for example, `projects/415104041262`). The caller must have resourcemanager.projects.get permission for this project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_projects_get_execute()` to send, or `cloudresourcemanager_projects_get` for simplest API.
+
+pub fn cloudresourcemanager_projects_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/projects/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects/{projectsId}
+/// Retrieves the project identified by the specified name (for example, `projects/415104041262`). The caller must have resourcemanager.projects.get permission for this project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_projects_get_execute()` or `cloudresourcemanager_projects_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_projects_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_projects_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Project>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Project = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects/{projectsId}
+/// Retrieves the project identified by the specified name (for example, `projects/415104041262`). The caller must have resourcemanager.projects.get permission for this project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_projects_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_projects_get_task()`.
+/// For the simplest API, use `cloudresourcemanager_projects_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_projects_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_projects_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_projects_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_projects_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/projects/{projectsId}
+/// Retrieves the project identified by the specified name (for example, `projects/415104041262`). The caller must have resourcemanager.projects.get permission for this project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_projects_get_builder()` + `cloudresourcemanager_projects_get_execute()`.
+/// For task-level control, use `cloudresourcemanager_projects_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_projects_get(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerProjectsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_projects_get_builder(client, &args.name)?;
+    cloudresourcemanager_projects_get_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}:getIamPolicy
 /// Returns the IAM access control policy for the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`. Permission is denied if the policy or the resource do not exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3148,23 +4949,22 @@ pub fn cloudresourcemanager_projects_delete(
 pub fn cloudresourcemanager_projects_get_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/projects/{}:getIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/projects/{}:getIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/projects/{projectsId}:getIamPolicy
+/// POST v3/projects/{projectsId}:getIamPolicy
 /// Returns the IAM access control policy for the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`. Permission is denied if the policy or the resource do not exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3238,7 +5038,7 @@ pub fn cloudresourcemanager_projects_get_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/projects/{projectsId}:getIamPolicy
+/// POST v3/projects/{projectsId}:getIamPolicy
 /// Returns the IAM access control policy for the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`. Permission is denied if the policy or the resource do not exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3273,11 +5073,9 @@ pub fn cloudresourcemanager_projects_get_iam_policy_execute(
 pub struct CloudresourcemanagerProjectsGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
 }
 
-/// GET v3/projects/{projectsId}:getIamPolicy
+/// POST v3/projects/{projectsId}:getIamPolicy
 /// Returns the IAM access control policy for the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`. Permission is denied if the policy or the resource do not exist.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3295,12 +5093,204 @@ pub fn cloudresourcemanager_projects_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_projects_get_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = cloudresourcemanager_projects_get_iam_policy_builder(client, &args.resource)?;
     cloudresourcemanager_projects_get_iam_policy_execute(builder)
 }
 
-/// GET v3/projects/{projectsId}:move
+/// GET v3/projects
+/// Lists projects that are direct children of the specified folder or organization resource. list() provides a strongly consistent view of the projects underneath the specified parent resource. list() returns projects sorted based upon the (ascending) lexical ordering of their display_name. The caller must have resourcemanager.projects.list permission on the identified parent.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_projects_list_execute()` to send, or `cloudresourcemanager_projects_list` for simplest API.
+
+pub fn cloudresourcemanager_projects_list_builder(
+    client: &SimpleHttpClient,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/projects",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+    if let Some(val) = showDeleted.as_ref() {
+        query_parts.push(format!("showDeleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/projects
+/// Lists projects that are direct children of the specified folder or organization resource. list() provides a strongly consistent view of the projects underneath the specified parent resource. list() returns projects sorted based upon the (ascending) lexical ordering of their display_name. The caller must have resourcemanager.projects.list permission on the identified parent.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_projects_list_execute()` or `cloudresourcemanager_projects_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_projects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_projects_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListProjectsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListProjectsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/projects
+/// Lists projects that are direct children of the specified folder or organization resource. list() provides a strongly consistent view of the projects underneath the specified parent resource. list() returns projects sorted based upon the (ascending) lexical ordering of their display_name. The caller must have resourcemanager.projects.list permission on the identified parent.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_projects_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_projects_list_task()`.
+/// For the simplest API, use `cloudresourcemanager_projects_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_projects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_projects_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListProjectsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_projects_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_projects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<Option<String>>,
+}
+
+/// GET v3/projects
+/// Lists projects that are direct children of the specified folder or organization resource. list() provides a strongly consistent view of the projects underneath the specified parent resource. list() returns projects sorted based upon the (ascending) lexical ordering of their display_name. The caller must have resourcemanager.projects.list permission on the identified parent.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_projects_list_builder()` + `cloudresourcemanager_projects_list_execute()`.
+/// For task-level control, use `cloudresourcemanager_projects_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_projects_list(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerProjectsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListProjectsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_projects_list_builder(
+        client,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
+        &args.showDeleted,
+    )?;
+    cloudresourcemanager_projects_list_execute(builder)
+}
+
+/// POST v3/projects/{projectsId}:move
 /// Move a project to another place in your resource hierarchy, under a new resource parent. Returns an operation which can be used to track the process of the project move workflow. Upon success, the Operation.response field will be populated with the moved project. The caller must have resourcemanager.projects.move permission on the project, on the project's current and proposed new parent. If project has no current parent, or it currently does not have an associated organization resource, you will also need the resourcemanager.projects.`setIamPolicy` permission in the project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3309,22 +5299,22 @@ pub fn cloudresourcemanager_projects_get_iam_policy(
 pub fn cloudresourcemanager_projects_move_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &MoveProjectRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/projects/{}:move",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/projects/{}:move",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/projects/{projectsId}:move
+/// POST v3/projects/{projectsId}:move
 /// Move a project to another place in your resource hierarchy, under a new resource parent. Returns an operation which can be used to track the process of the project move workflow. Upon success, the Operation.response field will be populated with the moved project. The caller must have resourcemanager.projects.move permission on the project, on the project's current and proposed new parent. If project has no current parent, or it currently does not have an associated organization resource, you will also need the resourcemanager.projects.`setIamPolicy` permission in the project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3398,7 +5388,7 @@ pub fn cloudresourcemanager_projects_move_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/projects/{projectsId}:move
+/// POST v3/projects/{projectsId}:move
 /// Move a project to another place in your resource hierarchy, under a new resource parent. Returns an operation which can be used to track the process of the project move workflow. Upon success, the Operation.response field will be populated with the moved project. The caller must have resourcemanager.projects.move permission on the project, on the project's current and proposed new parent. If project has no current parent, or it currently does not have an associated organization resource, you will also need the resourcemanager.projects.`setIamPolicy` permission in the project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3433,11 +5423,9 @@ pub fn cloudresourcemanager_projects_move_execute(
 pub struct CloudresourcemanagerProjectsMoveArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: MoveProjectRequest,
 }
 
-/// GET v3/projects/{projectsId}:move
+/// POST v3/projects/{projectsId}:move
 /// Move a project to another place in your resource hierarchy, under a new resource parent. Returns an operation which can be used to track the process of the project move workflow. Upon success, the Operation.response field will be populated with the moved project. The caller must have resourcemanager.projects.move permission on the project, on the project's current and proposed new parent. If project has no current parent, or it currently does not have an associated organization resource, you will also need the resourcemanager.projects.`setIamPolicy` permission in the project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3455,8 +5443,180 @@ pub fn cloudresourcemanager_projects_move(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_move_builder(client, &args.name, &args.body)?;
+    let builder = cloudresourcemanager_projects_move_builder(client, &args.name)?;
     cloudresourcemanager_projects_move_execute(builder)
+}
+
+/// PATCH v3/projects/{projectsId}
+/// Updates the display_name and labels of the project identified by the specified name (for example, `projects/415104041262`). Deleting all labels requires an update mask for labels field. The caller must have resourcemanager.projects.update permission for this project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_projects_patch_execute()` to send, or `cloudresourcemanager_projects_patch` for simplest API.
+
+pub fn cloudresourcemanager_projects_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/projects/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v3/projects/{projectsId}
+/// Updates the display_name and labels of the project identified by the specified name (for example, `projects/415104041262`). Deleting all labels requires an update mask for labels field. The caller must have resourcemanager.projects.update permission for this project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_projects_patch_execute()` or `cloudresourcemanager_projects_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_projects_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_projects_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v3/projects/{projectsId}
+/// Updates the display_name and labels of the project identified by the specified name (for example, `projects/415104041262`). Deleting all labels requires an update mask for labels field. The caller must have resourcemanager.projects.update permission for this project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_projects_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_projects_patch_task()`.
+/// For the simplest API, use `cloudresourcemanager_projects_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_projects_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_projects_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_projects_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_projects_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerProjectsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v3/projects/{projectsId}
+/// Updates the display_name and labels of the project identified by the specified name (for example, `projects/415104041262`). Deleting all labels requires an update mask for labels field. The caller must have resourcemanager.projects.update permission for this project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_projects_patch_builder()` + `cloudresourcemanager_projects_patch_execute()`.
+/// For task-level control, use `cloudresourcemanager_projects_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_projects_patch(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerProjectsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        cloudresourcemanager_projects_patch_builder(client, &args.name, &args.updateMask)?;
+    cloudresourcemanager_projects_patch_execute(builder)
 }
 
 /// GET v3/projects:search
@@ -3467,9 +5627,9 @@ pub fn cloudresourcemanager_projects_move(
 
 pub fn cloudresourcemanager_projects_search_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    query: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    query: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/projects:search",);
@@ -3609,11 +5769,11 @@ pub fn cloudresourcemanager_projects_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerProjectsSearchArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: query
-    pub query: Option<String>,
+    pub query: Option<Option<String>>,
 }
 
 /// GET v3/projects:search
@@ -3645,7 +5805,7 @@ pub fn cloudresourcemanager_projects_search(
     cloudresourcemanager_projects_search_execute(builder)
 }
 
-/// GET v3/projects/{projectsId}:setIamPolicy
+/// POST v3/projects/{projectsId}:setIamPolicy
 /// Sets the IAM access control policy for the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`. CAUTION: This method will replace the existing policy, and cannot be used to append additional IAM settings. Note: Removing service accounts from policies or changing their roles can render services completely inoperable. It is important to understand how the service account is being used before removing or updating its roles. The following constraints apply when using `setIamPolicy`(): + Project does not support `allUsers` and `allAuthenticatedUsers` as members in a Binding of a Policy. + The owner role can be granted to a user, `serviceAccount`, or a group that is part of an organization. For example, group@myownpersonaldomain.com could be added as an owner to a project in the myownpersonaldomain.com organization, but not the examplepetstore.com organization. + Service accounts can be made owners of a project directly without any restrictions. However, to be added as an owner, a user must be invited using the Cloud Platform console and must accept the invitation. + A user cannot be granted the owner role using `setIamPolicy`(). The user must be granted the owner role using the Cloud Platform Console and must explicitly accept the invitation. + Invitations to grant the owner role cannot be sent using `setIamPolicy`(); they must be sent only using the Cloud Platform Console. + If the project is not part of an organization, there must be at least one owner who has accepted the Terms of Service (ToS) agreement in the policy. Calling `setIamPolicy`() to remove the last ToS-accepted owner from the policy will fail. This restriction also applies to legacy projects that no longer have owners who have accepted the ToS. Edits to IAM policies will be rejected until the lack of a ToS-accepting owner is rectified. If the project is part of an organization, you can remove all owners, potentially making the organization inaccessible.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3654,23 +5814,22 @@ pub fn cloudresourcemanager_projects_search(
 pub fn cloudresourcemanager_projects_set_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/projects/{}:setIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/projects/{}:setIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/projects/{projectsId}:setIamPolicy
+/// POST v3/projects/{projectsId}:setIamPolicy
 /// Sets the IAM access control policy for the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`. CAUTION: This method will replace the existing policy, and cannot be used to append additional IAM settings. Note: Removing service accounts from policies or changing their roles can render services completely inoperable. It is important to understand how the service account is being used before removing or updating its roles. The following constraints apply when using `setIamPolicy`(): + Project does not support `allUsers` and `allAuthenticatedUsers` as members in a Binding of a Policy. + The owner role can be granted to a user, `serviceAccount`, or a group that is part of an organization. For example, group@myownpersonaldomain.com could be added as an owner to a project in the myownpersonaldomain.com organization, but not the examplepetstore.com organization. + Service accounts can be made owners of a project directly without any restrictions. However, to be added as an owner, a user must be invited using the Cloud Platform console and must accept the invitation. + A user cannot be granted the owner role using `setIamPolicy`(). The user must be granted the owner role using the Cloud Platform Console and must explicitly accept the invitation. + Invitations to grant the owner role cannot be sent using `setIamPolicy`(); they must be sent only using the Cloud Platform Console. + If the project is not part of an organization, there must be at least one owner who has accepted the Terms of Service (ToS) agreement in the policy. Calling `setIamPolicy`() to remove the last ToS-accepted owner from the policy will fail. This restriction also applies to legacy projects that no longer have owners who have accepted the ToS. Edits to IAM policies will be rejected until the lack of a ToS-accepting owner is rectified. If the project is part of an organization, you can remove all owners, potentially making the organization inaccessible.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3744,7 +5903,7 @@ pub fn cloudresourcemanager_projects_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/projects/{projectsId}:setIamPolicy
+/// POST v3/projects/{projectsId}:setIamPolicy
 /// Sets the IAM access control policy for the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`. CAUTION: This method will replace the existing policy, and cannot be used to append additional IAM settings. Note: Removing service accounts from policies or changing their roles can render services completely inoperable. It is important to understand how the service account is being used before removing or updating its roles. The following constraints apply when using `setIamPolicy`(): + Project does not support `allUsers` and `allAuthenticatedUsers` as members in a Binding of a Policy. + The owner role can be granted to a user, `serviceAccount`, or a group that is part of an organization. For example, group@myownpersonaldomain.com could be added as an owner to a project in the myownpersonaldomain.com organization, but not the examplepetstore.com organization. + Service accounts can be made owners of a project directly without any restrictions. However, to be added as an owner, a user must be invited using the Cloud Platform console and must accept the invitation. + A user cannot be granted the owner role using `setIamPolicy`(). The user must be granted the owner role using the Cloud Platform Console and must explicitly accept the invitation. + Invitations to grant the owner role cannot be sent using `setIamPolicy`(); they must be sent only using the Cloud Platform Console. + If the project is not part of an organization, there must be at least one owner who has accepted the Terms of Service (ToS) agreement in the policy. Calling `setIamPolicy`() to remove the last ToS-accepted owner from the policy will fail. This restriction also applies to legacy projects that no longer have owners who have accepted the ToS. Edits to IAM policies will be rejected until the lack of a ToS-accepting owner is rectified. If the project is part of an organization, you can remove all owners, potentially making the organization inaccessible.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3779,11 +5938,9 @@ pub fn cloudresourcemanager_projects_set_iam_policy_execute(
 pub struct CloudresourcemanagerProjectsSetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
 }
 
-/// GET v3/projects/{projectsId}:setIamPolicy
+/// POST v3/projects/{projectsId}:setIamPolicy
 /// Sets the IAM access control policy for the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`. CAUTION: This method will replace the existing policy, and cannot be used to append additional IAM settings. Note: Removing service accounts from policies or changing their roles can render services completely inoperable. It is important to understand how the service account is being used before removing or updating its roles. The following constraints apply when using `setIamPolicy`(): + Project does not support `allUsers` and `allAuthenticatedUsers` as members in a Binding of a Policy. + The owner role can be granted to a user, `serviceAccount`, or a group that is part of an organization. For example, group@myownpersonaldomain.com could be added as an owner to a project in the myownpersonaldomain.com organization, but not the examplepetstore.com organization. + Service accounts can be made owners of a project directly without any restrictions. However, to be added as an owner, a user must be invited using the Cloud Platform console and must accept the invitation. + A user cannot be granted the owner role using `setIamPolicy`(). The user must be granted the owner role using the Cloud Platform Console and must explicitly accept the invitation. + Invitations to grant the owner role cannot be sent using `setIamPolicy`(); they must be sent only using the Cloud Platform Console. + If the project is not part of an organization, there must be at least one owner who has accepted the Terms of Service (ToS) agreement in the policy. Calling `setIamPolicy`() to remove the last ToS-accepted owner from the policy will fail. This restriction also applies to legacy projects that no longer have owners who have accepted the ToS. Edits to IAM policies will be rejected until the lack of a ToS-accepting owner is rectified. If the project is part of an organization, you can remove all owners, potentially making the organization inaccessible.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3801,12 +5958,11 @@ pub fn cloudresourcemanager_projects_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_projects_set_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = cloudresourcemanager_projects_set_iam_policy_builder(client, &args.resource)?;
     cloudresourcemanager_projects_set_iam_policy_execute(builder)
 }
 
-/// GET v3/projects/{projectsId}:testIamPermissions
+/// POST v3/projects/{projectsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`..
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3815,23 +5971,22 @@ pub fn cloudresourcemanager_projects_set_iam_policy(
 pub fn cloudresourcemanager_projects_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/projects/{}:testIamPermissions",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/projects/{}:testIamPermissions",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/projects/{projectsId}:testIamPermissions
+/// POST v3/projects/{projectsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`..
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3905,7 +6060,7 @@ pub fn cloudresourcemanager_projects_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/projects/{projectsId}:testIamPermissions
+/// POST v3/projects/{projectsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`..
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3944,11 +6099,9 @@ pub fn cloudresourcemanager_projects_test_iam_permissions_execute(
 pub struct CloudresourcemanagerProjectsTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
 }
 
-/// GET v3/projects/{projectsId}:testIamPermissions
+/// POST v3/projects/{projectsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified project, in the format `projects/{ProjectIdOrNumber}` e.g. `projects/123`..
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3970,15 +6123,12 @@ pub fn cloudresourcemanager_projects_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_projects_test_iam_permissions_builder(client, &args.resource)?;
     cloudresourcemanager_projects_test_iam_permissions_execute(builder)
 }
 
-/// GET v3/projects/{projectsId}:undelete
+/// POST v3/projects/{projectsId}:undelete
 /// Restores the project identified by the specified name (for example, `projects/415104041262`). You can only use this method for a project that has a lifecycle state of DELETE_REQUESTED. After deletion starts, the project cannot be restored. The caller must have resourcemanager.projects.undelete permission for this project.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3987,23 +6137,22 @@ pub fn cloudresourcemanager_projects_test_iam_permissions(
 pub fn cloudresourcemanager_projects_undelete_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &UndeleteProjectRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/projects/{}:undelete",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/projects/{}:undelete",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/projects/{projectsId}:undelete
+/// POST v3/projects/{projectsId}:undelete
 /// Restores the project identified by the specified name (for example, `projects/415104041262`). You can only use this method for a project that has a lifecycle state of DELETE_REQUESTED. After deletion starts, the project cannot be restored. The caller must have resourcemanager.projects.undelete permission for this project.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4077,7 +6226,7 @@ pub fn cloudresourcemanager_projects_undelete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/projects/{projectsId}:undelete
+/// POST v3/projects/{projectsId}:undelete
 /// Restores the project identified by the specified name (for example, `projects/415104041262`). You can only use this method for a project that has a lifecycle state of DELETE_REQUESTED. After deletion starts, the project cannot be restored. The caller must have resourcemanager.projects.undelete permission for this project.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4112,11 +6261,9 @@ pub fn cloudresourcemanager_projects_undelete_execute(
 pub struct CloudresourcemanagerProjectsUndeleteArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: UndeleteProjectRequest,
 }
 
-/// GET v3/projects/{projectsId}:undelete
+/// POST v3/projects/{projectsId}:undelete
 /// Restores the project identified by the specified name (for example, `projects/415104041262`). You can only use this method for a project that has a lifecycle state of DELETE_REQUESTED. After deletion starts, the project cannot be restored. The caller must have resourcemanager.projects.undelete permission for this project.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4134,11 +6281,11 @@ pub fn cloudresourcemanager_projects_undelete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_projects_undelete_builder(client, &args.name, &args.body)?;
+    let builder = cloudresourcemanager_projects_undelete_builder(client, &args.name)?;
     cloudresourcemanager_projects_undelete_execute(builder)
 }
 
-/// GET v3/tagBindings
+/// POST v3/tagBindings
 /// Creates a TagBinding between a TagValue and a Google Cloud resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4146,8 +6293,7 @@ pub fn cloudresourcemanager_projects_undelete(
 
 pub fn cloudresourcemanager_tag_bindings_create_builder(
     client: &SimpleHttpClient,
-    validateOnly: &Option<bool>,
-    body: &TagBinding,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagBindings",);
@@ -4165,15 +6311,13 @@ pub fn cloudresourcemanager_tag_bindings_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/tagBindings
+/// POST v3/tagBindings
 /// Creates a TagBinding between a TagValue and a Google Cloud resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4247,7 +6391,7 @@ pub fn cloudresourcemanager_tag_bindings_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagBindings
+/// POST v3/tagBindings
 /// Creates a TagBinding between a TagValue and a Google Cloud resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4281,12 +6425,10 @@ pub fn cloudresourcemanager_tag_bindings_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagBindingsCreateArgs {
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
-    /// Request body.
-    pub body: TagBinding,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v3/tagBindings
+/// POST v3/tagBindings
 /// Creates a TagBinding between a TagValue and a Google Cloud resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4304,12 +6446,11 @@ pub fn cloudresourcemanager_tag_bindings_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_bindings_create_builder(client, &args.validateOnly, &args.body)?;
+    let builder = cloudresourcemanager_tag_bindings_create_builder(client, &args.validateOnly)?;
     cloudresourcemanager_tag_bindings_create_execute(builder)
 }
 
-/// GET v3/tagBindings/{tagBindingsId}
+/// DELETE v3/tagBindings/{tagBindingsId}
 /// Deletes a TagBinding.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4320,17 +6461,20 @@ pub fn cloudresourcemanager_tag_bindings_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagBindings/{}",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagBindings/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v3/tagBindings/{tagBindingsId}
+/// DELETE v3/tagBindings/{tagBindingsId}
 /// Deletes a TagBinding.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4404,7 +6548,7 @@ pub fn cloudresourcemanager_tag_bindings_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagBindings/{tagBindingsId}
+/// DELETE v3/tagBindings/{tagBindingsId}
 /// Deletes a TagBinding.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4441,7 +6585,7 @@ pub struct CloudresourcemanagerTagBindingsDeleteArgs {
     pub name: String,
 }
 
-/// GET v3/tagBindings/{tagBindingsId}
+/// DELETE v3/tagBindings/{tagBindingsId}
 /// Deletes a TagBinding.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4463,7 +6607,193 @@ pub fn cloudresourcemanager_tag_bindings_delete(
     cloudresourcemanager_tag_bindings_delete_execute(builder)
 }
 
-/// GET v3/tagKeys
+/// GET v3/tagBindings
+/// Lists the TagBindings for the given Google Cloud resource, as specified with parent. NOTE: The parent field is expected to be a full resource name: <https://cloud.google.`com/apis/design/resource_names`#full_resource_name>
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_tag_bindings_list_execute()` to send, or `cloudresourcemanager_tag_bindings_list` for simplest API.
+
+pub fn cloudresourcemanager_tag_bindings_list_builder(
+    client: &SimpleHttpClient,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagBindings",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/tagBindings
+/// Lists the TagBindings for the given Google Cloud resource, as specified with parent. NOTE: The parent field is expected to be a full resource name: <https://cloud.google.`com/apis/design/resource_names`#full_resource_name>
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_tag_bindings_list_execute()` or `cloudresourcemanager_tag_bindings_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_bindings_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTagBindingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTagBindingsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/tagBindings
+/// Lists the TagBindings for the given Google Cloud resource, as specified with parent. NOTE: The parent field is expected to be a full resource name: <https://cloud.google.`com/apis/design/resource_names`#full_resource_name>
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_tag_bindings_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_tag_bindings_list_task()`.
+/// For the simplest API, use `cloudresourcemanager_tag_bindings_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_tag_bindings_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagBindingsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_tag_bindings_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_tag_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagBindingsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+}
+
+/// GET v3/tagBindings
+/// Lists the TagBindings for the given Google Cloud resource, as specified with parent. NOTE: The parent field is expected to be a full resource name: <https://cloud.google.`com/apis/design/resource_names`#full_resource_name>
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_tag_bindings_list_builder()` + `cloudresourcemanager_tag_bindings_list_execute()`.
+/// For task-level control, use `cloudresourcemanager_tag_bindings_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_bindings_list(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerTagBindingsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagBindingsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_tag_bindings_list_builder(
+        client,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
+    )?;
+    cloudresourcemanager_tag_bindings_list_execute(builder)
+}
+
+/// POST v3/tagKeys
 /// Creates a new TagKey. If another request with the same parameters is sent while the original request is in process, the second request will receive an error. A maximum of 1000 TagKeys can exist under a parent at any given time.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4471,8 +6801,7 @@ pub fn cloudresourcemanager_tag_bindings_delete(
 
 pub fn cloudresourcemanager_tag_keys_create_builder(
     client: &SimpleHttpClient,
-    validateOnly: &Option<bool>,
-    body: &TagKey,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagKeys",);
@@ -4490,15 +6819,13 @@ pub fn cloudresourcemanager_tag_keys_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/tagKeys
+/// POST v3/tagKeys
 /// Creates a new TagKey. If another request with the same parameters is sent while the original request is in process, the second request will receive an error. A maximum of 1000 TagKeys can exist under a parent at any given time.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4572,7 +6899,7 @@ pub fn cloudresourcemanager_tag_keys_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagKeys
+/// POST v3/tagKeys
 /// Creates a new TagKey. If another request with the same parameters is sent while the original request is in process, the second request will receive an error. A maximum of 1000 TagKeys can exist under a parent at any given time.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4606,12 +6933,10 @@ pub fn cloudresourcemanager_tag_keys_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagKeysCreateArgs {
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
-    /// Request body.
-    pub body: TagKey,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v3/tagKeys
+/// POST v3/tagKeys
 /// Creates a new TagKey. If another request with the same parameters is sent while the original request is in process, the second request will receive an error. A maximum of 1000 TagKeys can exist under a parent at any given time.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4629,12 +6954,11 @@ pub fn cloudresourcemanager_tag_keys_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_keys_create_builder(client, &args.validateOnly, &args.body)?;
+    let builder = cloudresourcemanager_tag_keys_create_builder(client, &args.validateOnly)?;
     cloudresourcemanager_tag_keys_create_execute(builder)
 }
 
-/// GET v3/tagKeys/{tagKeysId}
+/// DELETE v3/tagKeys/{tagKeysId}
 /// Deletes a TagKey. The TagKey cannot be deleted if it has any child TagValues.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4643,11 +6967,14 @@ pub fn cloudresourcemanager_tag_keys_create(
 pub fn cloudresourcemanager_tag_keys_delete_builder(
     client: &SimpleHttpClient,
     name: &String,
-    etag: &Option<String>,
-    validateOnly: &Option<bool>,
+    etag: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4665,13 +6992,13 @@ pub fn cloudresourcemanager_tag_keys_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v3/tagKeys/{tagKeysId}
+/// DELETE v3/tagKeys/{tagKeysId}
 /// Deletes a TagKey. The TagKey cannot be deleted if it has any child TagValues.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4745,7 +7072,7 @@ pub fn cloudresourcemanager_tag_keys_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagKeys/{tagKeysId}
+/// DELETE v3/tagKeys/{tagKeysId}
 /// Deletes a TagKey. The TagKey cannot be deleted if it has any child TagValues.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4781,12 +7108,12 @@ pub struct CloudresourcemanagerTagKeysDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<String>,
+    pub etag: Option<Option<String>>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v3/tagKeys/{tagKeysId}
+/// DELETE v3/tagKeys/{tagKeysId}
 /// Deletes a TagKey. The TagKey cannot be deleted if it has any child TagValues.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4813,7 +7140,164 @@ pub fn cloudresourcemanager_tag_keys_delete(
     cloudresourcemanager_tag_keys_delete_execute(builder)
 }
 
-/// GET v3/tagKeys/{tagKeysId}:getIamPolicy
+/// GET v3/tagKeys/{tagKeysId}
+/// Retrieves a TagKey. This method will return PERMISSION_DENIED if the key does not exist or the user does not have permission to view it.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_tag_keys_get_execute()` to send, or `cloudresourcemanager_tag_keys_get` for simplest API.
+
+pub fn cloudresourcemanager_tag_keys_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/tagKeys/{tagKeysId}
+/// Retrieves a TagKey. This method will return PERMISSION_DENIED if the key does not exist or the user does not have permission to view it.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_tag_keys_get_execute()` or `cloudresourcemanager_tag_keys_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_keys_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_keys_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TagKey>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TagKey = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/tagKeys/{tagKeysId}
+/// Retrieves a TagKey. This method will return PERMISSION_DENIED if the key does not exist or the user does not have permission to view it.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_tag_keys_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_tag_keys_get_task()`.
+/// For the simplest API, use `cloudresourcemanager_tag_keys_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_keys_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_tag_keys_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TagKey>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_tag_keys_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_tag_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/tagKeys/{tagKeysId}
+/// Retrieves a TagKey. This method will return PERMISSION_DENIED if the key does not exist or the user does not have permission to view it.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_tag_keys_get_builder()` + `cloudresourcemanager_tag_keys_get_execute()`.
+/// For task-level control, use `cloudresourcemanager_tag_keys_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_keys_get(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerTagKeysGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TagKey>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_tag_keys_get_builder(client, &args.name)?;
+    cloudresourcemanager_tag_keys_get_execute(builder)
+}
+
+/// POST v3/tagKeys/{tagKeysId}:getIamPolicy
 /// Gets the access control policy for a TagKey. The returned policy may be empty if no such policy or resource exists. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". The caller must have cloudresourcemanager.googleapis.`com/`tagKeys``.`getIamPolicy` permission on the specified TagKey.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4822,23 +7306,22 @@ pub fn cloudresourcemanager_tag_keys_delete(
 pub fn cloudresourcemanager_tag_keys_get_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}:getIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}:getIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/tagKeys/{tagKeysId}:getIamPolicy
+/// POST v3/tagKeys/{tagKeysId}:getIamPolicy
 /// Gets the access control policy for a TagKey. The returned policy may be empty if no such policy or resource exists. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". The caller must have cloudresourcemanager.googleapis.`com/`tagKeys``.`getIamPolicy` permission on the specified TagKey.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4912,7 +7395,7 @@ pub fn cloudresourcemanager_tag_keys_get_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagKeys/{tagKeysId}:getIamPolicy
+/// POST v3/tagKeys/{tagKeysId}:getIamPolicy
 /// Gets the access control policy for a TagKey. The returned policy may be empty if no such policy or resource exists. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". The caller must have cloudresourcemanager.googleapis.`com/`tagKeys``.`getIamPolicy` permission on the specified TagKey.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4947,11 +7430,9 @@ pub fn cloudresourcemanager_tag_keys_get_iam_policy_execute(
 pub struct CloudresourcemanagerTagKeysGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
 }
 
-/// GET v3/tagKeys/{tagKeysId}:getIamPolicy
+/// POST v3/tagKeys/{tagKeysId}:getIamPolicy
 /// Gets the access control policy for a TagKey. The returned policy may be empty if no such policy or resource exists. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". The caller must have cloudresourcemanager.googleapis.`com/`tagKeys``.`getIamPolicy` permission on the specified TagKey.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4969,8 +7450,7 @@ pub fn cloudresourcemanager_tag_keys_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_keys_get_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = cloudresourcemanager_tag_keys_get_iam_policy_builder(client, &args.resource)?;
     cloudresourcemanager_tag_keys_get_iam_policy_execute(builder)
 }
 
@@ -4982,7 +7462,7 @@ pub fn cloudresourcemanager_tag_keys_get_iam_policy(
 
 pub fn cloudresourcemanager_tag_keys_get_namespaced_builder(
     client: &SimpleHttpClient,
-    name: &Option<String>,
+    name: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -5115,7 +7595,7 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagKeysGetNamespacedArgs {
     /// Query parameter: name
-    pub name: Option<String>,
+    pub name: Option<Option<String>>,
 }
 
 /// GET v3/tagKeys/namespaced
@@ -5140,7 +7620,375 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced(
     cloudresourcemanager_tag_keys_get_namespaced_execute(builder)
 }
 
-/// GET v3/tagKeys/{tagKeysId}:setIamPolicy
+/// GET v3/tagKeys
+/// Lists all TagKeys for a parent resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_tag_keys_list_execute()` to send, or `cloudresourcemanager_tag_keys_list` for simplest API.
+
+pub fn cloudresourcemanager_tag_keys_list_builder(
+    client: &SimpleHttpClient,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagKeys",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/tagKeys
+/// Lists all TagKeys for a parent resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_tag_keys_list_execute()` or `cloudresourcemanager_tag_keys_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_keys_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_keys_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTagKeysResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTagKeysResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/tagKeys
+/// Lists all TagKeys for a parent resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_tag_keys_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_tag_keys_list_task()`.
+/// For the simplest API, use `cloudresourcemanager_tag_keys_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_keys_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_tag_keys_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagKeysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_tag_keys_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_tag_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+}
+
+/// GET v3/tagKeys
+/// Lists all TagKeys for a parent resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_tag_keys_list_builder()` + `cloudresourcemanager_tag_keys_list_execute()`.
+/// For task-level control, use `cloudresourcemanager_tag_keys_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_keys_list(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerTagKeysListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagKeysResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_tag_keys_list_builder(
+        client,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
+    )?;
+    cloudresourcemanager_tag_keys_list_execute(builder)
+}
+
+/// PATCH v3/tagKeys/{tagKeysId}
+/// Updates the attributes of the TagKey resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_tag_keys_patch_execute()` to send, or `cloudresourcemanager_tag_keys_patch` for simplest API.
+
+pub fn cloudresourcemanager_tag_keys_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v3/tagKeys/{tagKeysId}
+/// Updates the attributes of the TagKey resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_tag_keys_patch_execute()` or `cloudresourcemanager_tag_keys_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_keys_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_keys_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v3/tagKeys/{tagKeysId}
+/// Updates the attributes of the TagKey resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_tag_keys_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_tag_keys_patch_task()`.
+/// For the simplest API, use `cloudresourcemanager_tag_keys_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_keys_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_tag_keys_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_tag_keys_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_tag_keys_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagKeysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v3/tagKeys/{tagKeysId}
+/// Updates the attributes of the TagKey resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_tag_keys_patch_builder()` + `cloudresourcemanager_tag_keys_patch_execute()`.
+/// For task-level control, use `cloudresourcemanager_tag_keys_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_keys_patch(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerTagKeysPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_tag_keys_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    cloudresourcemanager_tag_keys_patch_execute(builder)
+}
+
+/// POST v3/tagKeys/{tagKeysId}:setIamPolicy
 /// Sets the access control policy on a TagKey, replacing any existing policy. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". The caller must have resourcemanager.`tagKeys`.`setIamPolicy` permission on the identified `tagValue`.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5149,23 +7997,22 @@ pub fn cloudresourcemanager_tag_keys_get_namespaced(
 pub fn cloudresourcemanager_tag_keys_set_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}:setIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}:setIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/tagKeys/{tagKeysId}:setIamPolicy
+/// POST v3/tagKeys/{tagKeysId}:setIamPolicy
 /// Sets the access control policy on a TagKey, replacing any existing policy. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". The caller must have resourcemanager.`tagKeys`.`setIamPolicy` permission on the identified `tagValue`.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5239,7 +8086,7 @@ pub fn cloudresourcemanager_tag_keys_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagKeys/{tagKeysId}:setIamPolicy
+/// POST v3/tagKeys/{tagKeysId}:setIamPolicy
 /// Sets the access control policy on a TagKey, replacing any existing policy. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". The caller must have resourcemanager.`tagKeys`.`setIamPolicy` permission on the identified `tagValue`.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5274,11 +8121,9 @@ pub fn cloudresourcemanager_tag_keys_set_iam_policy_execute(
 pub struct CloudresourcemanagerTagKeysSetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
 }
 
-/// GET v3/tagKeys/{tagKeysId}:setIamPolicy
+/// POST v3/tagKeys/{tagKeysId}:setIamPolicy
 /// Sets the access control policy on a TagKey, replacing any existing policy. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". The caller must have resourcemanager.`tagKeys`.`setIamPolicy` permission on the identified `tagValue`.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5296,12 +8141,11 @@ pub fn cloudresourcemanager_tag_keys_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_keys_set_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = cloudresourcemanager_tag_keys_set_iam_policy_builder(client, &args.resource)?;
     cloudresourcemanager_tag_keys_set_iam_policy_execute(builder)
 }
 
-/// GET v3/tagKeys/{tagKeysId}:testIamPermissions
+/// POST v3/tagKeys/{tagKeysId}:testIamPermissions
 /// Returns permissions that a caller has on the specified TagKey. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". There are no permissions required for making this API call.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5310,23 +8154,22 @@ pub fn cloudresourcemanager_tag_keys_set_iam_policy(
 pub fn cloudresourcemanager_tag_keys_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}:testIamPermissions",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagKeys/{}:testIamPermissions",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/tagKeys/{tagKeysId}:testIamPermissions
+/// POST v3/tagKeys/{tagKeysId}:testIamPermissions
 /// Returns permissions that a caller has on the specified TagKey. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". There are no permissions required for making this API call.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5400,7 +8243,7 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagKeys/{tagKeysId}:testIamPermissions
+/// POST v3/tagKeys/{tagKeysId}:testIamPermissions
 /// Returns permissions that a caller has on the specified TagKey. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". There are no permissions required for making this API call.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5439,11 +8282,9 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions_execute(
 pub struct CloudresourcemanagerTagKeysTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
 }
 
-/// GET v3/tagKeys/{tagKeysId}:testIamPermissions
+/// POST v3/tagKeys/{tagKeysId}:testIamPermissions
 /// Returns permissions that a caller has on the specified TagKey. The resource field should be the TagKey's resource name. For example, "tagK`eys/1234`". There are no permissions required for making this API call.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5465,15 +8306,12 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_keys_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_tag_keys_test_iam_permissions_builder(client, &args.resource)?;
     cloudresourcemanager_tag_keys_test_iam_permissions_execute(builder)
 }
 
-/// GET v3/tagValues
+/// POST v3/tagValues
 /// Creates a TagValue as a child of the specified TagKey. If a another request with the same parameters is sent while the original request is in process the second request will receive an error. A maximum of 1000 TagValues can exist under a TagKey at any given time.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5481,8 +8319,7 @@ pub fn cloudresourcemanager_tag_keys_test_iam_permissions(
 
 pub fn cloudresourcemanager_tag_values_create_builder(
     client: &SimpleHttpClient,
-    validateOnly: &Option<bool>,
-    body: &TagValue,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagValues",);
@@ -5500,15 +8337,13 @@ pub fn cloudresourcemanager_tag_values_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/tagValues
+/// POST v3/tagValues
 /// Creates a TagValue as a child of the specified TagKey. If a another request with the same parameters is sent while the original request is in process the second request will receive an error. A maximum of 1000 TagValues can exist under a TagKey at any given time.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5582,7 +8417,7 @@ pub fn cloudresourcemanager_tag_values_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagValues
+/// POST v3/tagValues
 /// Creates a TagValue as a child of the specified TagKey. If a another request with the same parameters is sent while the original request is in process the second request will receive an error. A maximum of 1000 TagValues can exist under a TagKey at any given time.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5616,12 +8451,10 @@ pub fn cloudresourcemanager_tag_values_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagValuesCreateArgs {
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
-    /// Request body.
-    pub body: TagValue,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v3/tagValues
+/// POST v3/tagValues
 /// Creates a TagValue as a child of the specified TagKey. If a another request with the same parameters is sent while the original request is in process the second request will receive an error. A maximum of 1000 TagValues can exist under a TagKey at any given time.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5639,12 +8472,11 @@ pub fn cloudresourcemanager_tag_values_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_values_create_builder(client, &args.validateOnly, &args.body)?;
+    let builder = cloudresourcemanager_tag_values_create_builder(client, &args.validateOnly)?;
     cloudresourcemanager_tag_values_create_execute(builder)
 }
 
-/// GET v3/tagValues/{tagValuesId}
+/// DELETE v3/tagValues/{tagValuesId}
 /// Deletes a TagValue. The TagValue cannot have any bindings when it is deleted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5653,11 +8485,14 @@ pub fn cloudresourcemanager_tag_values_create(
 pub fn cloudresourcemanager_tag_values_delete_builder(
     client: &SimpleHttpClient,
     name: &String,
-    etag: &Option<String>,
-    validateOnly: &Option<bool>,
+    etag: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagValues/{}",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -5675,13 +8510,13 @@ pub fn cloudresourcemanager_tag_values_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v3/tagValues/{tagValuesId}
+/// DELETE v3/tagValues/{tagValuesId}
 /// Deletes a TagValue. The TagValue cannot have any bindings when it is deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5755,7 +8590,7 @@ pub fn cloudresourcemanager_tag_values_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagValues/{tagValuesId}
+/// DELETE v3/tagValues/{tagValuesId}
 /// Deletes a TagValue. The TagValue cannot have any bindings when it is deleted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5791,12 +8626,12 @@ pub struct CloudresourcemanagerTagValuesDeleteArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: etag
-    pub etag: Option<String>,
+    pub etag: Option<Option<String>>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v3/tagValues/{tagValuesId}
+/// DELETE v3/tagValues/{tagValuesId}
 /// Deletes a TagValue. The TagValue cannot have any bindings when it is deleted.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5823,7 +8658,164 @@ pub fn cloudresourcemanager_tag_values_delete(
     cloudresourcemanager_tag_values_delete_execute(builder)
 }
 
-/// GET v3/tagValues/{tagValuesId}:getIamPolicy
+/// GET v3/tagValues/{tagValuesId}
+/// Retrieves a TagValue. This method will return PERMISSION_DENIED if the value does not exist or the user does not have permission to view it.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_tag_values_get_execute()` to send, or `cloudresourcemanager_tag_values_get` for simplest API.
+
+pub fn cloudresourcemanager_tag_values_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/tagValues/{tagValuesId}
+/// Retrieves a TagValue. This method will return PERMISSION_DENIED if the value does not exist or the user does not have permission to view it.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_tag_values_get_execute()` or `cloudresourcemanager_tag_values_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_values_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_values_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TagValue>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TagValue = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/tagValues/{tagValuesId}
+/// Retrieves a TagValue. This method will return PERMISSION_DENIED if the value does not exist or the user does not have permission to view it.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_tag_values_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_tag_values_get_task()`.
+/// For the simplest API, use `cloudresourcemanager_tag_values_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_values_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_tag_values_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TagValue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_tag_values_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_tag_values_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v3/tagValues/{tagValuesId}
+/// Retrieves a TagValue. This method will return PERMISSION_DENIED if the value does not exist or the user does not have permission to view it.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_tag_values_get_builder()` + `cloudresourcemanager_tag_values_get_execute()`.
+/// For task-level control, use `cloudresourcemanager_tag_values_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_values_get(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerTagValuesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TagValue>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_tag_values_get_builder(client, &args.name)?;
+    cloudresourcemanager_tag_values_get_execute(builder)
+}
+
+/// POST v3/tagValues/{tagValuesId}:getIamPolicy
 /// Gets the access control policy for a TagValue. The returned policy may be empty if no such policy or resource exists. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. The caller must have the cloudresourcemanager.googleapis.`com/`tagValues``.`getIamPolicy` permission on the identified TagValue to get the access control policy.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5832,23 +8824,22 @@ pub fn cloudresourcemanager_tag_values_delete(
 pub fn cloudresourcemanager_tag_values_get_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &GetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/tagValues/{}:getIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}:getIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/tagValues/{tagValuesId}:getIamPolicy
+/// POST v3/tagValues/{tagValuesId}:getIamPolicy
 /// Gets the access control policy for a TagValue. The returned policy may be empty if no such policy or resource exists. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. The caller must have the cloudresourcemanager.googleapis.`com/`tagValues``.`getIamPolicy` permission on the identified TagValue to get the access control policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5922,7 +8913,7 @@ pub fn cloudresourcemanager_tag_values_get_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagValues/{tagValuesId}:getIamPolicy
+/// POST v3/tagValues/{tagValuesId}:getIamPolicy
 /// Gets the access control policy for a TagValue. The returned policy may be empty if no such policy or resource exists. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. The caller must have the cloudresourcemanager.googleapis.`com/`tagValues``.`getIamPolicy` permission on the identified TagValue to get the access control policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5957,11 +8948,9 @@ pub fn cloudresourcemanager_tag_values_get_iam_policy_execute(
 pub struct CloudresourcemanagerTagValuesGetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
 }
 
-/// GET v3/tagValues/{tagValuesId}:getIamPolicy
+/// POST v3/tagValues/{tagValuesId}:getIamPolicy
 /// Gets the access control policy for a TagValue. The returned policy may be empty if no such policy or resource exists. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. The caller must have the cloudresourcemanager.googleapis.`com/`tagValues``.`getIamPolicy` permission on the identified TagValue to get the access control policy.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5979,8 +8968,7 @@ pub fn cloudresourcemanager_tag_values_get_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_values_get_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = cloudresourcemanager_tag_values_get_iam_policy_builder(client, &args.resource)?;
     cloudresourcemanager_tag_values_get_iam_policy_execute(builder)
 }
 
@@ -5992,7 +8980,7 @@ pub fn cloudresourcemanager_tag_values_get_iam_policy(
 
 pub fn cloudresourcemanager_tag_values_get_namespaced_builder(
     client: &SimpleHttpClient,
-    name: &Option<String>,
+    name: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -6125,7 +9113,7 @@ pub fn cloudresourcemanager_tag_values_get_namespaced_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct CloudresourcemanagerTagValuesGetNamespacedArgs {
     /// Query parameter: name
-    pub name: Option<String>,
+    pub name: Option<Option<String>>,
 }
 
 /// GET v3/tagValues/namespaced
@@ -6150,7 +9138,375 @@ pub fn cloudresourcemanager_tag_values_get_namespaced(
     cloudresourcemanager_tag_values_get_namespaced_execute(builder)
 }
 
-/// GET v3/tagValues/{tagValuesId}:setIamPolicy
+/// GET v3/tagValues
+/// Lists all TagValues for a specific TagKey.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_tag_values_list_execute()` to send, or `cloudresourcemanager_tag_values_list` for simplest API.
+
+pub fn cloudresourcemanager_tag_values_list_builder(
+    client: &SimpleHttpClient,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://cloudresourcemanager.googleapis.com/v3/tagValues",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/tagValues
+/// Lists all TagValues for a specific TagKey.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_tag_values_list_execute()` or `cloudresourcemanager_tag_values_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_values_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_values_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTagValuesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTagValuesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/tagValues
+/// Lists all TagValues for a specific TagKey.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_tag_values_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_tag_values_list_task()`.
+/// For the simplest API, use `cloudresourcemanager_tag_values_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_values_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_tag_values_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagValuesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_tag_values_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_tag_values_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+}
+
+/// GET v3/tagValues
+/// Lists all TagValues for a specific TagKey.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_tag_values_list_builder()` + `cloudresourcemanager_tag_values_list_execute()`.
+/// For task-level control, use `cloudresourcemanager_tag_values_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_values_list(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerTagValuesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagValuesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_tag_values_list_builder(
+        client,
+        &args.pageSize,
+        &args.pageToken,
+        &args.parent,
+    )?;
+    cloudresourcemanager_tag_values_list_execute(builder)
+}
+
+/// PATCH v3/tagValues/{tagValuesId}
+/// Updates the attributes of the TagValue resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_tag_values_patch_execute()` to send, or `cloudresourcemanager_tag_values_patch` for simplest API.
+
+pub fn cloudresourcemanager_tag_values_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v3/tagValues/{tagValuesId}
+/// Updates the attributes of the TagValue resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_tag_values_patch_execute()` or `cloudresourcemanager_tag_values_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_values_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_values_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v3/tagValues/{tagValuesId}
+/// Updates the attributes of the TagValue resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_tag_values_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_tag_values_patch_task()`.
+/// For the simplest API, use `cloudresourcemanager_tag_values_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_values_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_tag_values_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_tag_values_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_tag_values_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v3/tagValues/{tagValuesId}
+/// Updates the attributes of the TagValue resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_tag_values_patch_builder()` + `cloudresourcemanager_tag_values_patch_execute()`.
+/// For task-level control, use `cloudresourcemanager_tag_values_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_values_patch(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerTagValuesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_tag_values_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    cloudresourcemanager_tag_values_patch_execute(builder)
+}
+
+/// POST v3/tagValues/{tagValuesId}:setIamPolicy
 /// Sets the access control policy on a TagValue, replacing any existing policy. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. The caller must have resourcemanager.`tagValues`.`setIamPolicy` permission on the identified `tagValue`.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6159,23 +9515,22 @@ pub fn cloudresourcemanager_tag_values_get_namespaced(
 pub fn cloudresourcemanager_tag_values_set_iam_policy_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &SetIamPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/tagValues/{}:setIamPolicy",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}:setIamPolicy",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/tagValues/{tagValuesId}:setIamPolicy
+/// POST v3/tagValues/{tagValuesId}:setIamPolicy
 /// Sets the access control policy on a TagValue, replacing any existing policy. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. The caller must have resourcemanager.`tagValues`.`setIamPolicy` permission on the identified `tagValue`.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6249,7 +9604,7 @@ pub fn cloudresourcemanager_tag_values_set_iam_policy_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagValues/{tagValuesId}:setIamPolicy
+/// POST v3/tagValues/{tagValuesId}:setIamPolicy
 /// Sets the access control policy on a TagValue, replacing any existing policy. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. The caller must have resourcemanager.`tagValues`.`setIamPolicy` permission on the identified `tagValue`.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6284,11 +9639,9 @@ pub fn cloudresourcemanager_tag_values_set_iam_policy_execute(
 pub struct CloudresourcemanagerTagValuesSetIamPolicyArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
 }
 
-/// GET v3/tagValues/{tagValuesId}:setIamPolicy
+/// POST v3/tagValues/{tagValuesId}:setIamPolicy
 /// Sets the access control policy on a TagValue, replacing any existing policy. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. The caller must have resourcemanager.`tagValues`.`setIamPolicy` permission on the identified `tagValue`.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6306,12 +9659,11 @@ pub fn cloudresourcemanager_tag_values_set_iam_policy(
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudresourcemanager_tag_values_set_iam_policy_builder(client, &args.resource, &args.body)?;
+    let builder = cloudresourcemanager_tag_values_set_iam_policy_builder(client, &args.resource)?;
     cloudresourcemanager_tag_values_set_iam_policy_execute(builder)
 }
 
-/// GET v3/tagValues/{tagValuesId}:testIamPermissions
+/// POST v3/tagValues/{tagValuesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified TagValue. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. There are no permissions required for making this API call.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6320,23 +9672,22 @@ pub fn cloudresourcemanager_tag_values_set_iam_policy(
 pub fn cloudresourcemanager_tag_values_test_iam_permissions_builder(
     client: &SimpleHttpClient,
     resource: &String,
-    body: &TestIamPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/tagValues/{}:testIamPermissions",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}:testIamPermissions",
+        resource,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/tagValues/{tagValuesId}:testIamPermissions
+/// POST v3/tagValues/{tagValuesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified TagValue. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. There are no permissions required for making this API call.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6410,7 +9761,7 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagValues/{tagValuesId}:testIamPermissions
+/// POST v3/tagValues/{tagValuesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified TagValue. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. There are no permissions required for making this API call.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6449,11 +9800,9 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions_execute(
 pub struct CloudresourcemanagerTagValuesTestIamPermissionsArgs {
     /// Path parameter: resource
     pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
 }
 
-/// GET v3/tagValues/{tagValuesId}:testIamPermissions
+/// POST v3/tagValues/{tagValuesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified TagValue. The resource field should be the TagValue's resource name. For example: tagV`alues/1234`. There are no permissions required for making this API call.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6475,15 +9824,12 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = cloudresourcemanager_tag_values_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
+    let builder =
+        cloudresourcemanager_tag_values_test_iam_permissions_builder(client, &args.resource)?;
     cloudresourcemanager_tag_values_test_iam_permissions_execute(builder)
 }
 
-/// GET v3/tagValues/{tagValuesId}/tagHolds
+/// POST v3/tagValues/{tagValuesId}/tagHolds
 /// Creates a TagHold. Returns ALREADY_EXISTS if a TagHold with the same resource and origin exists under the same TagValue.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6492,12 +9838,13 @@ pub fn cloudresourcemanager_tag_values_test_iam_permissions(
 pub fn cloudresourcemanager_tag_values_tag_holds_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    validateOnly: &Option<bool>,
-    body: &TagHold,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://cloudresourcemanager.googleapis.com/v3/tagValues/{}/tagHolds",);
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}/tagHolds",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6512,15 +9859,13 @@ pub fn cloudresourcemanager_tag_values_tag_holds_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v3/tagValues/{tagValuesId}/tagHolds
+/// POST v3/tagValues/{tagValuesId}/tagHolds
 /// Creates a TagHold. Returns ALREADY_EXISTS if a TagHold with the same resource and origin exists under the same TagValue.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6594,7 +9939,7 @@ pub fn cloudresourcemanager_tag_values_tag_holds_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v3/tagValues/{tagValuesId}/tagHolds
+/// POST v3/tagValues/{tagValuesId}/tagHolds
 /// Creates a TagHold. Returns ALREADY_EXISTS if a TagHold with the same resource and origin exists under the same TagValue.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6630,12 +9975,10 @@ pub struct CloudresourcemanagerTagValuesTagHoldsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
-    /// Request body.
-    pub body: TagHold,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v3/tagValues/{tagValuesId}/tagHolds
+/// POST v3/tagValues/{tagValuesId}/tagHolds
 /// Creates a TagHold. Returns ALREADY_EXISTS if a TagHold with the same resource and origin exists under the same TagValue.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6657,7 +10000,1894 @@ pub fn cloudresourcemanager_tag_values_tag_holds_create(
         client,
         &args.parent,
         &args.validateOnly,
-        &args.body,
     )?;
     cloudresourcemanager_tag_values_tag_holds_create_execute(builder)
+}
+
+/// DELETE v3/tagValues/{tagValuesId}/tagHolds/{tagHoldsId}
+/// Deletes a TagHold.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_tag_values_tag_holds_delete_execute()` to send, or `cloudresourcemanager_tag_values_tag_holds_delete` for simplest API.
+
+pub fn cloudresourcemanager_tag_values_tag_holds_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}/tagHolds/{tagHoldsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v3/tagValues/{tagValuesId}/tagHolds/{tagHoldsId}
+/// Deletes a TagHold.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_tag_values_tag_holds_delete_execute()` or `cloudresourcemanager_tag_values_tag_holds_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_values_tag_holds_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_values_tag_holds_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v3/tagValues/{tagValuesId}/tagHolds/{tagHoldsId}
+/// Deletes a TagHold.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_tag_values_tag_holds_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_tag_values_tag_holds_delete_task()`.
+/// For the simplest API, use `cloudresourcemanager_tag_values_tag_holds_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_values_tag_holds_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_tag_values_tag_holds_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_tag_values_tag_holds_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_tag_values_tag_holds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesTagHoldsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// DELETE v3/tagValues/{tagValuesId}/tagHolds/{tagHoldsId}
+/// Deletes a TagHold.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_tag_values_tag_holds_delete_builder()` + `cloudresourcemanager_tag_values_tag_holds_delete_execute()`.
+/// For task-level control, use `cloudresourcemanager_tag_values_tag_holds_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_values_tag_holds_delete(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerTagValuesTagHoldsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_tag_values_tag_holds_delete_builder(
+        client,
+        &args.name,
+        &args.validateOnly,
+    )?;
+    cloudresourcemanager_tag_values_tag_holds_delete_execute(builder)
+}
+
+/// GET v3/tagValues/{tagValuesId}/tagHolds
+/// Lists TagHolds under a TagValue.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `cloudresourcemanager_tag_values_tag_holds_list_execute()` to send, or `cloudresourcemanager_tag_values_tag_holds_list` for simplest API.
+
+pub fn cloudresourcemanager_tag_values_tag_holds_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://cloudresourcemanager.googleapis.com/v3/tagValues/{}/tagHolds",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v3/tagValues/{tagValuesId}/tagHolds
+/// Lists TagHolds under a TagValue.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `cloudresourcemanager_tag_values_tag_holds_list_execute()` or `cloudresourcemanager_tag_values_tag_holds_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_values_tag_holds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_values_tag_holds_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTagHoldsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTagHoldsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v3/tagValues/{tagValuesId}/tagHolds
+/// Lists TagHolds under a TagValue.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `cloudresourcemanager_tag_values_tag_holds_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `cloudresourcemanager_tag_values_tag_holds_list_task()`.
+/// For the simplest API, use `cloudresourcemanager_tag_values_tag_holds_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `cloudresourcemanager_tag_values_tag_holds_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn cloudresourcemanager_tag_values_tag_holds_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagHoldsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = cloudresourcemanager_tag_values_tag_holds_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`cloudresourcemanager_tag_values_tag_holds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudresourcemanagerTagValuesTagHoldsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v3/tagValues/{tagValuesId}/tagHolds
+/// Lists TagHolds under a TagValue.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `cloudresourcemanager_tag_values_tag_holds_list_builder()` + `cloudresourcemanager_tag_values_tag_holds_list_execute()`.
+/// For task-level control, use `cloudresourcemanager_tag_values_tag_holds_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn cloudresourcemanager_tag_values_tag_holds_list(
+    client: &SimpleHttpClient,
+    args: &CloudresourcemanagerTagValuesTagHoldsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTagHoldsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = cloudresourcemanager_tag_values_tag_holds_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    cloudresourcemanager_tag_values_tag_holds_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListEffectiveTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEffectiveTagsResponse with CloudresourcemanagerEffectiveTagsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerEffectiveTagsListArgs> for ListEffectiveTagsResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerEffectiveTagsListArgs) -> String {
+        "gcp::cloudresourcemanager::ListEffectiveTagsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::ListEffectiveTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerFoldersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersCreateArgs) -> String {
+        "gcp::cloudresourcemanager::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerFoldersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersDeleteArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Folder
+// =============================================================================
+
+/// ResourceIdentifier implementation for Folder with CloudresourcemanagerFoldersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersGetArgs> for Folder {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersGetArgs) -> String {
+        format!("gcp::cloudresourcemanager::Folder/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Folder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudresourcemanagerFoldersGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersGetIamPolicyArgs) -> String {
+        format!("gcp::cloudresourcemanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListFoldersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListFoldersResponse with CloudresourcemanagerFoldersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersListArgs> for ListFoldersResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersListArgs) -> String {
+        "gcp::cloudresourcemanager::ListFoldersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::ListFoldersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerFoldersMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersMoveArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersMoveArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerFoldersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersPatchArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchFoldersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchFoldersResponse with CloudresourcemanagerFoldersSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersSearchArgs> for SearchFoldersResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersSearchArgs) -> String {
+        "gcp::cloudresourcemanager::SearchFoldersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::SearchFoldersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudresourcemanagerFoldersSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersSetIamPolicyArgs) -> String {
+        format!("gcp::cloudresourcemanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with CloudresourcemanagerFoldersTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerFoldersTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudresourcemanager::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerFoldersUndeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersUndeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerFoldersUndeleteArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Capability
+// =============================================================================
+
+/// ResourceIdentifier implementation for Capability with CloudresourcemanagerFoldersCapabilitiesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersCapabilitiesGetArgs> for Capability {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerFoldersCapabilitiesGetArgs,
+    ) -> String {
+        format!("gcp::cloudresourcemanager::Capability/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Capability"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerFoldersCapabilitiesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerFoldersCapabilitiesPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerFoldersCapabilitiesPatchArgs,
+    ) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Lien
+// =============================================================================
+
+/// ResourceIdentifier implementation for Lien with CloudresourcemanagerLiensCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLiensCreateArgs> for Lien {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerLiensCreateArgs) -> String {
+        "gcp::cloudresourcemanager::Lien".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Lien"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with CloudresourcemanagerLiensDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLiensDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerLiensDeleteArgs) -> String {
+        format!("gcp::cloudresourcemanager::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Lien
+// =============================================================================
+
+/// ResourceIdentifier implementation for Lien with CloudresourcemanagerLiensGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLiensGetArgs> for Lien {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerLiensGetArgs) -> String {
+        format!("gcp::cloudresourcemanager::Lien/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Lien"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLiensResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLiensResponse with CloudresourcemanagerLiensListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLiensListArgs> for ListLiensResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerLiensListArgs) -> String {
+        "gcp::cloudresourcemanager::ListLiensResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::ListLiensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EffectiveTagBindingCollection
+// =============================================================================
+
+/// ResourceIdentifier implementation for EffectiveTagBindingCollection with CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs>
+    for EffectiveTagBindingCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerLocationsEffectiveTagBindingCollectionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudresourcemanager::EffectiveTagBindingCollection/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::EffectiveTagBindingCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TagBindingCollection
+// =============================================================================
+
+/// ResourceIdentifier implementation for TagBindingCollection with CloudresourcemanagerLocationsTagBindingCollectionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLocationsTagBindingCollectionsGetArgs>
+    for TagBindingCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerLocationsTagBindingCollectionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudresourcemanager::TagBindingCollection/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::TagBindingCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerLocationsTagBindingCollectionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerLocationsTagBindingCollectionsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerLocationsTagBindingCollectionsPatchArgs,
+    ) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerOperationsGetArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Organization
+// =============================================================================
+
+/// ResourceIdentifier implementation for Organization with CloudresourcemanagerOrganizationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerOrganizationsGetArgs> for Organization {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerOrganizationsGetArgs) -> String {
+        format!("gcp::cloudresourcemanager::Organization/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Organization"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudresourcemanagerOrganizationsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerOrganizationsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerOrganizationsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::cloudresourcemanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchOrganizationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchOrganizationsResponse with CloudresourcemanagerOrganizationsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerOrganizationsSearchArgs>
+    for SearchOrganizationsResponse
+{
+    fn generate_resource_id(&self, input: &CloudresourcemanagerOrganizationsSearchArgs) -> String {
+        "gcp::cloudresourcemanager::SearchOrganizationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::SearchOrganizationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudresourcemanagerOrganizationsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerOrganizationsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerOrganizationsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::cloudresourcemanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with CloudresourcemanagerOrganizationsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerOrganizationsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerOrganizationsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudresourcemanager::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerProjectsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsCreateArgs) -> String {
+        "gcp::cloudresourcemanager::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerProjectsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsDeleteArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Project
+// =============================================================================
+
+/// ResourceIdentifier implementation for Project with CloudresourcemanagerProjectsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsGetArgs> for Project {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsGetArgs) -> String {
+        format!("gcp::cloudresourcemanager::Project/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Project"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudresourcemanagerProjectsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsGetIamPolicyArgs) -> String {
+        format!("gcp::cloudresourcemanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListProjectsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListProjectsResponse with CloudresourcemanagerProjectsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsListArgs> for ListProjectsResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsListArgs) -> String {
+        "gcp::cloudresourcemanager::ListProjectsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::ListProjectsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerProjectsMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsMoveArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsMoveArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerProjectsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsPatchArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchProjectsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchProjectsResponse with CloudresourcemanagerProjectsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsSearchArgs> for SearchProjectsResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsSearchArgs) -> String {
+        "gcp::cloudresourcemanager::SearchProjectsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::SearchProjectsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudresourcemanagerProjectsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsSetIamPolicyArgs) -> String {
+        format!("gcp::cloudresourcemanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with CloudresourcemanagerProjectsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerProjectsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudresourcemanager::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerProjectsUndeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerProjectsUndeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerProjectsUndeleteArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerTagBindingsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagBindingsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagBindingsCreateArgs) -> String {
+        "gcp::cloudresourcemanager::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerTagBindingsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagBindingsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagBindingsDeleteArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTagBindingsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTagBindingsResponse with CloudresourcemanagerTagBindingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagBindingsListArgs> for ListTagBindingsResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagBindingsListArgs) -> String {
+        "gcp::cloudresourcemanager::ListTagBindingsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::ListTagBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerTagKeysCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagKeysCreateArgs) -> String {
+        "gcp::cloudresourcemanager::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerTagKeysDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagKeysDeleteArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TagKey
+// =============================================================================
+
+/// ResourceIdentifier implementation for TagKey with CloudresourcemanagerTagKeysGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysGetArgs> for TagKey {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagKeysGetArgs) -> String {
+        format!("gcp::cloudresourcemanager::TagKey/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::TagKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudresourcemanagerTagKeysGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagKeysGetIamPolicyArgs) -> String {
+        format!("gcp::cloudresourcemanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TagKey
+// =============================================================================
+
+/// ResourceIdentifier implementation for TagKey with CloudresourcemanagerTagKeysGetNamespacedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysGetNamespacedArgs> for TagKey {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagKeysGetNamespacedArgs) -> String {
+        "gcp::cloudresourcemanager::TagKey".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::TagKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTagKeysResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTagKeysResponse with CloudresourcemanagerTagKeysListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysListArgs> for ListTagKeysResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagKeysListArgs) -> String {
+        "gcp::cloudresourcemanager::ListTagKeysResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::ListTagKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerTagKeysPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagKeysPatchArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudresourcemanagerTagKeysSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagKeysSetIamPolicyArgs) -> String {
+        format!("gcp::cloudresourcemanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with CloudresourcemanagerTagKeysTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagKeysTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerTagKeysTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudresourcemanager::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerTagValuesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagValuesCreateArgs) -> String {
+        "gcp::cloudresourcemanager::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerTagValuesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagValuesDeleteArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TagValue
+// =============================================================================
+
+/// ResourceIdentifier implementation for TagValue with CloudresourcemanagerTagValuesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesGetArgs> for TagValue {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagValuesGetArgs) -> String {
+        format!("gcp::cloudresourcemanager::TagValue/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::TagValue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudresourcemanagerTagValuesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerTagValuesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::cloudresourcemanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TagValue
+// =============================================================================
+
+/// ResourceIdentifier implementation for TagValue with CloudresourcemanagerTagValuesGetNamespacedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesGetNamespacedArgs> for TagValue {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerTagValuesGetNamespacedArgs,
+    ) -> String {
+        "gcp::cloudresourcemanager::TagValue".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::TagValue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTagValuesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTagValuesResponse with CloudresourcemanagerTagValuesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesListArgs> for ListTagValuesResponse {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagValuesListArgs) -> String {
+        "gcp::cloudresourcemanager::ListTagValuesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::ListTagValuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerTagValuesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudresourcemanagerTagValuesPatchArgs) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with CloudresourcemanagerTagValuesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerTagValuesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::cloudresourcemanager::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with CloudresourcemanagerTagValuesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerTagValuesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudresourcemanager::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerTagValuesTagHoldsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesTagHoldsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerTagValuesTagHoldsCreateArgs,
+    ) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with CloudresourcemanagerTagValuesTagHoldsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesTagHoldsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerTagValuesTagHoldsDeleteArgs,
+    ) -> String {
+        format!("gcp::cloudresourcemanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTagHoldsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTagHoldsResponse with CloudresourcemanagerTagValuesTagHoldsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudresourcemanagerTagValuesTagHoldsListArgs> for ListTagHoldsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &CloudresourcemanagerTagValuesTagHoldsListArgs,
+    ) -> String {
+        format!(
+            "gcp::cloudresourcemanager::ListTagHoldsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::cloudresourcemanager::ListTagHoldsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -13,13 +13,22 @@
 
 use crate::providers::gcp::clients::gmailpostmastertools::{
     gmailpostmastertools_domain_stats_batch_query_builder, gmailpostmastertools_domain_stats_batch_query_task,
+    gmailpostmastertools_domains_get_builder, gmailpostmastertools_domains_get_task,
+    gmailpostmastertools_domains_get_compliance_status_builder, gmailpostmastertools_domains_get_compliance_status_task,
+    gmailpostmastertools_domains_list_builder, gmailpostmastertools_domains_list_task,
     gmailpostmastertools_domains_domain_stats_query_builder, gmailpostmastertools_domains_domain_stats_query_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::gmailpostmastertools::BatchQueryDomainStatsResponse;
+use crate::providers::gcp::clients::gmailpostmastertools::Domain;
+use crate::providers::gcp::clients::gmailpostmastertools::DomainComplianceStatus;
+use crate::providers::gcp::clients::gmailpostmastertools::ListDomainsResponse;
 use crate::providers::gcp::clients::gmailpostmastertools::QueryDomainStatsResponse;
 use crate::providers::gcp::clients::gmailpostmastertools::GmailpostmastertoolsDomainStatsBatchQueryArgs;
 use crate::providers::gcp::clients::gmailpostmastertools::GmailpostmastertoolsDomainsDomainStatsQueryArgs;
+use crate::providers::gcp::clients::gmailpostmastertools::GmailpostmastertoolsDomainsGetArgs;
+use crate::providers::gcp::clients::gmailpostmastertools::GmailpostmastertoolsDomainsGetComplianceStatusArgs;
+use crate::providers::gcp::clients::gmailpostmastertools::GmailpostmastertoolsDomainsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -63,7 +72,7 @@ where
 
     /// Gmailpostmastertools domain stats batch query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -75,7 +84,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn gmailpostmastertools_domain_stats_batch_query(
         &self,
         args: &GmailpostmastertoolsDomainStatsBatchQueryArgs,
@@ -95,17 +104,127 @@ where
         let task = gmailpostmastertools_domain_stats_batch_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Gmailpostmastertools domains get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Domain result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn gmailpostmastertools_domains_get(
+        &self,
+        args: &GmailpostmastertoolsDomainsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Domain, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = gmailpostmastertools_domains_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = gmailpostmastertools_domains_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Gmailpostmastertools domains get compliance status.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DomainComplianceStatus result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn gmailpostmastertools_domains_get_compliance_status(
+        &self,
+        args: &GmailpostmastertoolsDomainsGetComplianceStatusArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DomainComplianceStatus, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = gmailpostmastertools_domains_get_compliance_status_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = gmailpostmastertools_domains_get_compliance_status_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Gmailpostmastertools domains list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDomainsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn gmailpostmastertools_domains_list(
+        &self,
+        args: &GmailpostmastertoolsDomainsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDomainsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = gmailpostmastertools_domains_list_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = gmailpostmastertools_domains_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Gmailpostmastertools domains domain stats query.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -117,7 +236,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn gmailpostmastertools_domains_domain_stats_query(
         &self,
         args: &GmailpostmastertoolsDomainsDomainStatsQueryArgs,
@@ -138,12 +257,7 @@ where
         let task = gmailpostmastertools_domains_domain_stats_query_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

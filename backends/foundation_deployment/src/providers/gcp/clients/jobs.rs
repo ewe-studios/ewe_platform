@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,382 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v4/projects/{projectsId}/tenants
+/// GET v4/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_operations_get_execute()` to send, or `jobs_projects_operations_get` for simplest API.
+
+pub fn jobs_projects_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_operations_get_execute()` or `jobs_projects_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_operations_get_task()`.
+/// For the simplest API, use `jobs_projects_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v4/projects/{projectsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_operations_get_builder()` + `jobs_projects_operations_get_execute()`.
+/// For task-level control, use `jobs_projects_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_operations_get(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_operations_get_builder(client, &args.name)?;
+    jobs_projects_operations_get_execute(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}:completeQuery
+/// Completes the specified prefix with keyword suggestions. Intended for use by a job search auto-complete search box.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_complete_query_execute()` to send, or `jobs_projects_tenants_complete_query` for simplest API.
+
+pub fn jobs_projects_tenants_complete_query_builder(
+    client: &SimpleHttpClient,
+    tenant: &String,
+    company: &Option<Option<String>>,
+    languageCodes: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    query: &Option<Option<String>>,
+    scope: &Option<Option<String>>,
+    type_rs: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}:completeQuery",
+        tenant,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = company.as_ref() {
+        query_parts.push(format!("company={}", val));
+    }
+    if let Some(val) = languageCodes.as_ref() {
+        query_parts.push(format!("languageCodes={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = query.as_ref() {
+        query_parts.push(format!("query={}", val));
+    }
+    if let Some(val) = scope.as_ref() {
+        query_parts.push(format!("scope={}", val));
+    }
+    if let Some(val) = type_rs.as_ref() {
+        query_parts.push(format!("type={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}:completeQuery
+/// Completes the specified prefix with keyword suggestions. Intended for use by a job search auto-complete search box.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_complete_query_execute()` or `jobs_projects_tenants_complete_query`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_complete_query_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_complete_query_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CompleteQueryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CompleteQueryResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}:completeQuery
+/// Completes the specified prefix with keyword suggestions. Intended for use by a job search auto-complete search box.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_complete_query_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_complete_query_task()`.
+/// For the simplest API, use `jobs_projects_tenants_complete_query()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_complete_query_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_complete_query_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CompleteQueryResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_complete_query_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_complete_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompleteQueryArgs {
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Query parameter: company
+    pub company: Option<Option<String>>,
+    /// Query parameter: languageCodes
+    pub languageCodes: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: query
+    pub query: Option<Option<String>>,
+    /// Query parameter: scope
+    pub scope: Option<Option<String>>,
+    /// Query parameter: type
+    pub type_rs: Option<Option<String>>,
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}:completeQuery
+/// Completes the specified prefix with keyword suggestions. Intended for use by a job search auto-complete search box.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_complete_query_builder()` + `jobs_projects_tenants_complete_query_execute()`.
+/// For task-level control, use `jobs_projects_tenants_complete_query_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_complete_query(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsCompleteQueryArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CompleteQueryResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_complete_query_builder(
+        client,
+        &args.tenant,
+        &args.company,
+        &args.languageCodes,
+        &args.pageSize,
+        &args.query,
+        &args.scope,
+        &args.type_rs,
+    )?;
+    jobs_projects_tenants_complete_query_execute(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants
 /// Creates a new tenant entity.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +400,19 @@ use serde::Serialize;
 pub fn jobs_projects_tenants_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &Tenant,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://jobs.googleapis.com/v4/projects/{}/tenants",);
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/projects/{}/tenants", parent,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/projects/{projectsId}/tenants
+/// POST v4/projects/{projectsId}/tenants
 /// Creates a new tenant entity.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +486,7 @@ pub fn jobs_projects_tenants_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/projects/{projectsId}/tenants
+/// POST v4/projects/{projectsId}/tenants
 /// Creates a new tenant entity.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -153,11 +521,9 @@ pub fn jobs_projects_tenants_create_execute(
 pub struct JobsProjectsTenantsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: Tenant,
 }
 
-/// GET v4/projects/{projectsId}/tenants
+/// POST v4/projects/{projectsId}/tenants
 /// Creates a new tenant entity.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -175,6 +541,3827 @@ pub fn jobs_projects_tenants_create(
     impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = jobs_projects_tenants_create_builder(client, &args.parent, &args.body)?;
+    let builder = jobs_projects_tenants_create_builder(client, &args.parent)?;
     jobs_projects_tenants_create_execute(builder)
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}
+/// Deletes specified tenant.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_delete_execute()` to send, or `jobs_projects_tenants_delete` for simplest API.
+
+pub fn jobs_projects_tenants_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}
+/// Deletes specified tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_delete_execute()` or `jobs_projects_tenants_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}
+/// Deletes specified tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_delete_task()`.
+/// For the simplest API, use `jobs_projects_tenants_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}
+/// Deletes specified tenant.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_delete_builder()` + `jobs_projects_tenants_delete_execute()`.
+/// For task-level control, use `jobs_projects_tenants_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_delete(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_delete_builder(client, &args.name)?;
+    jobs_projects_tenants_delete_execute(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}
+/// Retrieves specified tenant.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_get_execute()` to send, or `jobs_projects_tenants_get` for simplest API.
+
+pub fn jobs_projects_tenants_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}
+/// Retrieves specified tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_get_execute()` or `jobs_projects_tenants_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tenant>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tenant = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}
+/// Retrieves specified tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_get_task()`.
+/// For the simplest API, use `jobs_projects_tenants_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}
+/// Retrieves specified tenant.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_get_builder()` + `jobs_projects_tenants_get_execute()`.
+/// For task-level control, use `jobs_projects_tenants_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_get(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_get_builder(client, &args.name)?;
+    jobs_projects_tenants_get_execute(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants
+/// Lists all tenants associated with the project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_list_execute()` to send, or `jobs_projects_tenants_list` for simplest API.
+
+pub fn jobs_projects_tenants_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://jobs.googleapis.com/v4/projects/{}/tenants", parent,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants
+/// Lists all tenants associated with the project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_list_execute()` or `jobs_projects_tenants_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTenantsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTenantsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/projects/{projectsId}/tenants
+/// Lists all tenants associated with the project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_list_task()`.
+/// For the simplest API, use `jobs_projects_tenants_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTenantsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/projects/{projectsId}/tenants
+/// Lists all tenants associated with the project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_list_builder()` + `jobs_projects_tenants_list_execute()`.
+/// For task-level control, use `jobs_projects_tenants_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_list(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTenantsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        jobs_projects_tenants_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
+    jobs_projects_tenants_list_execute(builder)
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}
+/// Updates specified tenant.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_patch_execute()` to send, or `jobs_projects_tenants_patch` for simplest API.
+
+pub fn jobs_projects_tenants_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}
+/// Updates specified tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_patch_execute()` or `jobs_projects_tenants_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Tenant>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Tenant = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}
+/// Updates specified tenant.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_patch_task()`.
+/// For the simplest API, use `jobs_projects_tenants_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}
+/// Updates specified tenant.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_patch_builder()` + `jobs_projects_tenants_patch_execute()`.
+/// For task-level control, use `jobs_projects_tenants_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_patch(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Tenant>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_patch_builder(client, &args.name, &args.updateMask)?;
+    jobs_projects_tenants_patch_execute(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/clientEvents
+/// Report events issued when end user interacts with customer's application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_client_events_create_execute()` to send, or `jobs_projects_tenants_client_events_create` for simplest API.
+
+pub fn jobs_projects_tenants_client_events_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/clientEvents",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/clientEvents
+/// Report events issued when end user interacts with customer's application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_client_events_create_execute()` or `jobs_projects_tenants_client_events_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_client_events_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_client_events_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ClientEvent>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ClientEvent = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/clientEvents
+/// Report events issued when end user interacts with customer's application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_client_events_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_client_events_create_task()`.
+/// For the simplest API, use `jobs_projects_tenants_client_events_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_client_events_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_client_events_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ClientEvent>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_client_events_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_client_events_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsClientEventsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/clientEvents
+/// Report events issued when end user interacts with customer's application that uses Cloud Talent Solution. You may inspect the created events in [self service tools](<https://console.cloud.google.`com/talent-solution/overview`>). [Learn more](<https://cloud.google.`com/talent-solution/docs/management-tools`>) about self service tools.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_client_events_create_builder()` + `jobs_projects_tenants_client_events_create_execute()`.
+/// For task-level control, use `jobs_projects_tenants_client_events_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_client_events_create(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsClientEventsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ClientEvent>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_client_events_create_builder(client, &args.parent)?;
+    jobs_projects_tenants_client_events_create_execute(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/companies
+/// Creates a new company entity.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_companies_create_execute()` to send, or `jobs_projects_tenants_companies_create` for simplest API.
+
+pub fn jobs_projects_tenants_companies_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/companies",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/companies
+/// Creates a new company entity.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_companies_create_execute()` or `jobs_projects_tenants_companies_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_companies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_companies_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Company>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Company = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/companies
+/// Creates a new company entity.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_companies_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_companies_create_task()`.
+/// For the simplest API, use `jobs_projects_tenants_companies_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_companies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_companies_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_companies_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_companies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/companies
+/// Creates a new company entity.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_companies_create_builder()` + `jobs_projects_tenants_companies_create_execute()`.
+/// For task-level control, use `jobs_projects_tenants_companies_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_companies_create(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsCompaniesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_companies_create_builder(client, &args.parent)?;
+    jobs_projects_tenants_companies_create_execute(builder)
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Deletes specified company. Prerequisite: The company has no jobs associated with it.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_companies_delete_execute()` to send, or `jobs_projects_tenants_companies_delete` for simplest API.
+
+pub fn jobs_projects_tenants_companies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/companies/{companiesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Deletes specified company. Prerequisite: The company has no jobs associated with it.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_companies_delete_execute()` or `jobs_projects_tenants_companies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_companies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_companies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Deletes specified company. Prerequisite: The company has no jobs associated with it.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_companies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_companies_delete_task()`.
+/// For the simplest API, use `jobs_projects_tenants_companies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_companies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_companies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_companies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_companies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Deletes specified company. Prerequisite: The company has no jobs associated with it.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_companies_delete_builder()` + `jobs_projects_tenants_companies_delete_execute()`.
+/// For task-level control, use `jobs_projects_tenants_companies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_companies_delete(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsCompaniesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_companies_delete_builder(client, &args.name)?;
+    jobs_projects_tenants_companies_delete_execute(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Retrieves specified company.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_companies_get_execute()` to send, or `jobs_projects_tenants_companies_get` for simplest API.
+
+pub fn jobs_projects_tenants_companies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/companies/{companiesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Retrieves specified company.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_companies_get_execute()` or `jobs_projects_tenants_companies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_companies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_companies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Company>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Company = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Retrieves specified company.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_companies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_companies_get_task()`.
+/// For the simplest API, use `jobs_projects_tenants_companies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_companies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_companies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_companies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_companies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Retrieves specified company.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_companies_get_builder()` + `jobs_projects_tenants_companies_get_execute()`.
+/// For task-level control, use `jobs_projects_tenants_companies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_companies_get(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsCompaniesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_companies_get_builder(client, &args.name)?;
+    jobs_projects_tenants_companies_get_execute(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies
+/// Lists all companies associated with the project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_companies_list_execute()` to send, or `jobs_projects_tenants_companies_list` for simplest API.
+
+pub fn jobs_projects_tenants_companies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    requireOpenJobs: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/companies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = requireOpenJobs.as_ref() {
+        query_parts.push(format!("requireOpenJobs={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies
+/// Lists all companies associated with the project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_companies_list_execute()` or `jobs_projects_tenants_companies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_companies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_companies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCompaniesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCompaniesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies
+/// Lists all companies associated with the project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_companies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_companies_list_task()`.
+/// For the simplest API, use `jobs_projects_tenants_companies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_companies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_companies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCompaniesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_companies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_companies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: requireOpenJobs
+    pub requireOpenJobs: Option<Option<String>>,
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/companies
+/// Lists all companies associated with the project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_companies_list_builder()` + `jobs_projects_tenants_companies_list_execute()`.
+/// For task-level control, use `jobs_projects_tenants_companies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_companies_list(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsCompaniesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCompaniesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_companies_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.requireOpenJobs,
+    )?;
+    jobs_projects_tenants_companies_list_execute(builder)
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Updates specified company.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_companies_patch_execute()` to send, or `jobs_projects_tenants_companies_patch` for simplest API.
+
+pub fn jobs_projects_tenants_companies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/companies/{companiesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Updates specified company.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_companies_patch_execute()` or `jobs_projects_tenants_companies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_companies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_companies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Company>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Company = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Updates specified company.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_companies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_companies_patch_task()`.
+/// For the simplest API, use `jobs_projects_tenants_companies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_companies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_companies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_companies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_companies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsCompaniesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/companies/{companiesId}
+/// Updates specified company.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_companies_patch_builder()` + `jobs_projects_tenants_companies_patch_execute()`.
+/// For task-level control, use `jobs_projects_tenants_companies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_companies_patch(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsCompaniesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        jobs_projects_tenants_companies_patch_builder(client, &args.name, &args.updateMask)?;
+    jobs_projects_tenants_companies_patch_execute(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchCreate
+/// Begins executing a batch create jobs operation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_jobs_batch_create_execute()` to send, or `jobs_projects_tenants_jobs_batch_create` for simplest API.
+
+pub fn jobs_projects_tenants_jobs_batch_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs:batchCreate",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchCreate
+/// Begins executing a batch create jobs operation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_jobs_batch_create_execute()` or `jobs_projects_tenants_jobs_batch_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_batch_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_batch_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchCreate
+/// Begins executing a batch create jobs operation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_jobs_batch_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_jobs_batch_create_task()`.
+/// For the simplest API, use `jobs_projects_tenants_jobs_batch_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_batch_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_jobs_batch_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_jobs_batch_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_jobs_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchCreate
+/// Begins executing a batch create jobs operation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_jobs_batch_create_builder()` + `jobs_projects_tenants_jobs_batch_create_execute()`.
+/// For task-level control, use `jobs_projects_tenants_jobs_batch_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_batch_create(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsJobsBatchCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_jobs_batch_create_builder(client, &args.parent)?;
+    jobs_projects_tenants_jobs_batch_create_execute(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchDelete
+/// Begins executing a batch delete jobs operation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_jobs_batch_delete_execute()` to send, or `jobs_projects_tenants_jobs_batch_delete` for simplest API.
+
+pub fn jobs_projects_tenants_jobs_batch_delete_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs:batchDelete",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchDelete
+/// Begins executing a batch delete jobs operation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_jobs_batch_delete_execute()` or `jobs_projects_tenants_jobs_batch_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_batch_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_batch_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchDelete
+/// Begins executing a batch delete jobs operation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_jobs_batch_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_jobs_batch_delete_task()`.
+/// For the simplest API, use `jobs_projects_tenants_jobs_batch_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_batch_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_jobs_batch_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_jobs_batch_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_jobs_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchDelete
+/// Begins executing a batch delete jobs operation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_jobs_batch_delete_builder()` + `jobs_projects_tenants_jobs_batch_delete_execute()`.
+/// For task-level control, use `jobs_projects_tenants_jobs_batch_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_batch_delete(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsJobsBatchDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_jobs_batch_delete_builder(client, &args.parent)?;
+    jobs_projects_tenants_jobs_batch_delete_execute(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchUpdate
+/// Begins executing a batch update jobs operation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_jobs_batch_update_execute()` to send, or `jobs_projects_tenants_jobs_batch_update` for simplest API.
+
+pub fn jobs_projects_tenants_jobs_batch_update_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs:batchUpdate",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchUpdate
+/// Begins executing a batch update jobs operation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_jobs_batch_update_execute()` or `jobs_projects_tenants_jobs_batch_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_batch_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_batch_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchUpdate
+/// Begins executing a batch update jobs operation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_jobs_batch_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_jobs_batch_update_task()`.
+/// For the simplest API, use `jobs_projects_tenants_jobs_batch_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_batch_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_jobs_batch_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_jobs_batch_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_jobs_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsBatchUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:batchUpdate
+/// Begins executing a batch update jobs operation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_jobs_batch_update_builder()` + `jobs_projects_tenants_jobs_batch_update_execute()`.
+/// For task-level control, use `jobs_projects_tenants_jobs_batch_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_batch_update(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsJobsBatchUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_jobs_batch_update_builder(client, &args.parent)?;
+    jobs_projects_tenants_jobs_batch_update_execute(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs
+/// Creates a new job. Typically, the job becomes searchable within 10 seconds, but it may take up to 5 minutes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_jobs_create_execute()` to send, or `jobs_projects_tenants_jobs_create` for simplest API.
+
+pub fn jobs_projects_tenants_jobs_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs
+/// Creates a new job. Typically, the job becomes searchable within 10 seconds, but it may take up to 5 minutes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_jobs_create_execute()` or `jobs_projects_tenants_jobs_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Job = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs
+/// Creates a new job. Typically, the job becomes searchable within 10 seconds, but it may take up to 5 minutes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_jobs_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_jobs_create_task()`.
+/// For the simplest API, use `jobs_projects_tenants_jobs_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_jobs_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_jobs_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs
+/// Creates a new job. Typically, the job becomes searchable within 10 seconds, but it may take up to 5 minutes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_jobs_create_builder()` + `jobs_projects_tenants_jobs_create_execute()`.
+/// For task-level control, use `jobs_projects_tenants_jobs_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_create(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsJobsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_jobs_create_builder(client, &args.parent)?;
+    jobs_projects_tenants_jobs_create_execute(builder)
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Deletes the specified job. Typically, the job becomes unsearchable within 10 seconds, but it may take up to 5 minutes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_jobs_delete_execute()` to send, or `jobs_projects_tenants_jobs_delete` for simplest API.
+
+pub fn jobs_projects_tenants_jobs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs/{jobsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Deletes the specified job. Typically, the job becomes unsearchable within 10 seconds, but it may take up to 5 minutes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_jobs_delete_execute()` or `jobs_projects_tenants_jobs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Deletes the specified job. Typically, the job becomes unsearchable within 10 seconds, but it may take up to 5 minutes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_jobs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_jobs_delete_task()`.
+/// For the simplest API, use `jobs_projects_tenants_jobs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_jobs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_jobs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Deletes the specified job. Typically, the job becomes unsearchable within 10 seconds, but it may take up to 5 minutes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_jobs_delete_builder()` + `jobs_projects_tenants_jobs_delete_execute()`.
+/// For task-level control, use `jobs_projects_tenants_jobs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_delete(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsJobsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_jobs_delete_builder(client, &args.name)?;
+    jobs_projects_tenants_jobs_delete_execute(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Retrieves the specified job, whose status is OPEN or recently EXPIRED within the last 90 days.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_jobs_get_execute()` to send, or `jobs_projects_tenants_jobs_get` for simplest API.
+
+pub fn jobs_projects_tenants_jobs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs/{jobsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Retrieves the specified job, whose status is OPEN or recently EXPIRED within the last 90 days.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_jobs_get_execute()` or `jobs_projects_tenants_jobs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Job = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Retrieves the specified job, whose status is OPEN or recently EXPIRED within the last 90 days.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_jobs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_jobs_get_task()`.
+/// For the simplest API, use `jobs_projects_tenants_jobs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_jobs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_jobs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Retrieves the specified job, whose status is OPEN or recently EXPIRED within the last 90 days.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_jobs_get_builder()` + `jobs_projects_tenants_jobs_get_execute()`.
+/// For task-level control, use `jobs_projects_tenants_jobs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_get(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsJobsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_jobs_get_builder(client, &args.name)?;
+    jobs_projects_tenants_jobs_get_execute(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs
+/// Lists jobs by filter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_jobs_list_execute()` to send, or `jobs_projects_tenants_jobs_list` for simplest API.
+
+pub fn jobs_projects_tenants_jobs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    jobView: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = jobView.as_ref() {
+        query_parts.push(format!("jobView={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs
+/// Lists jobs by filter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_jobs_list_execute()` or `jobs_projects_tenants_jobs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListJobsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListJobsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs
+/// Lists jobs by filter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_jobs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_jobs_list_task()`.
+/// For the simplest API, use `jobs_projects_tenants_jobs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_jobs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_jobs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: jobView
+    pub jobView: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/projects/{projectsId}/tenants/{tenantsId}/jobs
+/// Lists jobs by filter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_jobs_list_builder()` + `jobs_projects_tenants_jobs_list_execute()`.
+/// For task-level control, use `jobs_projects_tenants_jobs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_list(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsJobsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_jobs_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.jobView,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    jobs_projects_tenants_jobs_list_execute(builder)
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Updates specified job. Typically, updated contents become visible in search results within 10 seconds, but it may take up to 5 minutes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_jobs_patch_execute()` to send, or `jobs_projects_tenants_jobs_patch` for simplest API.
+
+pub fn jobs_projects_tenants_jobs_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs/{jobsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Updates specified job. Typically, updated contents become visible in search results within 10 seconds, but it may take up to 5 minutes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_jobs_patch_execute()` or `jobs_projects_tenants_jobs_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Job = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Updates specified job. Typically, updated contents become visible in search results within 10 seconds, but it may take up to 5 minutes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_jobs_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_jobs_patch_task()`.
+/// For the simplest API, use `jobs_projects_tenants_jobs_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_jobs_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_jobs_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/projects/{projectsId}/tenants/{tenantsId}/jobs/{jobsId}
+/// Updates specified job. Typically, updated contents become visible in search results within 10 seconds, but it may take up to 5 minutes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_jobs_patch_builder()` + `jobs_projects_tenants_jobs_patch_execute()`.
+/// For task-level control, use `jobs_projects_tenants_jobs_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_patch(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsJobsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_jobs_patch_builder(client, &args.name, &args.updateMask)?;
+    jobs_projects_tenants_jobs_patch_execute(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:search
+/// Searches for jobs using the provided SearchJobsRequest. This call constrains the visibility of jobs present in the database, and only returns jobs that the caller has permission to search against.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_jobs_search_execute()` to send, or `jobs_projects_tenants_jobs_search` for simplest API.
+
+pub fn jobs_projects_tenants_jobs_search_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs:search",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:search
+/// Searches for jobs using the provided SearchJobsRequest. This call constrains the visibility of jobs present in the database, and only returns jobs that the caller has permission to search against.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_jobs_search_execute()` or `jobs_projects_tenants_jobs_search`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_search_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_search_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchJobsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SearchJobsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:search
+/// Searches for jobs using the provided SearchJobsRequest. This call constrains the visibility of jobs present in the database, and only returns jobs that the caller has permission to search against.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_jobs_search_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_jobs_search_task()`.
+/// For the simplest API, use `jobs_projects_tenants_jobs_search()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_search_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_jobs_search_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SearchJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_jobs_search_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_jobs_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:search
+/// Searches for jobs using the provided SearchJobsRequest. This call constrains the visibility of jobs present in the database, and only returns jobs that the caller has permission to search against.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_jobs_search_builder()` + `jobs_projects_tenants_jobs_search_execute()`.
+/// For task-level control, use `jobs_projects_tenants_jobs_search_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_search(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsJobsSearchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SearchJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_jobs_search_builder(client, &args.parent)?;
+    jobs_projects_tenants_jobs_search_execute(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:searchForAlert
+/// Searches for jobs using the provided SearchJobsRequest. This API call is intended for the use case of targeting passive job seekers (for example, job seekers who have signed up to receive email alerts about potential job opportunities), it has different algorithmic adjustments that are designed to specifically target passive job seekers. This call constrains the visibility of jobs present in the database, and only returns jobs the caller has permission to search against.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `jobs_projects_tenants_jobs_search_for_alert_execute()` to send, or `jobs_projects_tenants_jobs_search_for_alert` for simplest API.
+
+pub fn jobs_projects_tenants_jobs_search_for_alert_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://jobs.googleapis.com/v4/projects/{}/tenants/{tenantsId}/jobs:searchForAlert",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:searchForAlert
+/// Searches for jobs using the provided SearchJobsRequest. This API call is intended for the use case of targeting passive job seekers (for example, job seekers who have signed up to receive email alerts about potential job opportunities), it has different algorithmic adjustments that are designed to specifically target passive job seekers. This call constrains the visibility of jobs present in the database, and only returns jobs the caller has permission to search against.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `jobs_projects_tenants_jobs_search_for_alert_execute()` or `jobs_projects_tenants_jobs_search_for_alert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_search_for_alert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_search_for_alert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchJobsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SearchJobsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:searchForAlert
+/// Searches for jobs using the provided SearchJobsRequest. This API call is intended for the use case of targeting passive job seekers (for example, job seekers who have signed up to receive email alerts about potential job opportunities), it has different algorithmic adjustments that are designed to specifically target passive job seekers. This call constrains the visibility of jobs present in the database, and only returns jobs the caller has permission to search against.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `jobs_projects_tenants_jobs_search_for_alert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `jobs_projects_tenants_jobs_search_for_alert_task()`.
+/// For the simplest API, use `jobs_projects_tenants_jobs_search_for_alert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `jobs_projects_tenants_jobs_search_for_alert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn jobs_projects_tenants_jobs_search_for_alert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SearchJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = jobs_projects_tenants_jobs_search_for_alert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`jobs_projects_tenants_jobs_search_for_alert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct JobsProjectsTenantsJobsSearchForAlertArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v4/projects/{projectsId}/tenants/{tenantsId}/jobs:searchForAlert
+/// Searches for jobs using the provided SearchJobsRequest. This API call is intended for the use case of targeting passive job seekers (for example, job seekers who have signed up to receive email alerts about potential job opportunities), it has different algorithmic adjustments that are designed to specifically target passive job seekers. This call constrains the visibility of jobs present in the database, and only returns jobs the caller has permission to search against.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `jobs_projects_tenants_jobs_search_for_alert_builder()` + `jobs_projects_tenants_jobs_search_for_alert_execute()`.
+/// For task-level control, use `jobs_projects_tenants_jobs_search_for_alert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn jobs_projects_tenants_jobs_search_for_alert(
+    client: &SimpleHttpClient,
+    args: &JobsProjectsTenantsJobsSearchForAlertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SearchJobsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = jobs_projects_tenants_jobs_search_for_alert_builder(client, &args.parent)?;
+    jobs_projects_tenants_jobs_search_for_alert_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with JobsProjectsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &JobsProjectsOperationsGetArgs) -> String {
+        format!("gcp::jobs::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CompleteQueryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CompleteQueryResponse with JobsProjectsTenantsCompleteQueryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCompleteQueryArgs> for CompleteQueryResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCompleteQueryArgs) -> String {
+        format!("gcp::jobs::CompleteQueryResponse/{}", input.tenant)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::CompleteQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tenant
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tenant with JobsProjectsTenantsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCreateArgs> for Tenant {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCreateArgs) -> String {
+        format!("gcp::jobs::Tenant/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Tenant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with JobsProjectsTenantsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsDeleteArgs) -> String {
+        format!("gcp::jobs::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tenant
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tenant with JobsProjectsTenantsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsGetArgs> for Tenant {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsGetArgs) -> String {
+        format!("gcp::jobs::Tenant/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Tenant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTenantsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTenantsResponse with JobsProjectsTenantsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsListArgs> for ListTenantsResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsListArgs) -> String {
+        format!("gcp::jobs::ListTenantsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::ListTenantsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Tenant
+// =============================================================================
+
+/// ResourceIdentifier implementation for Tenant with JobsProjectsTenantsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsPatchArgs> for Tenant {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsPatchArgs) -> String {
+        format!("gcp::jobs::Tenant/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Tenant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ClientEvent
+// =============================================================================
+
+/// ResourceIdentifier implementation for ClientEvent with JobsProjectsTenantsClientEventsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsClientEventsCreateArgs> for ClientEvent {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsClientEventsCreateArgs) -> String {
+        format!("gcp::jobs::ClientEvent/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::ClientEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Company
+// =============================================================================
+
+/// ResourceIdentifier implementation for Company with JobsProjectsTenantsCompaniesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCompaniesCreateArgs> for Company {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCompaniesCreateArgs) -> String {
+        format!("gcp::jobs::Company/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Company"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with JobsProjectsTenantsCompaniesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCompaniesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCompaniesDeleteArgs) -> String {
+        format!("gcp::jobs::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Company
+// =============================================================================
+
+/// ResourceIdentifier implementation for Company with JobsProjectsTenantsCompaniesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCompaniesGetArgs> for Company {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCompaniesGetArgs) -> String {
+        format!("gcp::jobs::Company/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Company"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCompaniesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCompaniesResponse with JobsProjectsTenantsCompaniesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCompaniesListArgs> for ListCompaniesResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCompaniesListArgs) -> String {
+        format!("gcp::jobs::ListCompaniesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::ListCompaniesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Company
+// =============================================================================
+
+/// ResourceIdentifier implementation for Company with JobsProjectsTenantsCompaniesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCompaniesPatchArgs> for Company {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCompaniesPatchArgs) -> String {
+        format!("gcp::jobs::Company/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Company"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with JobsProjectsTenantsJobsBatchCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsBatchCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsBatchCreateArgs) -> String {
+        format!("gcp::jobs::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with JobsProjectsTenantsJobsBatchDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsBatchDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsBatchDeleteArgs) -> String {
+        format!("gcp::jobs::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with JobsProjectsTenantsJobsBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsBatchUpdateArgs> for Operation {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsBatchUpdateArgs) -> String {
+        format!("gcp::jobs::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with JobsProjectsTenantsJobsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsCreateArgs> for Job {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsCreateArgs) -> String {
+        format!("gcp::jobs::Job/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with JobsProjectsTenantsJobsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsDeleteArgs) -> String {
+        format!("gcp::jobs::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with JobsProjectsTenantsJobsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsGetArgs> for Job {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsGetArgs) -> String {
+        format!("gcp::jobs::Job/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListJobsResponse with JobsProjectsTenantsJobsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsListArgs> for ListJobsResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsListArgs) -> String {
+        format!("gcp::jobs::ListJobsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Job
+// =============================================================================
+
+/// ResourceIdentifier implementation for Job with JobsProjectsTenantsJobsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsPatchArgs> for Job {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsPatchArgs) -> String {
+        format!("gcp::jobs::Job/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchJobsResponse with JobsProjectsTenantsJobsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsSearchArgs> for SearchJobsResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsSearchArgs) -> String {
+        format!("gcp::jobs::SearchJobsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::SearchJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchJobsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchJobsResponse with JobsProjectsTenantsJobsSearchForAlertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsSearchForAlertArgs> for SearchJobsResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsSearchForAlertArgs) -> String {
+        format!("gcp::jobs::SearchJobsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::jobs::SearchJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

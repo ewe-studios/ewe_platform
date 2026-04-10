@@ -13,10 +13,16 @@
 
 use crate::providers::gcp::clients::digitalassetlinks::{
     digitalassetlinks_assetlinks_bulk_check_builder, digitalassetlinks_assetlinks_bulk_check_task,
+    digitalassetlinks_assetlinks_check_builder, digitalassetlinks_assetlinks_check_task,
+    digitalassetlinks_statements_list_builder, digitalassetlinks_statements_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::digitalassetlinks::BulkCheckResponse;
+use crate::providers::gcp::clients::digitalassetlinks::CheckResponse;
+use crate::providers::gcp::clients::digitalassetlinks::ListResponse;
 use crate::providers::gcp::clients::digitalassetlinks::DigitalassetlinksAssetlinksBulkCheckArgs;
+use crate::providers::gcp::clients::digitalassetlinks::DigitalassetlinksAssetlinksCheckArgs;
+use crate::providers::gcp::clients::digitalassetlinks::DigitalassetlinksStatementsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -98,6 +104,98 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Digitalassetlinks assetlinks check.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CheckResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn digitalassetlinks_assetlinks_check(
+        &self,
+        args: &DigitalassetlinksAssetlinksCheckArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CheckResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = digitalassetlinks_assetlinks_check_builder(
+            &self.http_client,
+            &args.relation,
+            &args.returnRelationExtensions,
+            &args.source.androidApp.certificate.sha256Fingerprint,
+            &args.source.androidApp.packageName,
+            &args.source.web.site,
+            &args.target.androidApp.certificate.sha256Fingerprint,
+            &args.target.androidApp.packageName,
+            &args.target.web.site,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = digitalassetlinks_assetlinks_check_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Digitalassetlinks statements list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn digitalassetlinks_statements_list(
+        &self,
+        args: &DigitalassetlinksStatementsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = digitalassetlinks_statements_list_builder(
+            &self.http_client,
+            &args.relation,
+            &args.returnRelationExtensions,
+            &args.source.androidApp.certificate.sha256Fingerprint,
+            &args.source.androidApp.packageName,
+            &args.source.web.site,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = digitalassetlinks_statements_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

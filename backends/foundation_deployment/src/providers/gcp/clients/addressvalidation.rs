@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1:provideValidationFeedback
+/// POST v1:provideValidationFeedback
 /// Feedback about the outcome of the sequence of validation attempts. This should be the last call made after a sequence of validation calls for the same address, and should be called once the transaction is concluded. This should only be sent once for the sequence of ValidateAddress requests needed to validate an address fully.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,7 +28,6 @@ use serde::Serialize;
 
 pub fn addressvalidation_provide_validation_feedback_builder(
     client: &SimpleHttpClient,
-    body: &GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -36,15 +35,13 @@ pub fn addressvalidation_provide_validation_feedback_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1:provideValidationFeedback
+/// POST v1:provideValidationFeedback
 /// Feedback about the outcome of the sequence of validation attempts. This should be the last call made after a sequence of validation calls for the same address, and should be called once the transaction is concluded. This should only be sent once for the sequence of ValidateAddress requests needed to validate an address fully.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -122,7 +119,7 @@ pub fn addressvalidation_provide_validation_feedback_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1:provideValidationFeedback
+/// POST v1:provideValidationFeedback
 /// Feedback about the outcome of the sequence of validation attempts. This should be the last call made after a sequence of validation calls for the same address, and should be called once the transaction is concluded. This should only be sent once for the sequence of ValidateAddress requests needed to validate an address fully.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -159,14 +156,7 @@ pub fn addressvalidation_provide_validation_feedback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`addressvalidation_provide_validation_feedback`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AddressvalidationProvideValidationFeedbackArgs {
-    /// Request body.
-    pub body: GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest,
-}
-
-/// GET v1:provideValidationFeedback
+/// POST v1:provideValidationFeedback
 /// Feedback about the outcome of the sequence of validation attempts. This should be the last call made after a sequence of validation calls for the same address, and should be called once the transaction is concluded. This should only be sent once for the sequence of ValidateAddress requests needed to validate an address fully.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -179,7 +169,6 @@ pub struct AddressvalidationProvideValidationFeedbackArgs {
 
 pub fn addressvalidation_provide_validation_feedback(
     client: &SimpleHttpClient,
-    args: &AddressvalidationProvideValidationFeedbackArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -191,11 +180,11 @@ pub fn addressvalidation_provide_validation_feedback(
         + 'static,
     ApiError,
 > {
-    let builder = addressvalidation_provide_validation_feedback_builder(client, &args.body)?;
+    let builder = addressvalidation_provide_validation_feedback_builder(client)?;
     addressvalidation_provide_validation_feedback_execute(builder)
 }
 
-/// GET v1:validateAddress
+/// POST v1:validateAddress
 /// Validates an address.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -203,22 +192,19 @@ pub fn addressvalidation_provide_validation_feedback(
 
 pub fn addressvalidation_validate_address_builder(
     client: &SimpleHttpClient,
-    body: &GoogleMapsAddressvalidationV1ValidateAddressRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://addressvalidation.googleapis.com/v1:validateAddress",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1:validateAddress
+/// POST v1:validateAddress
 /// Validates an address.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -296,7 +282,7 @@ pub fn addressvalidation_validate_address_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1:validateAddress
+/// POST v1:validateAddress
 /// Validates an address.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -330,14 +316,7 @@ pub fn addressvalidation_validate_address_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`addressvalidation_validate_address`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AddressvalidationValidateAddressArgs {
-    /// Request body.
-    pub body: GoogleMapsAddressvalidationV1ValidateAddressRequest,
-}
-
-/// GET v1:validateAddress
+/// POST v1:validateAddress
 /// Validates an address.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -350,7 +329,6 @@ pub struct AddressvalidationValidateAddressArgs {
 
 pub fn addressvalidation_validate_address(
     client: &SimpleHttpClient,
-    args: &AddressvalidationValidateAddressArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleMapsAddressvalidationV1ValidateAddressResponse>, ApiError>,
@@ -359,6 +337,60 @@ pub fn addressvalidation_validate_address(
         + 'static,
     ApiError,
 > {
-    let builder = addressvalidation_validate_address_builder(client, &args.body)?;
+    let builder = addressvalidation_validate_address_builder(client)?;
     addressvalidation_validate_address_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse with AddressvalidationProvideValidationFeedbackArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AddressvalidationProvideValidationFeedbackArgs>
+    for GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AddressvalidationProvideValidationFeedbackArgs,
+    ) -> String {
+        "gcp::addressvalidation::GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse"
+            .to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::addressvalidation::GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleMapsAddressvalidationV1ValidateAddressResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleMapsAddressvalidationV1ValidateAddressResponse with AddressvalidationValidateAddressArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AddressvalidationValidateAddressArgs>
+    for GoogleMapsAddressvalidationV1ValidateAddressResponse
+{
+    fn generate_resource_id(&self, input: &AddressvalidationValidateAddressArgs) -> String {
+        "gcp::addressvalidation::GoogleMapsAddressvalidationV1ValidateAddressResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::addressvalidation::GoogleMapsAddressvalidationV1ValidateAddressResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

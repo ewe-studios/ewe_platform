@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,11 +16,342 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
+/// POST v1/projects/{projectsId}/locations/{locationsId}:collectApiData
+/// Collect API data from a source and push it to Hub's collect layer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_collect_api_data_execute()` to send, or `apihub_projects_locations_collect_api_data` for simplest API.
+
+pub fn apihub_projects_locations_collect_api_data_builder(
+    client: &SimpleHttpClient,
+    location: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}:collectApiData",
+        location,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:collectApiData
+/// Collect API data from a source and push it to Hub's collect layer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_collect_api_data_execute()` or `apihub_projects_locations_collect_api_data`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_collect_api_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_collect_api_data_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:collectApiData
+/// Collect API data from a source and push it to Hub's collect layer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_collect_api_data_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_collect_api_data_task()`.
+/// For the simplest API, use `apihub_projects_locations_collect_api_data()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_collect_api_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_collect_api_data_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_collect_api_data_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_collect_api_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCollectApiDataArgs {
+    /// Path parameter: location
+    pub location: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:collectApiData
+/// Collect API data from a source and push it to Hub's collect layer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_collect_api_data_builder()` + `apihub_projects_locations_collect_api_data_execute()`.
+/// For task-level control, use `apihub_projects_locations_collect_api_data_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_collect_api_data(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsCollectApiDataArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_collect_api_data_builder(client, &args.location)?;
+    apihub_projects_locations_collect_api_data_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_get_execute()` to send, or `apihub_projects_locations_get` for simplest API.
+
+pub fn apihub_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_get_execute()` or `apihub_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudLocationLocation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_get_builder()` + `apihub_projects_locations_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_get_builder(client, &args.name)?;
+    apihub_projects_locations_get_execute(builder)
+}
+
 /// GET v1/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `apihub_projects_locations_list_execute()` to send, or `apihub_projects_locations_list` for simplest API.
@@ -29,13 +359,16 @@ use serde::Serialize;
 pub fn apihub_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://apihub.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -66,7 +399,7 @@ pub fn apihub_projects_locations_list_builder(
 }
 
 /// GET v1/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -140,7 +473,7 @@ pub fn apihub_projects_locations_list_task(
 }
 
 /// GET v1/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -179,17 +512,17 @@ pub struct ApihubProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
-/// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
+/// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `apihub_projects_locations_list_builder()` + `apihub_projects_locations_list_execute()`.
@@ -219,4 +552,18999 @@ pub fn apihub_projects_locations_list(
         &args.pageToken,
     )?;
     apihub_projects_locations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:lookupRuntimeProjectAttachment
+/// Look up a runtime project attachment. This API can be called in the context of any project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_lookup_runtime_project_attachment_execute()` to send, or `apihub_projects_locations_lookup_runtime_project_attachment` for simplest API.
+
+pub fn apihub_projects_locations_lookup_runtime_project_attachment_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}:lookupRuntimeProjectAttachment",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:lookupRuntimeProjectAttachment
+/// Look up a runtime project attachment. This API can be called in the context of any project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_lookup_runtime_project_attachment_execute()` or `apihub_projects_locations_lookup_runtime_project_attachment`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_lookup_runtime_project_attachment_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_lookup_runtime_project_attachment_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:lookupRuntimeProjectAttachment
+/// Look up a runtime project attachment. This API can be called in the context of any project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_lookup_runtime_project_attachment_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_lookup_runtime_project_attachment_task()`.
+/// For the simplest API, use `apihub_projects_locations_lookup_runtime_project_attachment()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_lookup_runtime_project_attachment_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_lookup_runtime_project_attachment_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_lookup_runtime_project_attachment_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_lookup_runtime_project_attachment`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsLookupRuntimeProjectAttachmentArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:lookupRuntimeProjectAttachment
+/// Look up a runtime project attachment. This API can be called in the context of any project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_lookup_runtime_project_attachment_builder()` + `apihub_projects_locations_lookup_runtime_project_attachment_execute()`.
+/// For task-level control, use `apihub_projects_locations_lookup_runtime_project_attachment_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_lookup_runtime_project_attachment(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsLookupRuntimeProjectAttachmentArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_lookup_runtime_project_attachment_builder(client, &args.name)?;
+    apihub_projects_locations_lookup_runtime_project_attachment_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveApiViews
+/// Retrieve API views.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_retrieve_api_views_execute()` to send, or `apihub_projects_locations_retrieve_api_views` for simplest API.
+
+pub fn apihub_projects_locations_retrieve_api_views_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}:retrieveApiViews",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveApiViews
+/// Retrieve API views.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_retrieve_api_views_execute()` or `apihub_projects_locations_retrieve_api_views`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_retrieve_api_views_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_retrieve_api_views_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1RetrieveApiViewsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1RetrieveApiViewsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveApiViews
+/// Retrieve API views.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_retrieve_api_views_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_retrieve_api_views_task()`.
+/// For the simplest API, use `apihub_projects_locations_retrieve_api_views()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_retrieve_api_views_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_retrieve_api_views_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1RetrieveApiViewsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_retrieve_api_views_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_retrieve_api_views`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsRetrieveApiViewsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveApiViews
+/// Retrieve API views.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_retrieve_api_views_builder()` + `apihub_projects_locations_retrieve_api_views_execute()`.
+/// For task-level control, use `apihub_projects_locations_retrieve_api_views_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_retrieve_api_views(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsRetrieveApiViewsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1RetrieveApiViewsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_retrieve_api_views_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    apihub_projects_locations_retrieve_api_views_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:searchResources
+/// Search across API-Hub resources.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_search_resources_execute()` to send, or `apihub_projects_locations_search_resources` for simplest API.
+
+pub fn apihub_projects_locations_search_resources_builder(
+    client: &SimpleHttpClient,
+    location: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}:searchResources",
+        location,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:searchResources
+/// Search across API-Hub resources.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_search_resources_execute()` or `apihub_projects_locations_search_resources`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_search_resources_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_search_resources_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1SearchResourcesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1SearchResourcesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:searchResources
+/// Search across API-Hub resources.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_search_resources_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_search_resources_task()`.
+/// For the simplest API, use `apihub_projects_locations_search_resources()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_search_resources_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_search_resources_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1SearchResourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_search_resources_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_search_resources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsSearchResourcesArgs {
+    /// Path parameter: location
+    pub location: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:searchResources
+/// Search across API-Hub resources.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_search_resources_builder()` + `apihub_projects_locations_search_resources_execute()`.
+/// For task-level control, use `apihub_projects_locations_search_resources_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_search_resources(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsSearchResourcesArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1SearchResourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_search_resources_builder(client, &args.location)?;
+    apihub_projects_locations_search_resources_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/addons/{addonsId}
+/// Get an addon.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_addons_get_execute()` to send, or `apihub_projects_locations_addons_get` for simplest API.
+
+pub fn apihub_projects_locations_addons_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/addons/{addonsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/addons/{addonsId}
+/// Get an addon.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_addons_get_execute()` or `apihub_projects_locations_addons_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_addons_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_addons_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Addon>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Addon = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/addons/{addonsId}
+/// Get an addon.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_addons_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_addons_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_addons_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_addons_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_addons_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Addon>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_addons_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_addons_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAddonsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/addons/{addonsId}
+/// Get an addon.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_addons_get_builder()` + `apihub_projects_locations_addons_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_addons_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_addons_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsAddonsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Addon>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_addons_get_builder(client, &args.name)?;
+    apihub_projects_locations_addons_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/addons
+/// List addons.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_addons_list_execute()` to send, or `apihub_projects_locations_addons_list` for simplest API.
+
+pub fn apihub_projects_locations_addons_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/addons",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/addons
+/// List addons.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_addons_list_execute()` or `apihub_projects_locations_addons_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_addons_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_addons_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListAddonsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListAddonsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/addons
+/// List addons.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_addons_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_addons_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_addons_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_addons_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_addons_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListAddonsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_addons_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_addons_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAddonsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/addons
+/// List addons.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_addons_list_builder()` + `apihub_projects_locations_addons_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_addons_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_addons_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsAddonsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListAddonsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_addons_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_addons_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/addons/{addonsId}:manageConfig
+/// Manage addon config. This RPC is used for managing the config of the addon. Calling this RPC moves the addon into an updating state until the long-running operation succeeds.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_addons_manage_config_execute()` to send, or `apihub_projects_locations_addons_manage_config` for simplest API.
+
+pub fn apihub_projects_locations_addons_manage_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/addons/{addonsId}:manageConfig",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/addons/{addonsId}:manageConfig
+/// Manage addon config. This RPC is used for managing the config of the addon. Calling this RPC moves the addon into an updating state until the long-running operation succeeds.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_addons_manage_config_execute()` or `apihub_projects_locations_addons_manage_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_addons_manage_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_addons_manage_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/addons/{addonsId}:manageConfig
+/// Manage addon config. This RPC is used for managing the config of the addon. Calling this RPC moves the addon into an updating state until the long-running operation succeeds.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_addons_manage_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_addons_manage_config_task()`.
+/// For the simplest API, use `apihub_projects_locations_addons_manage_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_addons_manage_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_addons_manage_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_addons_manage_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_addons_manage_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAddonsManageConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/addons/{addonsId}:manageConfig
+/// Manage addon config. This RPC is used for managing the config of the addon. Calling this RPC moves the addon into an updating state until the long-running operation succeeds.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_addons_manage_config_builder()` + `apihub_projects_locations_addons_manage_config_execute()`.
+/// For task-level control, use `apihub_projects_locations_addons_manage_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_addons_manage_config(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsAddonsManageConfigArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_addons_manage_config_builder(client, &args.name)?;
+    apihub_projects_locations_addons_manage_config_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances
+/// Provisions instance resources for the API Hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_api_hub_instances_create_execute()` to send, or `apihub_projects_locations_api_hub_instances_create` for simplest API.
+
+pub fn apihub_projects_locations_api_hub_instances_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    apiHubInstanceId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apiHubInstances",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = apiHubInstanceId.as_ref() {
+        query_parts.push(format!("apiHubInstanceId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances
+/// Provisions instance resources for the API Hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_api_hub_instances_create_execute()` or `apihub_projects_locations_api_hub_instances_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_api_hub_instances_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_api_hub_instances_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances
+/// Provisions instance resources for the API Hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_api_hub_instances_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_api_hub_instances_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_api_hub_instances_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_api_hub_instances_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_api_hub_instances_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_api_hub_instances_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_api_hub_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApiHubInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiHubInstanceId
+    pub apiHubInstanceId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances
+/// Provisions instance resources for the API Hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_api_hub_instances_create_builder()` + `apihub_projects_locations_api_hub_instances_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_api_hub_instances_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_api_hub_instances_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApiHubInstancesCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_api_hub_instances_create_builder(
+        client,
+        &args.parent,
+        &args.apiHubInstanceId,
+    )?;
+    apihub_projects_locations_api_hub_instances_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Deletes the API hub instance. Deleting the API hub instance will also result in the removal of all associated runtime project attachments and the host project registration.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_api_hub_instances_delete_execute()` to send, or `apihub_projects_locations_api_hub_instances_delete` for simplest API.
+
+pub fn apihub_projects_locations_api_hub_instances_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Deletes the API hub instance. Deleting the API hub instance will also result in the removal of all associated runtime project attachments and the host project registration.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_api_hub_instances_delete_execute()` or `apihub_projects_locations_api_hub_instances_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_api_hub_instances_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_api_hub_instances_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Deletes the API hub instance. Deleting the API hub instance will also result in the removal of all associated runtime project attachments and the host project registration.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_api_hub_instances_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_api_hub_instances_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_api_hub_instances_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_api_hub_instances_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_api_hub_instances_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_api_hub_instances_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_api_hub_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApiHubInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Deletes the API hub instance. Deleting the API hub instance will also result in the removal of all associated runtime project attachments and the host project registration.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_api_hub_instances_delete_builder()` + `apihub_projects_locations_api_hub_instances_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_api_hub_instances_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_api_hub_instances_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApiHubInstancesDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_api_hub_instances_delete_builder(client, &args.name)?;
+    apihub_projects_locations_api_hub_instances_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Gets details of a single API Hub instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_api_hub_instances_get_execute()` to send, or `apihub_projects_locations_api_hub_instances_get` for simplest API.
+
+pub fn apihub_projects_locations_api_hub_instances_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Gets details of a single API Hub instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_api_hub_instances_get_execute()` or `apihub_projects_locations_api_hub_instances_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_api_hub_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_api_hub_instances_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ApiHubInstance>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ApiHubInstance = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Gets details of a single API Hub instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_api_hub_instances_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_api_hub_instances_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_api_hub_instances_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_api_hub_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_api_hub_instances_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ApiHubInstance>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_api_hub_instances_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_api_hub_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApiHubInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Gets details of a single API Hub instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_api_hub_instances_get_builder()` + `apihub_projects_locations_api_hub_instances_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_api_hub_instances_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_api_hub_instances_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApiHubInstancesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ApiHubInstance>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_api_hub_instances_get_builder(client, &args.name)?;
+    apihub_projects_locations_api_hub_instances_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances:lookup
+/// Looks up an Api Hub instance in a given Google Cloud project. There will always be only one Api Hub instance for a Google Cloud project across all locations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_api_hub_instances_lookup_execute()` to send, or `apihub_projects_locations_api_hub_instances_lookup` for simplest API.
+
+pub fn apihub_projects_locations_api_hub_instances_lookup_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apiHubInstances:lookup",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances:lookup
+/// Looks up an Api Hub instance in a given Google Cloud project. There will always be only one Api Hub instance for a Google Cloud project across all locations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_api_hub_instances_lookup_execute()` or `apihub_projects_locations_api_hub_instances_lookup`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_api_hub_instances_lookup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_api_hub_instances_lookup_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1LookupApiHubInstanceResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1LookupApiHubInstanceResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances:lookup
+/// Looks up an Api Hub instance in a given Google Cloud project. There will always be only one Api Hub instance for a Google Cloud project across all locations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_api_hub_instances_lookup_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_api_hub_instances_lookup_task()`.
+/// For the simplest API, use `apihub_projects_locations_api_hub_instances_lookup()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_api_hub_instances_lookup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_api_hub_instances_lookup_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1LookupApiHubInstanceResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_api_hub_instances_lookup_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_api_hub_instances_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApiHubInstancesLookupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances:lookup
+/// Looks up an Api Hub instance in a given Google Cloud project. There will always be only one Api Hub instance for a Google Cloud project across all locations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_api_hub_instances_lookup_builder()` + `apihub_projects_locations_api_hub_instances_lookup_execute()`.
+/// For task-level control, use `apihub_projects_locations_api_hub_instances_lookup_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_api_hub_instances_lookup(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApiHubInstancesLookupArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1LookupApiHubInstanceResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_api_hub_instances_lookup_builder(client, &args.parent)?;
+    apihub_projects_locations_api_hub_instances_lookup_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Update an Api Hub instance. The following fields in the ApiHubInstance can be updated: * disable_search * vertex_location * agent_registry_sync_config The update_mask should be used to specify the fields being updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_api_hub_instances_patch_execute()` to send, or `apihub_projects_locations_api_hub_instances_patch` for simplest API.
+
+pub fn apihub_projects_locations_api_hub_instances_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Update an Api Hub instance. The following fields in the ApiHubInstance can be updated: * disable_search * vertex_location * agent_registry_sync_config The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_api_hub_instances_patch_execute()` or `apihub_projects_locations_api_hub_instances_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_api_hub_instances_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_api_hub_instances_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Update an Api Hub instance. The following fields in the ApiHubInstance can be updated: * disable_search * vertex_location * agent_registry_sync_config The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_api_hub_instances_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_api_hub_instances_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_api_hub_instances_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_api_hub_instances_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_api_hub_instances_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_api_hub_instances_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_api_hub_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApiHubInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
+/// Update an Api Hub instance. The following fields in the ApiHubInstance can be updated: * disable_search * vertex_location * agent_registry_sync_config The update_mask should be used to specify the fields being updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_api_hub_instances_patch_builder()` + `apihub_projects_locations_api_hub_instances_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_api_hub_instances_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_api_hub_instances_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApiHubInstancesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_api_hub_instances_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    apihub_projects_locations_api_hub_instances_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis
+/// Create an API resource in the API hub. Once an API resource is created, versions can be added to it.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_create_execute()` to send, or `apihub_projects_locations_apis_create` for simplest API.
+
+pub fn apihub_projects_locations_apis_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    apiId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = apiId.as_ref() {
+        query_parts.push(format!("apiId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis
+/// Create an API resource in the API hub. Once an API resource is created, versions can be added to it.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_create_execute()` or `apihub_projects_locations_apis_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Api = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis
+/// Create an API resource in the API hub. Once an API resource is created, versions can be added to it.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiId
+    pub apiId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis
+/// Create an API resource in the API hub. Once an API resource is created, versions can be added to it.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_create_builder()` + `apihub_projects_locations_apis_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_create_builder(client, &args.parent, &args.apiId)?;
+    apihub_projects_locations_apis_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Delete an API resource in the API hub. API can only be deleted if all underlying versions are deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_delete_execute()` to send, or `apihub_projects_locations_apis_delete` for simplest API.
+
+pub fn apihub_projects_locations_apis_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Delete an API resource in the API hub. API can only be deleted if all underlying versions are deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_delete_execute()` or `apihub_projects_locations_apis_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Delete an API resource in the API hub. API can only be deleted if all underlying versions are deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Delete an API resource in the API hub. API can only be deleted if all underlying versions are deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_delete_builder()` + `apihub_projects_locations_apis_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_delete_builder(client, &args.name, &args.force)?;
+    apihub_projects_locations_apis_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Get API resource details including the API versions contained in it.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_get_execute()` to send, or `apihub_projects_locations_apis_get` for simplest API.
+
+pub fn apihub_projects_locations_apis_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Get API resource details including the API versions contained in it.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_get_execute()` or `apihub_projects_locations_apis_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Api = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Get API resource details including the API versions contained in it.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Get API resource details including the API versions contained in it.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_get_builder()` + `apihub_projects_locations_apis_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_get_builder(client, &args.name)?;
+    apihub_projects_locations_apis_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis
+/// List API resources in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_list_execute()` to send, or `apihub_projects_locations_apis_list` for simplest API.
+
+pub fn apihub_projects_locations_apis_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis
+/// List API resources in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_list_execute()` or `apihub_projects_locations_apis_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListApisResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListApisResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis
+/// List API resources in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListApisResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis
+/// List API resources in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_list_builder()` + `apihub_projects_locations_apis_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListApisResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_apis_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Update an API resource in the API hub. The following fields in the API can be updated: * display_name * description * owner * documentation * target_user * team * business_unit * maturity_level * api_style * attributes * fingerprint The update_mask should be used to specify the fields being updated. Updating the owner field requires complete owner message and updates both owner and email fields.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_patch_execute()` to send, or `apihub_projects_locations_apis_patch` for simplest API.
+
+pub fn apihub_projects_locations_apis_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Update an API resource in the API hub. The following fields in the API can be updated: * display_name * description * owner * documentation * target_user * team * business_unit * maturity_level * api_style * attributes * fingerprint The update_mask should be used to specify the fields being updated. Updating the owner field requires complete owner message and updates both owner and email fields.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_patch_execute()` or `apihub_projects_locations_apis_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Api = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Update an API resource in the API hub. The following fields in the API can be updated: * display_name * description * owner * documentation * target_user * team * business_unit * maturity_level * api_style * attributes * fingerprint The update_mask should be used to specify the fields being updated. Updating the owner field requires complete owner message and updates both owner and email fields.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
+/// Update an API resource in the API hub. The following fields in the API can be updated: * display_name * description * owner * documentation * target_user * team * business_unit * maturity_level * api_style * attributes * fingerprint The update_mask should be used to specify the fields being updated. Updating the owner field requires complete owner message and updates both owner and email fields.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_patch_builder()` + `apihub_projects_locations_apis_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_apis_patch_builder(client, &args.name, &args.updateMask)?;
+    apihub_projects_locations_apis_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
+/// Create an API version for an API resource in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_create_execute()` to send, or `apihub_projects_locations_apis_versions_create` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    versionId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = versionId.as_ref() {
+        query_parts.push(format!("versionId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
+/// Create an API version for an API resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_create_execute()` or `apihub_projects_locations_apis_versions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Version = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
+/// Create an API version for an API resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: versionId
+    pub versionId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
+/// Create an API version for an API resource in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_create_builder()` + `apihub_projects_locations_apis_versions_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_create_builder(
+        client,
+        &args.parent,
+        &args.versionId,
+    )?;
+    apihub_projects_locations_apis_versions_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Delete an API version. Version can only be deleted if all underlying specs, operations, definitions and linked deployments are deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_delete_execute()` to send, or `apihub_projects_locations_apis_versions_delete` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Delete an API version. Version can only be deleted if all underlying specs, operations, definitions and linked deployments are deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_delete_execute()` or `apihub_projects_locations_apis_versions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Delete an API version. Version can only be deleted if all underlying specs, operations, definitions and linked deployments are deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Delete an API version. Version can only be deleted if all underlying specs, operations, definitions and linked deployments are deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_delete_builder()` + `apihub_projects_locations_apis_versions_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_apis_versions_delete_builder(client, &args.name, &args.force)?;
+    apihub_projects_locations_apis_versions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Get details about the API version of an API resource. This will include information about the specs and operations present in the API version as well as the deployments linked to it.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_get_execute()` to send, or `apihub_projects_locations_apis_versions_get` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Get details about the API version of an API resource. This will include information about the specs and operations present in the API version as well as the deployments linked to it.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_get_execute()` or `apihub_projects_locations_apis_versions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Version = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Get details about the API version of an API resource. This will include information about the specs and operations present in the API version as well as the deployments linked to it.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Get details about the API version of an API resource. This will include information about the specs and operations present in the API version as well as the deployments linked to it.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_get_builder()` + `apihub_projects_locations_apis_versions_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_get_builder(client, &args.name)?;
+    apihub_projects_locations_apis_versions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
+/// List API versions of an API resource in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_list_execute()` to send, or `apihub_projects_locations_apis_versions_list` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
+/// List API versions of an API resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_list_execute()` or `apihub_projects_locations_apis_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListVersionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListVersionsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
+/// List API versions of an API resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
+/// List API versions of an API resource in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_list_builder()` + `apihub_projects_locations_apis_versions_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListVersionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_apis_versions_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Update API version. The following fields in the version can be updated currently: * display_name * description * documentation * deployments * lifecycle * compliance * accreditation * attributes The update_mask should be used to specify the fields being updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_patch_execute()` to send, or `apihub_projects_locations_apis_versions_patch` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Update API version. The following fields in the version can be updated currently: * display_name * description * documentation * deployments * lifecycle * compliance * accreditation * attributes The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_patch_execute()` or `apihub_projects_locations_apis_versions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Version = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Update API version. The following fields in the version can be updated currently: * display_name * description * documentation * deployments * lifecycle * compliance * accreditation * attributes The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
+/// Update API version. The following fields in the version can be updated currently: * display_name * description * documentation * deployments * lifecycle * compliance * accreditation * attributes The update_mask should be used to specify the fields being updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_patch_builder()` + `apihub_projects_locations_apis_versions_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    apihub_projects_locations_apis_versions_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/definitions/{definitionsId}
+/// Get details about a definition in an API version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_definitions_get_execute()` to send, or `apihub_projects_locations_apis_versions_definitions_get` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_definitions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/definitions/{definitionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/definitions/{definitionsId}
+/// Get details about a definition in an API version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_definitions_get_execute()` or `apihub_projects_locations_apis_versions_definitions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_definitions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_definitions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Definition>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Definition = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/definitions/{definitionsId}
+/// Get details about a definition in an API version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_definitions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_definitions_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_definitions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_definitions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_definitions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Definition>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_definitions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_definitions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsDefinitionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/definitions/{definitionsId}
+/// Get details about a definition in an API version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_definitions_get_builder()` + `apihub_projects_locations_apis_versions_definitions_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_definitions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_definitions_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsDefinitionsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Definition>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_apis_versions_definitions_get_builder(client, &args.name)?;
+    apihub_projects_locations_apis_versions_definitions_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
+/// Create an `apiOperation` in an API version. An `apiOperation` can be created only if the version has no `apiOperations` which were created by parsing a spec.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_operations_create_execute()` to send, or `apihub_projects_locations_apis_versions_operations_create` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_operations_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    apiOperationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = apiOperationId.as_ref() {
+        query_parts.push(format!("apiOperationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
+/// Create an `apiOperation` in an API version. An `apiOperation` can be created only if the version has no `apiOperations` which were created by parsing a spec.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_operations_create_execute()` or `apihub_projects_locations_apis_versions_operations_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_operations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_operations_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ApiOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
+/// Create an `apiOperation` in an API version. An `apiOperation` can be created only if the version has no `apiOperations` which were created by parsing a spec.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_operations_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_operations_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_operations_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_operations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_operations_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_operations_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_operations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsOperationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiOperationId
+    pub apiOperationId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
+/// Create an `apiOperation` in an API version. An `apiOperation` can be created only if the version has no `apiOperations` which were created by parsing a spec.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_operations_create_builder()` + `apihub_projects_locations_apis_versions_operations_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_operations_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_operations_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsOperationsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_operations_create_builder(
+        client,
+        &args.parent,
+        &args.apiOperationId,
+    )?;
+    apihub_projects_locations_apis_versions_operations_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Delete an operation in an API version and we can delete only the operations created via create API. If the operation was created by parsing the spec, then it can be deleted by editing or deleting the spec.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_operations_delete_execute()` to send, or `apihub_projects_locations_apis_versions_operations_delete` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Delete an operation in an API version and we can delete only the operations created via create API. If the operation was created by parsing the spec, then it can be deleted by editing or deleting the spec.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_operations_delete_execute()` or `apihub_projects_locations_apis_versions_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Delete an operation in an API version and we can delete only the operations created via create API. If the operation was created by parsing the spec, then it can be deleted by editing or deleting the spec.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_operations_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Delete an operation in an API version and we can delete only the operations created via create API. If the operation was created by parsing the spec, then it can be deleted by editing or deleting the spec.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_operations_delete_builder()` + `apihub_projects_locations_apis_versions_operations_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_operations_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_apis_versions_operations_delete_builder(client, &args.name)?;
+    apihub_projects_locations_apis_versions_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Get details about a particular operation in API version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_operations_get_execute()` to send, or `apihub_projects_locations_apis_versions_operations_get` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Get details about a particular operation in API version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_operations_get_execute()` or `apihub_projects_locations_apis_versions_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ApiOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Get details about a particular operation in API version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_operations_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Get details about a particular operation in API version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_operations_get_builder()` + `apihub_projects_locations_apis_versions_operations_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_operations_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_apis_versions_operations_get_builder(client, &args.name)?;
+    apihub_projects_locations_apis_versions_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
+/// List operations in an API version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_operations_list_execute()` to send, or `apihub_projects_locations_apis_versions_operations_list` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_operations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
+/// List operations in an API version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_operations_list_execute()` or `apihub_projects_locations_apis_versions_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListApiOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListApiOperationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
+/// List operations in an API version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_operations_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListApiOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
+/// List operations in an API version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_operations_list_builder()` + `apihub_projects_locations_apis_versions_operations_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_operations_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListApiOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_operations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_apis_versions_operations_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Update an operation in an API version. The following fields in the ApiOperation resource can be updated: * details.description * details.documentation * details.http_operation.path * details.http_operation.method * details.deprecated * attributes * details.mcp_tool.title * details.mcp_tool.description * details.mcp_tool.input_schema * details.mcp_tool.output_schema * details.input_schema * details.output_schema * details.mcp_tool.annotations.title * details.mcp_tool.annotations.read_only_hint * details.mcp_tool.annotations.destructive_hint * details.mcp_tool.annotations.idempotent_hint * details.mcp_tool.annotations.open_world_hint * details.mcp_tool.annotations.additional_hints The update_mask should be used to specify the fields being updated. An operation can be updated only if the operation was created via CreateApiOperation API. If the operation was created by parsing the spec, then it can be edited by updating the spec.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_operations_patch_execute()` to send, or `apihub_projects_locations_apis_versions_operations_patch` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_operations_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Update an operation in an API version. The following fields in the ApiOperation resource can be updated: * details.description * details.documentation * details.http_operation.path * details.http_operation.method * details.deprecated * attributes * details.mcp_tool.title * details.mcp_tool.description * details.mcp_tool.input_schema * details.mcp_tool.output_schema * details.input_schema * details.output_schema * details.mcp_tool.annotations.title * details.mcp_tool.annotations.read_only_hint * details.mcp_tool.annotations.destructive_hint * details.mcp_tool.annotations.idempotent_hint * details.mcp_tool.annotations.open_world_hint * details.mcp_tool.annotations.additional_hints The update_mask should be used to specify the fields being updated. An operation can be updated only if the operation was created via CreateApiOperation API. If the operation was created by parsing the spec, then it can be edited by updating the spec.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_operations_patch_execute()` or `apihub_projects_locations_apis_versions_operations_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_operations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_operations_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ApiOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Update an operation in an API version. The following fields in the ApiOperation resource can be updated: * details.description * details.documentation * details.http_operation.path * details.http_operation.method * details.deprecated * attributes * details.mcp_tool.title * details.mcp_tool.description * details.mcp_tool.input_schema * details.mcp_tool.output_schema * details.input_schema * details.output_schema * details.mcp_tool.annotations.title * details.mcp_tool.annotations.read_only_hint * details.mcp_tool.annotations.destructive_hint * details.mcp_tool.annotations.idempotent_hint * details.mcp_tool.annotations.open_world_hint * details.mcp_tool.annotations.additional_hints The update_mask should be used to specify the fields being updated. An operation can be updated only if the operation was created via CreateApiOperation API. If the operation was created by parsing the spec, then it can be edited by updating the spec.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_operations_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_operations_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_operations_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_operations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_operations_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_operations_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_operations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsOperationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
+/// Update an operation in an API version. The following fields in the ApiOperation resource can be updated: * details.description * details.documentation * details.http_operation.path * details.http_operation.method * details.deprecated * attributes * details.mcp_tool.title * details.mcp_tool.description * details.mcp_tool.input_schema * details.mcp_tool.output_schema * details.input_schema * details.output_schema * details.mcp_tool.annotations.title * details.mcp_tool.annotations.read_only_hint * details.mcp_tool.annotations.destructive_hint * details.mcp_tool.annotations.idempotent_hint * details.mcp_tool.annotations.open_world_hint * details.mcp_tool.annotations.additional_hints The update_mask should be used to specify the fields being updated. An operation can be updated only if the operation was created via CreateApiOperation API. If the operation was created by parsing the spec, then it can be edited by updating the spec.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_operations_patch_builder()` + `apihub_projects_locations_apis_versions_operations_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_operations_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_operations_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsOperationsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_operations_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    apihub_projects_locations_apis_versions_operations_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
+/// Add a spec to an API version in the API hub. Multiple specs can be added to an API version. Note, while adding a spec, at least one of contents or source_uri must be provided. If contents is provided, then spec_type must also be provided. On adding a spec with contents to the version, the operations present in it will be added to the version.Note that the file contents in the spec should be of the same type as defined in the `projects/{project}/locations/{location}/attributes/system-spec-type` attribute associated with spec resource. Note that specs of various types can be uploaded, however parsing of details is supported for OpenAPI spec currently. In order to access the information parsed from the spec, use the GetSpec method. In order to access the raw contents for a particular spec, use the GetSpecContents method. In order to access the operations parsed from the spec, use the ListAPIOperations method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_specs_create_execute()` to send, or `apihub_projects_locations_apis_versions_specs_create` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_specs_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    specId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = specId.as_ref() {
+        query_parts.push(format!("specId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
+/// Add a spec to an API version in the API hub. Multiple specs can be added to an API version. Note, while adding a spec, at least one of contents or source_uri must be provided. If contents is provided, then spec_type must also be provided. On adding a spec with contents to the version, the operations present in it will be added to the version.Note that the file contents in the spec should be of the same type as defined in the `projects/{project}/locations/{location}/attributes/system-spec-type` attribute associated with spec resource. Note that specs of various types can be uploaded, however parsing of details is supported for OpenAPI spec currently. In order to access the information parsed from the spec, use the GetSpec method. In order to access the raw contents for a particular spec, use the GetSpecContents method. In order to access the operations parsed from the spec, use the ListAPIOperations method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_specs_create_execute()` or `apihub_projects_locations_apis_versions_specs_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Spec = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
+/// Add a spec to an API version in the API hub. Multiple specs can be added to an API version. Note, while adding a spec, at least one of contents or source_uri must be provided. If contents is provided, then spec_type must also be provided. On adding a spec with contents to the version, the operations present in it will be added to the version.Note that the file contents in the spec should be of the same type as defined in the `projects/{project}/locations/{location}/attributes/system-spec-type` attribute associated with spec resource. Note that specs of various types can be uploaded, however parsing of details is supported for OpenAPI spec currently. In order to access the information parsed from the spec, use the GetSpec method. In order to access the raw contents for a particular spec, use the GetSpecContents method. In order to access the operations parsed from the spec, use the ListAPIOperations method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_specs_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_specs_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_specs_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_specs_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: specId
+    pub specId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
+/// Add a spec to an API version in the API hub. Multiple specs can be added to an API version. Note, while adding a spec, at least one of contents or source_uri must be provided. If contents is provided, then spec_type must also be provided. On adding a spec with contents to the version, the operations present in it will be added to the version.Note that the file contents in the spec should be of the same type as defined in the `projects/{project}/locations/{location}/attributes/system-spec-type` attribute associated with spec resource. Note that specs of various types can be uploaded, however parsing of details is supported for OpenAPI spec currently. In order to access the information parsed from the spec, use the GetSpec method. In order to access the raw contents for a particular spec, use the GetSpecContents method. In order to access the operations parsed from the spec, use the ListAPIOperations method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_specs_create_builder()` + `apihub_projects_locations_apis_versions_specs_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsSpecsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_specs_create_builder(
+        client,
+        &args.parent,
+        &args.specId,
+    )?;
+    apihub_projects_locations_apis_versions_specs_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Delete a spec. Deleting a spec will also delete the associated operations from the version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_specs_delete_execute()` to send, or `apihub_projects_locations_apis_versions_specs_delete` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_specs_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Delete a spec. Deleting a spec will also delete the associated operations from the version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_specs_delete_execute()` or `apihub_projects_locations_apis_versions_specs_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Delete a spec. Deleting a spec will also delete the associated operations from the version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_specs_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_specs_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_specs_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_specs_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Delete a spec. Deleting a spec will also delete the associated operations from the version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_specs_delete_builder()` + `apihub_projects_locations_apis_versions_specs_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsSpecsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_specs_delete_builder(client, &args.name)?;
+    apihub_projects_locations_apis_versions_specs_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:fetchAdditionalSpecContent
+/// Fetch additional spec content.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_execute()` to send, or `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    specContentType: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:fetchAdditionalSpecContent",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = specContentType.as_ref() {
+        query_parts.push(format!("specContentType={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:fetchAdditionalSpecContent
+/// Fetch additional spec content.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_execute()` or `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudApihubV1FetchAdditionalSpecContentResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1FetchAdditionalSpecContentResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:fetchAdditionalSpecContent
+/// Fetch additional spec content.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1FetchAdditionalSpecContentResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsFetchAdditionalSpecContentArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: specContentType
+    pub specContentType: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:fetchAdditionalSpecContent
+/// Fetch additional spec content.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_builder()` + `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsSpecsFetchAdditionalSpecContentArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1FetchAdditionalSpecContentResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_builder(
+            client,
+            &args.name,
+            &args.specContentType,
+        )?;
+    apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Get details about the information parsed from a spec. Note that this method does not return the raw spec contents. Use GetSpecContents method to retrieve the same.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_specs_get_execute()` to send, or `apihub_projects_locations_apis_versions_specs_get` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_specs_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Get details about the information parsed from a spec. Note that this method does not return the raw spec contents. Use GetSpecContents method to retrieve the same.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_specs_get_execute()` or `apihub_projects_locations_apis_versions_specs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Spec = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Get details about the information parsed from a spec. Note that this method does not return the raw spec contents. Use GetSpecContents method to retrieve the same.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_specs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_specs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_specs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_specs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Get details about the information parsed from a spec. Note that this method does not return the raw spec contents. Use GetSpecContents method to retrieve the same.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_specs_get_builder()` + `apihub_projects_locations_apis_versions_specs_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsSpecsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_specs_get_builder(client, &args.name)?;
+    apihub_projects_locations_apis_versions_specs_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:contents
+/// Get spec contents.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_specs_get_contents_execute()` to send, or `apihub_projects_locations_apis_versions_specs_get_contents` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_specs_get_contents_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:contents",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:contents
+/// Get spec contents.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_specs_get_contents_execute()` or `apihub_projects_locations_apis_versions_specs_get_contents`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_get_contents_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_get_contents_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1SpecContents>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1SpecContents = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:contents
+/// Get spec contents.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_specs_get_contents_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_get_contents_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_specs_get_contents()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_get_contents_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_specs_get_contents_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1SpecContents>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_specs_get_contents_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_get_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsGetContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:contents
+/// Get spec contents.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_specs_get_contents_builder()` + `apihub_projects_locations_apis_versions_specs_get_contents_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_get_contents_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_get_contents(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsSpecsGetContentsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1SpecContents>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_apis_versions_specs_get_contents_builder(client, &args.name)?;
+    apihub_projects_locations_apis_versions_specs_get_contents_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:lint
+/// Lints the requested spec and updates the corresponding API Spec with the lint response. This lint response will be available in all subsequent Get and List Spec calls to Core service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_specs_lint_execute()` to send, or `apihub_projects_locations_apis_versions_specs_lint` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_specs_lint_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:lint",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:lint
+/// Lints the requested spec and updates the corresponding API Spec with the lint response. This lint response will be available in all subsequent Get and List Spec calls to Core service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_specs_lint_execute()` or `apihub_projects_locations_apis_versions_specs_lint`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_lint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_lint_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:lint
+/// Lints the requested spec and updates the corresponding API Spec with the lint response. This lint response will be available in all subsequent Get and List Spec calls to Core service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_specs_lint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_lint_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_specs_lint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_lint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_specs_lint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_specs_lint_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_lint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsLintArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:lint
+/// Lints the requested spec and updates the corresponding API Spec with the lint response. This lint response will be available in all subsequent Get and List Spec calls to Core service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_specs_lint_builder()` + `apihub_projects_locations_apis_versions_specs_lint_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_lint_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_lint(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsSpecsLintArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_specs_lint_builder(client, &args.name)?;
+    apihub_projects_locations_apis_versions_specs_lint_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
+/// List specs corresponding to a particular API resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_specs_list_execute()` to send, or `apihub_projects_locations_apis_versions_specs_list` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_specs_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
+/// List specs corresponding to a particular API resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_specs_list_execute()` or `apihub_projects_locations_apis_versions_specs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListSpecsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListSpecsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
+/// List specs corresponding to a particular API resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_specs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_specs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_specs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListSpecsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_specs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
+/// List specs corresponding to a particular API resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_specs_list_builder()` + `apihub_projects_locations_apis_versions_specs_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsSpecsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListSpecsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_specs_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_apis_versions_specs_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Update spec. The following fields in the spec can be updated: * display_name * source_uri * lint_response * attributes * contents * spec_type In case of an OAS spec, updating spec contents can lead to: 1. Creation, deletion and update of operations. 2. Creation, deletion and update of definitions. 3. Update of other info parsed out from the new spec. In case of contents or source_uri being present in update mask, spec_type must also be present. Also, spec_type can not be present in update mask if contents or source_uri is not present. The update_mask should be used to specify the fields being updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_apis_versions_specs_patch_execute()` to send, or `apihub_projects_locations_apis_versions_specs_patch` for simplest API.
+
+pub fn apihub_projects_locations_apis_versions_specs_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Update spec. The following fields in the spec can be updated: * display_name * source_uri * lint_response * attributes * contents * spec_type In case of an OAS spec, updating spec contents can lead to: 1. Creation, deletion and update of operations. 2. Creation, deletion and update of definitions. 3. Update of other info parsed out from the new spec. In case of contents or source_uri being present in update mask, spec_type must also be present. Also, spec_type can not be present in update mask if contents or source_uri is not present. The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_apis_versions_specs_patch_execute()` or `apihub_projects_locations_apis_versions_specs_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Spec = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Update spec. The following fields in the spec can be updated: * display_name * source_uri * lint_response * attributes * contents * spec_type In case of an OAS spec, updating spec contents can lead to: 1. Creation, deletion and update of operations. 2. Creation, deletion and update of definitions. 3. Update of other info parsed out from the new spec. In case of contents or source_uri being present in update mask, spec_type must also be present. Also, spec_type can not be present in update mask if contents or source_uri is not present. The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_apis_versions_specs_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_apis_versions_specs_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_apis_versions_specs_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_apis_versions_specs_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_apis_versions_specs_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
+/// Update spec. The following fields in the spec can be updated: * display_name * source_uri * lint_response * attributes * contents * spec_type In case of an OAS spec, updating spec contents can lead to: 1. Creation, deletion and update of operations. 2. Creation, deletion and update of definitions. 3. Update of other info parsed out from the new spec. In case of contents or source_uri being present in update mask, spec_type must also be present. Also, spec_type can not be present in update mask if contents or source_uri is not present. The update_mask should be used to specify the fields being updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_apis_versions_specs_patch_builder()` + `apihub_projects_locations_apis_versions_specs_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_apis_versions_specs_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_apis_versions_specs_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsApisVersionsSpecsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_apis_versions_specs_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    apihub_projects_locations_apis_versions_specs_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/attributes
+/// Create a user defined attribute. Certain pre defined attributes are already created by the API hub. These attributes will have type as SYSTEM_DEFINED and can be listed via ListAttributes method. Allowed values for the same can be updated via UpdateAttribute method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_attributes_create_execute()` to send, or `apihub_projects_locations_attributes_create` for simplest API.
+
+pub fn apihub_projects_locations_attributes_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    attributeId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/attributes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = attributeId.as_ref() {
+        query_parts.push(format!("attributeId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/attributes
+/// Create a user defined attribute. Certain pre defined attributes are already created by the API hub. These attributes will have type as SYSTEM_DEFINED and can be listed via ListAttributes method. Allowed values for the same can be updated via UpdateAttribute method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_attributes_create_execute()` or `apihub_projects_locations_attributes_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_attributes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_attributes_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Attribute = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/attributes
+/// Create a user defined attribute. Certain pre defined attributes are already created by the API hub. These attributes will have type as SYSTEM_DEFINED and can be listed via ListAttributes method. Allowed values for the same can be updated via UpdateAttribute method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_attributes_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_attributes_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_attributes_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_attributes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_attributes_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_attributes_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_attributes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAttributesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: attributeId
+    pub attributeId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/attributes
+/// Create a user defined attribute. Certain pre defined attributes are already created by the API hub. These attributes will have type as SYSTEM_DEFINED and can be listed via ListAttributes method. Allowed values for the same can be updated via UpdateAttribute method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_attributes_create_builder()` + `apihub_projects_locations_attributes_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_attributes_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_attributes_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsAttributesCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_attributes_create_builder(
+        client,
+        &args.parent,
+        &args.attributeId,
+    )?;
+    apihub_projects_locations_attributes_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Delete an attribute. Note: System defined attributes cannot be deleted. All associations of the attribute being deleted with any API hub resource will also get deleted.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_attributes_delete_execute()` to send, or `apihub_projects_locations_attributes_delete` for simplest API.
+
+pub fn apihub_projects_locations_attributes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/attributes/{attributesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Delete an attribute. Note: System defined attributes cannot be deleted. All associations of the attribute being deleted with any API hub resource will also get deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_attributes_delete_execute()` or `apihub_projects_locations_attributes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_attributes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_attributes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Delete an attribute. Note: System defined attributes cannot be deleted. All associations of the attribute being deleted with any API hub resource will also get deleted.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_attributes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_attributes_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_attributes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_attributes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_attributes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_attributes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_attributes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAttributesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Delete an attribute. Note: System defined attributes cannot be deleted. All associations of the attribute being deleted with any API hub resource will also get deleted.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_attributes_delete_builder()` + `apihub_projects_locations_attributes_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_attributes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_attributes_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsAttributesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_attributes_delete_builder(client, &args.name)?;
+    apihub_projects_locations_attributes_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Get details about the attribute.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_attributes_get_execute()` to send, or `apihub_projects_locations_attributes_get` for simplest API.
+
+pub fn apihub_projects_locations_attributes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/attributes/{attributesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Get details about the attribute.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_attributes_get_execute()` or `apihub_projects_locations_attributes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_attributes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_attributes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Attribute = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Get details about the attribute.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_attributes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_attributes_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_attributes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_attributes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_attributes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_attributes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_attributes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAttributesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Get details about the attribute.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_attributes_get_builder()` + `apihub_projects_locations_attributes_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_attributes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_attributes_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsAttributesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_attributes_get_builder(client, &args.name)?;
+    apihub_projects_locations_attributes_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/attributes
+/// List all attributes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_attributes_list_execute()` to send, or `apihub_projects_locations_attributes_list` for simplest API.
+
+pub fn apihub_projects_locations_attributes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/attributes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/attributes
+/// List all attributes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_attributes_list_execute()` or `apihub_projects_locations_attributes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_attributes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_attributes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListAttributesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListAttributesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/attributes
+/// List all attributes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_attributes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_attributes_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_attributes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_attributes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_attributes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListAttributesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_attributes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_attributes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAttributesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/attributes
+/// List all attributes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_attributes_list_builder()` + `apihub_projects_locations_attributes_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_attributes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_attributes_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsAttributesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListAttributesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_attributes_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_attributes_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Update the attribute. The following fields in the Attribute resource can be updated: * display_name The display name can be updated for user defined attributes only. * description The description can be updated for user defined attributes only. * allowed_values To update the list of allowed values, clients need to use the fetched list of allowed values and add or remove values to or from the same list. The mutable allowed values can be updated for both user defined and System defined attributes. The immutable allowed values cannot be updated or deleted. The updated list of allowed values cannot be empty. If an allowed value that is already used by some resource's attribute is deleted, then the association between the resource and the attribute value will also be deleted. * cardinality The cardinality can be updated for user defined attributes only. Cardinality can only be increased during an update. The update_mask should be used to specify the fields being updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_attributes_patch_execute()` to send, or `apihub_projects_locations_attributes_patch` for simplest API.
+
+pub fn apihub_projects_locations_attributes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/attributes/{attributesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Update the attribute. The following fields in the Attribute resource can be updated: * display_name The display name can be updated for user defined attributes only. * description The description can be updated for user defined attributes only. * allowed_values To update the list of allowed values, clients need to use the fetched list of allowed values and add or remove values to or from the same list. The mutable allowed values can be updated for both user defined and System defined attributes. The immutable allowed values cannot be updated or deleted. The updated list of allowed values cannot be empty. If an allowed value that is already used by some resource's attribute is deleted, then the association between the resource and the attribute value will also be deleted. * cardinality The cardinality can be updated for user defined attributes only. Cardinality can only be increased during an update. The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_attributes_patch_execute()` or `apihub_projects_locations_attributes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_attributes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_attributes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Attribute = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Update the attribute. The following fields in the Attribute resource can be updated: * display_name The display name can be updated for user defined attributes only. * description The description can be updated for user defined attributes only. * allowed_values To update the list of allowed values, clients need to use the fetched list of allowed values and add or remove values to or from the same list. The mutable allowed values can be updated for both user defined and System defined attributes. The immutable allowed values cannot be updated or deleted. The updated list of allowed values cannot be empty. If an allowed value that is already used by some resource's attribute is deleted, then the association between the resource and the attribute value will also be deleted. * cardinality The cardinality can be updated for user defined attributes only. Cardinality can only be increased during an update. The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_attributes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_attributes_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_attributes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_attributes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_attributes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_attributes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_attributes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAttributesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
+/// Update the attribute. The following fields in the Attribute resource can be updated: * display_name The display name can be updated for user defined attributes only. * description The description can be updated for user defined attributes only. * allowed_values To update the list of allowed values, clients need to use the fetched list of allowed values and add or remove values to or from the same list. The mutable allowed values can be updated for both user defined and System defined attributes. The immutable allowed values cannot be updated or deleted. The updated list of allowed values cannot be empty. If an allowed value that is already used by some resource's attribute is deleted, then the association between the resource and the attribute value will also be deleted. * cardinality The cardinality can be updated for user defined attributes only. Cardinality can only be increased during an update. The update_mask should be used to specify the fields being updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_attributes_patch_builder()` + `apihub_projects_locations_attributes_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_attributes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_attributes_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsAttributesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_attributes_patch_builder(client, &args.name, &args.updateMask)?;
+    apihub_projects_locations_attributes_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/curations
+/// Create a curation resource in the API hub. Once a curation resource is created, plugin instances can start using it.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_curations_create_execute()` to send, or `apihub_projects_locations_curations_create` for simplest API.
+
+pub fn apihub_projects_locations_curations_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    curationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/curations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = curationId.as_ref() {
+        query_parts.push(format!("curationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/curations
+/// Create a curation resource in the API hub. Once a curation resource is created, plugin instances can start using it.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_curations_create_execute()` or `apihub_projects_locations_curations_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_curations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_curations_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Curation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/curations
+/// Create a curation resource in the API hub. Once a curation resource is created, plugin instances can start using it.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_curations_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_curations_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_curations_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_curations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_curations_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_curations_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_curations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCurationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: curationId
+    pub curationId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/curations
+/// Create a curation resource in the API hub. Once a curation resource is created, plugin instances can start using it.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_curations_create_builder()` + `apihub_projects_locations_curations_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_curations_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_curations_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsCurationsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_curations_create_builder(client, &args.parent, &args.curationId)?;
+    apihub_projects_locations_curations_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Delete a curation resource in the API hub. A curation can only be deleted if it's not being used by any plugin instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_curations_delete_execute()` to send, or `apihub_projects_locations_curations_delete` for simplest API.
+
+pub fn apihub_projects_locations_curations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/curations/{curationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Delete a curation resource in the API hub. A curation can only be deleted if it's not being used by any plugin instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_curations_delete_execute()` or `apihub_projects_locations_curations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_curations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_curations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Delete a curation resource in the API hub. A curation can only be deleted if it's not being used by any plugin instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_curations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_curations_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_curations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_curations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_curations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_curations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_curations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCurationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Delete a curation resource in the API hub. A curation can only be deleted if it's not being used by any plugin instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_curations_delete_builder()` + `apihub_projects_locations_curations_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_curations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_curations_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsCurationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_curations_delete_builder(client, &args.name)?;
+    apihub_projects_locations_curations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Get curation resource details.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_curations_get_execute()` to send, or `apihub_projects_locations_curations_get` for simplest API.
+
+pub fn apihub_projects_locations_curations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/curations/{curationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Get curation resource details.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_curations_get_execute()` or `apihub_projects_locations_curations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_curations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_curations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Curation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Get curation resource details.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_curations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_curations_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_curations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_curations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_curations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_curations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_curations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCurationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Get curation resource details.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_curations_get_builder()` + `apihub_projects_locations_curations_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_curations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_curations_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsCurationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_curations_get_builder(client, &args.name)?;
+    apihub_projects_locations_curations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/curations
+/// List curation resources in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_curations_list_execute()` to send, or `apihub_projects_locations_curations_list` for simplest API.
+
+pub fn apihub_projects_locations_curations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/curations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/curations
+/// List curation resources in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_curations_list_execute()` or `apihub_projects_locations_curations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_curations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_curations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListCurationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListCurationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/curations
+/// List curation resources in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_curations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_curations_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_curations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_curations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_curations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListCurationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_curations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_curations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCurationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/curations
+/// List curation resources in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_curations_list_builder()` + `apihub_projects_locations_curations_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_curations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_curations_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsCurationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListCurationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_curations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_curations_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Update a curation resource in the API hub. The following fields in the curation can be updated: * display_name * description The update_mask should be used to specify the fields being updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_curations_patch_execute()` to send, or `apihub_projects_locations_curations_patch` for simplest API.
+
+pub fn apihub_projects_locations_curations_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/curations/{curationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Update a curation resource in the API hub. The following fields in the curation can be updated: * display_name * description The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_curations_patch_execute()` or `apihub_projects_locations_curations_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_curations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_curations_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Curation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Update a curation resource in the API hub. The following fields in the curation can be updated: * display_name * description The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_curations_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_curations_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_curations_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_curations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_curations_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_curations_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_curations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCurationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
+/// Update a curation resource in the API hub. The following fields in the curation can be updated: * display_name * description The update_mask should be used to specify the fields being updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_curations_patch_builder()` + `apihub_projects_locations_curations_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_curations_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_curations_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsCurationsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_curations_patch_builder(client, &args.name, &args.updateMask)?;
+    apihub_projects_locations_curations_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dependencies
+/// Create a dependency between two entities in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_dependencies_create_execute()` to send, or `apihub_projects_locations_dependencies_create` for simplest API.
+
+pub fn apihub_projects_locations_dependencies_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    dependencyId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/dependencies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = dependencyId.as_ref() {
+        query_parts.push(format!("dependencyId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dependencies
+/// Create a dependency between two entities in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_dependencies_create_execute()` or `apihub_projects_locations_dependencies_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_dependencies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_dependencies_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Dependency = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dependencies
+/// Create a dependency between two entities in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_dependencies_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_dependencies_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_dependencies_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_dependencies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_dependencies_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_dependencies_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_dependencies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDependenciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dependencyId
+    pub dependencyId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/dependencies
+/// Create a dependency between two entities in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_dependencies_create_builder()` + `apihub_projects_locations_dependencies_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_dependencies_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_dependencies_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDependenciesCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_dependencies_create_builder(
+        client,
+        &args.parent,
+        &args.dependencyId,
+    )?;
+    apihub_projects_locations_dependencies_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Delete the dependency resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_dependencies_delete_execute()` to send, or `apihub_projects_locations_dependencies_delete` for simplest API.
+
+pub fn apihub_projects_locations_dependencies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/dependencies/{dependenciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Delete the dependency resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_dependencies_delete_execute()` or `apihub_projects_locations_dependencies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_dependencies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_dependencies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Delete the dependency resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_dependencies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_dependencies_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_dependencies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_dependencies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_dependencies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_dependencies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_dependencies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDependenciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Delete the dependency resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_dependencies_delete_builder()` + `apihub_projects_locations_dependencies_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_dependencies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_dependencies_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDependenciesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_dependencies_delete_builder(client, &args.name)?;
+    apihub_projects_locations_dependencies_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Get details about a dependency resource in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_dependencies_get_execute()` to send, or `apihub_projects_locations_dependencies_get` for simplest API.
+
+pub fn apihub_projects_locations_dependencies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/dependencies/{dependenciesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Get details about a dependency resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_dependencies_get_execute()` or `apihub_projects_locations_dependencies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_dependencies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_dependencies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Dependency = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Get details about a dependency resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_dependencies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_dependencies_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_dependencies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_dependencies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_dependencies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_dependencies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_dependencies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDependenciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Get details about a dependency resource in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_dependencies_get_builder()` + `apihub_projects_locations_dependencies_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_dependencies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_dependencies_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDependenciesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_dependencies_get_builder(client, &args.name)?;
+    apihub_projects_locations_dependencies_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies
+/// List dependencies based on the provided filter and pagination parameters.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_dependencies_list_execute()` to send, or `apihub_projects_locations_dependencies_list` for simplest API.
+
+pub fn apihub_projects_locations_dependencies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/dependencies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies
+/// List dependencies based on the provided filter and pagination parameters.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_dependencies_list_execute()` or `apihub_projects_locations_dependencies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_dependencies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_dependencies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListDependenciesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListDependenciesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies
+/// List dependencies based on the provided filter and pagination parameters.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_dependencies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_dependencies_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_dependencies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_dependencies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_dependencies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListDependenciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_dependencies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_dependencies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDependenciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies
+/// List dependencies based on the provided filter and pagination parameters.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_dependencies_list_builder()` + `apihub_projects_locations_dependencies_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_dependencies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_dependencies_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDependenciesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListDependenciesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_dependencies_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_dependencies_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Update a dependency based on the update_mask provided in the request. The following fields in the dependency can be updated: * description
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_dependencies_patch_execute()` to send, or `apihub_projects_locations_dependencies_patch` for simplest API.
+
+pub fn apihub_projects_locations_dependencies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/dependencies/{dependenciesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Update a dependency based on the update_mask provided in the request. The following fields in the dependency can be updated: * description
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_dependencies_patch_execute()` or `apihub_projects_locations_dependencies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_dependencies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_dependencies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Dependency = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Update a dependency based on the update_mask provided in the request. The following fields in the dependency can be updated: * description
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_dependencies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_dependencies_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_dependencies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_dependencies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_dependencies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_dependencies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_dependencies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDependenciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
+/// Update a dependency based on the update_mask provided in the request. The following fields in the dependency can be updated: * description
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_dependencies_patch_builder()` + `apihub_projects_locations_dependencies_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_dependencies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_dependencies_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDependenciesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_dependencies_patch_builder(client, &args.name, &args.updateMask)?;
+    apihub_projects_locations_dependencies_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Create a deployment resource in the API hub. Once a deployment resource is created, it can be associated with API versions.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_deployments_create_execute()` to send, or `apihub_projects_locations_deployments_create` for simplest API.
+
+pub fn apihub_projects_locations_deployments_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deploymentId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deploymentId.as_ref() {
+        query_parts.push(format!("deploymentId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Create a deployment resource in the API hub. Once a deployment resource is created, it can be associated with API versions.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_deployments_create_execute()` or `apihub_projects_locations_deployments_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_deployments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_deployments_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Deployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Create a deployment resource in the API hub. Once a deployment resource is created, it can be associated with API versions.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_deployments_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_deployments_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_deployments_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_deployments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_deployments_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_deployments_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deploymentId
+    pub deploymentId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Create a deployment resource in the API hub. Once a deployment resource is created, it can be associated with API versions.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_deployments_create_builder()` + `apihub_projects_locations_deployments_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_deployments_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_deployments_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDeploymentsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_deployments_create_builder(
+        client,
+        &args.parent,
+        &args.deploymentId,
+    )?;
+    apihub_projects_locations_deployments_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Delete a deployment resource in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_deployments_delete_execute()` to send, or `apihub_projects_locations_deployments_delete` for simplest API.
+
+pub fn apihub_projects_locations_deployments_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Delete a deployment resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_deployments_delete_execute()` or `apihub_projects_locations_deployments_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_deployments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_deployments_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Delete a deployment resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_deployments_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_deployments_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_deployments_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_deployments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_deployments_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_deployments_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Delete a deployment resource in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_deployments_delete_builder()` + `apihub_projects_locations_deployments_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_deployments_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_deployments_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDeploymentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_deployments_delete_builder(client, &args.name)?;
+    apihub_projects_locations_deployments_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Get details about a deployment and the API versions linked to it.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_deployments_get_execute()` to send, or `apihub_projects_locations_deployments_get` for simplest API.
+
+pub fn apihub_projects_locations_deployments_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Get details about a deployment and the API versions linked to it.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_deployments_get_execute()` or `apihub_projects_locations_deployments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_deployments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Deployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Get details about a deployment and the API versions linked to it.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_deployments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_deployments_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_deployments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_deployments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_deployments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Get details about a deployment and the API versions linked to it.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_deployments_get_builder()` + `apihub_projects_locations_deployments_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_deployments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_deployments_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDeploymentsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_deployments_get_builder(client, &args.name)?;
+    apihub_projects_locations_deployments_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// List deployment resources in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_deployments_list_execute()` to send, or `apihub_projects_locations_deployments_list` for simplest API.
+
+pub fn apihub_projects_locations_deployments_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// List deployment resources in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_deployments_list_execute()` or `apihub_projects_locations_deployments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_deployments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListDeploymentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListDeploymentsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// List deployment resources in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_deployments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_deployments_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_deployments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_deployments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListDeploymentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_deployments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// List deployment resources in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_deployments_list_builder()` + `apihub_projects_locations_deployments_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_deployments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_deployments_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDeploymentsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListDeploymentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_deployments_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_deployments_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Update a deployment resource in the API hub. The following fields in the deployment resource can be updated: * display_name * description * documentation * deployment_type * resource_uri * endpoints * slo * environment * attributes * source_project * source_environment * management_url * source_uri The update_mask should be used to specify the fields being updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_deployments_patch_execute()` to send, or `apihub_projects_locations_deployments_patch` for simplest API.
+
+pub fn apihub_projects_locations_deployments_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Update a deployment resource in the API hub. The following fields in the deployment resource can be updated: * display_name * description * documentation * deployment_type * resource_uri * endpoints * slo * environment * attributes * source_project * source_environment * management_url * source_uri The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_deployments_patch_execute()` or `apihub_projects_locations_deployments_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_deployments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_deployments_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Deployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Update a deployment resource in the API hub. The following fields in the deployment resource can be updated: * display_name * description * documentation * deployment_type * resource_uri * endpoints * slo * environment * attributes * source_project * source_environment * management_url * source_uri The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_deployments_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_deployments_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_deployments_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_deployments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_deployments_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_deployments_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Update a deployment resource in the API hub. The following fields in the deployment resource can be updated: * display_name * description * documentation * deployment_type * resource_uri * endpoints * slo * environment * attributes * source_project * source_environment * management_url * source_uri The update_mask should be used to specify the fields being updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_deployments_patch_builder()` + `apihub_projects_locations_deployments_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_deployments_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_deployments_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDeploymentsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_deployments_patch_builder(client, &args.name, &args.updateMask)?;
+    apihub_projects_locations_deployments_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}
+/// Gets a DiscoveredAPIObservation in a given project, location and ApiObservation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_discovered_api_observations_get_execute()` to send, or `apihub_projects_locations_discovered_api_observations_get` for simplest API.
+
+pub fn apihub_projects_locations_discovered_api_observations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}
+/// Gets a DiscoveredAPIObservation in a given project, location and ApiObservation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_discovered_api_observations_get_execute()` or `apihub_projects_locations_discovered_api_observations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_discovered_api_observations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_discovered_api_observations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1DiscoveredApiObservation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1DiscoveredApiObservation =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}
+/// Gets a DiscoveredAPIObservation in a given project, location and ApiObservation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_discovered_api_observations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_discovered_api_observations_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_discovered_api_observations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_discovered_api_observations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_discovered_api_observations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1DiscoveredApiObservation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_discovered_api_observations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_discovered_api_observations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDiscoveredApiObservationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}
+/// Gets a DiscoveredAPIObservation in a given project, location and ApiObservation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_discovered_api_observations_get_builder()` + `apihub_projects_locations_discovered_api_observations_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_discovered_api_observations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_discovered_api_observations_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDiscoveredApiObservationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1DiscoveredApiObservation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_discovered_api_observations_get_builder(client, &args.name)?;
+    apihub_projects_locations_discovered_api_observations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations
+/// Lists all the DiscoveredAPIObservations in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_discovered_api_observations_list_execute()` to send, or `apihub_projects_locations_discovered_api_observations_list` for simplest API.
+
+pub fn apihub_projects_locations_discovered_api_observations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredApiObservations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations
+/// Lists all the DiscoveredAPIObservations in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_discovered_api_observations_list_execute()` or `apihub_projects_locations_discovered_api_observations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_discovered_api_observations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_discovered_api_observations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudApihubV1ListDiscoveredApiObservationsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListDiscoveredApiObservationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations
+/// Lists all the DiscoveredAPIObservations in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_discovered_api_observations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_discovered_api_observations_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_discovered_api_observations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_discovered_api_observations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_discovered_api_observations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1ListDiscoveredApiObservationsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_discovered_api_observations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_discovered_api_observations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDiscoveredApiObservationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations
+/// Lists all the DiscoveredAPIObservations in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_discovered_api_observations_list_builder()` + `apihub_projects_locations_discovered_api_observations_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_discovered_api_observations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_discovered_api_observations_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDiscoveredApiObservationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1ListDiscoveredApiObservationsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_discovered_api_observations_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_discovered_api_observations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations/{discoveredApiOperationsId}
+/// Gets a DiscoveredAPIOperation in a given project, location, ApiObservation and ApiOperation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_execute()` to send, or `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get` for simplest API.
+
+pub fn apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations/{discoveredApiOperationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations/{discoveredApiOperationsId}
+/// Gets a DiscoveredAPIOperation in a given project, location, ApiObservation and ApiOperation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_execute()` or `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1DiscoveredApiOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1DiscoveredApiOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations/{discoveredApiOperationsId}
+/// Gets a DiscoveredAPIOperation in a given project, location, ApiObservation and ApiOperation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1DiscoveredApiOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_discovered_api_observations_discovered_api_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations/{discoveredApiOperationsId}
+/// Gets a DiscoveredAPIOperation in a given project, location, ApiObservation and ApiOperation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_builder()` + `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_discovered_api_observations_discovered_api_operations_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1DiscoveredApiOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_builder(client, &args.name)?;
+    apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations
+/// Lists all the DiscoveredAPIOperations in a given project, location and ApiObservation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_execute()` to send, or `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list` for simplest API.
+
+pub fn apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations
+/// Lists all the DiscoveredAPIOperations in a given project, location and ApiObservation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_execute()` or `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudApihubV1ListDiscoveredApiOperationsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListDiscoveredApiOperationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations
+/// Lists all the DiscoveredAPIOperations in a given project, location and ApiObservation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1ListDiscoveredApiOperationsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_discovered_api_observations_discovered_api_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations
+/// Lists all the DiscoveredAPIOperations in a given project, location and ApiObservation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_builder()` + `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_discovered_api_observations_discovered_api_operations_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1ListDiscoveredApiOperationsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_builder(client, &args.parent, &args.pageSize, &args.pageToken)?;
+    apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_execute(
+        builder,
+    )
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/externalApis
+/// Create an External API resource in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_external_apis_create_execute()` to send, or `apihub_projects_locations_external_apis_create` for simplest API.
+
+pub fn apihub_projects_locations_external_apis_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    externalApiId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/externalApis",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = externalApiId.as_ref() {
+        query_parts.push(format!("externalApiId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/externalApis
+/// Create an External API resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_external_apis_create_execute()` or `apihub_projects_locations_external_apis_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_external_apis_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_external_apis_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ExternalApi = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/externalApis
+/// Create an External API resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_external_apis_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_external_apis_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_external_apis_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_external_apis_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_external_apis_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_external_apis_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_external_apis_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsExternalApisCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: externalApiId
+    pub externalApiId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/externalApis
+/// Create an External API resource in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_external_apis_create_builder()` + `apihub_projects_locations_external_apis_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_external_apis_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_external_apis_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsExternalApisCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_external_apis_create_builder(
+        client,
+        &args.parent,
+        &args.externalApiId,
+    )?;
+    apihub_projects_locations_external_apis_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Delete an External API resource in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_external_apis_delete_execute()` to send, or `apihub_projects_locations_external_apis_delete` for simplest API.
+
+pub fn apihub_projects_locations_external_apis_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/externalApis/{externalApisId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Delete an External API resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_external_apis_delete_execute()` or `apihub_projects_locations_external_apis_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_external_apis_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_external_apis_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Delete an External API resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_external_apis_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_external_apis_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_external_apis_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_external_apis_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_external_apis_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_external_apis_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_external_apis_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsExternalApisDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Delete an External API resource in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_external_apis_delete_builder()` + `apihub_projects_locations_external_apis_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_external_apis_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_external_apis_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsExternalApisDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_external_apis_delete_builder(client, &args.name)?;
+    apihub_projects_locations_external_apis_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Get details about an External API resource in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_external_apis_get_execute()` to send, or `apihub_projects_locations_external_apis_get` for simplest API.
+
+pub fn apihub_projects_locations_external_apis_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/externalApis/{externalApisId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Get details about an External API resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_external_apis_get_execute()` or `apihub_projects_locations_external_apis_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_external_apis_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_external_apis_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ExternalApi = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Get details about an External API resource in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_external_apis_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_external_apis_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_external_apis_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_external_apis_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_external_apis_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_external_apis_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_external_apis_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsExternalApisGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Get details about an External API resource in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_external_apis_get_builder()` + `apihub_projects_locations_external_apis_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_external_apis_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_external_apis_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsExternalApisGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_external_apis_get_builder(client, &args.name)?;
+    apihub_projects_locations_external_apis_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis
+/// List External API resources in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_external_apis_list_execute()` to send, or `apihub_projects_locations_external_apis_list` for simplest API.
+
+pub fn apihub_projects_locations_external_apis_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/externalApis",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis
+/// List External API resources in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_external_apis_list_execute()` or `apihub_projects_locations_external_apis_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_external_apis_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_external_apis_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListExternalApisResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListExternalApisResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis
+/// List External API resources in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_external_apis_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_external_apis_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_external_apis_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_external_apis_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_external_apis_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListExternalApisResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_external_apis_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_external_apis_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsExternalApisListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis
+/// List External API resources in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_external_apis_list_builder()` + `apihub_projects_locations_external_apis_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_external_apis_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_external_apis_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsExternalApisListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListExternalApisResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_external_apis_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_external_apis_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Update an External API resource in the API hub. The following fields can be updated: * display_name * description * documentation * endpoints * paths The update_mask should be used to specify the fields being updated.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_external_apis_patch_execute()` to send, or `apihub_projects_locations_external_apis_patch` for simplest API.
+
+pub fn apihub_projects_locations_external_apis_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/externalApis/{externalApisId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Update an External API resource in the API hub. The following fields can be updated: * display_name * description * documentation * endpoints * paths The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_external_apis_patch_execute()` or `apihub_projects_locations_external_apis_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_external_apis_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_external_apis_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ExternalApi = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Update an External API resource in the API hub. The following fields can be updated: * display_name * description * documentation * endpoints * paths The update_mask should be used to specify the fields being updated.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_external_apis_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_external_apis_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_external_apis_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_external_apis_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_external_apis_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_external_apis_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_external_apis_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsExternalApisPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
+/// Update an External API resource in the API hub. The following fields can be updated: * display_name * description * documentation * endpoints * paths The update_mask should be used to specify the fields being updated.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_external_apis_patch_builder()` + `apihub_projects_locations_external_apis_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_external_apis_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_external_apis_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsExternalApisPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_external_apis_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    apihub_projects_locations_external_apis_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
+/// Create a host project registration. A Google cloud project can be registered as a host project if it is not attached as a runtime project to another host project. A project can be registered as a host project only once. Subsequent register calls for the same project will fail.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_host_project_registrations_create_execute()` to send, or `apihub_projects_locations_host_project_registrations_create` for simplest API.
+
+pub fn apihub_projects_locations_host_project_registrations_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    hostProjectRegistrationId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/hostProjectRegistrations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = hostProjectRegistrationId.as_ref() {
+        query_parts.push(format!("hostProjectRegistrationId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
+/// Create a host project registration. A Google cloud project can be registered as a host project if it is not attached as a runtime project to another host project. A project can be registered as a host project only once. Subsequent register calls for the same project will fail.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_host_project_registrations_create_execute()` or `apihub_projects_locations_host_project_registrations_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_host_project_registrations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_host_project_registrations_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1HostProjectRegistration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1HostProjectRegistration =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
+/// Create a host project registration. A Google cloud project can be registered as a host project if it is not attached as a runtime project to another host project. A project can be registered as a host project only once. Subsequent register calls for the same project will fail.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_host_project_registrations_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_host_project_registrations_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_host_project_registrations_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_host_project_registrations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_host_project_registrations_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1HostProjectRegistration>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_host_project_registrations_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_host_project_registrations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsHostProjectRegistrationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: hostProjectRegistrationId
+    pub hostProjectRegistrationId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
+/// Create a host project registration. A Google cloud project can be registered as a host project if it is not attached as a runtime project to another host project. A project can be registered as a host project only once. Subsequent register calls for the same project will fail.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_host_project_registrations_create_builder()` + `apihub_projects_locations_host_project_registrations_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_host_project_registrations_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_host_project_registrations_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsHostProjectRegistrationsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1HostProjectRegistration>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_host_project_registrations_create_builder(
+        client,
+        &args.parent,
+        &args.hostProjectRegistrationId,
+    )?;
+    apihub_projects_locations_host_project_registrations_create_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations/{hostProjectRegistrationsId}
+/// Get a host project registration.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_host_project_registrations_get_execute()` to send, or `apihub_projects_locations_host_project_registrations_get` for simplest API.
+
+pub fn apihub_projects_locations_host_project_registrations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/hostProjectRegistrations/{hostProjectRegistrationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations/{hostProjectRegistrationsId}
+/// Get a host project registration.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_host_project_registrations_get_execute()` or `apihub_projects_locations_host_project_registrations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_host_project_registrations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_host_project_registrations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1HostProjectRegistration>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1HostProjectRegistration =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations/{hostProjectRegistrationsId}
+/// Get a host project registration.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_host_project_registrations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_host_project_registrations_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_host_project_registrations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_host_project_registrations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_host_project_registrations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1HostProjectRegistration>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_host_project_registrations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_host_project_registrations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsHostProjectRegistrationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations/{hostProjectRegistrationsId}
+/// Get a host project registration.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_host_project_registrations_get_builder()` + `apihub_projects_locations_host_project_registrations_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_host_project_registrations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_host_project_registrations_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsHostProjectRegistrationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1HostProjectRegistration>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_host_project_registrations_get_builder(client, &args.name)?;
+    apihub_projects_locations_host_project_registrations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
+/// Lists host project registrations.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_host_project_registrations_list_execute()` to send, or `apihub_projects_locations_host_project_registrations_list` for simplest API.
+
+pub fn apihub_projects_locations_host_project_registrations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/hostProjectRegistrations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
+/// Lists host project registrations.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_host_project_registrations_list_execute()` or `apihub_projects_locations_host_project_registrations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_host_project_registrations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_host_project_registrations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudApihubV1ListHostProjectRegistrationsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListHostProjectRegistrationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
+/// Lists host project registrations.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_host_project_registrations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_host_project_registrations_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_host_project_registrations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_host_project_registrations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_host_project_registrations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1ListHostProjectRegistrationsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_host_project_registrations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_host_project_registrations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsHostProjectRegistrationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
+/// Lists host project registrations.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_host_project_registrations_list_builder()` + `apihub_projects_locations_host_project_registrations_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_host_project_registrations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_host_project_registrations_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsHostProjectRegistrationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1ListHostProjectRegistrationsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_host_project_registrations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_host_project_registrations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_operations_cancel_execute()` to send, or `apihub_projects_locations_operations_cancel` for simplest API.
+
+pub fn apihub_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_operations_cancel_execute()` or `apihub_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `apihub_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_operations_cancel_builder()` + `apihub_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `apihub_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_operations_cancel_builder(client, &args.name)?;
+    apihub_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_operations_delete_execute()` to send, or `apihub_projects_locations_operations_delete` for simplest API.
+
+pub fn apihub_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_operations_delete_execute()` or `apihub_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_operations_delete_builder()` + `apihub_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_operations_delete_builder(client, &args.name)?;
+    apihub_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_operations_get_execute()` to send, or `apihub_projects_locations_operations_get` for simplest API.
+
+pub fn apihub_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_operations_get_execute()` or `apihub_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_operations_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_operations_get_builder()` + `apihub_projects_locations_operations_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_operations_get_builder(client, &args.name)?;
+    apihub_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_operations_list_execute()` to send, or `apihub_projects_locations_operations_list` for simplest API.
+
+pub fn apihub_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_operations_list_execute()` or `apihub_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningListOperationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_operations_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_operations_list_builder()` + `apihub_projects_locations_operations_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    apihub_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins
+/// Create an API Hub plugin resource in the API hub. Once a plugin is created, it can be used to create plugin instances.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_create_execute()` to send, or `apihub_projects_locations_plugins_create` for simplest API.
+
+pub fn apihub_projects_locations_plugins_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pluginId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pluginId.as_ref() {
+        query_parts.push(format!("pluginId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins
+/// Create an API Hub plugin resource in the API hub. Once a plugin is created, it can be used to create plugin instances.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_create_execute()` or `apihub_projects_locations_plugins_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Plugin = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins
+/// Create an API Hub plugin resource in the API hub. Once a plugin is created, it can be used to create plugin instances.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pluginId
+    pub pluginId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins
+/// Create an API Hub plugin resource in the API hub. Once a plugin is created, it can be used to create plugin instances.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_create_builder()` + `apihub_projects_locations_plugins_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_plugins_create_builder(client, &args.parent, &args.pluginId)?;
+    apihub_projects_locations_plugins_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}
+/// Delete a Plugin in API hub. Note, only user owned plugins can be deleted via this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_delete_execute()` to send, or `apihub_projects_locations_plugins_delete` for simplest API.
+
+pub fn apihub_projects_locations_plugins_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}
+/// Delete a Plugin in API hub. Note, only user owned plugins can be deleted via this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_delete_execute()` or `apihub_projects_locations_plugins_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}
+/// Delete a Plugin in API hub. Note, only user owned plugins can be deleted via this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}
+/// Delete a Plugin in API hub. Note, only user owned plugins can be deleted via this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_delete_builder()` + `apihub_projects_locations_plugins_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_delete_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}:disable
+/// Disables a plugin. The state of the plugin after disabling is DISABLED
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_disable_execute()` to send, or `apihub_projects_locations_plugins_disable` for simplest API.
+
+pub fn apihub_projects_locations_plugins_disable_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}:disable",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}:disable
+/// Disables a plugin. The state of the plugin after disabling is DISABLED
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_disable_execute()` or `apihub_projects_locations_plugins_disable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_disable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_disable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Plugin = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}:disable
+/// Disables a plugin. The state of the plugin after disabling is DISABLED
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_disable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_disable_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_disable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_disable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_disable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_disable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}:disable
+/// Disables a plugin. The state of the plugin after disabling is DISABLED
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_disable_builder()` + `apihub_projects_locations_plugins_disable_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_disable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_disable(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsDisableArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_disable_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_disable_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}:enable
+/// Enables a plugin. The state of the plugin after enabling is ENABLED
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_enable_execute()` to send, or `apihub_projects_locations_plugins_enable` for simplest API.
+
+pub fn apihub_projects_locations_plugins_enable_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}:enable",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}:enable
+/// Enables a plugin. The state of the plugin after enabling is ENABLED
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_enable_execute()` or `apihub_projects_locations_plugins_enable`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_enable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_enable_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Plugin = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}:enable
+/// Enables a plugin. The state of the plugin after enabling is ENABLED
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_enable_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_enable_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_enable()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_enable_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_enable_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_enable_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}:enable
+/// Enables a plugin. The state of the plugin after enabling is ENABLED
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_enable_builder()` + `apihub_projects_locations_plugins_enable_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_enable_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_enable(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsEnableArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_enable_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_enable_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}
+/// Get an API Hub plugin.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_get_execute()` to send, or `apihub_projects_locations_plugins_get` for simplest API.
+
+pub fn apihub_projects_locations_plugins_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}
+/// Get an API Hub plugin.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_get_execute()` or `apihub_projects_locations_plugins_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1Plugin = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}
+/// Get an API Hub plugin.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}
+/// Get an API Hub plugin.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_get_builder()` + `apihub_projects_locations_plugins_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_get_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
+/// Get the style guide being used for linting.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_get_style_guide_execute()` to send, or `apihub_projects_locations_plugins_get_style_guide` for simplest API.
+
+pub fn apihub_projects_locations_plugins_get_style_guide_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/styleGuide",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
+/// Get the style guide being used for linting.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_get_style_guide_execute()` or `apihub_projects_locations_plugins_get_style_guide`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_get_style_guide_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_get_style_guide_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1StyleGuide>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1StyleGuide = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
+/// Get the style guide being used for linting.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_get_style_guide_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_get_style_guide_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_get_style_guide()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_get_style_guide_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_get_style_guide_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1StyleGuide>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_get_style_guide_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_get_style_guide`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsGetStyleGuideArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
+/// Get the style guide being used for linting.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_get_style_guide_builder()` + `apihub_projects_locations_plugins_get_style_guide_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_get_style_guide_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_get_style_guide(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsGetStyleGuideArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1StyleGuide>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_get_style_guide_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_get_style_guide_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins
+/// List all the plugins in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_list_execute()` to send, or `apihub_projects_locations_plugins_list` for simplest API.
+
+pub fn apihub_projects_locations_plugins_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins
+/// List all the plugins in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_list_execute()` or `apihub_projects_locations_plugins_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListPluginsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListPluginsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins
+/// List all the plugins in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListPluginsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins
+/// List all the plugins in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_list_builder()` + `apihub_projects_locations_plugins_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListPluginsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_plugins_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
+/// Update the `styleGuide` to be used for liniting in by API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_update_style_guide_execute()` to send, or `apihub_projects_locations_plugins_update_style_guide` for simplest API.
+
+pub fn apihub_projects_locations_plugins_update_style_guide_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/styleGuide",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
+/// Update the `styleGuide` to be used for liniting in by API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_update_style_guide_execute()` or `apihub_projects_locations_plugins_update_style_guide`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_update_style_guide_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_update_style_guide_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1StyleGuide>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1StyleGuide = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
+/// Update the `styleGuide` to be used for liniting in by API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_update_style_guide_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_update_style_guide_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_update_style_guide()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_update_style_guide_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_update_style_guide_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1StyleGuide>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_update_style_guide_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_update_style_guide`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsUpdateStyleGuideArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
+/// Update the `styleGuide` to be used for liniting in by API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_update_style_guide_builder()` + `apihub_projects_locations_plugins_update_style_guide_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_update_style_guide_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_update_style_guide(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsUpdateStyleGuideArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1StyleGuide>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_update_style_guide_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    apihub_projects_locations_plugins_update_style_guide_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
+/// Creates a Plugin instance in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_instances_create_execute()` to send, or `apihub_projects_locations_plugins_instances_create` for simplest API.
+
+pub fn apihub_projects_locations_plugins_instances_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pluginInstanceId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/instances",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pluginInstanceId.as_ref() {
+        query_parts.push(format!("pluginInstanceId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
+/// Creates a Plugin instance in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_instances_create_execute()` or `apihub_projects_locations_plugins_instances_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
+/// Creates a Plugin instance in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_instances_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_instances_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_instances_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_instances_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pluginInstanceId
+    pub pluginInstanceId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
+/// Creates a Plugin instance in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_instances_create_builder()` + `apihub_projects_locations_plugins_instances_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsInstancesCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_instances_create_builder(
+        client,
+        &args.parent,
+        &args.pluginInstanceId,
+    )?;
+    apihub_projects_locations_plugins_instances_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Deletes a plugin instance in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_instances_delete_execute()` to send, or `apihub_projects_locations_plugins_instances_delete` for simplest API.
+
+pub fn apihub_projects_locations_plugins_instances_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Deletes a plugin instance in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_instances_delete_execute()` or `apihub_projects_locations_plugins_instances_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Deletes a plugin instance in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_instances_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_instances_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_instances_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_instances_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Deletes a plugin instance in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_instances_delete_builder()` + `apihub_projects_locations_plugins_instances_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsInstancesDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_instances_delete_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_instances_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:disableAction
+/// Disables a plugin instance in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_instances_disable_action_execute()` to send, or `apihub_projects_locations_plugins_instances_disable_action` for simplest API.
+
+pub fn apihub_projects_locations_plugins_instances_disable_action_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:disableAction",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:disableAction
+/// Disables a plugin instance in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_instances_disable_action_execute()` or `apihub_projects_locations_plugins_instances_disable_action`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_disable_action_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_disable_action_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:disableAction
+/// Disables a plugin instance in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_instances_disable_action_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_disable_action_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_instances_disable_action()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_disable_action_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_instances_disable_action_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_instances_disable_action_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_instances_disable_action`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesDisableActionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:disableAction
+/// Disables a plugin instance in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_instances_disable_action_builder()` + `apihub_projects_locations_plugins_instances_disable_action_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_disable_action_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_disable_action(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsInstancesDisableActionArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_plugins_instances_disable_action_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_instances_disable_action_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:enableAction
+/// Enables a plugin instance in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_instances_enable_action_execute()` to send, or `apihub_projects_locations_plugins_instances_enable_action` for simplest API.
+
+pub fn apihub_projects_locations_plugins_instances_enable_action_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:enableAction",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:enableAction
+/// Enables a plugin instance in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_instances_enable_action_execute()` or `apihub_projects_locations_plugins_instances_enable_action`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_enable_action_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_enable_action_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:enableAction
+/// Enables a plugin instance in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_instances_enable_action_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_enable_action_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_instances_enable_action()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_enable_action_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_instances_enable_action_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_instances_enable_action_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_instances_enable_action`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesEnableActionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:enableAction
+/// Enables a plugin instance in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_instances_enable_action_builder()` + `apihub_projects_locations_plugins_instances_enable_action_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_enable_action_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_enable_action(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsInstancesEnableActionArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_plugins_instances_enable_action_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_instances_enable_action_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:executeAction
+/// Executes a plugin instance in the API hub.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_instances_execute_action_execute()` to send, or `apihub_projects_locations_plugins_instances_execute_action` for simplest API.
+
+pub fn apihub_projects_locations_plugins_instances_execute_action_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:executeAction",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:executeAction
+/// Executes a plugin instance in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_instances_execute_action_execute()` or `apihub_projects_locations_plugins_instances_execute_action`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_execute_action_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_execute_action_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:executeAction
+/// Executes a plugin instance in the API hub.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_instances_execute_action_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_execute_action_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_instances_execute_action()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_execute_action_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_instances_execute_action_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_instances_execute_action_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_instances_execute_action`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesExecuteActionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:executeAction
+/// Executes a plugin instance in the API hub.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_instances_execute_action_builder()` + `apihub_projects_locations_plugins_instances_execute_action_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_execute_action_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_execute_action(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsInstancesExecuteActionArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_plugins_instances_execute_action_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_instances_execute_action_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Get an API Hub plugin instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_instances_get_execute()` to send, or `apihub_projects_locations_plugins_instances_get` for simplest API.
+
+pub fn apihub_projects_locations_plugins_instances_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Get an API Hub plugin instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_instances_get_execute()` or `apihub_projects_locations_plugins_instances_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1PluginInstance>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1PluginInstance = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Get an API Hub plugin instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_instances_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_instances_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_instances_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1PluginInstance>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_instances_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Get an API Hub plugin instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_instances_get_builder()` + `apihub_projects_locations_plugins_instances_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsInstancesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1PluginInstance>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_instances_get_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_instances_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
+/// List all the plugins in a given project and location. - can be used as wildcard value for {plugin_id}
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_instances_list_execute()` to send, or `apihub_projects_locations_plugins_instances_list` for simplest API.
+
+pub fn apihub_projects_locations_plugins_instances_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/instances",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
+/// List all the plugins in a given project and location. - can be used as wildcard value for {plugin_id}
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_instances_list_execute()` or `apihub_projects_locations_plugins_instances_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1ListPluginInstancesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListPluginInstancesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
+/// List all the plugins in a given project and location. - can be used as wildcard value for {plugin_id}
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_instances_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_instances_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_instances_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListPluginInstancesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_instances_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
+/// List all the plugins in a given project and location. - can be used as wildcard value for {plugin_id}
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_instances_list_builder()` + `apihub_projects_locations_plugins_instances_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsInstancesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1ListPluginInstancesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_instances_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_plugins_instances_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:manageSourceData
+/// Manages data for a given plugin instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_instances_manage_source_data_execute()` to send, or `apihub_projects_locations_plugins_instances_manage_source_data` for simplest API.
+
+pub fn apihub_projects_locations_plugins_instances_manage_source_data_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:manageSourceData",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:manageSourceData
+/// Manages data for a given plugin instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_instances_manage_source_data_execute()` or `apihub_projects_locations_plugins_instances_manage_source_data`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_manage_source_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_manage_source_data_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:manageSourceData
+/// Manages data for a given plugin instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_instances_manage_source_data_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_manage_source_data_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_instances_manage_source_data()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_manage_source_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_instances_manage_source_data_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_instances_manage_source_data_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_instances_manage_source_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesManageSourceDataArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:manageSourceData
+/// Manages data for a given plugin instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_instances_manage_source_data_builder()` + `apihub_projects_locations_plugins_instances_manage_source_data_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_manage_source_data_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_manage_source_data(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsInstancesManageSourceDataArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_plugins_instances_manage_source_data_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_instances_manage_source_data_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Updates a plugin instance in the API hub. The following fields in the plugin_instance can be updated currently: * display_name * schedule_cron_expression The update_mask should be used to specify the fields being updated. To update the auth_config and additional_config of the plugin instance, use the ApplyPluginInstanceConfig method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_instances_patch_execute()` to send, or `apihub_projects_locations_plugins_instances_patch` for simplest API.
+
+pub fn apihub_projects_locations_plugins_instances_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Updates a plugin instance in the API hub. The following fields in the plugin_instance can be updated currently: * display_name * schedule_cron_expression The update_mask should be used to specify the fields being updated. To update the auth_config and additional_config of the plugin instance, use the ApplyPluginInstanceConfig method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_instances_patch_execute()` or `apihub_projects_locations_plugins_instances_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1PluginInstance>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1PluginInstance = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Updates a plugin instance in the API hub. The following fields in the plugin_instance can be updated currently: * display_name * schedule_cron_expression The update_mask should be used to specify the fields being updated. To update the auth_config and additional_config of the plugin instance, use the ApplyPluginInstanceConfig method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_instances_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_patch_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_instances_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_instances_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_instances_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1PluginInstance>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_instances_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
+/// Updates a plugin instance in the API hub. The following fields in the plugin_instance can be updated currently: * display_name * schedule_cron_expression The update_mask should be used to specify the fields being updated. To update the auth_config and additional_config of the plugin instance, use the ApplyPluginInstanceConfig method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_instances_patch_builder()` + `apihub_projects_locations_plugins_instances_patch_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_instances_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_instances_patch(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsInstancesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1PluginInstance>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_plugins_instances_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    apihub_projects_locations_plugins_instances_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide:contents
+/// Get the contents of the style guide.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_plugins_style_guide_get_contents_execute()` to send, or `apihub_projects_locations_plugins_style_guide_get_contents` for simplest API.
+
+pub fn apihub_projects_locations_plugins_style_guide_get_contents_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/plugins/{pluginsId}/styleGuide:contents",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide:contents
+/// Get the contents of the style guide.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_plugins_style_guide_get_contents_execute()` or `apihub_projects_locations_plugins_style_guide_get_contents`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_style_guide_get_contents_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_style_guide_get_contents_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1StyleGuideContents>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1StyleGuideContents = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide:contents
+/// Get the contents of the style guide.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_plugins_style_guide_get_contents_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_plugins_style_guide_get_contents_task()`.
+/// For the simplest API, use `apihub_projects_locations_plugins_style_guide_get_contents()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_plugins_style_guide_get_contents_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_plugins_style_guide_get_contents_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1StyleGuideContents>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_plugins_style_guide_get_contents_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_plugins_style_guide_get_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsStyleGuideGetContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide:contents
+/// Get the contents of the style guide.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_plugins_style_guide_get_contents_builder()` + `apihub_projects_locations_plugins_style_guide_get_contents_execute()`.
+/// For task-level control, use `apihub_projects_locations_plugins_style_guide_get_contents_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_plugins_style_guide_get_contents(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsPluginsStyleGuideGetContentsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1StyleGuideContents>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_plugins_style_guide_get_contents_builder(client, &args.name)?;
+    apihub_projects_locations_plugins_style_guide_get_contents_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
+/// Attaches a runtime project to the host project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_runtime_project_attachments_create_execute()` to send, or `apihub_projects_locations_runtime_project_attachments_create` for simplest API.
+
+pub fn apihub_projects_locations_runtime_project_attachments_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    runtimeProjectAttachmentId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/runtimeProjectAttachments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = runtimeProjectAttachmentId.as_ref() {
+        query_parts.push(format!("runtimeProjectAttachmentId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
+/// Attaches a runtime project to the host project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_runtime_project_attachments_create_execute()` or `apihub_projects_locations_runtime_project_attachments_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_runtime_project_attachments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_runtime_project_attachments_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1RuntimeProjectAttachment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1RuntimeProjectAttachment =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
+/// Attaches a runtime project to the host project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_runtime_project_attachments_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_runtime_project_attachments_create_task()`.
+/// For the simplest API, use `apihub_projects_locations_runtime_project_attachments_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_runtime_project_attachments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_runtime_project_attachments_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1RuntimeProjectAttachment>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_runtime_project_attachments_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_runtime_project_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsRuntimeProjectAttachmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: runtimeProjectAttachmentId
+    pub runtimeProjectAttachmentId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
+/// Attaches a runtime project to the host project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_runtime_project_attachments_create_builder()` + `apihub_projects_locations_runtime_project_attachments_create_execute()`.
+/// For task-level control, use `apihub_projects_locations_runtime_project_attachments_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_runtime_project_attachments_create(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsRuntimeProjectAttachmentsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1RuntimeProjectAttachment>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_runtime_project_attachments_create_builder(
+        client,
+        &args.parent,
+        &args.runtimeProjectAttachmentId,
+    )?;
+    apihub_projects_locations_runtime_project_attachments_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}
+/// Delete a runtime project attachment in the API Hub. This call will detach the runtime project from the host project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_runtime_project_attachments_delete_execute()` to send, or `apihub_projects_locations_runtime_project_attachments_delete` for simplest API.
+
+pub fn apihub_projects_locations_runtime_project_attachments_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}
+/// Delete a runtime project attachment in the API Hub. This call will detach the runtime project from the host project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_runtime_project_attachments_delete_execute()` or `apihub_projects_locations_runtime_project_attachments_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_runtime_project_attachments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_runtime_project_attachments_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}
+/// Delete a runtime project attachment in the API Hub. This call will detach the runtime project from the host project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_runtime_project_attachments_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_runtime_project_attachments_delete_task()`.
+/// For the simplest API, use `apihub_projects_locations_runtime_project_attachments_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_runtime_project_attachments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_runtime_project_attachments_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_runtime_project_attachments_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_runtime_project_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsRuntimeProjectAttachmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}
+/// Delete a runtime project attachment in the API Hub. This call will detach the runtime project from the host project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_runtime_project_attachments_delete_builder()` + `apihub_projects_locations_runtime_project_attachments_delete_execute()`.
+/// For task-level control, use `apihub_projects_locations_runtime_project_attachments_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_runtime_project_attachments_delete(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsRuntimeProjectAttachmentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_runtime_project_attachments_delete_builder(client, &args.name)?;
+    apihub_projects_locations_runtime_project_attachments_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}
+/// Gets a runtime project attachment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_runtime_project_attachments_get_execute()` to send, or `apihub_projects_locations_runtime_project_attachments_get` for simplest API.
+
+pub fn apihub_projects_locations_runtime_project_attachments_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}
+/// Gets a runtime project attachment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_runtime_project_attachments_get_execute()` or `apihub_projects_locations_runtime_project_attachments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_runtime_project_attachments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_runtime_project_attachments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudApihubV1RuntimeProjectAttachment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1RuntimeProjectAttachment =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}
+/// Gets a runtime project attachment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_runtime_project_attachments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_runtime_project_attachments_get_task()`.
+/// For the simplest API, use `apihub_projects_locations_runtime_project_attachments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_runtime_project_attachments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_runtime_project_attachments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1RuntimeProjectAttachment>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_runtime_project_attachments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_runtime_project_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsRuntimeProjectAttachmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}
+/// Gets a runtime project attachment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_runtime_project_attachments_get_builder()` + `apihub_projects_locations_runtime_project_attachments_get_execute()`.
+/// For task-level control, use `apihub_projects_locations_runtime_project_attachments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_runtime_project_attachments_get(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsRuntimeProjectAttachmentsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudApihubV1RuntimeProjectAttachment>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        apihub_projects_locations_runtime_project_attachments_get_builder(client, &args.name)?;
+    apihub_projects_locations_runtime_project_attachments_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
+/// List runtime projects attached to the host project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `apihub_projects_locations_runtime_project_attachments_list_execute()` to send, or `apihub_projects_locations_runtime_project_attachments_list` for simplest API.
+
+pub fn apihub_projects_locations_runtime_project_attachments_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://apihub.googleapis.com/v1/projects/{}/locations/{locationsId}/runtimeProjectAttachments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
+/// List runtime projects attached to the host project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `apihub_projects_locations_runtime_project_attachments_list_execute()` or `apihub_projects_locations_runtime_project_attachments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_runtime_project_attachments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_runtime_project_attachments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
+/// List runtime projects attached to the host project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `apihub_projects_locations_runtime_project_attachments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `apihub_projects_locations_runtime_project_attachments_list_task()`.
+/// For the simplest API, use `apihub_projects_locations_runtime_project_attachments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `apihub_projects_locations_runtime_project_attachments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn apihub_projects_locations_runtime_project_attachments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = apihub_projects_locations_runtime_project_attachments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`apihub_projects_locations_runtime_project_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsRuntimeProjectAttachmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
+/// List runtime projects attached to the host project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `apihub_projects_locations_runtime_project_attachments_list_builder()` + `apihub_projects_locations_runtime_project_attachments_list_execute()`.
+/// For task-level control, use `apihub_projects_locations_runtime_project_attachments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn apihub_projects_locations_runtime_project_attachments_list(
+    client: &SimpleHttpClient,
+    args: &ApihubProjectsLocationsRuntimeProjectAttachmentsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = apihub_projects_locations_runtime_project_attachments_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    apihub_projects_locations_runtime_project_attachments_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsCollectApiDataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsCollectApiDataArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsCollectApiDataArgs) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudLocationLocation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudLocationLocation with ApihubProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsGetArgs> for GoogleCloudLocationLocation {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsGetArgs) -> String {
+        format!("gcp::apihub::GoogleCloudLocationLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudLocationLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudLocationListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudLocationListLocationsResponse with ApihubProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsListArgs>
+    for GoogleCloudLocationListLocationsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudLocationListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudLocationListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse with ApihubProjectsLocationsLookupRuntimeProjectAttachmentArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsLookupRuntimeProjectAttachmentArgs>
+    for GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsLookupRuntimeProjectAttachmentArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1RetrieveApiViewsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1RetrieveApiViewsResponse with ApihubProjectsLocationsRetrieveApiViewsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsRetrieveApiViewsArgs>
+    for GoogleCloudApihubV1RetrieveApiViewsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsRetrieveApiViewsArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1RetrieveApiViewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1RetrieveApiViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1SearchResourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1SearchResourcesResponse with ApihubProjectsLocationsSearchResourcesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsSearchResourcesArgs>
+    for GoogleCloudApihubV1SearchResourcesResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsSearchResourcesArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1SearchResourcesResponse/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1SearchResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Addon
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Addon with ApihubProjectsLocationsAddonsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAddonsGetArgs> for GoogleCloudApihubV1Addon {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAddonsGetArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Addon/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Addon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListAddonsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListAddonsResponse with ApihubProjectsLocationsAddonsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAddonsListArgs>
+    for GoogleCloudApihubV1ListAddonsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAddonsListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListAddonsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListAddonsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsAddonsManageConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAddonsManageConfigArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsAddonsManageConfigArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsApiHubInstancesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApiHubInstancesCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApiHubInstancesCreateArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsApiHubInstancesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApiHubInstancesDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApiHubInstancesDeleteArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ApiHubInstance
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ApiHubInstance with ApihubProjectsLocationsApiHubInstancesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApiHubInstancesGetArgs>
+    for GoogleCloudApihubV1ApiHubInstance
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApiHubInstancesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ApiHubInstance/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ApiHubInstance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1LookupApiHubInstanceResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1LookupApiHubInstanceResponse with ApihubProjectsLocationsApiHubInstancesLookupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApiHubInstancesLookupArgs>
+    for GoogleCloudApihubV1LookupApiHubInstanceResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApiHubInstancesLookupArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1LookupApiHubInstanceResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1LookupApiHubInstanceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsApiHubInstancesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApiHubInstancesPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApiHubInstancesPatchArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Api
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Api with ApihubProjectsLocationsApisCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisCreateArgs> for GoogleCloudApihubV1Api {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisCreateArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Api/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Api"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsApisDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisDeleteArgs) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Api
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Api with ApihubProjectsLocationsApisGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisGetArgs> for GoogleCloudApihubV1Api {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisGetArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Api/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Api"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListApisResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListApisResponse with ApihubProjectsLocationsApisListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisListArgs>
+    for GoogleCloudApihubV1ListApisResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListApisResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListApisResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Api
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Api with ApihubProjectsLocationsApisPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisPatchArgs> for GoogleCloudApihubV1Api {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisPatchArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Api/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Api"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Version
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Version with ApihubProjectsLocationsApisVersionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsCreateArgs>
+    for GoogleCloudApihubV1Version
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Version/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Version"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsApisVersionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsDeleteArgs,
+    ) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Version
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Version with ApihubProjectsLocationsApisVersionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsGetArgs> for GoogleCloudApihubV1Version {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisVersionsGetArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Version/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Version"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListVersionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListVersionsResponse with ApihubProjectsLocationsApisVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsListArgs>
+    for GoogleCloudApihubV1ListVersionsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisVersionsListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Version
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Version with ApihubProjectsLocationsApisVersionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsPatchArgs>
+    for GoogleCloudApihubV1Version
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisVersionsPatchArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Version/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Version"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Definition
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Definition with ApihubProjectsLocationsApisVersionsDefinitionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsDefinitionsGetArgs>
+    for GoogleCloudApihubV1Definition
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsDefinitionsGetArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Definition/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Definition"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ApiOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ApiOperation with ApihubProjectsLocationsApisVersionsOperationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsOperationsCreateArgs>
+    for GoogleCloudApihubV1ApiOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsOperationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ApiOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ApiOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsApisVersionsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ApiOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ApiOperation with ApihubProjectsLocationsApisVersionsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsOperationsGetArgs>
+    for GoogleCloudApihubV1ApiOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsOperationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ApiOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ApiOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListApiOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListApiOperationsResponse with ApihubProjectsLocationsApisVersionsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsOperationsListArgs>
+    for GoogleCloudApihubV1ListApiOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListApiOperationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListApiOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ApiOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ApiOperation with ApihubProjectsLocationsApisVersionsOperationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsOperationsPatchArgs>
+    for GoogleCloudApihubV1ApiOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsOperationsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ApiOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ApiOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Spec
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Spec with ApihubProjectsLocationsApisVersionsSpecsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsCreateArgs>
+    for GoogleCloudApihubV1Spec
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsCreateArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Spec/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Spec"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsApisVersionsSpecsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsDeleteArgs,
+    ) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1FetchAdditionalSpecContentResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1FetchAdditionalSpecContentResponse with ApihubProjectsLocationsApisVersionsSpecsFetchAdditionalSpecContentArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsFetchAdditionalSpecContentArgs>
+    for GoogleCloudApihubV1FetchAdditionalSpecContentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsFetchAdditionalSpecContentArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1FetchAdditionalSpecContentResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1FetchAdditionalSpecContentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Spec
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Spec with ApihubProjectsLocationsApisVersionsSpecsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsGetArgs>
+    for GoogleCloudApihubV1Spec
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsGetArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Spec/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Spec"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1SpecContents
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1SpecContents with ApihubProjectsLocationsApisVersionsSpecsGetContentsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsGetContentsArgs>
+    for GoogleCloudApihubV1SpecContents
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsGetContentsArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1SpecContents/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1SpecContents"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsApisVersionsSpecsLintArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsLintArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsLintArgs,
+    ) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListSpecsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListSpecsResponse with ApihubProjectsLocationsApisVersionsSpecsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsListArgs>
+    for GoogleCloudApihubV1ListSpecsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsListArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListSpecsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListSpecsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Spec
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Spec with ApihubProjectsLocationsApisVersionsSpecsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsPatchArgs>
+    for GoogleCloudApihubV1Spec
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsPatchArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Spec/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Spec"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Attribute
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Attribute with ApihubProjectsLocationsAttributesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAttributesCreateArgs>
+    for GoogleCloudApihubV1Attribute
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAttributesCreateArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Attribute/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Attribute"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsAttributesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAttributesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAttributesDeleteArgs) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Attribute
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Attribute with ApihubProjectsLocationsAttributesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAttributesGetArgs> for GoogleCloudApihubV1Attribute {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAttributesGetArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Attribute/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Attribute"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListAttributesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListAttributesResponse with ApihubProjectsLocationsAttributesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAttributesListArgs>
+    for GoogleCloudApihubV1ListAttributesResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAttributesListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListAttributesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListAttributesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Attribute
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Attribute with ApihubProjectsLocationsAttributesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAttributesPatchArgs>
+    for GoogleCloudApihubV1Attribute
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAttributesPatchArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Attribute/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Attribute"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Curation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Curation with ApihubProjectsLocationsCurationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsCurationsCreateArgs>
+    for GoogleCloudApihubV1Curation
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsCurationsCreateArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Curation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Curation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsCurationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsCurationsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsCurationsDeleteArgs) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Curation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Curation with ApihubProjectsLocationsCurationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsCurationsGetArgs> for GoogleCloudApihubV1Curation {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsCurationsGetArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Curation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Curation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListCurationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListCurationsResponse with ApihubProjectsLocationsCurationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsCurationsListArgs>
+    for GoogleCloudApihubV1ListCurationsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsCurationsListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListCurationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListCurationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Curation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Curation with ApihubProjectsLocationsCurationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsCurationsPatchArgs> for GoogleCloudApihubV1Curation {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsCurationsPatchArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Curation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Curation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Dependency
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Dependency with ApihubProjectsLocationsDependenciesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDependenciesCreateArgs>
+    for GoogleCloudApihubV1Dependency
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDependenciesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1Dependency/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Dependency"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsDependenciesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDependenciesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDependenciesDeleteArgs,
+    ) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Dependency
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Dependency with ApihubProjectsLocationsDependenciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDependenciesGetArgs>
+    for GoogleCloudApihubV1Dependency
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDependenciesGetArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Dependency/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Dependency"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListDependenciesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListDependenciesResponse with ApihubProjectsLocationsDependenciesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDependenciesListArgs>
+    for GoogleCloudApihubV1ListDependenciesResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDependenciesListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListDependenciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListDependenciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Dependency
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Dependency with ApihubProjectsLocationsDependenciesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDependenciesPatchArgs>
+    for GoogleCloudApihubV1Dependency
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDependenciesPatchArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Dependency/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Dependency"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Deployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Deployment with ApihubProjectsLocationsDeploymentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDeploymentsCreateArgs>
+    for GoogleCloudApihubV1Deployment
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDeploymentsCreateArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1Deployment/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsDeploymentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDeploymentsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDeploymentsDeleteArgs) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Deployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Deployment with ApihubProjectsLocationsDeploymentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDeploymentsGetArgs>
+    for GoogleCloudApihubV1Deployment
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDeploymentsGetArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Deployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListDeploymentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListDeploymentsResponse with ApihubProjectsLocationsDeploymentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDeploymentsListArgs>
+    for GoogleCloudApihubV1ListDeploymentsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDeploymentsListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListDeploymentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Deployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Deployment with ApihubProjectsLocationsDeploymentsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDeploymentsPatchArgs>
+    for GoogleCloudApihubV1Deployment
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDeploymentsPatchArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Deployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1DiscoveredApiObservation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1DiscoveredApiObservation with ApihubProjectsLocationsDiscoveredApiObservationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDiscoveredApiObservationsGetArgs>
+    for GoogleCloudApihubV1DiscoveredApiObservation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDiscoveredApiObservationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1DiscoveredApiObservation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1DiscoveredApiObservation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListDiscoveredApiObservationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListDiscoveredApiObservationsResponse with ApihubProjectsLocationsDiscoveredApiObservationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDiscoveredApiObservationsListArgs>
+    for GoogleCloudApihubV1ListDiscoveredApiObservationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDiscoveredApiObservationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListDiscoveredApiObservationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListDiscoveredApiObservationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1DiscoveredApiOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1DiscoveredApiOperation with ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsGetArgs,
+    > for GoogleCloudApihubV1DiscoveredApiOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1DiscoveredApiOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1DiscoveredApiOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListDiscoveredApiOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListDiscoveredApiOperationsResponse with ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsListArgs,
+    > for GoogleCloudApihubV1ListDiscoveredApiOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListDiscoveredApiOperationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListDiscoveredApiOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ExternalApi
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ExternalApi with ApihubProjectsLocationsExternalApisCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsExternalApisCreateArgs>
+    for GoogleCloudApihubV1ExternalApi
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsExternalApisCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ExternalApi/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ExternalApi"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsExternalApisDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsExternalApisDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsExternalApisDeleteArgs,
+    ) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ExternalApi
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ExternalApi with ApihubProjectsLocationsExternalApisGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsExternalApisGetArgs>
+    for GoogleCloudApihubV1ExternalApi
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsExternalApisGetArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1ExternalApi/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ExternalApi"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListExternalApisResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListExternalApisResponse with ApihubProjectsLocationsExternalApisListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsExternalApisListArgs>
+    for GoogleCloudApihubV1ListExternalApisResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsExternalApisListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListExternalApisResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListExternalApisResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ExternalApi
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ExternalApi with ApihubProjectsLocationsExternalApisPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsExternalApisPatchArgs>
+    for GoogleCloudApihubV1ExternalApi
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsExternalApisPatchArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1ExternalApi/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ExternalApi"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1HostProjectRegistration
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1HostProjectRegistration with ApihubProjectsLocationsHostProjectRegistrationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsHostProjectRegistrationsCreateArgs>
+    for GoogleCloudApihubV1HostProjectRegistration
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsHostProjectRegistrationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1HostProjectRegistration/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1HostProjectRegistration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1HostProjectRegistration
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1HostProjectRegistration with ApihubProjectsLocationsHostProjectRegistrationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsHostProjectRegistrationsGetArgs>
+    for GoogleCloudApihubV1HostProjectRegistration
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsHostProjectRegistrationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1HostProjectRegistration/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1HostProjectRegistration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListHostProjectRegistrationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListHostProjectRegistrationsResponse with ApihubProjectsLocationsHostProjectRegistrationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsHostProjectRegistrationsListArgs>
+    for GoogleCloudApihubV1ListHostProjectRegistrationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsHostProjectRegistrationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListHostProjectRegistrationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListHostProjectRegistrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsOperationsCancelArgs) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsOperationsDeleteArgs) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsOperationsGetArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse with ApihubProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsOperationsListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Plugin
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Plugin with ApihubProjectsLocationsPluginsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsCreateArgs> for GoogleCloudApihubV1Plugin {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsPluginsCreateArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Plugin/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Plugin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsPluginsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsDeleteArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsPluginsDeleteArgs) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Plugin
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Plugin with ApihubProjectsLocationsPluginsDisableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsDisableArgs> for GoogleCloudApihubV1Plugin {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsPluginsDisableArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Plugin/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Plugin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Plugin
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Plugin with ApihubProjectsLocationsPluginsEnableArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsEnableArgs> for GoogleCloudApihubV1Plugin {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsPluginsEnableArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Plugin/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Plugin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1Plugin
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Plugin with ApihubProjectsLocationsPluginsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsGetArgs> for GoogleCloudApihubV1Plugin {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsPluginsGetArgs) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1Plugin/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1Plugin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1StyleGuide
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1StyleGuide with ApihubProjectsLocationsPluginsGetStyleGuideArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsGetStyleGuideArgs>
+    for GoogleCloudApihubV1StyleGuide
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsGetStyleGuideArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1StyleGuide/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1StyleGuide"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListPluginsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListPluginsResponse with ApihubProjectsLocationsPluginsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsListArgs>
+    for GoogleCloudApihubV1ListPluginsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsPluginsListArgs) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListPluginsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListPluginsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1StyleGuide
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1StyleGuide with ApihubProjectsLocationsPluginsUpdateStyleGuideArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsUpdateStyleGuideArgs>
+    for GoogleCloudApihubV1StyleGuide
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsUpdateStyleGuideArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleCloudApihubV1StyleGuide/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1StyleGuide"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsPluginsInstancesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesCreateArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsPluginsInstancesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesDeleteArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsPluginsInstancesDisableActionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesDisableActionArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesDisableActionArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsPluginsInstancesEnableActionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesEnableActionArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesEnableActionArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with ApihubProjectsLocationsPluginsInstancesExecuteActionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesExecuteActionArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesExecuteActionArgs,
+    ) -> String {
+        format!("gcp::apihub::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1PluginInstance
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1PluginInstance with ApihubProjectsLocationsPluginsInstancesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesGetArgs>
+    for GoogleCloudApihubV1PluginInstance
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1PluginInstance/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1PluginInstance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListPluginInstancesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListPluginInstancesResponse with ApihubProjectsLocationsPluginsInstancesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesListArgs>
+    for GoogleCloudApihubV1ListPluginInstancesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesListArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListPluginInstancesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListPluginInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse with ApihubProjectsLocationsPluginsInstancesManageSourceDataArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesManageSourceDataArgs>
+    for GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesManageSourceDataArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1PluginInstance
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1PluginInstance with ApihubProjectsLocationsPluginsInstancesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesPatchArgs>
+    for GoogleCloudApihubV1PluginInstance
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1PluginInstance/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1PluginInstance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1StyleGuideContents
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1StyleGuideContents with ApihubProjectsLocationsPluginsStyleGuideGetContentsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsStyleGuideGetContentsArgs>
+    for GoogleCloudApihubV1StyleGuideContents
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsStyleGuideGetContentsArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1StyleGuideContents/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1StyleGuideContents"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1RuntimeProjectAttachment
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1RuntimeProjectAttachment with ApihubProjectsLocationsRuntimeProjectAttachmentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsRuntimeProjectAttachmentsCreateArgs>
+    for GoogleCloudApihubV1RuntimeProjectAttachment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsRuntimeProjectAttachmentsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1RuntimeProjectAttachment/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1RuntimeProjectAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ApihubProjectsLocationsRuntimeProjectAttachmentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsRuntimeProjectAttachmentsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsRuntimeProjectAttachmentsDeleteArgs,
+    ) -> String {
+        format!("gcp::apihub::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1RuntimeProjectAttachment
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1RuntimeProjectAttachment with ApihubProjectsLocationsRuntimeProjectAttachmentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsRuntimeProjectAttachmentsGetArgs>
+    for GoogleCloudApihubV1RuntimeProjectAttachment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsRuntimeProjectAttachmentsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1RuntimeProjectAttachment/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1RuntimeProjectAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse with ApihubProjectsLocationsRuntimeProjectAttachmentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsRuntimeProjectAttachmentsListArgs>
+    for GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsRuntimeProjectAttachmentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::apihub::GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::apihub::GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

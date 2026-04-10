@@ -13,20 +13,30 @@
 
 use crate::providers::gcp::clients::gamesConfiguration::{
     games_configuration_achievement_configurations_delete_builder, games_configuration_achievement_configurations_delete_task,
+    games_configuration_achievement_configurations_get_builder, games_configuration_achievement_configurations_get_task,
     games_configuration_achievement_configurations_insert_builder, games_configuration_achievement_configurations_insert_task,
+    games_configuration_achievement_configurations_list_builder, games_configuration_achievement_configurations_list_task,
     games_configuration_achievement_configurations_update_builder, games_configuration_achievement_configurations_update_task,
     games_configuration_leaderboard_configurations_delete_builder, games_configuration_leaderboard_configurations_delete_task,
+    games_configuration_leaderboard_configurations_get_builder, games_configuration_leaderboard_configurations_get_task,
     games_configuration_leaderboard_configurations_insert_builder, games_configuration_leaderboard_configurations_insert_task,
+    games_configuration_leaderboard_configurations_list_builder, games_configuration_leaderboard_configurations_list_task,
     games_configuration_leaderboard_configurations_update_builder, games_configuration_leaderboard_configurations_update_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::gamesConfiguration::AchievementConfiguration;
+use crate::providers::gcp::clients::gamesConfiguration::AchievementConfigurationListResponse;
 use crate::providers::gcp::clients::gamesConfiguration::LeaderboardConfiguration;
+use crate::providers::gcp::clients::gamesConfiguration::LeaderboardConfigurationListResponse;
 use crate::providers::gcp::clients::gamesConfiguration::GamesConfigurationAchievementConfigurationsDeleteArgs;
+use crate::providers::gcp::clients::gamesConfiguration::GamesConfigurationAchievementConfigurationsGetArgs;
 use crate::providers::gcp::clients::gamesConfiguration::GamesConfigurationAchievementConfigurationsInsertArgs;
+use crate::providers::gcp::clients::gamesConfiguration::GamesConfigurationAchievementConfigurationsListArgs;
 use crate::providers::gcp::clients::gamesConfiguration::GamesConfigurationAchievementConfigurationsUpdateArgs;
 use crate::providers::gcp::clients::gamesConfiguration::GamesConfigurationLeaderboardConfigurationsDeleteArgs;
+use crate::providers::gcp::clients::gamesConfiguration::GamesConfigurationLeaderboardConfigurationsGetArgs;
 use crate::providers::gcp::clients::gamesConfiguration::GamesConfigurationLeaderboardConfigurationsInsertArgs;
+use crate::providers::gcp::clients::gamesConfiguration::GamesConfigurationLeaderboardConfigurationsListArgs;
 use crate::providers::gcp::clients::gamesConfiguration::GamesConfigurationLeaderboardConfigurationsUpdateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -112,6 +122,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Games configuration achievement configurations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AchievementConfiguration result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn games_configuration_achievement_configurations_get(
+        &self,
+        args: &GamesConfigurationAchievementConfigurationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AchievementConfiguration, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = games_configuration_achievement_configurations_get_builder(
+            &self.http_client,
+            &args.achievementId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = games_configuration_achievement_configurations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Games configuration achievement configurations insert.
     ///
     /// Automatically stores the result in the state store on success.
@@ -153,6 +201,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Games configuration achievement configurations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AchievementConfigurationListResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn games_configuration_achievement_configurations_list(
+        &self,
+        args: &GamesConfigurationAchievementConfigurationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AchievementConfigurationListResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = games_configuration_achievement_configurations_list_builder(
+            &self.http_client,
+            &args.applicationId,
+            &args.maxResults,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = games_configuration_achievement_configurations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Games configuration achievement configurations update.
@@ -241,6 +329,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Games configuration leaderboard configurations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the LeaderboardConfiguration result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn games_configuration_leaderboard_configurations_get(
+        &self,
+        args: &GamesConfigurationLeaderboardConfigurationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<LeaderboardConfiguration, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = games_configuration_leaderboard_configurations_get_builder(
+            &self.http_client,
+            &args.leaderboardId,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = games_configuration_leaderboard_configurations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Games configuration leaderboard configurations insert.
     ///
     /// Automatically stores the result in the state store on success.
@@ -282,6 +408,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Games configuration leaderboard configurations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the LeaderboardConfigurationListResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn games_configuration_leaderboard_configurations_list(
+        &self,
+        args: &GamesConfigurationLeaderboardConfigurationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<LeaderboardConfigurationListResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = games_configuration_leaderboard_configurations_list_builder(
+            &self.http_client,
+            &args.applicationId,
+            &args.maxResults,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = games_configuration_leaderboard_configurations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Games configuration leaderboard configurations update.

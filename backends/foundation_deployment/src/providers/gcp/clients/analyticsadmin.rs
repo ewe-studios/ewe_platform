@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -28,8 +28,8 @@ use serde::Serialize;
 
 pub fn analyticsadmin_account_summaries_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/accountSummaries",);
@@ -175,9 +175,9 @@ pub fn analyticsadmin_account_summaries_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsadminAccountSummariesListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1beta/accountSummaries
@@ -210,7 +210,7 @@ pub fn analyticsadmin_account_summaries_list(
     analyticsadmin_account_summaries_list_execute(builder)
 }
 
-/// GET v1beta/accounts/{accountsId}
+/// DELETE v1beta/accounts/{accountsId}
 /// Marks target Account as soft-deleted (ie: "trashed") and returns it. This API does not have a method to restore soft-deleted accounts. However, they can be restored using the Trash Can UI. If the accounts are not restored before the expiration time, the account and all child resources (eg: Properties, GoogleAdsLinks, Streams, AccessBindings) will be permanently purged. <https://support.google.`com/analytics/answer/6154772`> Returns an error if the target is not found.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -221,17 +221,20 @@ pub fn analyticsadmin_accounts_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/accounts/{}",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/accounts/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1beta/accounts/{accountsId}
+/// DELETE v1beta/accounts/{accountsId}
 /// Marks target Account as soft-deleted (ie: "trashed") and returns it. This API does not have a method to restore soft-deleted accounts. However, they can be restored using the Trash Can UI. If the accounts are not restored before the expiration time, the account and all child resources (eg: Properties, GoogleAdsLinks, Streams, AccessBindings) will be permanently purged. <https://support.google.`com/analytics/answer/6154772`> Returns an error if the target is not found.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -305,7 +308,7 @@ pub fn analyticsadmin_accounts_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/accounts/{accountsId}
+/// DELETE v1beta/accounts/{accountsId}
 /// Marks target Account as soft-deleted (ie: "trashed") and returns it. This API does not have a method to restore soft-deleted accounts. However, they can be restored using the Trash Can UI. If the accounts are not restored before the expiration time, the account and all child resources (eg: Properties, GoogleAdsLinks, Streams, AccessBindings) will be permanently purged. <https://support.google.`com/analytics/answer/6154772`> Returns an error if the target is not found.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -344,7 +347,7 @@ pub struct AnalyticsadminAccountsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1beta/accounts/{accountsId}
+/// DELETE v1beta/accounts/{accountsId}
 /// Marks target Account as soft-deleted (ie: "trashed") and returns it. This API does not have a method to restore soft-deleted accounts. However, they can be restored using the Trash Can UI. If the accounts are not restored before the expiration time, the account and all child resources (eg: Properties, GoogleAdsLinks, Streams, AccessBindings) will be permanently purged. <https://support.google.`com/analytics/answer/6154772`> Returns an error if the target is not found.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -368,6 +371,171 @@ pub fn analyticsadmin_accounts_delete(
     analyticsadmin_accounts_delete_execute(builder)
 }
 
+/// GET v1beta/accounts/{accountsId}
+/// Lookup for a single Account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_accounts_get_execute()` to send, or `analyticsadmin_accounts_get` for simplest API.
+
+pub fn analyticsadmin_accounts_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/accounts/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/accounts/{accountsId}
+/// Lookup for a single Account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_accounts_get_execute()` or `analyticsadmin_accounts_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_accounts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_accounts_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaAccount>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaAccount = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/accounts/{accountsId}
+/// Lookup for a single Account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_accounts_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_accounts_get_task()`.
+/// For the simplest API, use `analyticsadmin_accounts_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_accounts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_accounts_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaAccount>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_accounts_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/accounts/{accountsId}
+/// Lookup for a single Account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_accounts_get_builder()` + `analyticsadmin_accounts_get_execute()`.
+/// For task-level control, use `analyticsadmin_accounts_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_accounts_get(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminAccountsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaAccount>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_accounts_get_builder(client, &args.name)?;
+    analyticsadmin_accounts_get_execute(builder)
+}
+
 /// GET v1beta/accounts/{accountsId}/dataSharingSettings
 /// Get data sharing settings on an account. Data sharing settings are singletons.
 ///
@@ -379,8 +547,10 @@ pub fn analyticsadmin_accounts_get_data_sharing_settings_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsadmin.googleapis.com/v1beta/accounts/{}/dataSharingSettings",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/accounts/{}/dataSharingSettings",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -540,9 +710,9 @@ pub fn analyticsadmin_accounts_get_data_sharing_settings(
 
 pub fn analyticsadmin_accounts_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    showDeleted: &Option<bool>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/accounts",);
@@ -685,11 +855,11 @@ pub fn analyticsadmin_accounts_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct AnalyticsadminAccountsListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
+    pub showDeleted: Option<Option<String>>,
 }
 
 /// GET v1beta/accounts
@@ -723,7 +893,186 @@ pub fn analyticsadmin_accounts_list(
     analyticsadmin_accounts_list_execute(builder)
 }
 
-/// GET v1beta/accounts:provisionAccountTicket
+/// PATCH v1beta/accounts/{accountsId}
+/// Updates an account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_accounts_patch_execute()` to send, or `analyticsadmin_accounts_patch` for simplest API.
+
+pub fn analyticsadmin_accounts_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/accounts/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta/accounts/{accountsId}
+/// Updates an account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_accounts_patch_execute()` or `analyticsadmin_accounts_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_accounts_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_accounts_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaAccount>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaAccount = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta/accounts/{accountsId}
+/// Updates an account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_accounts_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_accounts_patch_task()`.
+/// For the simplest API, use `analyticsadmin_accounts_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_accounts_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_accounts_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaAccount>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_accounts_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_accounts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminAccountsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta/accounts/{accountsId}
+/// Updates an account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_accounts_patch_builder()` + `analyticsadmin_accounts_patch_execute()`.
+/// For task-level control, use `analyticsadmin_accounts_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_accounts_patch(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminAccountsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaAccount>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_accounts_patch_builder(client, &args.name, &args.updateMask)?;
+    analyticsadmin_accounts_patch_execute(builder)
+}
+
+/// POST v1beta/accounts:provisionAccountTicket
 /// Requests a ticket for creating an account.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -731,7 +1080,6 @@ pub fn analyticsadmin_accounts_list(
 
 pub fn analyticsadmin_accounts_provision_account_ticket_builder(
     client: &SimpleHttpClient,
-    body: &GoogleAnalyticsAdminV1betaProvisionAccountTicketRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -739,15 +1087,13 @@ pub fn analyticsadmin_accounts_provision_account_ticket_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/accounts:provisionAccountTicket
+/// POST v1beta/accounts:provisionAccountTicket
 /// Requests a ticket for creating an account.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -825,7 +1171,7 @@ pub fn analyticsadmin_accounts_provision_account_ticket_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/accounts:provisionAccountTicket
+/// POST v1beta/accounts:provisionAccountTicket
 /// Requests a ticket for creating an account.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -862,14 +1208,7 @@ pub fn analyticsadmin_accounts_provision_account_ticket_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`analyticsadmin_accounts_provision_account_ticket`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsadminAccountsProvisionAccountTicketArgs {
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaProvisionAccountTicketRequest,
-}
-
-/// GET v1beta/accounts:provisionAccountTicket
+/// POST v1beta/accounts:provisionAccountTicket
 /// Requests a ticket for creating an account.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -882,7 +1221,6 @@ pub struct AnalyticsadminAccountsProvisionAccountTicketArgs {
 
 pub fn analyticsadmin_accounts_provision_account_ticket(
     client: &SimpleHttpClient,
-    args: &AnalyticsadminAccountsProvisionAccountTicketArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -894,11 +1232,11 @@ pub fn analyticsadmin_accounts_provision_account_ticket(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_accounts_provision_account_ticket_builder(client, &args.body)?;
+    let builder = analyticsadmin_accounts_provision_account_ticket_builder(client)?;
     analyticsadmin_accounts_provision_account_ticket_execute(builder)
 }
 
-/// GET v1beta/accounts/{accountsId}:runAccessReport
+/// POST v1beta/accounts/{accountsId}:runAccessReport
 /// Returns a customized report of data access records. The report provides records of each time a user reads Google Analytics reporting data. Access records are retained for up to 2 years. Data Access Reports can be requested for a property. Reports may be requested for any property, but dimensions that aren't related to quota can only be requested on Google Analytics 360 properties. This method is only available to Administrators. These data access records include GA UI Reporting, GA UI Explorations, GA Data API, and other products like Firebase & Admob that can retrieve data from Google Analytics through a linkage. These records don't include property configuration changes like adding a stream or changing a property's time zone. For configuration change history, see [`searchChangeHistoryEvents`](<https://developers.google.`com/analytics/devguides/config/admin/v1/rest/v1alpha/accounts/`searchChangeHistoryEvents``>). To give your feedback on this API, complete the [Google Analytics Access Reports feedback](<https://docs.google.`com/forms/d/e/1FAIpQLSdmEBUrMzAEdiEKk5TV5dEHvDUZDRlgWYdQdAeSdtR4hVjEhw/viewform`>) form.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -907,23 +1245,22 @@ pub fn analyticsadmin_accounts_provision_account_ticket(
 pub fn analyticsadmin_accounts_run_access_report_builder(
     client: &SimpleHttpClient,
     entity: &String,
-    body: &GoogleAnalyticsAdminV1betaRunAccessReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsadmin.googleapis.com/v1beta/accounts/{}:runAccessReport",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/accounts/{}:runAccessReport",
+        entity,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/accounts/{accountsId}:runAccessReport
+/// POST v1beta/accounts/{accountsId}:runAccessReport
 /// Returns a customized report of data access records. The report provides records of each time a user reads Google Analytics reporting data. Access records are retained for up to 2 years. Data Access Reports can be requested for a property. Reports may be requested for any property, but dimensions that aren't related to quota can only be requested on Google Analytics 360 properties. This method is only available to Administrators. These data access records include GA UI Reporting, GA UI Explorations, GA Data API, and other products like Firebase & Admob that can retrieve data from Google Analytics through a linkage. These records don't include property configuration changes like adding a stream or changing a property's time zone. For configuration change history, see [`searchChangeHistoryEvents`](<https://developers.google.`com/analytics/devguides/config/admin/v1/rest/v1alpha/accounts/`searchChangeHistoryEvents``>). To give your feedback on this API, complete the [Google Analytics Access Reports feedback](<https://docs.google.`com/forms/d/e/1FAIpQLSdmEBUrMzAEdiEKk5TV5dEHvDUZDRlgWYdQdAeSdtR4hVjEhw/viewform`>) form.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1001,7 +1338,7 @@ pub fn analyticsadmin_accounts_run_access_report_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/accounts/{accountsId}:runAccessReport
+/// POST v1beta/accounts/{accountsId}:runAccessReport
 /// Returns a customized report of data access records. The report provides records of each time a user reads Google Analytics reporting data. Access records are retained for up to 2 years. Data Access Reports can be requested for a property. Reports may be requested for any property, but dimensions that aren't related to quota can only be requested on Google Analytics 360 properties. This method is only available to Administrators. These data access records include GA UI Reporting, GA UI Explorations, GA Data API, and other products like Firebase & Admob that can retrieve data from Google Analytics through a linkage. These records don't include property configuration changes like adding a stream or changing a property's time zone. For configuration change history, see [`searchChangeHistoryEvents`](<https://developers.google.`com/analytics/devguides/config/admin/v1/rest/v1alpha/accounts/`searchChangeHistoryEvents``>). To give your feedback on this API, complete the [Google Analytics Access Reports feedback](<https://docs.google.`com/forms/d/e/1FAIpQLSdmEBUrMzAEdiEKk5TV5dEHvDUZDRlgWYdQdAeSdtR4hVjEhw/viewform`>) form.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1040,11 +1377,9 @@ pub fn analyticsadmin_accounts_run_access_report_execute(
 pub struct AnalyticsadminAccountsRunAccessReportArgs {
     /// Path parameter: entity
     pub entity: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaRunAccessReportRequest,
 }
 
-/// GET v1beta/accounts/{accountsId}:runAccessReport
+/// POST v1beta/accounts/{accountsId}:runAccessReport
 /// Returns a customized report of data access records. The report provides records of each time a user reads Google Analytics reporting data. Access records are retained for up to 2 years. Data Access Reports can be requested for a property. Reports may be requested for any property, but dimensions that aren't related to quota can only be requested on Google Analytics 360 properties. This method is only available to Administrators. These data access records include GA UI Reporting, GA UI Explorations, GA Data API, and other products like Firebase & Admob that can retrieve data from Google Analytics through a linkage. These records don't include property configuration changes like adding a stream or changing a property's time zone. For configuration change history, see [`searchChangeHistoryEvents`](<https://developers.google.`com/analytics/devguides/config/admin/v1/rest/v1alpha/accounts/`searchChangeHistoryEvents``>). To give your feedback on this API, complete the [Google Analytics Access Reports feedback](<https://docs.google.`com/forms/d/e/1FAIpQLSdmEBUrMzAEdiEKk5TV5dEHvDUZDRlgWYdQdAeSdtR4hVjEhw/viewform`>) form.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1066,12 +1401,11 @@ pub fn analyticsadmin_accounts_run_access_report(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_accounts_run_access_report_builder(client, &args.entity, &args.body)?;
+    let builder = analyticsadmin_accounts_run_access_report_builder(client, &args.entity)?;
     analyticsadmin_accounts_run_access_report_execute(builder)
 }
 
-/// GET v1beta/accounts/{accountsId}:searchChangeHistoryEvents
+/// POST v1beta/accounts/{accountsId}:searchChangeHistoryEvents
 /// Searches through all changes to an account or its children given the specified set of filters. Only returns the subset of changes supported by the API. The UI may return additional changes.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1080,24 +1414,22 @@ pub fn analyticsadmin_accounts_run_access_report(
 pub fn analyticsadmin_accounts_search_change_history_events_builder(
     client: &SimpleHttpClient,
     account: &String,
-    body: &GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/accounts/{}:searchChangeHistoryEvents",
+        account,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/accounts/{accountsId}:searchChangeHistoryEvents
+/// POST v1beta/accounts/{accountsId}:searchChangeHistoryEvents
 /// Searches through all changes to an account or its children given the specified set of filters. Only returns the subset of changes supported by the API. The UI may return additional changes.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1175,7 +1507,7 @@ pub fn analyticsadmin_accounts_search_change_history_events_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/accounts/{accountsId}:searchChangeHistoryEvents
+/// POST v1beta/accounts/{accountsId}:searchChangeHistoryEvents
 /// Searches through all changes to an account or its children given the specified set of filters. Only returns the subset of changes supported by the API. The UI may return additional changes.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1217,11 +1549,9 @@ pub fn analyticsadmin_accounts_search_change_history_events_execute(
 pub struct AnalyticsadminAccountsSearchChangeHistoryEventsArgs {
     /// Path parameter: account
     pub account: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsRequest,
 }
 
-/// GET v1beta/accounts/{accountsId}:searchChangeHistoryEvents
+/// POST v1beta/accounts/{accountsId}:searchChangeHistoryEvents
 /// Searches through all changes to an account or its children given the specified set of filters. Only returns the subset of changes supported by the API. The UI may return additional changes.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1246,15 +1576,12 @@ pub fn analyticsadmin_accounts_search_change_history_events(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_accounts_search_change_history_events_builder(
-        client,
-        &args.account,
-        &args.body,
-    )?;
+    let builder =
+        analyticsadmin_accounts_search_change_history_events_builder(client, &args.account)?;
     analyticsadmin_accounts_search_change_history_events_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:acknowledgeUserDataCollection
+/// POST v1beta/properties/{propertiesId}:acknowledgeUserDataCollection
 /// Acknowledges the terms of user data collection for the specified property. This acknowledgement must be completed (either in the Google Analytics UI or through this API) before MeasurementProtocolSecret resources may be created.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1263,24 +1590,22 @@ pub fn analyticsadmin_accounts_search_change_history_events(
 pub fn analyticsadmin_properties_acknowledge_user_data_collection_builder(
     client: &SimpleHttpClient,
     property: &String,
-    body: &GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}:acknowledgeUserDataCollection",
+        property,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:acknowledgeUserDataCollection
+/// POST v1beta/properties/{propertiesId}:acknowledgeUserDataCollection
 /// Acknowledges the terms of user data collection for the specified property. This acknowledgement must be completed (either in the Google Analytics UI or through this API) before MeasurementProtocolSecret resources may be created.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1358,7 +1683,7 @@ pub fn analyticsadmin_properties_acknowledge_user_data_collection_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}:acknowledgeUserDataCollection
+/// POST v1beta/properties/{propertiesId}:acknowledgeUserDataCollection
 /// Acknowledges the terms of user data collection for the specified property. This acknowledgement must be completed (either in the Google Analytics UI or through this API) before MeasurementProtocolSecret resources may be created.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1400,11 +1725,9 @@ pub fn analyticsadmin_properties_acknowledge_user_data_collection_execute(
 pub struct AnalyticsadminPropertiesAcknowledgeUserDataCollectionArgs {
     /// Path parameter: property
     pub property: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionRequest,
 }
 
-/// GET v1beta/properties/{propertiesId}:acknowledgeUserDataCollection
+/// POST v1beta/properties/{propertiesId}:acknowledgeUserDataCollection
 /// Acknowledges the terms of user data collection for the specified property. This acknowledgement must be completed (either in the Google Analytics UI or through this API) before MeasurementProtocolSecret resources may be created.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1429,15 +1752,12 @@ pub fn analyticsadmin_properties_acknowledge_user_data_collection(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_acknowledge_user_data_collection_builder(
-        client,
-        &args.property,
-        &args.body,
-    )?;
+    let builder =
+        analyticsadmin_properties_acknowledge_user_data_collection_builder(client, &args.property)?;
     analyticsadmin_properties_acknowledge_user_data_collection_execute(builder)
 }
 
-/// GET v1beta/properties
+/// POST v1beta/properties
 /// Creates a Google Analytics property with the specified location and attributes.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1445,22 +1765,19 @@ pub fn analyticsadmin_properties_acknowledge_user_data_collection(
 
 pub fn analyticsadmin_properties_create_builder(
     client: &SimpleHttpClient,
-    body: &GoogleAnalyticsAdminV1betaProperty,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/properties",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties
+/// POST v1beta/properties
 /// Creates a Google Analytics property with the specified location and attributes.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1534,7 +1851,7 @@ pub fn analyticsadmin_properties_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties
+/// POST v1beta/properties
 /// Creates a Google Analytics property with the specified location and attributes.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1568,14 +1885,7 @@ pub fn analyticsadmin_properties_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`analyticsadmin_properties_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AnalyticsadminPropertiesCreateArgs {
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaProperty,
-}
-
-/// GET v1beta/properties
+/// POST v1beta/properties
 /// Creates a Google Analytics property with the specified location and attributes.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1588,7 +1898,6 @@ pub struct AnalyticsadminPropertiesCreateArgs {
 
 pub fn analyticsadmin_properties_create(
     client: &SimpleHttpClient,
-    args: &AnalyticsadminPropertiesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
@@ -1597,11 +1906,11 @@ pub fn analyticsadmin_properties_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_create_builder(client, &args.body)?;
+    let builder = analyticsadmin_properties_create_builder(client)?;
     analyticsadmin_properties_create_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}
+/// DELETE v1beta/properties/{propertiesId}
 /// Marks target Property as soft-deleted (ie: "trashed") and returns it. This API does not have a method to restore soft-deleted properties. However, they can be restored using the Trash Can UI. If the properties are not restored before the expiration time, the Property and all child resources (eg: GoogleAdsLinks, Streams, AccessBindings) will be permanently purged. <https://support.google.`com/analytics/answer/6154772`> Returns an error if the target is not found.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1612,17 +1921,20 @@ pub fn analyticsadmin_properties_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/properties/{}",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}
+/// DELETE v1beta/properties/{propertiesId}
 /// Marks target Property as soft-deleted (ie: "trashed") and returns it. This API does not have a method to restore soft-deleted properties. However, they can be restored using the Trash Can UI. If the properties are not restored before the expiration time, the Property and all child resources (eg: GoogleAdsLinks, Streams, AccessBindings) will be permanently purged. <https://support.google.`com/analytics/answer/6154772`> Returns an error if the target is not found.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1696,7 +2008,7 @@ pub fn analyticsadmin_properties_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}
+/// DELETE v1beta/properties/{propertiesId}
 /// Marks target Property as soft-deleted (ie: "trashed") and returns it. This API does not have a method to restore soft-deleted properties. However, they can be restored using the Trash Can UI. If the properties are not restored before the expiration time, the Property and all child resources (eg: GoogleAdsLinks, Streams, AccessBindings) will be permanently purged. <https://support.google.`com/analytics/answer/6154772`> Returns an error if the target is not found.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1737,7 +2049,7 @@ pub struct AnalyticsadminPropertiesDeleteArgs {
     pub name: String,
 }
 
-/// GET v1beta/properties/{propertiesId}
+/// DELETE v1beta/properties/{propertiesId}
 /// Marks target Property as soft-deleted (ie: "trashed") and returns it. This API does not have a method to restore soft-deleted properties. However, they can be restored using the Trash Can UI. If the properties are not restored before the expiration time, the Property and all child resources (eg: GoogleAdsLinks, Streams, AccessBindings) will be permanently purged. <https://support.google.`com/analytics/answer/6154772`> Returns an error if the target is not found.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1763,6 +2075,171 @@ pub fn analyticsadmin_properties_delete(
     analyticsadmin_properties_delete_execute(builder)
 }
 
+/// GET v1beta/properties/{propertiesId}
+/// Lookup for a single GA Property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_get_execute()` to send, or `analyticsadmin_properties_get` for simplest API.
+
+pub fn analyticsadmin_properties_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}
+/// Lookup for a single GA Property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_get_execute()` or `analyticsadmin_properties_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaProperty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}
+/// Lookup for a single GA Property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_get_task()`.
+/// For the simplest API, use `analyticsadmin_properties_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/properties/{propertiesId}
+/// Lookup for a single GA Property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_get_builder()` + `analyticsadmin_properties_get_execute()`.
+/// For task-level control, use `analyticsadmin_properties_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_get(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_get_builder(client, &args.name)?;
+    analyticsadmin_properties_get_execute(builder)
+}
+
 /// GET v1beta/properties/{propertiesId}/dataRetentionSettings
 /// Returns the singleton data retention settings for this property.
 ///
@@ -1776,6 +2253,7 @@ pub fn analyticsadmin_properties_get_data_retention_settings_builder(
     // Build URL
     let endpoint_url = format!(
         "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataRetentionSettings",
+        name,
     );
 
     // Build request
@@ -1929,7 +2407,384 @@ pub fn analyticsadmin_properties_get_data_retention_settings(
     analyticsadmin_properties_get_data_retention_settings_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:runAccessReport
+/// GET v1beta/properties
+/// Returns child Properties under the specified parent Account. Properties will be excluded if the caller does not have access. Soft-deleted (ie: "trashed") properties are excluded by default. Returns an empty list if no relevant properties are found.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_list_execute()` to send, or `analyticsadmin_properties_list` for simplest API.
+
+pub fn analyticsadmin_properties_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    showDeleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://analyticsadmin.googleapis.com/v1beta/properties",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = showDeleted.as_ref() {
+        query_parts.push(format!("showDeleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties
+/// Returns child Properties under the specified parent Account. Properties will be excluded if the caller does not have access. Soft-deleted (ie: "trashed") properties are excluded by default. Returns an empty list if no relevant properties are found.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_list_execute()` or `analyticsadmin_properties_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaListPropertiesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaListPropertiesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties
+/// Returns child Properties under the specified parent Account. Properties will be excluded if the caller does not have access. Soft-deleted (ie: "trashed") properties are excluded by default. Returns an empty list if no relevant properties are found.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_list_task()`.
+/// For the simplest API, use `analyticsadmin_properties_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListPropertiesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<Option<String>>,
+}
+
+/// GET v1beta/properties
+/// Returns child Properties under the specified parent Account. Properties will be excluded if the caller does not have access. Soft-deleted (ie: "trashed") properties are excluded by default. Returns an empty list if no relevant properties are found.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_list_builder()` + `analyticsadmin_properties_list_execute()`.
+/// For task-level control, use `analyticsadmin_properties_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_list(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListPropertiesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_list_builder(
+        client,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.showDeleted,
+    )?;
+    analyticsadmin_properties_list_execute(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}
+/// Updates a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_patch_execute()` to send, or `analyticsadmin_properties_patch` for simplest API.
+
+pub fn analyticsadmin_properties_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}
+/// Updates a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_patch_execute()` or `analyticsadmin_properties_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaProperty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta/properties/{propertiesId}
+/// Updates a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_patch_task()`.
+/// For the simplest API, use `analyticsadmin_properties_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta/properties/{propertiesId}
+/// Updates a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_patch_builder()` + `analyticsadmin_properties_patch_execute()`.
+/// For task-level control, use `analyticsadmin_properties_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_patch(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaProperty>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_patch_builder(client, &args.name, &args.updateMask)?;
+    analyticsadmin_properties_patch_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}:runAccessReport
 /// Returns a customized report of data access records. The report provides records of each time a user reads Google Analytics reporting data. Access records are retained for up to 2 years. Data Access Reports can be requested for a property. Reports may be requested for any property, but dimensions that aren't related to quota can only be requested on Google Analytics 360 properties. This method is only available to Administrators. These data access records include GA UI Reporting, GA UI Explorations, GA Data API, and other products like Firebase & Admob that can retrieve data from Google Analytics through a linkage. These records don't include property configuration changes like adding a stream or changing a property's time zone. For configuration change history, see [`searchChangeHistoryEvents`](<https://developers.google.`com/analytics/devguides/config/admin/v1/rest/v1alpha/accounts/`searchChangeHistoryEvents``>). To give your feedback on this API, complete the [Google Analytics Access Reports feedback](<https://docs.google.`com/forms/d/e/1FAIpQLSdmEBUrMzAEdiEKk5TV5dEHvDUZDRlgWYdQdAeSdtR4hVjEhw/viewform`>) form.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1938,23 +2793,22 @@ pub fn analyticsadmin_properties_get_data_retention_settings(
 pub fn analyticsadmin_properties_run_access_report_builder(
     client: &SimpleHttpClient,
     entity: &String,
-    body: &GoogleAnalyticsAdminV1betaRunAccessReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsadmin.googleapis.com/v1beta/properties/{}:runAccessReport",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}:runAccessReport",
+        entity,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}:runAccessReport
+/// POST v1beta/properties/{propertiesId}:runAccessReport
 /// Returns a customized report of data access records. The report provides records of each time a user reads Google Analytics reporting data. Access records are retained for up to 2 years. Data Access Reports can be requested for a property. Reports may be requested for any property, but dimensions that aren't related to quota can only be requested on Google Analytics 360 properties. This method is only available to Administrators. These data access records include GA UI Reporting, GA UI Explorations, GA Data API, and other products like Firebase & Admob that can retrieve data from Google Analytics through a linkage. These records don't include property configuration changes like adding a stream or changing a property's time zone. For configuration change history, see [`searchChangeHistoryEvents`](<https://developers.google.`com/analytics/devguides/config/admin/v1/rest/v1alpha/accounts/`searchChangeHistoryEvents``>). To give your feedback on this API, complete the [Google Analytics Access Reports feedback](<https://docs.google.`com/forms/d/e/1FAIpQLSdmEBUrMzAEdiEKk5TV5dEHvDUZDRlgWYdQdAeSdtR4hVjEhw/viewform`>) form.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2032,7 +2886,7 @@ pub fn analyticsadmin_properties_run_access_report_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}:runAccessReport
+/// POST v1beta/properties/{propertiesId}:runAccessReport
 /// Returns a customized report of data access records. The report provides records of each time a user reads Google Analytics reporting data. Access records are retained for up to 2 years. Data Access Reports can be requested for a property. Reports may be requested for any property, but dimensions that aren't related to quota can only be requested on Google Analytics 360 properties. This method is only available to Administrators. These data access records include GA UI Reporting, GA UI Explorations, GA Data API, and other products like Firebase & Admob that can retrieve data from Google Analytics through a linkage. These records don't include property configuration changes like adding a stream or changing a property's time zone. For configuration change history, see [`searchChangeHistoryEvents`](<https://developers.google.`com/analytics/devguides/config/admin/v1/rest/v1alpha/accounts/`searchChangeHistoryEvents``>). To give your feedback on this API, complete the [Google Analytics Access Reports feedback](<https://docs.google.`com/forms/d/e/1FAIpQLSdmEBUrMzAEdiEKk5TV5dEHvDUZDRlgWYdQdAeSdtR4hVjEhw/viewform`>) form.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2071,11 +2925,9 @@ pub fn analyticsadmin_properties_run_access_report_execute(
 pub struct AnalyticsadminPropertiesRunAccessReportArgs {
     /// Path parameter: entity
     pub entity: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaRunAccessReportRequest,
 }
 
-/// GET v1beta/properties/{propertiesId}:runAccessReport
+/// POST v1beta/properties/{propertiesId}:runAccessReport
 /// Returns a customized report of data access records. The report provides records of each time a user reads Google Analytics reporting data. Access records are retained for up to 2 years. Data Access Reports can be requested for a property. Reports may be requested for any property, but dimensions that aren't related to quota can only be requested on Google Analytics 360 properties. This method is only available to Administrators. These data access records include GA UI Reporting, GA UI Explorations, GA Data API, and other products like Firebase & Admob that can retrieve data from Google Analytics through a linkage. These records don't include property configuration changes like adding a stream or changing a property's time zone. For configuration change history, see [`searchChangeHistoryEvents`](<https://developers.google.`com/analytics/devguides/config/admin/v1/rest/v1alpha/accounts/`searchChangeHistoryEvents``>). To give your feedback on this API, complete the [Google Analytics Access Reports feedback](<https://docs.google.`com/forms/d/e/1FAIpQLSdmEBUrMzAEdiEKk5TV5dEHvDUZDRlgWYdQdAeSdtR4hVjEhw/viewform`>) form.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2097,12 +2949,195 @@ pub fn analyticsadmin_properties_run_access_report(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_run_access_report_builder(client, &args.entity, &args.body)?;
+    let builder = analyticsadmin_properties_run_access_report_builder(client, &args.entity)?;
     analyticsadmin_properties_run_access_report_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/conversionEvents
+/// PATCH v1beta/properties/{propertiesId}/dataRetentionSettings
+/// Updates the singleton data retention settings for this property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_update_data_retention_settings_execute()` to send, or `analyticsadmin_properties_update_data_retention_settings` for simplest API.
+
+pub fn analyticsadmin_properties_update_data_retention_settings_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataRetentionSettings",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataRetentionSettings
+/// Updates the singleton data retention settings for this property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_update_data_retention_settings_execute()` or `analyticsadmin_properties_update_data_retention_settings`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_update_data_retention_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_update_data_retention_settings_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataRetentionSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaDataRetentionSettings =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataRetentionSettings
+/// Updates the singleton data retention settings for this property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_update_data_retention_settings_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_update_data_retention_settings_task()`.
+/// For the simplest API, use `analyticsadmin_properties_update_data_retention_settings()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_update_data_retention_settings_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_update_data_retention_settings_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataRetentionSettings>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_update_data_retention_settings_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_update_data_retention_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesUpdateDataRetentionSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataRetentionSettings
+/// Updates the singleton data retention settings for this property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_update_data_retention_settings_builder()` + `analyticsadmin_properties_update_data_retention_settings_execute()`.
+/// For task-level control, use `analyticsadmin_properties_update_data_retention_settings_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_update_data_retention_settings(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesUpdateDataRetentionSettingsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataRetentionSettings>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_update_data_retention_settings_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    analyticsadmin_properties_update_data_retention_settings_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/conversionEvents
 /// Deprecated: Use CreateKeyEvent instead. Creates a conversion event with the specified attributes.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2111,23 +3146,22 @@ pub fn analyticsadmin_properties_run_access_report(
 pub fn analyticsadmin_properties_conversion_events_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleAnalyticsAdminV1betaConversionEvent,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/conversionEvents
+/// POST v1beta/properties/{propertiesId}/conversionEvents
 /// Deprecated: Use CreateKeyEvent instead. Creates a conversion event with the specified attributes.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2201,7 +3235,7 @@ pub fn analyticsadmin_properties_conversion_events_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}/conversionEvents
+/// POST v1beta/properties/{propertiesId}/conversionEvents
 /// Deprecated: Use CreateKeyEvent instead. Creates a conversion event with the specified attributes.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2240,11 +3274,9 @@ pub fn analyticsadmin_properties_conversion_events_create_execute(
 pub struct AnalyticsadminPropertiesConversionEventsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaConversionEvent,
 }
 
-/// GET v1beta/properties/{propertiesId}/conversionEvents
+/// POST v1beta/properties/{propertiesId}/conversionEvents
 /// Deprecated: Use CreateKeyEvent instead. Creates a conversion event with the specified attributes.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2266,15 +3298,881 @@ pub fn analyticsadmin_properties_conversion_events_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_conversion_events_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder = analyticsadmin_properties_conversion_events_create_builder(client, &args.parent)?;
     analyticsadmin_properties_conversion_events_create_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/customDimensions
+/// DELETE v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use DeleteKeyEvent instead. Deletes a conversion event in a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_conversion_events_delete_execute()` to send, or `analyticsadmin_properties_conversion_events_delete` for simplest API.
+
+pub fn analyticsadmin_properties_conversion_events_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents/{conversionEventsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use DeleteKeyEvent instead. Deletes a conversion event in a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_conversion_events_delete_execute()` or `analyticsadmin_properties_conversion_events_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_conversion_events_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_conversion_events_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use DeleteKeyEvent instead. Deletes a conversion event in a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_conversion_events_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_conversion_events_delete_task()`.
+/// For the simplest API, use `analyticsadmin_properties_conversion_events_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_conversion_events_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_conversion_events_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_conversion_events_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_conversion_events_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesConversionEventsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use DeleteKeyEvent instead. Deletes a conversion event in a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_conversion_events_delete_builder()` + `analyticsadmin_properties_conversion_events_delete_execute()`.
+/// For task-level control, use `analyticsadmin_properties_conversion_events_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_conversion_events_delete(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesConversionEventsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_conversion_events_delete_builder(client, &args.name)?;
+    analyticsadmin_properties_conversion_events_delete_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use GetKeyEvent instead. Retrieve a single conversion event.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_conversion_events_get_execute()` to send, or `analyticsadmin_properties_conversion_events_get` for simplest API.
+
+pub fn analyticsadmin_properties_conversion_events_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents/{conversionEventsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use GetKeyEvent instead. Retrieve a single conversion event.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_conversion_events_get_execute()` or `analyticsadmin_properties_conversion_events_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_conversion_events_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_conversion_events_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaConversionEvent>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaConversionEvent = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use GetKeyEvent instead. Retrieve a single conversion event.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_conversion_events_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_conversion_events_get_task()`.
+/// For the simplest API, use `analyticsadmin_properties_conversion_events_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_conversion_events_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_conversion_events_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaConversionEvent>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_conversion_events_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_conversion_events_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesConversionEventsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use GetKeyEvent instead. Retrieve a single conversion event.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_conversion_events_get_builder()` + `analyticsadmin_properties_conversion_events_get_execute()`.
+/// For task-level control, use `analyticsadmin_properties_conversion_events_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_conversion_events_get(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesConversionEventsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaConversionEvent>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_conversion_events_get_builder(client, &args.name)?;
+    analyticsadmin_properties_conversion_events_get_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/conversionEvents
+/// Deprecated: Use ListKeyEvents instead. Returns a list of conversion events in the specified parent property. Returns an empty list if no conversion events are found.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_conversion_events_list_execute()` to send, or `analyticsadmin_properties_conversion_events_list` for simplest API.
+
+pub fn analyticsadmin_properties_conversion_events_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/conversionEvents
+/// Deprecated: Use ListKeyEvents instead. Returns a list of conversion events in the specified parent property. Returns an empty list if no conversion events are found.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_conversion_events_list_execute()` or `analyticsadmin_properties_conversion_events_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_conversion_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_conversion_events_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListConversionEventsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaListConversionEventsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/conversionEvents
+/// Deprecated: Use ListKeyEvents instead. Returns a list of conversion events in the specified parent property. Returns an empty list if no conversion events are found.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_conversion_events_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_conversion_events_list_task()`.
+/// For the simplest API, use `analyticsadmin_properties_conversion_events_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_conversion_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_conversion_events_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListConversionEventsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_conversion_events_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_conversion_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesConversionEventsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta/properties/{propertiesId}/conversionEvents
+/// Deprecated: Use ListKeyEvents instead. Returns a list of conversion events in the specified parent property. Returns an empty list if no conversion events are found.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_conversion_events_list_builder()` + `analyticsadmin_properties_conversion_events_list_execute()`.
+/// For task-level control, use `analyticsadmin_properties_conversion_events_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_conversion_events_list(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesConversionEventsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListConversionEventsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_conversion_events_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    analyticsadmin_properties_conversion_events_list_execute(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use UpdateKeyEvent instead. Updates a conversion event with the specified attributes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_conversion_events_patch_execute()` to send, or `analyticsadmin_properties_conversion_events_patch` for simplest API.
+
+pub fn analyticsadmin_properties_conversion_events_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/conversionEvents/{conversionEventsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use UpdateKeyEvent instead. Updates a conversion event with the specified attributes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_conversion_events_patch_execute()` or `analyticsadmin_properties_conversion_events_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_conversion_events_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_conversion_events_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaConversionEvent>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaConversionEvent = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use UpdateKeyEvent instead. Updates a conversion event with the specified attributes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_conversion_events_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_conversion_events_patch_task()`.
+/// For the simplest API, use `analyticsadmin_properties_conversion_events_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_conversion_events_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_conversion_events_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaConversionEvent>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_conversion_events_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_conversion_events_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesConversionEventsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta/properties/{propertiesId}/conversionEvents/{conversionEventsId}
+/// Deprecated: Use UpdateKeyEvent instead. Updates a conversion event with the specified attributes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_conversion_events_patch_builder()` + `analyticsadmin_properties_conversion_events_patch_execute()`.
+/// For task-level control, use `analyticsadmin_properties_conversion_events_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_conversion_events_patch(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesConversionEventsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaConversionEvent>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_conversion_events_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    analyticsadmin_properties_conversion_events_patch_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}:archive
+/// Archives a CustomDimension on a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_custom_dimensions_archive_execute()` to send, or `analyticsadmin_properties_custom_dimensions_archive` for simplest API.
+
+pub fn analyticsadmin_properties_custom_dimensions_archive_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions/{customDimensionsId}:archive",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}:archive
+/// Archives a CustomDimension on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_custom_dimensions_archive_execute()` or `analyticsadmin_properties_custom_dimensions_archive`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_dimensions_archive_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_dimensions_archive_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}:archive
+/// Archives a CustomDimension on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_custom_dimensions_archive_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_custom_dimensions_archive_task()`.
+/// For the simplest API, use `analyticsadmin_properties_custom_dimensions_archive()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_dimensions_archive_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_custom_dimensions_archive_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_custom_dimensions_archive_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_custom_dimensions_archive`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomDimensionsArchiveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}:archive
+/// Archives a CustomDimension on a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_custom_dimensions_archive_builder()` + `analyticsadmin_properties_custom_dimensions_archive_execute()`.
+/// For task-level control, use `analyticsadmin_properties_custom_dimensions_archive_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_dimensions_archive(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesCustomDimensionsArchiveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_custom_dimensions_archive_builder(client, &args.name)?;
+    analyticsadmin_properties_custom_dimensions_archive_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/customDimensions
 /// Creates a CustomDimension.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2283,23 +4181,22 @@ pub fn analyticsadmin_properties_conversion_events_create(
 pub fn analyticsadmin_properties_custom_dimensions_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleAnalyticsAdminV1betaCustomDimension,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/customDimensions
+/// POST v1beta/properties/{propertiesId}/customDimensions
 /// Creates a CustomDimension.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2373,7 +4270,7 @@ pub fn analyticsadmin_properties_custom_dimensions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}/customDimensions
+/// POST v1beta/properties/{propertiesId}/customDimensions
 /// Creates a CustomDimension.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2412,11 +4309,9 @@ pub fn analyticsadmin_properties_custom_dimensions_create_execute(
 pub struct AnalyticsadminPropertiesCustomDimensionsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaCustomDimension,
 }
 
-/// GET v1beta/properties/{propertiesId}/customDimensions
+/// POST v1beta/properties/{propertiesId}/customDimensions
 /// Creates a CustomDimension.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2438,15 +4333,720 @@ pub fn analyticsadmin_properties_custom_dimensions_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_custom_dimensions_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder = analyticsadmin_properties_custom_dimensions_create_builder(client, &args.parent)?;
     analyticsadmin_properties_custom_dimensions_create_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/customMetrics
+/// GET v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
+/// Lookup for a single CustomDimension.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_custom_dimensions_get_execute()` to send, or `analyticsadmin_properties_custom_dimensions_get` for simplest API.
+
+pub fn analyticsadmin_properties_custom_dimensions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions/{customDimensionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
+/// Lookup for a single CustomDimension.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_custom_dimensions_get_execute()` or `analyticsadmin_properties_custom_dimensions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_dimensions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_dimensions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomDimension>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaCustomDimension = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
+/// Lookup for a single CustomDimension.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_custom_dimensions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_custom_dimensions_get_task()`.
+/// For the simplest API, use `analyticsadmin_properties_custom_dimensions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_dimensions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_custom_dimensions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomDimension>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_custom_dimensions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_custom_dimensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomDimensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
+/// Lookup for a single CustomDimension.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_custom_dimensions_get_builder()` + `analyticsadmin_properties_custom_dimensions_get_execute()`.
+/// For task-level control, use `analyticsadmin_properties_custom_dimensions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_dimensions_get(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesCustomDimensionsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomDimension>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_custom_dimensions_get_builder(client, &args.name)?;
+    analyticsadmin_properties_custom_dimensions_get_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/customDimensions
+/// Lists CustomDimensions on a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_custom_dimensions_list_execute()` to send, or `analyticsadmin_properties_custom_dimensions_list` for simplest API.
+
+pub fn analyticsadmin_properties_custom_dimensions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/customDimensions
+/// Lists CustomDimensions on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_custom_dimensions_list_execute()` or `analyticsadmin_properties_custom_dimensions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_dimensions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_dimensions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListCustomDimensionsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaListCustomDimensionsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/customDimensions
+/// Lists CustomDimensions on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_custom_dimensions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_custom_dimensions_list_task()`.
+/// For the simplest API, use `analyticsadmin_properties_custom_dimensions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_dimensions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_custom_dimensions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListCustomDimensionsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_custom_dimensions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_custom_dimensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomDimensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta/properties/{propertiesId}/customDimensions
+/// Lists CustomDimensions on a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_custom_dimensions_list_builder()` + `analyticsadmin_properties_custom_dimensions_list_execute()`.
+/// For task-level control, use `analyticsadmin_properties_custom_dimensions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_dimensions_list(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesCustomDimensionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListCustomDimensionsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_custom_dimensions_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    analyticsadmin_properties_custom_dimensions_list_execute(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
+/// Updates a CustomDimension on a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_custom_dimensions_patch_execute()` to send, or `analyticsadmin_properties_custom_dimensions_patch` for simplest API.
+
+pub fn analyticsadmin_properties_custom_dimensions_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customDimensions/{customDimensionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
+/// Updates a CustomDimension on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_custom_dimensions_patch_execute()` or `analyticsadmin_properties_custom_dimensions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_dimensions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_dimensions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomDimension>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaCustomDimension = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
+/// Updates a CustomDimension on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_custom_dimensions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_custom_dimensions_patch_task()`.
+/// For the simplest API, use `analyticsadmin_properties_custom_dimensions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_dimensions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_custom_dimensions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomDimension>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_custom_dimensions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_custom_dimensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomDimensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta/properties/{propertiesId}/customDimensions/{customDimensionsId}
+/// Updates a CustomDimension on a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_custom_dimensions_patch_builder()` + `analyticsadmin_properties_custom_dimensions_patch_execute()`.
+/// For task-level control, use `analyticsadmin_properties_custom_dimensions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_dimensions_patch(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesCustomDimensionsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomDimension>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_custom_dimensions_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    analyticsadmin_properties_custom_dimensions_patch_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}:archive
+/// Archives a CustomMetric on a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_custom_metrics_archive_execute()` to send, or `analyticsadmin_properties_custom_metrics_archive` for simplest API.
+
+pub fn analyticsadmin_properties_custom_metrics_archive_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics/{customMetricsId}:archive",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}:archive
+/// Archives a CustomMetric on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_custom_metrics_archive_execute()` or `analyticsadmin_properties_custom_metrics_archive`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_metrics_archive_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_metrics_archive_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}:archive
+/// Archives a CustomMetric on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_custom_metrics_archive_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_custom_metrics_archive_task()`.
+/// For the simplest API, use `analyticsadmin_properties_custom_metrics_archive()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_metrics_archive_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_custom_metrics_archive_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_custom_metrics_archive_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_custom_metrics_archive`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomMetricsArchiveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}:archive
+/// Archives a CustomMetric on a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_custom_metrics_archive_builder()` + `analyticsadmin_properties_custom_metrics_archive_execute()`.
+/// For task-level control, use `analyticsadmin_properties_custom_metrics_archive_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_metrics_archive(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesCustomMetricsArchiveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_custom_metrics_archive_builder(client, &args.name)?;
+    analyticsadmin_properties_custom_metrics_archive_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/customMetrics
 /// Creates a CustomMetric.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2455,23 +5055,22 @@ pub fn analyticsadmin_properties_custom_dimensions_create(
 pub fn analyticsadmin_properties_custom_metrics_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleAnalyticsAdminV1betaCustomMetric,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/customMetrics
+/// POST v1beta/properties/{propertiesId}/customMetrics
 /// Creates a CustomMetric.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2545,7 +5144,7 @@ pub fn analyticsadmin_properties_custom_metrics_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}/customMetrics
+/// POST v1beta/properties/{propertiesId}/customMetrics
 /// Creates a CustomMetric.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2584,11 +5183,9 @@ pub fn analyticsadmin_properties_custom_metrics_create_execute(
 pub struct AnalyticsadminPropertiesCustomMetricsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaCustomMetric,
 }
 
-/// GET v1beta/properties/{propertiesId}/customMetrics
+/// POST v1beta/properties/{propertiesId}/customMetrics
 /// Creates a CustomMetric.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2610,12 +5207,553 @@ pub fn analyticsadmin_properties_custom_metrics_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_custom_metrics_create_builder(client, &args.parent, &args.body)?;
+    let builder = analyticsadmin_properties_custom_metrics_create_builder(client, &args.parent)?;
     analyticsadmin_properties_custom_metrics_create_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/dataStreams
+/// GET v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
+/// Lookup for a single CustomMetric.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_custom_metrics_get_execute()` to send, or `analyticsadmin_properties_custom_metrics_get` for simplest API.
+
+pub fn analyticsadmin_properties_custom_metrics_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics/{customMetricsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
+/// Lookup for a single CustomMetric.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_custom_metrics_get_execute()` or `analyticsadmin_properties_custom_metrics_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_metrics_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_metrics_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomMetric>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaCustomMetric = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
+/// Lookup for a single CustomMetric.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_custom_metrics_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_custom_metrics_get_task()`.
+/// For the simplest API, use `analyticsadmin_properties_custom_metrics_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_metrics_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_custom_metrics_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomMetric>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_custom_metrics_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_custom_metrics_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomMetricsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
+/// Lookup for a single CustomMetric.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_custom_metrics_get_builder()` + `analyticsadmin_properties_custom_metrics_get_execute()`.
+/// For task-level control, use `analyticsadmin_properties_custom_metrics_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_metrics_get(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesCustomMetricsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomMetric>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_custom_metrics_get_builder(client, &args.name)?;
+    analyticsadmin_properties_custom_metrics_get_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/customMetrics
+/// Lists CustomMetrics on a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_custom_metrics_list_execute()` to send, or `analyticsadmin_properties_custom_metrics_list` for simplest API.
+
+pub fn analyticsadmin_properties_custom_metrics_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/customMetrics
+/// Lists CustomMetrics on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_custom_metrics_list_execute()` or `analyticsadmin_properties_custom_metrics_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_metrics_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_metrics_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListCustomMetricsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaListCustomMetricsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/customMetrics
+/// Lists CustomMetrics on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_custom_metrics_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_custom_metrics_list_task()`.
+/// For the simplest API, use `analyticsadmin_properties_custom_metrics_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_metrics_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_custom_metrics_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListCustomMetricsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_custom_metrics_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_custom_metrics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomMetricsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta/properties/{propertiesId}/customMetrics
+/// Lists CustomMetrics on a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_custom_metrics_list_builder()` + `analyticsadmin_properties_custom_metrics_list_execute()`.
+/// For task-level control, use `analyticsadmin_properties_custom_metrics_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_metrics_list(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesCustomMetricsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListCustomMetricsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_custom_metrics_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    analyticsadmin_properties_custom_metrics_list_execute(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
+/// Updates a CustomMetric on a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_custom_metrics_patch_execute()` to send, or `analyticsadmin_properties_custom_metrics_patch` for simplest API.
+
+pub fn analyticsadmin_properties_custom_metrics_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/customMetrics/{customMetricsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
+/// Updates a CustomMetric on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_custom_metrics_patch_execute()` or `analyticsadmin_properties_custom_metrics_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_metrics_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_metrics_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomMetric>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaCustomMetric = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
+/// Updates a CustomMetric on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_custom_metrics_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_custom_metrics_patch_task()`.
+/// For the simplest API, use `analyticsadmin_properties_custom_metrics_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_custom_metrics_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_custom_metrics_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomMetric>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_custom_metrics_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_custom_metrics_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesCustomMetricsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta/properties/{propertiesId}/customMetrics/{customMetricsId}
+/// Updates a CustomMetric on a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_custom_metrics_patch_builder()` + `analyticsadmin_properties_custom_metrics_patch_execute()`.
+/// For task-level control, use `analyticsadmin_properties_custom_metrics_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_custom_metrics_patch(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesCustomMetricsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaCustomMetric>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_custom_metrics_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    analyticsadmin_properties_custom_metrics_patch_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/dataStreams
 /// Creates a DataStream.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2624,23 +5762,22 @@ pub fn analyticsadmin_properties_custom_metrics_create(
 pub fn analyticsadmin_properties_data_streams_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleAnalyticsAdminV1betaDataStream,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/dataStreams
+/// POST v1beta/properties/{propertiesId}/dataStreams
 /// Creates a DataStream.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2714,7 +5851,7 @@ pub fn analyticsadmin_properties_data_streams_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}/dataStreams
+/// POST v1beta/properties/{propertiesId}/dataStreams
 /// Creates a DataStream.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2753,11 +5890,9 @@ pub fn analyticsadmin_properties_data_streams_create_execute(
 pub struct AnalyticsadminPropertiesDataStreamsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaDataStream,
 }
 
-/// GET v1beta/properties/{propertiesId}/dataStreams
+/// POST v1beta/properties/{propertiesId}/dataStreams
 /// Creates a DataStream.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2779,12 +5914,1612 @@ pub fn analyticsadmin_properties_data_streams_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_data_streams_create_builder(client, &args.parent, &args.body)?;
+    let builder = analyticsadmin_properties_data_streams_create_builder(client, &args.parent)?;
     analyticsadmin_properties_data_streams_create_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/firebaseLinks
+/// DELETE v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Deletes a DataStream on a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_data_streams_delete_execute()` to send, or `analyticsadmin_properties_data_streams_delete` for simplest API.
+
+pub fn analyticsadmin_properties_data_streams_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Deletes a DataStream on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_data_streams_delete_execute()` or `analyticsadmin_properties_data_streams_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Deletes a DataStream on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_data_streams_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_data_streams_delete_task()`.
+/// For the simplest API, use `analyticsadmin_properties_data_streams_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_data_streams_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_data_streams_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_data_streams_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Deletes a DataStream on a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_data_streams_delete_builder()` + `analyticsadmin_properties_data_streams_delete_execute()`.
+/// For task-level control, use `analyticsadmin_properties_data_streams_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_delete(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesDataStreamsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_data_streams_delete_builder(client, &args.name)?;
+    analyticsadmin_properties_data_streams_delete_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Lookup for a single DataStream.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_data_streams_get_execute()` to send, or `analyticsadmin_properties_data_streams_get` for simplest API.
+
+pub fn analyticsadmin_properties_data_streams_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Lookup for a single DataStream.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_data_streams_get_execute()` or `analyticsadmin_properties_data_streams_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataStream>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaDataStream = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Lookup for a single DataStream.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_data_streams_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_data_streams_get_task()`.
+/// For the simplest API, use `analyticsadmin_properties_data_streams_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_data_streams_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataStream>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_data_streams_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_data_streams_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Lookup for a single DataStream.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_data_streams_get_builder()` + `analyticsadmin_properties_data_streams_get_execute()`.
+/// For task-level control, use `analyticsadmin_properties_data_streams_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_get(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesDataStreamsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataStream>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_data_streams_get_builder(client, &args.name)?;
+    analyticsadmin_properties_data_streams_get_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams
+/// Lists DataStreams on a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_data_streams_list_execute()` to send, or `analyticsadmin_properties_data_streams_list` for simplest API.
+
+pub fn analyticsadmin_properties_data_streams_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams
+/// Lists DataStreams on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_data_streams_list_execute()` or `analyticsadmin_properties_data_streams_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListDataStreamsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaListDataStreamsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams
+/// Lists DataStreams on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_data_streams_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_data_streams_list_task()`.
+/// For the simplest API, use `analyticsadmin_properties_data_streams_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_data_streams_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListDataStreamsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_data_streams_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_data_streams_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams
+/// Lists DataStreams on a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_data_streams_list_builder()` + `analyticsadmin_properties_data_streams_list_execute()`.
+/// For task-level control, use `analyticsadmin_properties_data_streams_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_list(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesDataStreamsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListDataStreamsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_data_streams_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    analyticsadmin_properties_data_streams_list_execute(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Updates a DataStream on a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_data_streams_patch_execute()` to send, or `analyticsadmin_properties_data_streams_patch` for simplest API.
+
+pub fn analyticsadmin_properties_data_streams_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Updates a DataStream on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_data_streams_patch_execute()` or `analyticsadmin_properties_data_streams_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataStream>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaDataStream = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Updates a DataStream on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_data_streams_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_data_streams_patch_task()`.
+/// For the simplest API, use `analyticsadmin_properties_data_streams_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_data_streams_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataStream>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_data_streams_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_data_streams_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}
+/// Updates a DataStream on a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_data_streams_patch_builder()` + `analyticsadmin_properties_data_streams_patch_execute()`.
+/// For task-level control, use `analyticsadmin_properties_data_streams_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_patch(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesDataStreamsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaDataStream>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        analyticsadmin_properties_data_streams_patch_builder(client, &args.name, &args.updateMask)?;
+    analyticsadmin_properties_data_streams_patch_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
+/// Creates a measurement protocol secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_execute()` to send, or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create` for simplest API.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}/measurementProtocolSecrets",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
+/// Creates a measurement protocol secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_execute()` or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaMeasurementProtocolSecret =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
+/// Creates a measurement protocol secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_task()`.
+/// For the simplest API, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_data_streams_measurement_protocol_secrets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
+/// Creates a measurement protocol secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_builder()` + `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_execute()`.
+/// For task-level control, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_create(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_builder(
+            client,
+            &args.parent,
+        )?;
+    analyticsadmin_properties_data_streams_measurement_protocol_secrets_create_execute(builder)
+}
+
+/// DELETE v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Deletes target MeasurementProtocolSecret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_execute()` to send, or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete` for simplest API.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Deletes target MeasurementProtocolSecret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_execute()` or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Deletes target MeasurementProtocolSecret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_task()`.
+/// For the simplest API, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Deletes target MeasurementProtocolSecret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_builder()` + `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_execute()`.
+/// For task-level control, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_builder(
+            client, &args.name,
+        )?;
+    analyticsadmin_properties_data_streams_measurement_protocol_secrets_delete_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Lookup for a single MeasurementProtocolSecret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_execute()` to send, or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get` for simplest API.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Lookup for a single MeasurementProtocolSecret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_execute()` or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaMeasurementProtocolSecret =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Lookup for a single MeasurementProtocolSecret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_task()`.
+/// For the simplest API, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_data_streams_measurement_protocol_secrets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Lookup for a single MeasurementProtocolSecret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder()` + `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_execute()`.
+/// For task-level control, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_get(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_builder(
+        client, &args.name,
+    )?;
+    analyticsadmin_properties_data_streams_measurement_protocol_secrets_get_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
+/// Returns child MeasurementProtocolSecrets under the specified parent Property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_execute()` to send, or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list` for simplest API.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}/measurementProtocolSecrets",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
+/// Returns child MeasurementProtocolSecrets under the specified parent Property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_execute()` or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
+/// Returns child MeasurementProtocolSecrets under the specified parent Property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_task()`.
+/// For the simplest API, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_data_streams_measurement_protocol_secrets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets
+/// Returns child MeasurementProtocolSecrets under the specified parent Property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder()` + `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_execute()`.
+/// For task-level control, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_list(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse>,
+                ApiError,
+            >,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    analyticsadmin_properties_data_streams_measurement_protocol_secrets_list_execute(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Updates a measurement protocol secret.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_execute()` to send, or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch` for simplest API.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Updates a measurement protocol secret.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_execute()` or `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaMeasurementProtocolSecret =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Updates a measurement protocol secret.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_task()`.
+/// For the simplest API, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta/properties/{propertiesId}/dataStreams/{dataStreamsId}/measurementProtocolSecrets/{measurementProtocolSecretsId}
+/// Updates a measurement protocol secret.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder()` + `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_execute()`.
+/// For task-level control, use `analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaMeasurementProtocolSecret>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_builder(
+            client,
+            &args.name,
+            &args.updateMask,
+        )?;
+    analyticsadmin_properties_data_streams_measurement_protocol_secrets_patch_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/firebaseLinks
 /// Creates a FirebaseLink. Properties can have at most one FirebaseLink.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2793,23 +7528,22 @@ pub fn analyticsadmin_properties_data_streams_create(
 pub fn analyticsadmin_properties_firebase_links_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleAnalyticsAdminV1betaFirebaseLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsadmin.googleapis.com/v1beta/properties/{}/firebaseLinks",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/firebaseLinks",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/firebaseLinks
+/// POST v1beta/properties/{propertiesId}/firebaseLinks
 /// Creates a FirebaseLink. Properties can have at most one FirebaseLink.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2883,7 +7617,7 @@ pub fn analyticsadmin_properties_firebase_links_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}/firebaseLinks
+/// POST v1beta/properties/{propertiesId}/firebaseLinks
 /// Creates a FirebaseLink. Properties can have at most one FirebaseLink.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2922,11 +7656,9 @@ pub fn analyticsadmin_properties_firebase_links_create_execute(
 pub struct AnalyticsadminPropertiesFirebaseLinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaFirebaseLink,
 }
 
-/// GET v1beta/properties/{propertiesId}/firebaseLinks
+/// POST v1beta/properties/{propertiesId}/firebaseLinks
 /// Creates a FirebaseLink. Properties can have at most one FirebaseLink.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2948,12 +7680,366 @@ pub fn analyticsadmin_properties_firebase_links_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_firebase_links_create_builder(client, &args.parent, &args.body)?;
+    let builder = analyticsadmin_properties_firebase_links_create_builder(client, &args.parent)?;
     analyticsadmin_properties_firebase_links_create_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/googleAdsLinks
+/// DELETE v1beta/properties/{propertiesId}/firebaseLinks/{firebaseLinksId}
+/// Deletes a FirebaseLink on a property
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_firebase_links_delete_execute()` to send, or `analyticsadmin_properties_firebase_links_delete` for simplest API.
+
+pub fn analyticsadmin_properties_firebase_links_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/firebaseLinks/{firebaseLinksId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta/properties/{propertiesId}/firebaseLinks/{firebaseLinksId}
+/// Deletes a FirebaseLink on a property
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_firebase_links_delete_execute()` or `analyticsadmin_properties_firebase_links_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_firebase_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_firebase_links_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta/properties/{propertiesId}/firebaseLinks/{firebaseLinksId}
+/// Deletes a FirebaseLink on a property
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_firebase_links_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_firebase_links_delete_task()`.
+/// For the simplest API, use `analyticsadmin_properties_firebase_links_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_firebase_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_firebase_links_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_firebase_links_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_firebase_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesFirebaseLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta/properties/{propertiesId}/firebaseLinks/{firebaseLinksId}
+/// Deletes a FirebaseLink on a property
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_firebase_links_delete_builder()` + `analyticsadmin_properties_firebase_links_delete_execute()`.
+/// For task-level control, use `analyticsadmin_properties_firebase_links_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_firebase_links_delete(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesFirebaseLinksDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_firebase_links_delete_builder(client, &args.name)?;
+    analyticsadmin_properties_firebase_links_delete_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/firebaseLinks
+/// Lists FirebaseLinks on a property. Properties can have at most one FirebaseLink.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_firebase_links_list_execute()` to send, or `analyticsadmin_properties_firebase_links_list` for simplest API.
+
+pub fn analyticsadmin_properties_firebase_links_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/firebaseLinks",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/firebaseLinks
+/// Lists FirebaseLinks on a property. Properties can have at most one FirebaseLink.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_firebase_links_list_execute()` or `analyticsadmin_properties_firebase_links_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_firebase_links_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_firebase_links_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListFirebaseLinksResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaListFirebaseLinksResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/firebaseLinks
+/// Lists FirebaseLinks on a property. Properties can have at most one FirebaseLink.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_firebase_links_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_firebase_links_list_task()`.
+/// For the simplest API, use `analyticsadmin_properties_firebase_links_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_firebase_links_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_firebase_links_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListFirebaseLinksResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_firebase_links_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_firebase_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesFirebaseLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta/properties/{propertiesId}/firebaseLinks
+/// Lists FirebaseLinks on a property. Properties can have at most one FirebaseLink.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_firebase_links_list_builder()` + `analyticsadmin_properties_firebase_links_list_execute()`.
+/// For task-level control, use `analyticsadmin_properties_firebase_links_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_firebase_links_list(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesFirebaseLinksListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListFirebaseLinksResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_firebase_links_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    analyticsadmin_properties_firebase_links_list_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/googleAdsLinks
 /// Creates a GoogleAdsLink.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2962,23 +8048,22 @@ pub fn analyticsadmin_properties_firebase_links_create(
 pub fn analyticsadmin_properties_google_ads_links_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleAnalyticsAdminV1betaGoogleAdsLink,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsadmin.googleapis.com/v1beta/properties/{}/googleAdsLinks",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/googleAdsLinks",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/googleAdsLinks
+/// POST v1beta/properties/{propertiesId}/googleAdsLinks
 /// Creates a GoogleAdsLink.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3053,7 +8138,7 @@ pub fn analyticsadmin_properties_google_ads_links_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}/googleAdsLinks
+/// POST v1beta/properties/{propertiesId}/googleAdsLinks
 /// Creates a GoogleAdsLink.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3092,11 +8177,9 @@ pub fn analyticsadmin_properties_google_ads_links_create_execute(
 pub struct AnalyticsadminPropertiesGoogleAdsLinksCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaGoogleAdsLink,
 }
 
-/// GET v1beta/properties/{propertiesId}/googleAdsLinks
+/// POST v1beta/properties/{propertiesId}/googleAdsLinks
 /// Creates a GoogleAdsLink.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3118,15 +8201,550 @@ pub fn analyticsadmin_properties_google_ads_links_create(
         + 'static,
     ApiError,
 > {
-    let builder = analyticsadmin_properties_google_ads_links_create_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
+    let builder = analyticsadmin_properties_google_ads_links_create_builder(client, &args.parent)?;
     analyticsadmin_properties_google_ads_links_create_execute(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/keyEvents
+/// DELETE v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
+/// Deletes a GoogleAdsLink on a property
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_google_ads_links_delete_execute()` to send, or `analyticsadmin_properties_google_ads_links_delete` for simplest API.
+
+pub fn analyticsadmin_properties_google_ads_links_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/googleAdsLinks/{googleAdsLinksId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
+/// Deletes a GoogleAdsLink on a property
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_google_ads_links_delete_execute()` or `analyticsadmin_properties_google_ads_links_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_google_ads_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_google_ads_links_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
+/// Deletes a GoogleAdsLink on a property
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_google_ads_links_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_google_ads_links_delete_task()`.
+/// For the simplest API, use `analyticsadmin_properties_google_ads_links_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_google_ads_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_google_ads_links_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_google_ads_links_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_google_ads_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesGoogleAdsLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
+/// Deletes a GoogleAdsLink on a property
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_google_ads_links_delete_builder()` + `analyticsadmin_properties_google_ads_links_delete_execute()`.
+/// For task-level control, use `analyticsadmin_properties_google_ads_links_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_google_ads_links_delete(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesGoogleAdsLinksDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_google_ads_links_delete_builder(client, &args.name)?;
+    analyticsadmin_properties_google_ads_links_delete_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/googleAdsLinks
+/// Lists GoogleAdsLinks on a property.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_google_ads_links_list_execute()` to send, or `analyticsadmin_properties_google_ads_links_list` for simplest API.
+
+pub fn analyticsadmin_properties_google_ads_links_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/googleAdsLinks",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/googleAdsLinks
+/// Lists GoogleAdsLinks on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_google_ads_links_list_execute()` or `analyticsadmin_properties_google_ads_links_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_google_ads_links_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_google_ads_links_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<
+                ApiResponse<GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/googleAdsLinks
+/// Lists GoogleAdsLinks on a property.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_google_ads_links_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_google_ads_links_list_task()`.
+/// For the simplest API, use `analyticsadmin_properties_google_ads_links_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_google_ads_links_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_google_ads_links_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_google_ads_links_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_google_ads_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesGoogleAdsLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta/properties/{propertiesId}/googleAdsLinks
+/// Lists GoogleAdsLinks on a property.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_google_ads_links_list_builder()` + `analyticsadmin_properties_google_ads_links_list_execute()`.
+/// For task-level control, use `analyticsadmin_properties_google_ads_links_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_google_ads_links_list(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesGoogleAdsLinksListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_google_ads_links_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    analyticsadmin_properties_google_ads_links_list_execute(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
+/// Updates a GoogleAdsLink on a property
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_google_ads_links_patch_execute()` to send, or `analyticsadmin_properties_google_ads_links_patch` for simplest API.
+
+pub fn analyticsadmin_properties_google_ads_links_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/googleAdsLinks/{googleAdsLinksId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
+/// Updates a GoogleAdsLink on a property
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_google_ads_links_patch_execute()` or `analyticsadmin_properties_google_ads_links_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_google_ads_links_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_google_ads_links_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaGoogleAdsLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaGoogleAdsLink =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
+/// Updates a GoogleAdsLink on a property
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_google_ads_links_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_google_ads_links_patch_task()`.
+/// For the simplest API, use `analyticsadmin_properties_google_ads_links_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_google_ads_links_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_google_ads_links_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaGoogleAdsLink>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_google_ads_links_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_google_ads_links_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesGoogleAdsLinksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta/properties/{propertiesId}/googleAdsLinks/{googleAdsLinksId}
+/// Updates a GoogleAdsLink on a property
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_google_ads_links_patch_builder()` + `analyticsadmin_properties_google_ads_links_patch_execute()`.
+/// For task-level control, use `analyticsadmin_properties_google_ads_links_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_google_ads_links_patch(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesGoogleAdsLinksPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaGoogleAdsLink>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_google_ads_links_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    analyticsadmin_properties_google_ads_links_patch_execute(builder)
+}
+
+/// POST v1beta/properties/{propertiesId}/keyEvents
 /// Creates a Key Event.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3135,23 +8753,22 @@ pub fn analyticsadmin_properties_google_ads_links_create(
 pub fn analyticsadmin_properties_key_events_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &GoogleAnalyticsAdminV1betaKeyEvent,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents",);
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1beta/properties/{propertiesId}/keyEvents
+/// POST v1beta/properties/{propertiesId}/keyEvents
 /// Creates a Key Event.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3225,7 +8842,7 @@ pub fn analyticsadmin_properties_key_events_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1beta/properties/{propertiesId}/keyEvents
+/// POST v1beta/properties/{propertiesId}/keyEvents
 /// Creates a Key Event.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3264,11 +8881,9 @@ pub fn analyticsadmin_properties_key_events_create_execute(
 pub struct AnalyticsadminPropertiesKeyEventsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: GoogleAnalyticsAdminV1betaKeyEvent,
 }
 
-/// GET v1beta/properties/{propertiesId}/keyEvents
+/// POST v1beta/properties/{propertiesId}/keyEvents
 /// Creates a Key Event.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3290,7 +8905,2273 @@ pub fn analyticsadmin_properties_key_events_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        analyticsadmin_properties_key_events_create_builder(client, &args.parent, &args.body)?;
+    let builder = analyticsadmin_properties_key_events_create_builder(client, &args.parent)?;
     analyticsadmin_properties_key_events_create_execute(builder)
+}
+
+/// DELETE v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Deletes a Key Event.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_key_events_delete_execute()` to send, or `analyticsadmin_properties_key_events_delete` for simplest API.
+
+pub fn analyticsadmin_properties_key_events_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents/{keyEventsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Deletes a Key Event.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_key_events_delete_execute()` or `analyticsadmin_properties_key_events_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_key_events_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_key_events_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Deletes a Key Event.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_key_events_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_key_events_delete_task()`.
+/// For the simplest API, use `analyticsadmin_properties_key_events_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_key_events_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_key_events_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_key_events_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_key_events_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesKeyEventsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Deletes a Key Event.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_key_events_delete_builder()` + `analyticsadmin_properties_key_events_delete_execute()`.
+/// For task-level control, use `analyticsadmin_properties_key_events_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_key_events_delete(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesKeyEventsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_key_events_delete_builder(client, &args.name)?;
+    analyticsadmin_properties_key_events_delete_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Retrieve a single Key Event.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_key_events_get_execute()` to send, or `analyticsadmin_properties_key_events_get` for simplest API.
+
+pub fn analyticsadmin_properties_key_events_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents/{keyEventsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Retrieve a single Key Event.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_key_events_get_execute()` or `analyticsadmin_properties_key_events_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_key_events_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_key_events_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaKeyEvent>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaKeyEvent = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Retrieve a single Key Event.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_key_events_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_key_events_get_task()`.
+/// For the simplest API, use `analyticsadmin_properties_key_events_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_key_events_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_key_events_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaKeyEvent>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_key_events_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_key_events_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesKeyEventsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Retrieve a single Key Event.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_key_events_get_builder()` + `analyticsadmin_properties_key_events_get_execute()`.
+/// For task-level control, use `analyticsadmin_properties_key_events_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_key_events_get(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesKeyEventsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaKeyEvent>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_key_events_get_builder(client, &args.name)?;
+    analyticsadmin_properties_key_events_get_execute(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/keyEvents
+/// Returns a list of Key Events in the specified parent property. Returns an empty list if no Key Events are found.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_key_events_list_execute()` to send, or `analyticsadmin_properties_key_events_list` for simplest API.
+
+pub fn analyticsadmin_properties_key_events_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1beta/properties/{propertiesId}/keyEvents
+/// Returns a list of Key Events in the specified parent property. Returns an empty list if no Key Events are found.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_key_events_list_execute()` or `analyticsadmin_properties_key_events_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_key_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_key_events_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaListKeyEventsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaListKeyEventsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1beta/properties/{propertiesId}/keyEvents
+/// Returns a list of Key Events in the specified parent property. Returns an empty list if no Key Events are found.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_key_events_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_key_events_list_task()`.
+/// For the simplest API, use `analyticsadmin_properties_key_events_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_key_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_key_events_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListKeyEventsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_key_events_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_key_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesKeyEventsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1beta/properties/{propertiesId}/keyEvents
+/// Returns a list of Key Events in the specified parent property. Returns an empty list if no Key Events are found.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_key_events_list_builder()` + `analyticsadmin_properties_key_events_list_execute()`.
+/// For task-level control, use `analyticsadmin_properties_key_events_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_key_events_list(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesKeyEventsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaListKeyEventsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = analyticsadmin_properties_key_events_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    analyticsadmin_properties_key_events_list_execute(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Updates a Key Event.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `analyticsadmin_properties_key_events_patch_execute()` to send, or `analyticsadmin_properties_key_events_patch` for simplest API.
+
+pub fn analyticsadmin_properties_key_events_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://analyticsadmin.googleapis.com/v1beta/properties/{}/keyEvents/{keyEventsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Updates a Key Event.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `analyticsadmin_properties_key_events_patch_execute()` or `analyticsadmin_properties_key_events_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_key_events_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_key_events_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleAnalyticsAdminV1betaKeyEvent>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleAnalyticsAdminV1betaKeyEvent = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Updates a Key Event.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `analyticsadmin_properties_key_events_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `analyticsadmin_properties_key_events_patch_task()`.
+/// For the simplest API, use `analyticsadmin_properties_key_events_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `analyticsadmin_properties_key_events_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn analyticsadmin_properties_key_events_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaKeyEvent>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = analyticsadmin_properties_key_events_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`analyticsadmin_properties_key_events_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AnalyticsadminPropertiesKeyEventsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1beta/properties/{propertiesId}/keyEvents/{keyEventsId}
+/// Updates a Key Event.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `analyticsadmin_properties_key_events_patch_builder()` + `analyticsadmin_properties_key_events_patch_execute()`.
+/// For task-level control, use `analyticsadmin_properties_key_events_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn analyticsadmin_properties_key_events_patch(
+    client: &SimpleHttpClient,
+    args: &AnalyticsadminPropertiesKeyEventsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleAnalyticsAdminV1betaKeyEvent>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        analyticsadmin_properties_key_events_patch_builder(client, &args.name, &args.updateMask)?;
+    analyticsadmin_properties_key_events_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListAccountSummariesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListAccountSummariesResponse with AnalyticsadminAccountSummariesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountSummariesListArgs>
+    for GoogleAnalyticsAdminV1betaListAccountSummariesResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountSummariesListArgs) -> String {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListAccountSummariesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListAccountSummariesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with AnalyticsadminAccountsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountsDeleteArgs) -> String {
+        format!("gcp::analyticsadmin::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaAccount with AnalyticsadminAccountsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsGetArgs> for GoogleAnalyticsAdminV1betaAccount {
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountsGetArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaAccount/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataSharingSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataSharingSettings with AnalyticsadminAccountsGetDataSharingSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsGetDataSharingSettingsArgs>
+    for GoogleAnalyticsAdminV1betaDataSharingSettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminAccountsGetDataSharingSettingsArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataSharingSettings/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataSharingSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListAccountsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListAccountsResponse with AnalyticsadminAccountsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsListArgs>
+    for GoogleAnalyticsAdminV1betaListAccountsResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountsListArgs) -> String {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListAccountsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaAccount
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaAccount with AnalyticsadminAccountsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsPatchArgs> for GoogleAnalyticsAdminV1betaAccount {
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountsPatchArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaAccount/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse with AnalyticsadminAccountsProvisionAccountTicketArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsProvisionAccountTicketArgs>
+    for GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminAccountsProvisionAccountTicketArgs,
+    ) -> String {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProvisionAccountTicketResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaRunAccessReportResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaRunAccessReportResponse with AnalyticsadminAccountsRunAccessReportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsRunAccessReportArgs>
+    for GoogleAnalyticsAdminV1betaRunAccessReportResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminAccountsRunAccessReportArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaRunAccessReportResponse/{}",
+            input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaRunAccessReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse with AnalyticsadminAccountsSearchChangeHistoryEventsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminAccountsSearchChangeHistoryEventsArgs>
+    for GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminAccountsSearchChangeHistoryEventsArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse/{}",
+            input.account
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaSearchChangeHistoryEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse with AnalyticsadminPropertiesAcknowledgeUserDataCollectionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesAcknowledgeUserDataCollectionArgs>
+    for GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesAcknowledgeUserDataCollectionArgs,
+    ) -> String {
+        format!("gcp::analyticsadmin::GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse/{}", input.property)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaAcknowledgeUserDataCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty with AnalyticsadminPropertiesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCreateArgs> for GoogleAnalyticsAdminV1betaProperty {
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesCreateArgs) -> String {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProperty".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProperty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty with AnalyticsadminPropertiesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDeleteArgs> for GoogleAnalyticsAdminV1betaProperty {
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesDeleteArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProperty/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProperty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty with AnalyticsadminPropertiesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesGetArgs> for GoogleAnalyticsAdminV1betaProperty {
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesGetArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProperty/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProperty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataRetentionSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataRetentionSettings with AnalyticsadminPropertiesGetDataRetentionSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesGetDataRetentionSettingsArgs>
+    for GoogleAnalyticsAdminV1betaDataRetentionSettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesGetDataRetentionSettingsArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataRetentionSettings/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataRetentionSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListPropertiesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListPropertiesResponse with AnalyticsadminPropertiesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesListArgs>
+    for GoogleAnalyticsAdminV1betaListPropertiesResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesListArgs) -> String {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListPropertiesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListPropertiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaProperty with AnalyticsadminPropertiesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesPatchArgs> for GoogleAnalyticsAdminV1betaProperty {
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesPatchArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProperty/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaProperty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaRunAccessReportResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaRunAccessReportResponse with AnalyticsadminPropertiesRunAccessReportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesRunAccessReportArgs>
+    for GoogleAnalyticsAdminV1betaRunAccessReportResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesRunAccessReportArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaRunAccessReportResponse/{}",
+            input.entity
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaRunAccessReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataRetentionSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataRetentionSettings with AnalyticsadminPropertiesUpdateDataRetentionSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesUpdateDataRetentionSettingsArgs>
+    for GoogleAnalyticsAdminV1betaDataRetentionSettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesUpdateDataRetentionSettingsArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataRetentionSettings/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataRetentionSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaConversionEvent
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaConversionEvent with AnalyticsadminPropertiesConversionEventsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesConversionEventsCreateArgs>
+    for GoogleAnalyticsAdminV1betaConversionEvent
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesConversionEventsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaConversionEvent/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaConversionEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with AnalyticsadminPropertiesConversionEventsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesConversionEventsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesConversionEventsDeleteArgs,
+    ) -> String {
+        format!("gcp::analyticsadmin::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaConversionEvent
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaConversionEvent with AnalyticsadminPropertiesConversionEventsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesConversionEventsGetArgs>
+    for GoogleAnalyticsAdminV1betaConversionEvent
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesConversionEventsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaConversionEvent/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaConversionEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListConversionEventsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListConversionEventsResponse with AnalyticsadminPropertiesConversionEventsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesConversionEventsListArgs>
+    for GoogleAnalyticsAdminV1betaListConversionEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesConversionEventsListArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListConversionEventsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListConversionEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaConversionEvent
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaConversionEvent with AnalyticsadminPropertiesConversionEventsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesConversionEventsPatchArgs>
+    for GoogleAnalyticsAdminV1betaConversionEvent
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesConversionEventsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaConversionEvent/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaConversionEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with AnalyticsadminPropertiesCustomDimensionsArchiveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomDimensionsArchiveArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomDimensionsArchiveArgs,
+    ) -> String {
+        format!("gcp::analyticsadmin::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomDimension
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomDimension with AnalyticsadminPropertiesCustomDimensionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomDimensionsCreateArgs>
+    for GoogleAnalyticsAdminV1betaCustomDimension
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomDimensionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomDimension/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomDimension"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomDimension
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomDimension with AnalyticsadminPropertiesCustomDimensionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomDimensionsGetArgs>
+    for GoogleAnalyticsAdminV1betaCustomDimension
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomDimensionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomDimension/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomDimension"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListCustomDimensionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListCustomDimensionsResponse with AnalyticsadminPropertiesCustomDimensionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomDimensionsListArgs>
+    for GoogleAnalyticsAdminV1betaListCustomDimensionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomDimensionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListCustomDimensionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListCustomDimensionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomDimension
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomDimension with AnalyticsadminPropertiesCustomDimensionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomDimensionsPatchArgs>
+    for GoogleAnalyticsAdminV1betaCustomDimension
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomDimensionsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomDimension/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomDimension"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with AnalyticsadminPropertiesCustomMetricsArchiveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomMetricsArchiveArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomMetricsArchiveArgs,
+    ) -> String {
+        format!("gcp::analyticsadmin::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomMetric
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomMetric with AnalyticsadminPropertiesCustomMetricsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomMetricsCreateArgs>
+    for GoogleAnalyticsAdminV1betaCustomMetric
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomMetricsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomMetric/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomMetric"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomMetric
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomMetric with AnalyticsadminPropertiesCustomMetricsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomMetricsGetArgs>
+    for GoogleAnalyticsAdminV1betaCustomMetric
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesCustomMetricsGetArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomMetric/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomMetric"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListCustomMetricsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListCustomMetricsResponse with AnalyticsadminPropertiesCustomMetricsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomMetricsListArgs>
+    for GoogleAnalyticsAdminV1betaListCustomMetricsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomMetricsListArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListCustomMetricsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListCustomMetricsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomMetric
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaCustomMetric with AnalyticsadminPropertiesCustomMetricsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesCustomMetricsPatchArgs>
+    for GoogleAnalyticsAdminV1betaCustomMetric
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesCustomMetricsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomMetric/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaCustomMetric"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataStream
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataStream with AnalyticsadminPropertiesDataStreamsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsCreateArgs>
+    for GoogleAnalyticsAdminV1betaDataStream
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesDataStreamsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataStream/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataStream"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with AnalyticsadminPropertiesDataStreamsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesDataStreamsDeleteArgs,
+    ) -> String {
+        format!("gcp::analyticsadmin::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataStream
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataStream with AnalyticsadminPropertiesDataStreamsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsGetArgs>
+    for GoogleAnalyticsAdminV1betaDataStream
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesDataStreamsGetArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataStream/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataStream"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListDataStreamsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListDataStreamsResponse with AnalyticsadminPropertiesDataStreamsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsListArgs>
+    for GoogleAnalyticsAdminV1betaListDataStreamsResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesDataStreamsListArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListDataStreamsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListDataStreamsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataStream
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaDataStream with AnalyticsadminPropertiesDataStreamsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsPatchArgs>
+    for GoogleAnalyticsAdminV1betaDataStream
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesDataStreamsPatchArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataStream/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaDataStream"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret with AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsCreateArgs>
+    for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaMeasurementProtocolSecret/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaMeasurementProtocolSecret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsDeleteArgs,
+    ) -> String {
+        format!("gcp::analyticsadmin::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret with AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsGetArgs>
+    for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaMeasurementProtocolSecret/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaMeasurementProtocolSecret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse with AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs>
+    for GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsListArgs,
+    ) -> String {
+        format!("gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListMeasurementProtocolSecretsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret with AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsPatchArgs>
+    for GoogleAnalyticsAdminV1betaMeasurementProtocolSecret
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesDataStreamsMeasurementProtocolSecretsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaMeasurementProtocolSecret/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaMeasurementProtocolSecret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaFirebaseLink
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaFirebaseLink with AnalyticsadminPropertiesFirebaseLinksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesFirebaseLinksCreateArgs>
+    for GoogleAnalyticsAdminV1betaFirebaseLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesFirebaseLinksCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaFirebaseLink/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaFirebaseLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with AnalyticsadminPropertiesFirebaseLinksDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesFirebaseLinksDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesFirebaseLinksDeleteArgs,
+    ) -> String {
+        format!("gcp::analyticsadmin::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListFirebaseLinksResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListFirebaseLinksResponse with AnalyticsadminPropertiesFirebaseLinksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesFirebaseLinksListArgs>
+    for GoogleAnalyticsAdminV1betaListFirebaseLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesFirebaseLinksListArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListFirebaseLinksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListFirebaseLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaGoogleAdsLink
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaGoogleAdsLink with AnalyticsadminPropertiesGoogleAdsLinksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesGoogleAdsLinksCreateArgs>
+    for GoogleAnalyticsAdminV1betaGoogleAdsLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesGoogleAdsLinksCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaGoogleAdsLink/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaGoogleAdsLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with AnalyticsadminPropertiesGoogleAdsLinksDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesGoogleAdsLinksDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesGoogleAdsLinksDeleteArgs,
+    ) -> String {
+        format!("gcp::analyticsadmin::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse with AnalyticsadminPropertiesGoogleAdsLinksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesGoogleAdsLinksListArgs>
+    for GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesGoogleAdsLinksListArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListGoogleAdsLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaGoogleAdsLink
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaGoogleAdsLink with AnalyticsadminPropertiesGoogleAdsLinksPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesGoogleAdsLinksPatchArgs>
+    for GoogleAnalyticsAdminV1betaGoogleAdsLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsadminPropertiesGoogleAdsLinksPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaGoogleAdsLink/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaGoogleAdsLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaKeyEvent
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaKeyEvent with AnalyticsadminPropertiesKeyEventsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesKeyEventsCreateArgs>
+    for GoogleAnalyticsAdminV1betaKeyEvent
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesKeyEventsCreateArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaKeyEvent/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaKeyEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleProtobufEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty with AnalyticsadminPropertiesKeyEventsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesKeyEventsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesKeyEventsDeleteArgs) -> String {
+        format!("gcp::analyticsadmin::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaKeyEvent
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaKeyEvent with AnalyticsadminPropertiesKeyEventsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesKeyEventsGetArgs>
+    for GoogleAnalyticsAdminV1betaKeyEvent
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesKeyEventsGetArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaKeyEvent/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaKeyEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListKeyEventsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaListKeyEventsResponse with AnalyticsadminPropertiesKeyEventsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesKeyEventsListArgs>
+    for GoogleAnalyticsAdminV1betaListKeyEventsResponse
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesKeyEventsListArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListKeyEventsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaListKeyEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaKeyEvent
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAnalyticsAdminV1betaKeyEvent with AnalyticsadminPropertiesKeyEventsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsadminPropertiesKeyEventsPatchArgs>
+    for GoogleAnalyticsAdminV1betaKeyEvent
+{
+    fn generate_resource_id(&self, input: &AnalyticsadminPropertiesKeyEventsPatchArgs) -> String {
+        format!(
+            "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaKeyEvent/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::analyticsadmin::GoogleAnalyticsAdminV1betaKeyEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -17,44 +17,65 @@ use crate::providers::gcp::clients::drivelabels::{
     drivelabels_labels_delta_builder, drivelabels_labels_delta_task,
     drivelabels_labels_disable_builder, drivelabels_labels_disable_task,
     drivelabels_labels_enable_builder, drivelabels_labels_enable_task,
+    drivelabels_labels_get_builder, drivelabels_labels_get_task,
+    drivelabels_labels_list_builder, drivelabels_labels_list_task,
     drivelabels_labels_publish_builder, drivelabels_labels_publish_task,
     drivelabels_labels_update_label_copy_mode_builder, drivelabels_labels_update_label_copy_mode_task,
     drivelabels_labels_update_label_enabled_app_settings_builder, drivelabels_labels_update_label_enabled_app_settings_task,
     drivelabels_labels_update_permissions_builder, drivelabels_labels_update_permissions_task,
+    drivelabels_labels_locks_list_builder, drivelabels_labels_locks_list_task,
     drivelabels_labels_permissions_batch_delete_builder, drivelabels_labels_permissions_batch_delete_task,
     drivelabels_labels_permissions_batch_update_builder, drivelabels_labels_permissions_batch_update_task,
     drivelabels_labels_permissions_create_builder, drivelabels_labels_permissions_create_task,
     drivelabels_labels_permissions_delete_builder, drivelabels_labels_permissions_delete_task,
+    drivelabels_labels_permissions_list_builder, drivelabels_labels_permissions_list_task,
     drivelabels_labels_revisions_update_permissions_builder, drivelabels_labels_revisions_update_permissions_task,
+    drivelabels_labels_revisions_locks_list_builder, drivelabels_labels_revisions_locks_list_task,
     drivelabels_labels_revisions_permissions_batch_delete_builder, drivelabels_labels_revisions_permissions_batch_delete_task,
     drivelabels_labels_revisions_permissions_batch_update_builder, drivelabels_labels_revisions_permissions_batch_update_task,
     drivelabels_labels_revisions_permissions_create_builder, drivelabels_labels_revisions_permissions_create_task,
     drivelabels_labels_revisions_permissions_delete_builder, drivelabels_labels_revisions_permissions_delete_task,
+    drivelabels_labels_revisions_permissions_list_builder, drivelabels_labels_revisions_permissions_list_task,
+    drivelabels_limits_get_label_builder, drivelabels_limits_get_label_task,
+    drivelabels_users_get_capabilities_builder, drivelabels_users_get_capabilities_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::drivelabels::GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse;
 use crate::providers::gcp::clients::drivelabels::GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse;
 use crate::providers::gcp::clients::drivelabels::GoogleAppsDriveLabelsV2Label;
+use crate::providers::gcp::clients::drivelabels::GoogleAppsDriveLabelsV2LabelLimits;
 use crate::providers::gcp::clients::drivelabels::GoogleAppsDriveLabelsV2LabelPermission;
+use crate::providers::gcp::clients::drivelabels::GoogleAppsDriveLabelsV2ListLabelLocksResponse;
+use crate::providers::gcp::clients::drivelabels::GoogleAppsDriveLabelsV2ListLabelPermissionsResponse;
+use crate::providers::gcp::clients::drivelabels::GoogleAppsDriveLabelsV2ListLabelsResponse;
+use crate::providers::gcp::clients::drivelabels::GoogleAppsDriveLabelsV2UserCapabilities;
 use crate::providers::gcp::clients::drivelabels::GoogleProtobufEmpty;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsCreateArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsDeleteArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsDeltaArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsDisableArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsEnableArgs;
+use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsGetArgs;
+use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsListArgs;
+use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsLocksListArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsPermissionsBatchDeleteArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsPermissionsBatchUpdateArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsPermissionsCreateArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsPermissionsDeleteArgs;
+use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsPermissionsListArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsPublishArgs;
+use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsRevisionsLocksListArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsRevisionsPermissionsBatchDeleteArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsRevisionsPermissionsBatchUpdateArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsRevisionsPermissionsCreateArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsRevisionsPermissionsDeleteArgs;
+use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsRevisionsPermissionsListArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsRevisionsUpdatePermissionsArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsUpdateLabelCopyModeArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsUpdateLabelEnabledAppSettingsArgs;
 use crate::providers::gcp::clients::drivelabels::DrivelabelsLabelsUpdatePermissionsArgs;
+use crate::providers::gcp::clients::drivelabels::DrivelabelsLimitsGetLabelArgs;
+use crate::providers::gcp::clients::drivelabels::DrivelabelsUsersGetCapabilitiesArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -314,6 +335,92 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Drivelabels labels get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAppsDriveLabelsV2Label result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn drivelabels_labels_get(
+        &self,
+        args: &DrivelabelsLabelsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAppsDriveLabelsV2Label, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = drivelabels_labels_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.languageCode,
+            &args.useAdminAccess,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = drivelabels_labels_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Drivelabels labels list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAppsDriveLabelsV2ListLabelsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn drivelabels_labels_list(
+        &self,
+        args: &DrivelabelsLabelsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAppsDriveLabelsV2ListLabelsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = drivelabels_labels_list_builder(
+            &self.http_client,
+            &args.customer,
+            &args.languageCode,
+            &args.minimumRole,
+            &args.pageSize,
+            &args.pageToken,
+            &args.publishedOnly,
+            &args.useAdminAccess,
+            &args.view,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = drivelabels_labels_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Drivelabels labels publish.
     ///
     /// Automatically stores the result in the state store on success.
@@ -485,6 +592,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Drivelabels labels locks list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAppsDriveLabelsV2ListLabelLocksResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn drivelabels_labels_locks_list(
+        &self,
+        args: &DrivelabelsLabelsLocksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAppsDriveLabelsV2ListLabelLocksResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = drivelabels_labels_locks_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = drivelabels_labels_locks_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Drivelabels labels permissions batch delete.
@@ -661,6 +808,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Drivelabels labels permissions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAppsDriveLabelsV2ListLabelPermissionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn drivelabels_labels_permissions_list(
+        &self,
+        args: &DrivelabelsLabelsPermissionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAppsDriveLabelsV2ListLabelPermissionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = drivelabels_labels_permissions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+            &args.useAdminAccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = drivelabels_labels_permissions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Drivelabels labels revisions update permissions.
     ///
     /// Automatically stores the result in the state store on success.
@@ -703,6 +891,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Drivelabels labels revisions locks list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAppsDriveLabelsV2ListLabelLocksResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn drivelabels_labels_revisions_locks_list(
+        &self,
+        args: &DrivelabelsLabelsRevisionsLocksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAppsDriveLabelsV2ListLabelLocksResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = drivelabels_labels_revisions_locks_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = drivelabels_labels_revisions_locks_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Drivelabels labels revisions permissions batch delete.
@@ -877,6 +1105,124 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Drivelabels labels revisions permissions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAppsDriveLabelsV2ListLabelPermissionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn drivelabels_labels_revisions_permissions_list(
+        &self,
+        args: &DrivelabelsLabelsRevisionsPermissionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAppsDriveLabelsV2ListLabelPermissionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = drivelabels_labels_revisions_permissions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+            &args.useAdminAccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = drivelabels_labels_revisions_permissions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Drivelabels limits get label.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAppsDriveLabelsV2LabelLimits result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn drivelabels_limits_get_label(
+        &self,
+        args: &DrivelabelsLimitsGetLabelArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAppsDriveLabelsV2LabelLimits, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = drivelabels_limits_get_label_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = drivelabels_limits_get_label_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Drivelabels users get capabilities.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleAppsDriveLabelsV2UserCapabilities result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn drivelabels_users_get_capabilities(
+        &self,
+        args: &DrivelabelsUsersGetCapabilitiesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleAppsDriveLabelsV2UserCapabilities, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = drivelabels_users_get_capabilities_builder(
+            &self.http_client,
+            &args.name,
+            &args.customer,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = drivelabels_users_get_capabilities_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

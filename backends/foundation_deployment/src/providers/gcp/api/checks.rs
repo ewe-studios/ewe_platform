@@ -12,21 +12,46 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::checks::{
+    checks_accounts_apps_get_builder, checks_accounts_apps_get_task,
+    checks_accounts_apps_list_builder, checks_accounts_apps_list_task,
     checks_accounts_apps_operations_cancel_builder, checks_accounts_apps_operations_cancel_task,
     checks_accounts_apps_operations_delete_builder, checks_accounts_apps_operations_delete_task,
+    checks_accounts_apps_operations_get_builder, checks_accounts_apps_operations_get_task,
+    checks_accounts_apps_operations_list_builder, checks_accounts_apps_operations_list_task,
     checks_accounts_apps_operations_wait_builder, checks_accounts_apps_operations_wait_task,
+    checks_accounts_apps_reports_get_builder, checks_accounts_apps_reports_get_task,
+    checks_accounts_apps_reports_list_builder, checks_accounts_apps_reports_list_task,
+    checks_accounts_repos_operations_get_builder, checks_accounts_repos_operations_get_task,
     checks_accounts_repos_scans_generate_builder, checks_accounts_repos_scans_generate_task,
+    checks_accounts_repos_scans_get_builder, checks_accounts_repos_scans_get_task,
+    checks_accounts_repos_scans_list_builder, checks_accounts_repos_scans_list_task,
     checks_aisafety_classify_content_builder, checks_aisafety_classify_content_task,
     checks_media_upload_builder, checks_media_upload_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::checks::Empty;
+use crate::providers::gcp::clients::checks::GoogleChecksAccountV1alphaApp;
+use crate::providers::gcp::clients::checks::GoogleChecksAccountV1alphaListAppsResponse;
 use crate::providers::gcp::clients::checks::GoogleChecksAisafetyV1alphaClassifyContentResponse;
+use crate::providers::gcp::clients::checks::GoogleChecksRepoScanV1alphaListRepoScansResponse;
+use crate::providers::gcp::clients::checks::GoogleChecksRepoScanV1alphaRepoScan;
+use crate::providers::gcp::clients::checks::GoogleChecksReportV1alphaListReportsResponse;
+use crate::providers::gcp::clients::checks::GoogleChecksReportV1alphaReport;
+use crate::providers::gcp::clients::checks::ListOperationsResponse;
 use crate::providers::gcp::clients::checks::Operation;
+use crate::providers::gcp::clients::checks::ChecksAccountsAppsGetArgs;
+use crate::providers::gcp::clients::checks::ChecksAccountsAppsListArgs;
 use crate::providers::gcp::clients::checks::ChecksAccountsAppsOperationsCancelArgs;
 use crate::providers::gcp::clients::checks::ChecksAccountsAppsOperationsDeleteArgs;
+use crate::providers::gcp::clients::checks::ChecksAccountsAppsOperationsGetArgs;
+use crate::providers::gcp::clients::checks::ChecksAccountsAppsOperationsListArgs;
 use crate::providers::gcp::clients::checks::ChecksAccountsAppsOperationsWaitArgs;
+use crate::providers::gcp::clients::checks::ChecksAccountsAppsReportsGetArgs;
+use crate::providers::gcp::clients::checks::ChecksAccountsAppsReportsListArgs;
+use crate::providers::gcp::clients::checks::ChecksAccountsReposOperationsGetArgs;
 use crate::providers::gcp::clients::checks::ChecksAccountsReposScansGenerateArgs;
+use crate::providers::gcp::clients::checks::ChecksAccountsReposScansGetArgs;
+use crate::providers::gcp::clients::checks::ChecksAccountsReposScansListArgs;
 use crate::providers::gcp::clients::checks::ChecksAisafetyClassifyContentArgs;
 use crate::providers::gcp::clients::checks::ChecksMediaUploadArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -68,6 +93,84 @@ where
             client,
             http_client: Arc::new(http_client),
         }
+    }
+
+    /// Checks accounts apps get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleChecksAccountV1alphaApp result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn checks_accounts_apps_get(
+        &self,
+        args: &ChecksAccountsAppsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleChecksAccountV1alphaApp, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = checks_accounts_apps_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = checks_accounts_apps_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Checks accounts apps list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleChecksAccountV1alphaListAppsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn checks_accounts_apps_list(
+        &self,
+        args: &ChecksAccountsAppsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleChecksAccountV1alphaListAppsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = checks_accounts_apps_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = checks_accounts_apps_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Checks accounts apps operations cancel.
@@ -156,6 +259,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Checks accounts apps operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn checks_accounts_apps_operations_get(
+        &self,
+        args: &ChecksAccountsAppsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = checks_accounts_apps_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = checks_accounts_apps_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Checks accounts apps operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn checks_accounts_apps_operations_list(
+        &self,
+        args: &ChecksAccountsAppsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = checks_accounts_apps_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = checks_accounts_apps_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Checks accounts apps operations wait.
     ///
     /// Automatically stores the result in the state store on success.
@@ -199,6 +382,125 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Checks accounts apps reports get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleChecksReportV1alphaReport result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn checks_accounts_apps_reports_get(
+        &self,
+        args: &ChecksAccountsAppsReportsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleChecksReportV1alphaReport, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = checks_accounts_apps_reports_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.checksFilter,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = checks_accounts_apps_reports_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Checks accounts apps reports list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleChecksReportV1alphaListReportsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn checks_accounts_apps_reports_list(
+        &self,
+        args: &ChecksAccountsAppsReportsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleChecksReportV1alphaListReportsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = checks_accounts_apps_reports_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.checksFilter,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = checks_accounts_apps_reports_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Checks accounts repos operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Operation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn checks_accounts_repos_operations_get(
+        &self,
+        args: &ChecksAccountsReposOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Operation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = checks_accounts_repos_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = checks_accounts_repos_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Checks accounts repos scans generate.
     ///
     /// Automatically stores the result in the state store on success.
@@ -240,6 +542,85 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Checks accounts repos scans get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleChecksRepoScanV1alphaRepoScan result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn checks_accounts_repos_scans_get(
+        &self,
+        args: &ChecksAccountsReposScansGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleChecksRepoScanV1alphaRepoScan, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = checks_accounts_repos_scans_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = checks_accounts_repos_scans_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Checks accounts repos scans list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleChecksRepoScanV1alphaListRepoScansResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn checks_accounts_repos_scans_list(
+        &self,
+        args: &ChecksAccountsReposScansListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleChecksRepoScanV1alphaListRepoScansResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = checks_accounts_repos_scans_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = checks_accounts_repos_scans_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Checks aisafety classify content.

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/catalog:search
+/// POST v1/catalog:search
 /// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn't return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don't guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn datacatalog_catalog_search_builder(
     client: &SimpleHttpClient,
-    body: &GoogleCloudDatacatalogV1SearchCatalogRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://datacatalog.googleapis.com/v1/catalog:search",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/catalog:search
+/// POST v1/catalog:search
 /// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn't return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don't guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +115,7 @@ pub fn datacatalog_catalog_search_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/catalog:search
+/// POST v1/catalog:search
 /// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn't return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don't guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -152,14 +149,7 @@ pub fn datacatalog_catalog_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`datacatalog_catalog_search`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DatacatalogCatalogSearchArgs {
-    /// Request body.
-    pub body: GoogleCloudDatacatalogV1SearchCatalogRequest,
-}
-
-/// GET v1/catalog:search
+/// POST v1/catalog:search
 /// Searches Data Catalog for multiple resources like entries and tags that match a query. This is a [Custom Method] (<https://cloud.google.`com/apis/design/custom_methods`>) that doesn't return all information on a resource, only its ID and high level fields. To get more information, you can subsequently call specific get methods. Note: Data Catalog search queries don't guarantee full recall. Results that match your query might not be returned, even in subsequent result pages. Additionally, returned (and not returned) results can vary if you repeat search queries. For more information, see [Data Catalog search syntax] (<https://cloud.google.`com/data-catalog/docs/how-to/search-reference`>).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -172,7 +162,6 @@ pub struct DatacatalogCatalogSearchArgs {
 
 pub fn datacatalog_catalog_search(
     client: &SimpleHttpClient,
-    args: &DatacatalogCatalogSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogV1SearchCatalogResponse>, ApiError>,
@@ -181,7 +170,7 @@ pub fn datacatalog_catalog_search(
         + 'static,
     ApiError,
 > {
-    let builder = datacatalog_catalog_search_builder(client, &args.body)?;
+    let builder = datacatalog_catalog_search_builder(client)?;
     datacatalog_catalog_search_execute(builder)
 }
 
@@ -193,11 +182,11 @@ pub fn datacatalog_catalog_search(
 
 pub fn datacatalog_entries_lookup_builder(
     client: &SimpleHttpClient,
-    fullyQualifiedName: &Option<String>,
-    linkedResource: &Option<String>,
-    location: &Option<String>,
-    project: &Option<String>,
-    sqlResource: &Option<String>,
+    fullyQualifiedName: &Option<Option<String>>,
+    linkedResource: &Option<Option<String>>,
+    location: &Option<Option<String>>,
+    project: &Option<Option<String>>,
+    sqlResource: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://datacatalog.googleapis.com/v1/entries:lookup",);
@@ -345,15 +334,15 @@ pub fn datacatalog_entries_lookup_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DatacatalogEntriesLookupArgs {
     /// Query parameter: fullyQualifiedName
-    pub fullyQualifiedName: Option<String>,
+    pub fullyQualifiedName: Option<Option<String>>,
     /// Query parameter: linkedResource
-    pub linkedResource: Option<String>,
+    pub linkedResource: Option<Option<String>>,
     /// Query parameter: location
-    pub location: Option<String>,
+    pub location: Option<Option<String>>,
     /// Query parameter: project
-    pub project: Option<String>,
+    pub project: Option<Option<String>>,
     /// Query parameter: sqlResource
-    pub sqlResource: Option<String>,
+    pub sqlResource: Option<Option<String>>,
 }
 
 /// GET v1/entries:lookup
@@ -387,4 +376,13881 @@ pub fn datacatalog_entries_lookup(
         &args.sqlResource,
     )?;
     datacatalog_entries_lookup_execute(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}:retrieveConfig
+/// Retrieves the configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization, including all the projects under it which have a separate configuration set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_organizations_locations_retrieve_config_execute()` to send, or `datacatalog_organizations_locations_retrieve_config` for simplest API.
+
+pub fn datacatalog_organizations_locations_retrieve_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/organizations/{}/locations/{locationsId}:retrieveConfig",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}:retrieveConfig
+/// Retrieves the configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization, including all the projects under it which have a separate configuration set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_organizations_locations_retrieve_config_execute()` or `datacatalog_organizations_locations_retrieve_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_organizations_locations_retrieve_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_organizations_locations_retrieve_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1OrganizationConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1OrganizationConfig =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}:retrieveConfig
+/// Retrieves the configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization, including all the projects under it which have a separate configuration set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_organizations_locations_retrieve_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_organizations_locations_retrieve_config_task()`.
+/// For the simplest API, use `datacatalog_organizations_locations_retrieve_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_organizations_locations_retrieve_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_organizations_locations_retrieve_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1OrganizationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_organizations_locations_retrieve_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_organizations_locations_retrieve_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogOrganizationsLocationsRetrieveConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}:retrieveConfig
+/// Retrieves the configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization, including all the projects under it which have a separate configuration set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_organizations_locations_retrieve_config_builder()` + `datacatalog_organizations_locations_retrieve_config_execute()`.
+/// For task-level control, use `datacatalog_organizations_locations_retrieve_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_organizations_locations_retrieve_config(
+    client: &SimpleHttpClient,
+    args: &DatacatalogOrganizationsLocationsRetrieveConfigArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1OrganizationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_organizations_locations_retrieve_config_builder(client, &args.name)?;
+    datacatalog_organizations_locations_retrieve_config_execute(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}:retrieveEffectiveConfig
+/// Retrieves the effective configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization or project. If there is no specific configuration set for the resource, the setting is checked hierarchicahlly through the ancestors of the resource, starting from the resource itself.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_organizations_locations_retrieve_effective_config_execute()` to send, or `datacatalog_organizations_locations_retrieve_effective_config` for simplest API.
+
+pub fn datacatalog_organizations_locations_retrieve_effective_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/organizations/{}/locations/{locationsId}:retrieveEffectiveConfig",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}:retrieveEffectiveConfig
+/// Retrieves the effective configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization or project. If there is no specific configuration set for the resource, the setting is checked hierarchicahlly through the ancestors of the resource, starting from the resource itself.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_organizations_locations_retrieve_effective_config_execute()` or `datacatalog_organizations_locations_retrieve_effective_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_organizations_locations_retrieve_effective_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_organizations_locations_retrieve_effective_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1MigrationConfig =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}:retrieveEffectiveConfig
+/// Retrieves the effective configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization or project. If there is no specific configuration set for the resource, the setting is checked hierarchicahlly through the ancestors of the resource, starting from the resource itself.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_organizations_locations_retrieve_effective_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_organizations_locations_retrieve_effective_config_task()`.
+/// For the simplest API, use `datacatalog_organizations_locations_retrieve_effective_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_organizations_locations_retrieve_effective_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_organizations_locations_retrieve_effective_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_organizations_locations_retrieve_effective_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_organizations_locations_retrieve_effective_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogOrganizationsLocationsRetrieveEffectiveConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/organizations/{organizationsId}/locations/{locationsId}:retrieveEffectiveConfig
+/// Retrieves the effective configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization or project. If there is no specific configuration set for the resource, the setting is checked hierarchicahlly through the ancestors of the resource, starting from the resource itself.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_organizations_locations_retrieve_effective_config_builder()` + `datacatalog_organizations_locations_retrieve_effective_config_execute()`.
+/// For task-level control, use `datacatalog_organizations_locations_retrieve_effective_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_organizations_locations_retrieve_effective_config(
+    client: &SimpleHttpClient,
+    args: &DatacatalogOrganizationsLocationsRetrieveEffectiveConfigArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_organizations_locations_retrieve_effective_config_builder(client, &args.name)?;
+    datacatalog_organizations_locations_retrieve_effective_config_execute(builder)
+}
+
+/// POST v1/organizations/{organizationsId}/locations/{locationsId}:setConfig
+/// Sets the configuration related to the migration to Dataplex Universal Catalog for an organization or project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_organizations_locations_set_config_execute()` to send, or `datacatalog_organizations_locations_set_config` for simplest API.
+
+pub fn datacatalog_organizations_locations_set_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/organizations/{}/locations/{locationsId}:setConfig",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/organizations/{organizationsId}/locations/{locationsId}:setConfig
+/// Sets the configuration related to the migration to Dataplex Universal Catalog for an organization or project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_organizations_locations_set_config_execute()` or `datacatalog_organizations_locations_set_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_organizations_locations_set_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_organizations_locations_set_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1MigrationConfig =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/organizations/{organizationsId}/locations/{locationsId}:setConfig
+/// Sets the configuration related to the migration to Dataplex Universal Catalog for an organization or project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_organizations_locations_set_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_organizations_locations_set_config_task()`.
+/// For the simplest API, use `datacatalog_organizations_locations_set_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_organizations_locations_set_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_organizations_locations_set_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_organizations_locations_set_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_organizations_locations_set_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogOrganizationsLocationsSetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/organizations/{organizationsId}/locations/{locationsId}:setConfig
+/// Sets the configuration related to the migration to Dataplex Universal Catalog for an organization or project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_organizations_locations_set_config_builder()` + `datacatalog_organizations_locations_set_config_execute()`.
+/// For task-level control, use `datacatalog_organizations_locations_set_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_organizations_locations_set_config(
+    client: &SimpleHttpClient,
+    args: &DatacatalogOrganizationsLocationsSetConfigArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_organizations_locations_set_config_builder(client, &args.name)?;
+    datacatalog_organizations_locations_set_config_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveEffectiveConfig
+/// Retrieves the effective configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization or project. If there is no specific configuration set for the resource, the setting is checked hierarchicahlly through the ancestors of the resource, starting from the resource itself.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_retrieve_effective_config_execute()` to send, or `datacatalog_projects_locations_retrieve_effective_config` for simplest API.
+
+pub fn datacatalog_projects_locations_retrieve_effective_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}:retrieveEffectiveConfig",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveEffectiveConfig
+/// Retrieves the effective configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization or project. If there is no specific configuration set for the resource, the setting is checked hierarchicahlly through the ancestors of the resource, starting from the resource itself.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_retrieve_effective_config_execute()` or `datacatalog_projects_locations_retrieve_effective_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_retrieve_effective_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_retrieve_effective_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1MigrationConfig =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveEffectiveConfig
+/// Retrieves the effective configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization or project. If there is no specific configuration set for the resource, the setting is checked hierarchicahlly through the ancestors of the resource, starting from the resource itself.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_retrieve_effective_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_retrieve_effective_config_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_retrieve_effective_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_retrieve_effective_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_retrieve_effective_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_retrieve_effective_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_retrieve_effective_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsRetrieveEffectiveConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveEffectiveConfig
+/// Retrieves the effective configuration related to the migration from Data Catalog to Dataplex Universal Catalog for a specific organization or project. If there is no specific configuration set for the resource, the setting is checked hierarchicahlly through the ancestors of the resource, starting from the resource itself.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_retrieve_effective_config_builder()` + `datacatalog_projects_locations_retrieve_effective_config_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_retrieve_effective_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_retrieve_effective_config(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsRetrieveEffectiveConfigArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_retrieve_effective_config_builder(client, &args.name)?;
+    datacatalog_projects_locations_retrieve_effective_config_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:setConfig
+/// Sets the configuration related to the migration to Dataplex Universal Catalog for an organization or project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_set_config_execute()` to send, or `datacatalog_projects_locations_set_config` for simplest API.
+
+pub fn datacatalog_projects_locations_set_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}:setConfig",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:setConfig
+/// Sets the configuration related to the migration to Dataplex Universal Catalog for an organization or project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_set_config_execute()` or `datacatalog_projects_locations_set_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_set_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_set_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1MigrationConfig =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:setConfig
+/// Sets the configuration related to the migration to Dataplex Universal Catalog for an organization or project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_set_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_set_config_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_set_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_set_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_set_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_set_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_set_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsSetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}:setConfig
+/// Sets the configuration related to the migration to Dataplex Universal Catalog for an organization or project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_set_config_builder()` + `datacatalog_projects_locations_set_config_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_set_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_set_config(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsSetConfigArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1MigrationConfig>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_set_config_builder(client, &args.name)?;
+    datacatalog_projects_locations_set_config_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups
+/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can't contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_create_execute()` to send, or `datacatalog_projects_locations_entry_groups_create` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    entryGroupId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = entryGroupId.as_ref() {
+        query_parts.push(format!("entryGroupId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups
+/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can't contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_create_execute()` or `datacatalog_projects_locations_entry_groups_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1EntryGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups
+/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can't contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_create_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: entryGroupId
+    pub entryGroupId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups
+/// Creates an entry group. An entry group contains logically related entries together with [Cloud Identity and Access Management](/data-`catalog/docs/concepts/iam`) policies. These policies specify users who can create, edit, and view entries within entry groups. Data Catalog automatically creates entry groups with names that start with the @ symbol for the following resources: * BigQuery entries (@bigquery) * P`ub/Sub` topics (@pubsub) * Dataproc Metastore services (@dataproc_metastore_{SERVICE_NAME_HASH}) You can create your own entry groups for Cloud Storage fileset entries and custom entries together with the corresponding IAM policies. User-created entry groups can't contain the @ symbol, it is reserved for automatically created groups. Entry groups, like entries, can be searched. A maximum of 10,000 entry groups may be created per organization across all locations. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_create_builder()` + `datacatalog_projects_locations_entry_groups_create_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_create(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_create_builder(
+        client,
+        &args.parent,
+        &args.entryGroupId,
+    )?;
+    datacatalog_projects_locations_entry_groups_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Deletes an entry group. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_delete_execute()` to send, or `datacatalog_projects_locations_entry_groups_delete` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Deletes an entry group. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_delete_execute()` or `datacatalog_projects_locations_entry_groups_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Deletes an entry group. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_delete_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Deletes an entry group. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_delete_builder()` + `datacatalog_projects_locations_entry_groups_delete_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_delete(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_delete_builder(
+        client,
+        &args.name,
+        &args.force,
+    )?;
+    datacatalog_projects_locations_entry_groups_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Gets an entry group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_get_execute()` to send, or `datacatalog_projects_locations_entry_groups_get` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    readMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = readMask.as_ref() {
+        query_parts.push(format!("readMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Gets an entry group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_get_execute()` or `datacatalog_projects_locations_entry_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1EntryGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Gets an entry group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_get_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Gets an entry group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_get_builder()` + `datacatalog_projects_locations_entry_groups_get_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_get(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_get_builder(
+        client,
+        &args.name,
+        &args.readMask,
+    )?;
+    datacatalog_projects_locations_entry_groups_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_entry_groups_get_iam_policy` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_get_iam_policy_execute()` or `datacatalog_projects_locations_entry_groups_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_get_iam_policy_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_get_iam_policy_builder()` + `datacatalog_projects_locations_entry_groups_get_iam_policy_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_get_iam_policy_builder(client, &args.resource)?;
+    datacatalog_projects_locations_entry_groups_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups
+/// Lists entry groups.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_list_execute()` to send, or `datacatalog_projects_locations_entry_groups_list` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups
+/// Lists entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_list_execute()` or `datacatalog_projects_locations_entry_groups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1ListEntryGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1ListEntryGroupsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups
+/// Lists entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_list_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListEntryGroupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups
+/// Lists entry groups.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_list_builder()` + `datacatalog_projects_locations_entry_groups_list_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_list(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListEntryGroupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datacatalog_projects_locations_entry_groups_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Updates an entry group. You must enable the Data Catalog API in the project identified by the entry_group.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_patch_execute()` to send, or `datacatalog_projects_locations_entry_groups_patch` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Updates an entry group. You must enable the Data Catalog API in the project identified by the entry_group.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_patch_execute()` or `datacatalog_projects_locations_entry_groups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1EntryGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Updates an entry group. You must enable the Data Catalog API in the project identified by the entry_group.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_patch_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}
+/// Updates an entry group. You must enable the Data Catalog API in the project identified by the entry_group.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_patch_builder()` + `datacatalog_projects_locations_entry_groups_patch_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_patch(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryGroup>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    datacatalog_projects_locations_entry_groups_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_set_iam_policy_execute()` to send, or `datacatalog_projects_locations_entry_groups_set_iam_policy` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_set_iam_policy_execute()` or `datacatalog_projects_locations_entry_groups_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_set_iam_policy_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:setIamPolicy
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_set_iam_policy_builder()` + `datacatalog_projects_locations_entry_groups_set_iam_policy_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_set_iam_policy_builder(client, &args.resource)?;
+    datacatalog_projects_locations_entry_groups_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_entry_groups_test_iam_permissions` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_test_iam_permissions_execute()` or `datacatalog_projects_locations_entry_groups_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_test_iam_permissions_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_test_iam_permissions_builder()` + `datacatalog_projects_locations_entry_groups_test_iam_permissions_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    datacatalog_projects_locations_entry_groups_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
+/// Creates an entry. You can create entries only with 'FILESET', 'CLUSTER', 'DATA_STREAM', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_create_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_create` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    entryId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = entryId.as_ref() {
+        query_parts.push(format!("entryId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
+/// Creates an entry. You can create entries only with 'FILESET', 'CLUSTER', 'DATA_STREAM', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_create_execute()` or `datacatalog_projects_locations_entry_groups_entries_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Entry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
+/// Creates an entry. You can create entries only with 'FILESET', 'CLUSTER', 'DATA_STREAM', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_create_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: entryId
+    pub entryId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
+/// Creates an entry. You can create entries only with 'FILESET', 'CLUSTER', 'DATA_STREAM', or custom types. Data Catalog automatically creates entries with other types during metadata ingestion from integrated systems. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>). An entry group can have a maximum of 100,000 entries.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_create_builder()` + `datacatalog_projects_locations_entry_groups_entries_create_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_create(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_entries_create_builder(
+        client,
+        &args.parent,
+        &args.entryId,
+    )?;
+    datacatalog_projects_locations_entry_groups_entries_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Deletes an existing entry. You can delete only the entries created by the CreateEntry method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_delete_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_delete` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Deletes an existing entry. You can delete only the entries created by the CreateEntry method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_delete_execute()` or `datacatalog_projects_locations_entry_groups_entries_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Deletes an existing entry. You can delete only the entries created by the CreateEntry method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_delete_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Deletes an existing entry. You can delete only the entries created by the CreateEntry method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_delete_builder()` + `datacatalog_projects_locations_entry_groups_entries_delete_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_delete(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_entries_delete_builder(client, &args.name)?;
+    datacatalog_projects_locations_entry_groups_entries_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Gets an entry.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_get_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_get` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Gets an entry.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_get_execute()` or `datacatalog_projects_locations_entry_groups_entries_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Entry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Gets an entry.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_get_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Gets an entry.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_get_builder()` + `datacatalog_projects_locations_entry_groups_entries_get_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_get(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_entries_get_builder(client, &args.name)?;
+    datacatalog_projects_locations_entry_groups_entries_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_get_iam_policy` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execute()` or `datacatalog_projects_locations_entry_groups_entries_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_builder()` + `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_entries_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    datacatalog_projects_locations_entry_groups_entries_get_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries:import
+/// Imports entries from a source, such as data previously dumped into a Cloud Storage bucket, into Data Catalog. Import of entries is a sync operation that reconciles the state of the third-party system with the Data Catalog. ImportEntries accepts source data snapshots of a third-party system. Snapshot should be delivered as a .wire or base65-encoded .txt file containing a sequence of Protocol Buffer messages of DumpItem type. ImportEntries returns a long-running operation resource that can be queried with Operations.GetOperation to return ImportEntriesMetadata and an ImportEntriesResponse message.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_import_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_import` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_import_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries:import",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries:import
+/// Imports entries from a source, such as data previously dumped into a Cloud Storage bucket, into Data Catalog. Import of entries is a sync operation that reconciles the state of the third-party system with the Data Catalog. ImportEntries accepts source data snapshots of a third-party system. Snapshot should be delivered as a .wire or base65-encoded .txt file containing a sequence of Protocol Buffer messages of DumpItem type. ImportEntries returns a long-running operation resource that can be queried with Operations.GetOperation to return ImportEntriesMetadata and an ImportEntriesResponse message.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_import_execute()` or `datacatalog_projects_locations_entry_groups_entries_import`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_import_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries:import
+/// Imports entries from a source, such as data previously dumped into a Cloud Storage bucket, into Data Catalog. Import of entries is a sync operation that reconciles the state of the third-party system with the Data Catalog. ImportEntries accepts source data snapshots of a third-party system. Snapshot should be delivered as a .wire or base65-encoded .txt file containing a sequence of Protocol Buffer messages of DumpItem type. ImportEntries returns a long-running operation resource that can be queried with Operations.GetOperation to return ImportEntriesMetadata and an ImportEntriesResponse message.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_import_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_import_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_import()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_import_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_import_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries:import
+/// Imports entries from a source, such as data previously dumped into a Cloud Storage bucket, into Data Catalog. Import of entries is a sync operation that reconciles the state of the third-party system with the Data Catalog. ImportEntries accepts source data snapshots of a third-party system. Snapshot should be delivered as a .wire or base65-encoded .txt file containing a sequence of Protocol Buffer messages of DumpItem type. ImportEntries returns a long-running operation resource that can be queried with Operations.GetOperation to return ImportEntriesMetadata and an ImportEntriesResponse message.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_import_builder()` + `datacatalog_projects_locations_entry_groups_entries_import_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_import_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_import(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesImportArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_entries_import_builder(client, &args.parent)?;
+    datacatalog_projects_locations_entry_groups_entries_import_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
+/// Lists entries. Note: Currently, this method can list only custom entries. To get a list of both custom and automatically created entries, use SearchCatalog.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_list_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_list` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = readMask.as_ref() {
+        query_parts.push(format!("readMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
+/// Lists entries. Note: Currently, this method can list only custom entries. To get a list of both custom and automatically created entries, use SearchCatalog.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_list_execute()` or `datacatalog_projects_locations_entry_groups_entries_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1ListEntriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1ListEntriesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
+/// Lists entries. Note: Currently, this method can list only custom entries. To get a list of both custom and automatically created entries, use SearchCatalog.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_list_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListEntriesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: readMask
+    pub readMask: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries
+/// Lists entries. Note: Currently, this method can list only custom entries. To get a list of both custom and automatically created entries, use SearchCatalog.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_list_builder()` + `datacatalog_projects_locations_entry_groups_entries_list_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_list(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListEntriesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_entries_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+        &args.readMask,
+    )?;
+    datacatalog_projects_locations_entry_groups_entries_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryContacts
+/// Modifies contacts, part of the business context of an Entry. To call this method, you must have the datacatalog.entries.`updateContacts` IAM permission on the corresponding project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryContacts",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryContacts
+/// Modifies contacts, part of the business context of an Entry. To call this method, you must have the datacatalog.entries.`updateContacts` IAM permission on the corresponding project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_execute()` or `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Contacts>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Contacts = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryContacts
+/// Modifies contacts, part of the business context of an Entry. To call this method, you must have the datacatalog.entries.`updateContacts` IAM permission on the corresponding project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Contacts>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryContactsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryContacts
+/// Modifies contacts, part of the business context of an Entry. To call this method, you must have the datacatalog.entries.`updateContacts` IAM permission on the corresponding project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_builder()` + `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryContactsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Contacts>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_builder(
+            client, &args.name,
+        )?;
+    datacatalog_projects_locations_entry_groups_entries_modify_entry_contacts_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryOverview
+/// Modifies entry overview, part of the business context of an Entry. To call this method, you must have the datacatalog.entries.`updateOverview` IAM permission on the corresponding project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryOverview",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryOverview
+/// Modifies entry overview, part of the business context of an Entry. To call this method, you must have the datacatalog.entries.`updateOverview` IAM permission on the corresponding project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_execute()` or `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1EntryOverview>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1EntryOverview = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryOverview
+/// Modifies entry overview, part of the business context of an Entry. To call this method, you must have the datacatalog.entries.`updateOverview` IAM permission on the corresponding project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryOverview>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_modify_entry_overview`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryOverviewArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:modifyEntryOverview
+/// Modifies entry overview, part of the business context of an Entry. To call this method, you must have the datacatalog.entries.`updateOverview` IAM permission on the corresponding project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_builder()` + `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_modify_entry_overview(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryOverviewArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1EntryOverview>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_builder(
+            client, &args.name,
+        )?;
+    datacatalog_projects_locations_entry_groups_entries_modify_entry_overview_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Updates an existing entry. You must enable the Data Catalog API in the project identified by the entry.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_patch_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_patch` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Updates an existing entry. You must enable the Data Catalog API in the project identified by the entry.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_patch_execute()` or `datacatalog_projects_locations_entry_groups_entries_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Entry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Updates an existing entry. You must enable the Data Catalog API in the project identified by the entry.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_patch_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}
+/// Updates an existing entry. You must enable the Data Catalog API in the project identified by the entry.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_patch_builder()` + `datacatalog_projects_locations_entry_groups_entries_patch_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_patch(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Entry>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_entries_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    datacatalog_projects_locations_entry_groups_entries_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:star
+/// Marks an Entry as starred by the current user. Starring information is private to each user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_star_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_star` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_star_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:star",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:star
+/// Marks an Entry as starred by the current user. Starring information is private to each user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_star_execute()` or `datacatalog_projects_locations_entry_groups_entries_star`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_star_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_star_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1StarEntryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1StarEntryResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:star
+/// Marks an Entry as starred by the current user. Starring information is private to each user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_star_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_star_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_star()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_star_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_star_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1StarEntryResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_star_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_star`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesStarArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:star
+/// Marks an Entry as starred by the current user. Starring information is private to each user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_star_builder()` + `datacatalog_projects_locations_entry_groups_entries_star_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_star_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_star(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesStarArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1StarEntryResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_entries_star_builder(client, &args.name)?;
+    datacatalog_projects_locations_entry_groups_entries_star_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_execute()` or `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_builder()` + `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    datacatalog_projects_locations_entry_groups_entries_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:unstar
+/// Marks an Entry as NOT starred by the current user. Starring information is private to each user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_unstar_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_unstar` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_unstar_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:unstar",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:unstar
+/// Marks an Entry as NOT starred by the current user. Starring information is private to each user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_unstar_execute()` or `datacatalog_projects_locations_entry_groups_entries_unstar`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_unstar_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_unstar_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1UnstarEntryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1UnstarEntryResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:unstar
+/// Marks an Entry as NOT starred by the current user. Starring information is private to each user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_unstar_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_unstar_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_unstar()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_unstar_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_unstar_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1UnstarEntryResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_unstar_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_unstar`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesUnstarArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}:unstar
+/// Marks an Entry as NOT starred by the current user. Starring information is private to each user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_unstar_builder()` + `datacatalog_projects_locations_entry_groups_entries_unstar_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_unstar_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_unstar(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesUnstarArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1UnstarEntryResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_entries_unstar_builder(client, &args.name)?;
+    datacatalog_projects_locations_entry_groups_entries_unstar_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
+/// Creates a tag and assigns it to: * An Entry if the method name is projects.locations.`entryGroups`.entries.tags.create. * Or EntryGroupif the method name is projects.locations.`entryGroups`.tags.create. Note: The project identified by the parent parameter for the [tag] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.`entryGroups`.entries.`tags/create`#path-parameters>) and the [tag template] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.tagT`emplates/create`#path-parameters>) used to create the tag must be in the same organization.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_tags_create_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_tags_create` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
+/// Creates a tag and assigns it to: * An Entry if the method name is projects.locations.`entryGroups`.entries.tags.create. * Or EntryGroupif the method name is projects.locations.`entryGroups`.tags.create. Note: The project identified by the parent parameter for the [tag] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.`entryGroups`.entries.`tags/create`#path-parameters>) and the [tag template] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.tagT`emplates/create`#path-parameters>) used to create the tag must be in the same organization.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_tags_create_execute()` or `datacatalog_projects_locations_entry_groups_entries_tags_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_tags_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Tag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
+/// Creates a tag and assigns it to: * An Entry if the method name is projects.locations.`entryGroups`.entries.tags.create. * Or EntryGroupif the method name is projects.locations.`entryGroups`.tags.create. Note: The project identified by the parent parameter for the [tag] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.`entryGroups`.entries.`tags/create`#path-parameters>) and the [tag template] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.tagT`emplates/create`#path-parameters>) used to create the tag must be in the same organization.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_tags_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_tags_create_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_tags_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_tags_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_tags_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
+/// Creates a tag and assigns it to: * An Entry if the method name is projects.locations.`entryGroups`.entries.tags.create. * Or EntryGroupif the method name is projects.locations.`entryGroups`.tags.create. Note: The project identified by the parent parameter for the [tag] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.`entryGroups`.entries.`tags/create`#path-parameters>) and the [tag template] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.tagT`emplates/create`#path-parameters>) used to create the tag must be in the same organization.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_tags_create_builder()` + `datacatalog_projects_locations_entry_groups_entries_tags_create_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_tags_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_create(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_entries_tags_create_builder(
+        client,
+        &args.parent,
+    )?;
+    datacatalog_projects_locations_entry_groups_entries_tags_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_tags_delete_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_tags_delete` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_tags_delete_execute()` or `datacatalog_projects_locations_entry_groups_entries_tags_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_tags_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_tags_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_tags_delete_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_tags_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_tags_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_tags_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_tags_delete_builder()` + `datacatalog_projects_locations_entry_groups_entries_tags_delete_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_tags_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_delete(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_entries_tags_delete_builder(
+        client, &args.name,
+    )?;
+    datacatalog_projects_locations_entry_groups_entries_tags_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
+/// Lists tags assigned to an Entry. The columns in the response are lowercased.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_tags_list_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_tags_list` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
+/// Lists tags assigned to an Entry. The columns in the response are lowercased.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_tags_list_execute()` or `datacatalog_projects_locations_entry_groups_entries_tags_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_tags_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1ListTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1ListTagsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
+/// Lists tags assigned to an Entry. The columns in the response are lowercased.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_tags_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_tags_list_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_tags_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_tags_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListTagsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_tags_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags
+/// Lists tags assigned to an Entry. The columns in the response are lowercased.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_tags_list_builder()` + `datacatalog_projects_locations_entry_groups_entries_tags_list_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_tags_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_list(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListTagsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_entries_tags_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datacatalog_projects_locations_entry_groups_entries_tags_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
+/// Updates an existing tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_tags_patch_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_tags_patch` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
+/// Updates an existing tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_tags_patch_execute()` or `datacatalog_projects_locations_entry_groups_entries_tags_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_tags_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Tag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
+/// Updates an existing tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_tags_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_tags_patch_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_tags_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_tags_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_tags_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_tags_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags/{tagsId}
+/// Updates an existing tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_tags_patch_builder()` + `datacatalog_projects_locations_entry_groups_entries_tags_patch_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_tags_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_patch(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_entries_tags_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    datacatalog_projects_locations_entry_groups_entries_tags_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags:reconcile
+/// ReconcileTags creates or updates a list of tags on the entry. If the ReconcileTagsRequest.force_delete_missing parameter is set, the operation deletes tags not included in the input tag list. ReconcileTags returns a long-running operation resource that can be queried with Operations.GetOperation to return ReconcileTagsMetadata and a ReconcileTagsResponse message. Note: SearchCatalog might return stale search results for up to 24 hours after the ReconcileTags operation completes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_entries_tags_reconcile_execute()` to send, or `datacatalog_projects_locations_entry_groups_entries_tags_reconcile` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_reconcile_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags:reconcile",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags:reconcile
+/// ReconcileTags creates or updates a list of tags on the entry. If the ReconcileTagsRequest.force_delete_missing parameter is set, the operation deletes tags not included in the input tag list. ReconcileTags returns a long-running operation resource that can be queried with Operations.GetOperation to return ReconcileTagsMetadata and a ReconcileTagsResponse message. Note: SearchCatalog might return stale search results for up to 24 hours after the ReconcileTags operation completes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_entries_tags_reconcile_execute()` or `datacatalog_projects_locations_entry_groups_entries_tags_reconcile`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_tags_reconcile_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_reconcile_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags:reconcile
+/// ReconcileTags creates or updates a list of tags on the entry. If the ReconcileTagsRequest.force_delete_missing parameter is set, the operation deletes tags not included in the input tag list. ReconcileTags returns a long-running operation resource that can be queried with Operations.GetOperation to return ReconcileTagsMetadata and a ReconcileTagsResponse message. Note: SearchCatalog might return stale search results for up to 24 hours after the ReconcileTags operation completes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_entries_tags_reconcile_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_tags_reconcile_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_entries_tags_reconcile()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_entries_tags_reconcile_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_reconcile_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_entries_tags_reconcile_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_entries_tags_reconcile`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsEntriesTagsReconcileArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/entries/{entriesId}/tags:reconcile
+/// ReconcileTags creates or updates a list of tags on the entry. If the ReconcileTagsRequest.force_delete_missing parameter is set, the operation deletes tags not included in the input tag list. ReconcileTags returns a long-running operation resource that can be queried with Operations.GetOperation to return ReconcileTagsMetadata and a ReconcileTagsResponse message. Note: SearchCatalog might return stale search results for up to 24 hours after the ReconcileTags operation completes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_entries_tags_reconcile_builder()` + `datacatalog_projects_locations_entry_groups_entries_tags_reconcile_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_entries_tags_reconcile_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_entries_tags_reconcile(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsReconcileArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_entries_tags_reconcile_builder(
+        client,
+        &args.parent,
+    )?;
+    datacatalog_projects_locations_entry_groups_entries_tags_reconcile_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
+/// Creates a tag and assigns it to: * An Entry if the method name is projects.locations.`entryGroups`.entries.tags.create. * Or EntryGroupif the method name is projects.locations.`entryGroups`.tags.create. Note: The project identified by the parent parameter for the [tag] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.`entryGroups`.entries.`tags/create`#path-parameters>) and the [tag template] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.tagT`emplates/create`#path-parameters>) used to create the tag must be in the same organization.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_tags_create_execute()` to send, or `datacatalog_projects_locations_entry_groups_tags_create` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
+/// Creates a tag and assigns it to: * An Entry if the method name is projects.locations.`entryGroups`.entries.tags.create. * Or EntryGroupif the method name is projects.locations.`entryGroups`.tags.create. Note: The project identified by the parent parameter for the [tag] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.`entryGroups`.entries.`tags/create`#path-parameters>) and the [tag template] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.tagT`emplates/create`#path-parameters>) used to create the tag must be in the same organization.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_tags_create_execute()` or `datacatalog_projects_locations_entry_groups_tags_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_tags_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Tag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
+/// Creates a tag and assigns it to: * An Entry if the method name is projects.locations.`entryGroups`.entries.tags.create. * Or EntryGroupif the method name is projects.locations.`entryGroups`.tags.create. Note: The project identified by the parent parameter for the [tag] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.`entryGroups`.entries.`tags/create`#path-parameters>) and the [tag template] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.tagT`emplates/create`#path-parameters>) used to create the tag must be in the same organization.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_tags_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_tags_create_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_tags_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_tags_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_tags_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
+/// Creates a tag and assigns it to: * An Entry if the method name is projects.locations.`entryGroups`.entries.tags.create. * Or EntryGroupif the method name is projects.locations.`entryGroups`.tags.create. Note: The project identified by the parent parameter for the [tag] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.`entryGroups`.entries.`tags/create`#path-parameters>) and the [tag template] (<https://cloud.google.`com/data-catalog/docs/reference/rest/v1/projects`.locations.tagT`emplates/create`#path-parameters>) used to create the tag must be in the same organization.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_tags_create_builder()` + `datacatalog_projects_locations_entry_groups_tags_create_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_tags_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_create(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsTagsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_tags_create_builder(client, &args.parent)?;
+    datacatalog_projects_locations_entry_groups_tags_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_tags_delete_execute()` to send, or `datacatalog_projects_locations_entry_groups_tags_delete` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_tags_delete_execute()` or `datacatalog_projects_locations_entry_groups_tags_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_tags_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_tags_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_tags_delete_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_tags_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_tags_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_tags_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsTagsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
+/// Deletes a tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_tags_delete_builder()` + `datacatalog_projects_locations_entry_groups_tags_delete_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_tags_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_delete(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsTagsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_entry_groups_tags_delete_builder(client, &args.name)?;
+    datacatalog_projects_locations_entry_groups_tags_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
+/// Lists tags assigned to an Entry. The columns in the response are lowercased.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_tags_list_execute()` to send, or `datacatalog_projects_locations_entry_groups_tags_list` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
+/// Lists tags assigned to an Entry. The columns in the response are lowercased.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_tags_list_execute()` or `datacatalog_projects_locations_entry_groups_tags_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_tags_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1ListTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1ListTagsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
+/// Lists tags assigned to an Entry. The columns in the response are lowercased.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_tags_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_tags_list_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_tags_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_tags_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListTagsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_tags_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags
+/// Lists tags assigned to an Entry. The columns in the response are lowercased.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_tags_list_builder()` + `datacatalog_projects_locations_entry_groups_tags_list_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_tags_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_list(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsTagsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListTagsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_tags_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datacatalog_projects_locations_entry_groups_tags_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
+/// Updates an existing tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_entry_groups_tags_patch_execute()` to send, or `datacatalog_projects_locations_entry_groups_tags_patch` for simplest API.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
+/// Updates an existing tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_entry_groups_tags_patch_execute()` or `datacatalog_projects_locations_entry_groups_tags_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_tags_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Tag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
+/// Updates an existing tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_entry_groups_tags_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_tags_patch_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_entry_groups_tags_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_entry_groups_tags_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_entry_groups_tags_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_entry_groups_tags_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsEntryGroupsTagsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/entryGroups/{entryGroupsId}/tags/{tagsId}
+/// Updates an existing tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_entry_groups_tags_patch_builder()` + `datacatalog_projects_locations_entry_groups_tags_patch_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_entry_groups_tags_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_entry_groups_tags_patch(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsEntryGroupsTagsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Tag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_entry_groups_tags_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    datacatalog_projects_locations_entry_groups_tags_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_operations_cancel_execute()` to send, or `datacatalog_projects_locations_operations_cancel` for simplest API.
+
+pub fn datacatalog_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_operations_cancel_execute()` or `datacatalog_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_operations_cancel_builder()` + `datacatalog_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_operations_cancel_builder(client, &args.name)?;
+    datacatalog_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_operations_delete_execute()` to send, or `datacatalog_projects_locations_operations_delete` for simplest API.
+
+pub fn datacatalog_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_operations_delete_execute()` or `datacatalog_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_operations_delete_builder()` + `datacatalog_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_operations_delete_builder(client, &args.name)?;
+    datacatalog_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_operations_get_execute()` to send, or `datacatalog_projects_locations_operations_get` for simplest API.
+
+pub fn datacatalog_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_operations_get_execute()` or `datacatalog_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_operations_get_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_operations_get_builder()` + `datacatalog_projects_locations_operations_get_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_operations_get_builder(client, &args.name)?;
+    datacatalog_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_operations_list_execute()` to send, or `datacatalog_projects_locations_operations_list` for simplest API.
+
+pub fn datacatalog_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_operations_list_execute()` or `datacatalog_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_operations_list_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_operations_list_builder()` + `datacatalog_projects_locations_operations_list_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    datacatalog_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates
+/// Creates a tag template. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project] (<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_create_execute()` to send, or `datacatalog_projects_locations_tag_templates_create` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    tagTemplateId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = tagTemplateId.as_ref() {
+        query_parts.push(format!("tagTemplateId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates
+/// Creates a tag template. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project] (<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_create_execute()` or `datacatalog_projects_locations_tag_templates_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1TagTemplate = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates
+/// Creates a tag template. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project] (<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_create_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tagTemplateId
+    pub tagTemplateId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates
+/// Creates a tag template. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project] (<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_create_builder()` + `datacatalog_projects_locations_tag_templates_create_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_create(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_create_builder(
+        client,
+        &args.parent,
+        &args.tagTemplateId,
+    )?;
+    datacatalog_projects_locations_tag_templates_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Deletes a tag template and all tags that use it. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_delete_execute()` to send, or `datacatalog_projects_locations_tag_templates_delete` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Deletes a tag template and all tags that use it. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_delete_execute()` or `datacatalog_projects_locations_tag_templates_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Deletes a tag template and all tags that use it. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_delete_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Deletes a tag template and all tags that use it. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_delete_builder()` + `datacatalog_projects_locations_tag_templates_delete_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_delete(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_delete_builder(
+        client,
+        &args.name,
+        &args.force,
+    )?;
+    datacatalog_projects_locations_tag_templates_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Gets a tag template.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_get_execute()` to send, or `datacatalog_projects_locations_tag_templates_get` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Gets a tag template.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_get_execute()` or `datacatalog_projects_locations_tag_templates_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1TagTemplate = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Gets a tag template.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_get_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Gets a tag template.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_get_builder()` + `datacatalog_projects_locations_tag_templates_get_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_get(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_get_builder(client, &args.name)?;
+    datacatalog_projects_locations_tag_templates_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_tag_templates_get_iam_policy` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_get_iam_policy_execute()` or `datacatalog_projects_locations_tag_templates_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_get_iam_policy_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:getIamPolicy
+/// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Tag templates - Entry groups Note: This method doesn't get policies from Google Cloud Platform resources ingested into Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`getIamPolicy` to get policies on tag templates. - datacatalog.`entryGroups`.`getIamPolicy` to get policies on entry groups.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_get_iam_policy_builder()` + `datacatalog_projects_locations_tag_templates_get_iam_policy_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    datacatalog_projects_locations_tag_templates_get_iam_policy_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Updates a tag template. You can't update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_patch_execute()` to send, or `datacatalog_projects_locations_tag_templates_patch` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Updates a tag template. You can't update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_patch_execute()` or `datacatalog_projects_locations_tag_templates_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1TagTemplate = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Updates a tag template. You can't update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_patch_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}
+/// Updates a tag template. You can't update template fields with this method. These fields are separate resources with their own create, update, and delete methods. You must enable the Data Catalog API in the project identified by the tag_template.name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_patch_builder()` + `datacatalog_projects_locations_tag_templates_patch_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_patch(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplate>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    datacatalog_projects_locations_tag_templates_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_set_iam_policy_execute()` to send, or `datacatalog_projects_locations_tag_templates_set_iam_policy` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_set_iam_policy_execute()` or `datacatalog_projects_locations_tag_templates_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_set_iam_policy_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:setIamPolicy
+/// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Tag templates - Entry groups Note: This method sets policies only within Data Catalog and can't be used to manage policies in BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources synced with the Data Catalog. To call this method, you must have the following Google IAM permissions: - datacatalog.`tagTemplates`.`setIamPolicy` to set policies on tag templates. - datacatalog.`entryGroups`.`setIamPolicy` to set policies on entry groups.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_set_iam_policy_builder()` + `datacatalog_projects_locations_tag_templates_set_iam_policy_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    datacatalog_projects_locations_tag_templates_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_tag_templates_test_iam_permissions` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_test_iam_permissions_execute()` or `datacatalog_projects_locations_tag_templates_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_test_iam_permissions_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}:testIamPermissions
+/// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Tag templates - Entry groups Note: This method gets policies only within Data Catalog and can't be used to get policies from BigQuery, P`ub/Sub`, Dataproc Metastore, and any external Google Cloud Platform resources ingested into Data Catalog. No Google IAM permissions are required to call this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_test_iam_permissions_builder()` + `datacatalog_projects_locations_tag_templates_test_iam_permissions_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    datacatalog_projects_locations_tag_templates_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields
+/// Creates a field in a tag template. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_fields_create_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_create` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    tagTemplateFieldId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = tagTemplateFieldId.as_ref() {
+        query_parts.push(format!("tagTemplateFieldId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields
+/// Creates a field in a tag template. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_fields_create_execute()` or `datacatalog_projects_locations_tag_templates_fields_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_fields_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1TagTemplateField = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields
+/// Creates a field in a tag template. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_fields_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_fields_create_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_fields_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_fields_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_fields_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_fields_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesFieldsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tagTemplateFieldId
+    pub tagTemplateFieldId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields
+/// Creates a field in a tag template. You must enable the Data Catalog API in the project identified by the parent parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_fields_create_builder()` + `datacatalog_projects_locations_tag_templates_fields_create_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_fields_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_create(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesFieldsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_fields_create_builder(
+        client,
+        &args.parent,
+        &args.tagTemplateFieldId,
+    )?;
+    datacatalog_projects_locations_tag_templates_fields_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
+/// Deletes a field in a tag template and all uses of this field from the tags based on this template. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_fields_delete_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_delete` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
+/// Deletes a field in a tag template and all uses of this field from the tags based on this template. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_fields_delete_execute()` or `datacatalog_projects_locations_tag_templates_fields_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_fields_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
+/// Deletes a field in a tag template and all uses of this field from the tags based on this template. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_fields_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_fields_delete_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_fields_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_fields_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_fields_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_fields_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesFieldsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
+/// Deletes a field in a tag template and all uses of this field from the tags based on this template. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_fields_delete_builder()` + `datacatalog_projects_locations_tag_templates_fields_delete_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_fields_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_delete(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesFieldsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_fields_delete_builder(
+        client,
+        &args.name,
+        &args.force,
+    )?;
+    datacatalog_projects_locations_tag_templates_fields_delete_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
+/// Updates a field in a tag template. You can't update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_fields_patch_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_patch` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
+/// Updates a field in a tag template. You can't update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_fields_patch_execute()` or `datacatalog_projects_locations_tag_templates_fields_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_fields_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1TagTemplateField = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
+/// Updates a field in a tag template. You can't update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_fields_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_fields_patch_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_fields_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_fields_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_fields_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_fields_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesFieldsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}
+/// Updates a field in a tag template. You can't update the field type with this method. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project](<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_fields_patch_builder()` + `datacatalog_projects_locations_tag_templates_fields_patch_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_fields_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_patch(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesFieldsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_fields_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    datacatalog_projects_locations_tag_templates_fields_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}:rename
+/// Renames a field in a tag template. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project] (<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_fields_rename_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_rename` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_rename_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}:rename",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}:rename
+/// Renames a field in a tag template. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project] (<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_fields_rename_execute()` or `datacatalog_projects_locations_tag_templates_fields_rename`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_fields_rename_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_rename_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1TagTemplateField = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}:rename
+/// Renames a field in a tag template. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project] (<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_fields_rename_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_fields_rename_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_fields_rename()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_fields_rename_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_rename_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_tag_templates_fields_rename_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_fields_rename`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesFieldsRenameArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}:rename
+/// Renames a field in a tag template. You must enable the Data Catalog API in the project identified by the name parameter. For more information, see [Data Catalog resource project] (<https://cloud.google.`com/data-catalog/docs/concepts/resource-project`>).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_fields_rename_builder()` + `datacatalog_projects_locations_tag_templates_fields_rename_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_fields_rename_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_rename(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesFieldsRenameArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_tag_templates_fields_rename_builder(client, &args.name)?;
+    datacatalog_projects_locations_tag_templates_fields_rename_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}/enumValues/{enumValuesId}:rename
+/// Renames an enum value in a tag template. Within a single enum field, enum values must be unique.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_tag_templates_fields_enum_values_rename_execute()` to send, or `datacatalog_projects_locations_tag_templates_fields_enum_values_rename` for simplest API.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}/enumValues/{enumValuesId}:rename",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}/enumValues/{enumValuesId}:rename
+/// Renames an enum value in a tag template. Within a single enum field, enum values must be unique.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_tag_templates_fields_enum_values_rename_execute()` or `datacatalog_projects_locations_tag_templates_fields_enum_values_rename`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_fields_enum_values_rename_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1TagTemplateField = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}/enumValues/{enumValuesId}:rename
+/// Renames an enum value in a tag template. Within a single enum field, enum values must be unique.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_tag_templates_fields_enum_values_rename_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_fields_enum_values_rename_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_tag_templates_fields_enum_values_rename()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_tag_templates_fields_enum_values_rename_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        datacatalog_projects_locations_tag_templates_fields_enum_values_rename_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_tag_templates_fields_enum_values_rename`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTagTemplatesFieldsEnumValuesRenameArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/tagTemplates/{tagTemplatesId}/fields/{fieldsId}/enumValues/{enumValuesId}:rename
+/// Renames an enum value in a tag template. Within a single enum field, enum values must be unique.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_tag_templates_fields_enum_values_rename_builder()` + `datacatalog_projects_locations_tag_templates_fields_enum_values_rename_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_tag_templates_fields_enum_values_rename_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_tag_templates_fields_enum_values_rename(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTagTemplatesFieldsEnumValuesRenameArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1TagTemplateField>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_tag_templates_fields_enum_values_rename_builder(
+        client, &args.name,
+    )?;
+    datacatalog_projects_locations_tag_templates_fields_enum_values_rename_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies
+/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn't contain policy tags.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_create_execute()` to send, or `datacatalog_projects_locations_taxonomies_create` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies
+/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn't contain policy tags.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_create_execute()` or `datacatalog_projects_locations_taxonomies_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Taxonomy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies
+/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn't contain policy tags.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_create_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies
+/// Creates a taxonomy in a specified project. The taxonomy is initially empty, that is, it doesn't contain policy tags.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_create_builder()` + `datacatalog_projects_locations_taxonomies_create_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_create(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_create_builder(client, &args.parent)?;
+    datacatalog_projects_locations_taxonomies_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Deletes a taxonomy, including all policy tags in this taxonomy, their associated policies, and the policy tags references from BigQuery columns.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_delete_execute()` to send, or `datacatalog_projects_locations_taxonomies_delete` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Deletes a taxonomy, including all policy tags in this taxonomy, their associated policies, and the policy tags references from BigQuery columns.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_delete_execute()` or `datacatalog_projects_locations_taxonomies_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Deletes a taxonomy, including all policy tags in this taxonomy, their associated policies, and the policy tags references from BigQuery columns.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_delete_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Deletes a taxonomy, including all policy tags in this taxonomy, their associated policies, and the policy tags references from BigQuery columns.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_delete_builder()` + `datacatalog_projects_locations_taxonomies_delete_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_delete(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_delete_builder(client, &args.name)?;
+    datacatalog_projects_locations_taxonomies_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies:export
+/// Exports taxonomies in the requested type and returns them, including their policy tags. The requested taxonomies must belong to the same project. This method generates SerializedTaxonomy protocol buffers with nested policy tags that can be used as input for ImportTaxonomies calls.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_export_execute()` to send, or `datacatalog_projects_locations_taxonomies_export` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_export_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    serializedTaxonomies: &Option<Option<String>>,
+    taxonomies: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies:export",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = serializedTaxonomies.as_ref() {
+        query_parts.push(format!("serializedTaxonomies={}", val));
+    }
+    if let Some(val) = taxonomies.as_ref() {
+        query_parts.push(format!("taxonomies={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies:export
+/// Exports taxonomies in the requested type and returns them, including their policy tags. The requested taxonomies must belong to the same project. This method generates SerializedTaxonomy protocol buffers with nested policy tags that can be used as input for ImportTaxonomies calls.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_export_execute()` or `datacatalog_projects_locations_taxonomies_export`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_export_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_export_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1ExportTaxonomiesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1ExportTaxonomiesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies:export
+/// Exports taxonomies in the requested type and returns them, including their policy tags. The requested taxonomies must belong to the same project. This method generates SerializedTaxonomy protocol buffers with nested policy tags that can be used as input for ImportTaxonomies calls.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_export_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_export_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_export()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_export_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_export_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ExportTaxonomiesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_export_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesExportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serializedTaxonomies
+    pub serializedTaxonomies: Option<Option<String>>,
+    /// Query parameter: taxonomies
+    pub taxonomies: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies:export
+/// Exports taxonomies in the requested type and returns them, including their policy tags. The requested taxonomies must belong to the same project. This method generates SerializedTaxonomy protocol buffers with nested policy tags that can be used as input for ImportTaxonomies calls.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_export_builder()` + `datacatalog_projects_locations_taxonomies_export_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_export_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_export(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesExportArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ExportTaxonomiesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_export_builder(
+        client,
+        &args.parent,
+        &args.serializedTaxonomies,
+        &args.taxonomies,
+    )?;
+    datacatalog_projects_locations_taxonomies_export_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Gets a taxonomy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_get_execute()` to send, or `datacatalog_projects_locations_taxonomies_get` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Gets a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_get_execute()` or `datacatalog_projects_locations_taxonomies_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Taxonomy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Gets a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_get_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Gets a taxonomy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_get_builder()` + `datacatalog_projects_locations_taxonomies_get_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_get(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_get_builder(client, &args.name)?;
+    datacatalog_projects_locations_taxonomies_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:getIamPolicy
+/// Gets the IAM policy for a policy tag or a taxonomy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_taxonomies_get_iam_policy` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:getIamPolicy
+/// Gets the IAM policy for a policy tag or a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_get_iam_policy_execute()` or `datacatalog_projects_locations_taxonomies_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:getIamPolicy
+/// Gets the IAM policy for a policy tag or a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_get_iam_policy_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:getIamPolicy
+/// Gets the IAM policy for a policy tag or a taxonomy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_get_iam_policy_builder()` + `datacatalog_projects_locations_taxonomies_get_iam_policy_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_taxonomies_get_iam_policy_builder(client, &args.resource)?;
+    datacatalog_projects_locations_taxonomies_get_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies:import
+/// Creates new taxonomies (including their policy tags) in a given project by importing from inlined or cross-regional sources. For a cross-regional source, new taxonomies are created by copying from a source in another region. For an inlined source, taxonomies and policy tags are created in bulk using nested protocol buffer structures.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_import_execute()` to send, or `datacatalog_projects_locations_taxonomies_import` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_import_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies:import",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies:import
+/// Creates new taxonomies (including their policy tags) in a given project by importing from inlined or cross-regional sources. For a cross-regional source, new taxonomies are created by copying from a source in another region. For an inlined source, taxonomies and policy tags are created in bulk using nested protocol buffer structures.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_import_execute()` or `datacatalog_projects_locations_taxonomies_import`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_import_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1ImportTaxonomiesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1ImportTaxonomiesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies:import
+/// Creates new taxonomies (including their policy tags) in a given project by importing from inlined or cross-regional sources. For a cross-regional source, new taxonomies are created by copying from a source in another region. For an inlined source, taxonomies and policy tags are created in bulk using nested protocol buffer structures.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_import_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_import_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_import()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_import_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_import_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ImportTaxonomiesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_import_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies:import
+/// Creates new taxonomies (including their policy tags) in a given project by importing from inlined or cross-regional sources. For a cross-regional source, new taxonomies are created by copying from a source in another region. For an inlined source, taxonomies and policy tags are created in bulk using nested protocol buffer structures.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_import_builder()` + `datacatalog_projects_locations_taxonomies_import_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_import_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_import(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesImportArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ImportTaxonomiesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_import_builder(client, &args.parent)?;
+    datacatalog_projects_locations_taxonomies_import_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies
+/// Lists all taxonomies in a project in a particular location that you have a permission to view.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_list_execute()` to send, or `datacatalog_projects_locations_taxonomies_list` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies
+/// Lists all taxonomies in a project in a particular location that you have a permission to view.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_list_execute()` or `datacatalog_projects_locations_taxonomies_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1ListTaxonomiesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1ListTaxonomiesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies
+/// Lists all taxonomies in a project in a particular location that you have a permission to view.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_list_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListTaxonomiesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies
+/// Lists all taxonomies in a project in a particular location that you have a permission to view.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_list_builder()` + `datacatalog_projects_locations_taxonomies_list_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_list(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListTaxonomiesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datacatalog_projects_locations_taxonomies_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Updates a taxonomy, including its display name, description, and activated policy types.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_patch_execute()` to send, or `datacatalog_projects_locations_taxonomies_patch` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Updates a taxonomy, including its display name, description, and activated policy types.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_patch_execute()` or `datacatalog_projects_locations_taxonomies_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Taxonomy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Updates a taxonomy, including its display name, description, and activated policy types.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_patch_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}
+/// Updates a taxonomy, including its display name, description, and activated policy types.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_patch_builder()` + `datacatalog_projects_locations_taxonomies_patch_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_patch(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    datacatalog_projects_locations_taxonomies_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace
+/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don't have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_replace_execute()` to send, or `datacatalog_projects_locations_taxonomies_replace` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_replace_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace
+/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don't have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_replace_execute()` or `datacatalog_projects_locations_taxonomies_replace`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_replace_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_replace_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1Taxonomy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace
+/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don't have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_replace_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_replace_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_replace()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_replace_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_replace_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_replace_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_replace`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesReplaceArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:replace
+/// Replaces (updates) a taxonomy and all its policy tags. The taxonomy and its entire hierarchy of policy tags must be represented literally by SerializedTaxonomy and the nested SerializedPolicyTag messages. This operation automatically does the following: - Deletes the existing policy tags that are missing from the SerializedPolicyTag. - Creates policy tags that don't have resource names. They are considered new. - Updates policy tags with valid resources names accordingly.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_replace_builder()` + `datacatalog_projects_locations_taxonomies_replace_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_replace_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_replace(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesReplaceArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1Taxonomy>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_replace_builder(client, &args.name)?;
+    datacatalog_projects_locations_taxonomies_replace_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:setIamPolicy
+/// Sets the IAM policy for a policy tag or a taxonomy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_set_iam_policy_execute()` to send, or `datacatalog_projects_locations_taxonomies_set_iam_policy` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:setIamPolicy
+/// Sets the IAM policy for a policy tag or a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_set_iam_policy_execute()` or `datacatalog_projects_locations_taxonomies_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:setIamPolicy
+/// Sets the IAM policy for a policy tag or a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_set_iam_policy_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:setIamPolicy
+/// Sets the IAM policy for a policy tag or a taxonomy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_set_iam_policy_builder()` + `datacatalog_projects_locations_taxonomies_set_iam_policy_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_taxonomies_set_iam_policy_builder(client, &args.resource)?;
+    datacatalog_projects_locations_taxonomies_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:testIamPermissions
+/// Returns your permissions on a specified policy tag or taxonomy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_taxonomies_test_iam_permissions` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:testIamPermissions
+/// Returns your permissions on a specified policy tag or taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_test_iam_permissions_execute()` or `datacatalog_projects_locations_taxonomies_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:testIamPermissions
+/// Returns your permissions on a specified policy tag or taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_test_iam_permissions_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}:testIamPermissions
+/// Returns your permissions on a specified policy tag or taxonomy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_test_iam_permissions_builder()` + `datacatalog_projects_locations_taxonomies_test_iam_permissions_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    datacatalog_projects_locations_taxonomies_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
+/// Creates a policy tag in a taxonomy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_policy_tags_create_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_create` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
+/// Creates a policy tag in a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_policy_tags_create_execute()` or `datacatalog_projects_locations_taxonomies_policy_tags_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1PolicyTag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
+/// Creates a policy tag in a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_policy_tags_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_create_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_policy_tags_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_policy_tags_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
+/// Creates a policy tag in a taxonomy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_policy_tags_create_builder()` + `datacatalog_projects_locations_taxonomies_policy_tags_create_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_create(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_taxonomies_policy_tags_create_builder(client, &args.parent)?;
+    datacatalog_projects_locations_taxonomies_policy_tags_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Deletes a policy tag together with the following: * All of its descendant policy tags, if any * Policies associated with the policy tag and its descendants * References from BigQuery table schema of the policy tag and its descendants
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_policy_tags_delete_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_delete` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Deletes a policy tag together with the following: * All of its descendant policy tags, if any * Policies associated with the policy tag and its descendants * References from BigQuery table schema of the policy tag and its descendants
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_policy_tags_delete_execute()` or `datacatalog_projects_locations_taxonomies_policy_tags_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Deletes a policy tag together with the following: * All of its descendant policy tags, if any * Policies associated with the policy tag and its descendants * References from BigQuery table schema of the policy tag and its descendants
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_policy_tags_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_delete_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_policy_tags_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_policy_tags_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Deletes a policy tag together with the following: * All of its descendant policy tags, if any * Policies associated with the policy tag and its descendants * References from BigQuery table schema of the policy tag and its descendants
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_policy_tags_delete_builder()` + `datacatalog_projects_locations_taxonomies_policy_tags_delete_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_delete(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_taxonomies_policy_tags_delete_builder(client, &args.name)?;
+    datacatalog_projects_locations_taxonomies_policy_tags_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Gets a policy tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_policy_tags_get_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_get` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Gets a policy tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_policy_tags_get_execute()` or `datacatalog_projects_locations_taxonomies_policy_tags_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1PolicyTag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Gets a policy tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_policy_tags_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_get_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_policy_tags_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_policy_tags_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Gets a policy tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_policy_tags_get_builder()` + `datacatalog_projects_locations_taxonomies_policy_tags_get_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_get(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_taxonomies_policy_tags_get_builder(client, &args.name)?;
+    datacatalog_projects_locations_taxonomies_policy_tags_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:getIamPolicy
+/// Gets the IAM policy for a policy tag or a taxonomy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:getIamPolicy
+/// Gets the IAM policy for a policy tag or a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_execute()` or `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:getIamPolicy
+/// Gets the IAM policy for a policy tag or a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:getIamPolicy
+/// Gets the IAM policy for a policy tag or a taxonomy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_builder()` + `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    datacatalog_projects_locations_taxonomies_policy_tags_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
+/// Lists all policy tags in a taxonomy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_policy_tags_list_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_list` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
+/// Lists all policy tags in a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_policy_tags_list_execute()` or `datacatalog_projects_locations_taxonomies_policy_tags_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1ListPolicyTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1ListPolicyTagsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
+/// Lists all policy tags in a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_policy_tags_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_list_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_policy_tags_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListPolicyTagsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_policy_tags_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags
+/// Lists all policy tags in a taxonomy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_policy_tags_list_builder()` + `datacatalog_projects_locations_taxonomies_policy_tags_list_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_list(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1ListPolicyTagsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_policy_tags_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    datacatalog_projects_locations_taxonomies_policy_tags_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Updates a policy tag, including its display name, description, and parent policy tag.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_policy_tags_patch_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_patch` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Updates a policy tag, including its display name, description, and parent policy tag.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_policy_tags_patch_execute()` or `datacatalog_projects_locations_taxonomies_policy_tags_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleCloudDatacatalogV1PolicyTag = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Updates a policy tag, including its display name, description, and parent policy tag.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_policy_tags_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_patch_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_policy_tags_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_policy_tags_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}
+/// Updates a policy tag, including its display name, description, and parent policy tag.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_policy_tags_patch_builder()` + `datacatalog_projects_locations_taxonomies_policy_tags_patch_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_patch(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleCloudDatacatalogV1PolicyTag>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_policy_tags_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    datacatalog_projects_locations_taxonomies_policy_tags_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:setIamPolicy
+/// Sets the IAM policy for a policy tag or a taxonomy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:setIamPolicy
+/// Sets the IAM policy for a policy tag or a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_execute()` or `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:setIamPolicy
+/// Sets the IAM policy for a policy tag or a taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:setIamPolicy
+/// Sets the IAM policy for a policy tag or a taxonomy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_builder()` + `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    datacatalog_projects_locations_taxonomies_policy_tags_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:testIamPermissions
+/// Returns your permissions on a specified policy tag or taxonomy.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_execute()` to send, or `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions` for simplest API.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://datacatalog.googleapis.com/v1/projects/{}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:testIamPermissions
+/// Returns your permissions on a specified policy tag or taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_execute()` or `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:testIamPermissions
+/// Returns your permissions on a specified policy tag or taxonomy.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_task()`.
+/// For the simplest API, use `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatacatalogProjectsLocationsTaxonomiesPolicyTagsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/taxonomies/{taxonomiesId}/policyTags/{policyTagsId}:testIamPermissions
+/// Returns your permissions on a specified policy tag or taxonomy.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_builder()` + `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_execute()`.
+/// For task-level control, use `datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_builder(
+            client,
+            &args.resource,
+        )?;
+    datacatalog_projects_locations_taxonomies_policy_tags_test_iam_permissions_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1SearchCatalogResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1SearchCatalogResponse with DatacatalogCatalogSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogCatalogSearchArgs>
+    for GoogleCloudDatacatalogV1SearchCatalogResponse
+{
+    fn generate_resource_id(&self, input: &DatacatalogCatalogSearchArgs) -> String {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1SearchCatalogResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1SearchCatalogResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Entry
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Entry with DatacatalogEntriesLookupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogEntriesLookupArgs> for GoogleCloudDatacatalogV1Entry {
+    fn generate_resource_id(&self, input: &DatacatalogEntriesLookupArgs) -> String {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Entry".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Entry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1OrganizationConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1OrganizationConfig with DatacatalogOrganizationsLocationsRetrieveConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogOrganizationsLocationsRetrieveConfigArgs>
+    for GoogleCloudDatacatalogV1OrganizationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogOrganizationsLocationsRetrieveConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1OrganizationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1OrganizationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1MigrationConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1MigrationConfig with DatacatalogOrganizationsLocationsRetrieveEffectiveConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogOrganizationsLocationsRetrieveEffectiveConfigArgs>
+    for GoogleCloudDatacatalogV1MigrationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogOrganizationsLocationsRetrieveEffectiveConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1MigrationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1MigrationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1MigrationConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1MigrationConfig with DatacatalogOrganizationsLocationsSetConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogOrganizationsLocationsSetConfigArgs>
+    for GoogleCloudDatacatalogV1MigrationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogOrganizationsLocationsSetConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1MigrationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1MigrationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1MigrationConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1MigrationConfig with DatacatalogProjectsLocationsRetrieveEffectiveConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsRetrieveEffectiveConfigArgs>
+    for GoogleCloudDatacatalogV1MigrationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsRetrieveEffectiveConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1MigrationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1MigrationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1MigrationConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1MigrationConfig with DatacatalogProjectsLocationsSetConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsSetConfigArgs>
+    for GoogleCloudDatacatalogV1MigrationConfig
+{
+    fn generate_resource_id(&self, input: &DatacatalogProjectsLocationsSetConfigArgs) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1MigrationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1MigrationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1EntryGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1EntryGroup with DatacatalogProjectsLocationsEntryGroupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsCreateArgs>
+    for GoogleCloudDatacatalogV1EntryGroup
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1EntryGroup/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1EntryGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatacatalogProjectsLocationsEntryGroupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsDeleteArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1EntryGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1EntryGroup with DatacatalogProjectsLocationsEntryGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsGetArgs>
+    for GoogleCloudDatacatalogV1EntryGroup
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1EntryGroup/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1EntryGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DatacatalogProjectsLocationsEntryGroupsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListEntryGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListEntryGroupsResponse with DatacatalogProjectsLocationsEntryGroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsListArgs>
+    for GoogleCloudDatacatalogV1ListEntryGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsListArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1ListEntryGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1ListEntryGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1EntryGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1EntryGroup with DatacatalogProjectsLocationsEntryGroupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsPatchArgs>
+    for GoogleCloudDatacatalogV1EntryGroup
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1EntryGroup/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1EntryGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DatacatalogProjectsLocationsEntryGroupsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with DatacatalogProjectsLocationsEntryGroupsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Entry
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Entry with DatacatalogProjectsLocationsEntryGroupsEntriesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesCreateArgs>
+    for GoogleCloudDatacatalogV1Entry
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Entry/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Entry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatacatalogProjectsLocationsEntryGroupsEntriesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesDeleteArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Entry
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Entry with DatacatalogProjectsLocationsEntryGroupsEntriesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesGetArgs>
+    for GoogleCloudDatacatalogV1Entry
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Entry/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Entry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DatacatalogProjectsLocationsEntryGroupsEntriesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DatacatalogProjectsLocationsEntryGroupsEntriesImportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesImportArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesImportArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListEntriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListEntriesResponse with DatacatalogProjectsLocationsEntryGroupsEntriesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesListArgs>
+    for GoogleCloudDatacatalogV1ListEntriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1ListEntriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1ListEntriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Contacts
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Contacts with DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryContactsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryContactsArgs>
+    for GoogleCloudDatacatalogV1Contacts
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryContactsArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Contacts/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Contacts"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1EntryOverview
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1EntryOverview with DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryOverviewArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryOverviewArgs>
+    for GoogleCloudDatacatalogV1EntryOverview
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryOverviewArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1EntryOverview/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1EntryOverview"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Entry
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Entry with DatacatalogProjectsLocationsEntryGroupsEntriesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesPatchArgs>
+    for GoogleCloudDatacatalogV1Entry
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Entry/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Entry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1StarEntryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1StarEntryResponse with DatacatalogProjectsLocationsEntryGroupsEntriesStarArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesStarArgs>
+    for GoogleCloudDatacatalogV1StarEntryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesStarArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1StarEntryResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1StarEntryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with DatacatalogProjectsLocationsEntryGroupsEntriesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1UnstarEntryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1UnstarEntryResponse with DatacatalogProjectsLocationsEntryGroupsEntriesUnstarArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesUnstarArgs>
+    for GoogleCloudDatacatalogV1UnstarEntryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesUnstarArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1UnstarEntryResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1UnstarEntryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Tag
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Tag with DatacatalogProjectsLocationsEntryGroupsEntriesTagsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesTagsCreateArgs>
+    for GoogleCloudDatacatalogV1Tag
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Tag/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatacatalogProjectsLocationsEntryGroupsEntriesTagsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesTagsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsDeleteArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListTagsResponse with DatacatalogProjectsLocationsEntryGroupsEntriesTagsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesTagsListArgs>
+    for GoogleCloudDatacatalogV1ListTagsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsListArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1ListTagsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1ListTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Tag
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Tag with DatacatalogProjectsLocationsEntryGroupsEntriesTagsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesTagsPatchArgs>
+    for GoogleCloudDatacatalogV1Tag
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Tag/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DatacatalogProjectsLocationsEntryGroupsEntriesTagsReconcileArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesTagsReconcileArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsReconcileArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Tag
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Tag with DatacatalogProjectsLocationsEntryGroupsTagsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsTagsCreateArgs>
+    for GoogleCloudDatacatalogV1Tag
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsTagsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Tag/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatacatalogProjectsLocationsEntryGroupsTagsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsTagsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsTagsDeleteArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListTagsResponse with DatacatalogProjectsLocationsEntryGroupsTagsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsTagsListArgs>
+    for GoogleCloudDatacatalogV1ListTagsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsTagsListArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1ListTagsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1ListTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Tag
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Tag with DatacatalogProjectsLocationsEntryGroupsTagsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsTagsPatchArgs>
+    for GoogleCloudDatacatalogV1Tag
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsTagsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Tag/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatacatalogProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatacatalogProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DatacatalogProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with DatacatalogProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::datacatalog::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplate
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplate with DatacatalogProjectsLocationsTagTemplatesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesCreateArgs>
+    for GoogleCloudDatacatalogV1TagTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplate/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatacatalogProjectsLocationsTagTemplatesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesDeleteArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplate
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplate with DatacatalogProjectsLocationsTagTemplatesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesGetArgs>
+    for GoogleCloudDatacatalogV1TagTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplate/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DatacatalogProjectsLocationsTagTemplatesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplate
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplate with DatacatalogProjectsLocationsTagTemplatesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesPatchArgs>
+    for GoogleCloudDatacatalogV1TagTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplate/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DatacatalogProjectsLocationsTagTemplatesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with DatacatalogProjectsLocationsTagTemplatesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplateField
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplateField with DatacatalogProjectsLocationsTagTemplatesFieldsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesFieldsCreateArgs>
+    for GoogleCloudDatacatalogV1TagTemplateField
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesFieldsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplateField/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplateField"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatacatalogProjectsLocationsTagTemplatesFieldsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesFieldsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesFieldsDeleteArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplateField
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplateField with DatacatalogProjectsLocationsTagTemplatesFieldsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesFieldsPatchArgs>
+    for GoogleCloudDatacatalogV1TagTemplateField
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesFieldsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplateField/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplateField"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplateField
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplateField with DatacatalogProjectsLocationsTagTemplatesFieldsRenameArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesFieldsRenameArgs>
+    for GoogleCloudDatacatalogV1TagTemplateField
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesFieldsRenameArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplateField/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplateField"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplateField
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplateField with DatacatalogProjectsLocationsTagTemplatesFieldsEnumValuesRenameArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesFieldsEnumValuesRenameArgs>
+    for GoogleCloudDatacatalogV1TagTemplateField
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesFieldsEnumValuesRenameArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplateField/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1TagTemplateField"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Taxonomy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Taxonomy with DatacatalogProjectsLocationsTaxonomiesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesCreateArgs>
+    for GoogleCloudDatacatalogV1Taxonomy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Taxonomy/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Taxonomy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatacatalogProjectsLocationsTaxonomiesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesDeleteArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ExportTaxonomiesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ExportTaxonomiesResponse with DatacatalogProjectsLocationsTaxonomiesExportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesExportArgs>
+    for GoogleCloudDatacatalogV1ExportTaxonomiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesExportArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1ExportTaxonomiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1ExportTaxonomiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Taxonomy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Taxonomy with DatacatalogProjectsLocationsTaxonomiesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesGetArgs>
+    for GoogleCloudDatacatalogV1Taxonomy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Taxonomy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Taxonomy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DatacatalogProjectsLocationsTaxonomiesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ImportTaxonomiesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ImportTaxonomiesResponse with DatacatalogProjectsLocationsTaxonomiesImportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesImportArgs>
+    for GoogleCloudDatacatalogV1ImportTaxonomiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesImportArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1ImportTaxonomiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1ImportTaxonomiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListTaxonomiesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListTaxonomiesResponse with DatacatalogProjectsLocationsTaxonomiesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesListArgs>
+    for GoogleCloudDatacatalogV1ListTaxonomiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesListArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1ListTaxonomiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1ListTaxonomiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Taxonomy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Taxonomy with DatacatalogProjectsLocationsTaxonomiesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPatchArgs>
+    for GoogleCloudDatacatalogV1Taxonomy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Taxonomy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Taxonomy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Taxonomy
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Taxonomy with DatacatalogProjectsLocationsTaxonomiesReplaceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesReplaceArgs>
+    for GoogleCloudDatacatalogV1Taxonomy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesReplaceArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1Taxonomy/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1Taxonomy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DatacatalogProjectsLocationsTaxonomiesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with DatacatalogProjectsLocationsTaxonomiesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1PolicyTag
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1PolicyTag with DatacatalogProjectsLocationsTaxonomiesPolicyTagsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPolicyTagsCreateArgs>
+    for GoogleCloudDatacatalogV1PolicyTag
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1PolicyTag/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1PolicyTag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DatacatalogProjectsLocationsTaxonomiesPolicyTagsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPolicyTagsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsDeleteArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1PolicyTag
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1PolicyTag with DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetArgs>
+    for GoogleCloudDatacatalogV1PolicyTag
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1PolicyTag/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1PolicyTag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListPolicyTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListPolicyTagsResponse with DatacatalogProjectsLocationsTaxonomiesPolicyTagsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPolicyTagsListArgs>
+    for GoogleCloudDatacatalogV1ListPolicyTagsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsListArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1ListPolicyTagsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1ListPolicyTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleCloudDatacatalogV1PolicyTag
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1PolicyTag with DatacatalogProjectsLocationsTaxonomiesPolicyTagsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPolicyTagsPatchArgs>
+    for GoogleCloudDatacatalogV1PolicyTag
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::GoogleCloudDatacatalogV1PolicyTag/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::GoogleCloudDatacatalogV1PolicyTag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with DatacatalogProjectsLocationsTaxonomiesPolicyTagsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPolicyTagsSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::datacatalog::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with DatacatalogProjectsLocationsTaxonomiesPolicyTagsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPolicyTagsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::datacatalog::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::datacatalog::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

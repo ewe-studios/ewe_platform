@@ -14,66 +14,122 @@
 use crate::providers::gcp::clients::chat::{
     chat_custom_emojis_create_builder, chat_custom_emojis_create_task,
     chat_custom_emojis_delete_builder, chat_custom_emojis_delete_task,
+    chat_custom_emojis_get_builder, chat_custom_emojis_get_task,
+    chat_custom_emojis_list_builder, chat_custom_emojis_list_task,
+    chat_media_download_builder, chat_media_download_task,
     chat_media_upload_builder, chat_media_upload_task,
     chat_spaces_complete_import_builder, chat_spaces_complete_import_task,
     chat_spaces_create_builder, chat_spaces_create_task,
     chat_spaces_delete_builder, chat_spaces_delete_task,
+    chat_spaces_find_direct_message_builder, chat_spaces_find_direct_message_task,
+    chat_spaces_find_group_chats_builder, chat_spaces_find_group_chats_task,
+    chat_spaces_get_builder, chat_spaces_get_task,
+    chat_spaces_list_builder, chat_spaces_list_task,
     chat_spaces_patch_builder, chat_spaces_patch_task,
+    chat_spaces_search_builder, chat_spaces_search_task,
     chat_spaces_setup_builder, chat_spaces_setup_task,
     chat_spaces_members_create_builder, chat_spaces_members_create_task,
     chat_spaces_members_delete_builder, chat_spaces_members_delete_task,
+    chat_spaces_members_get_builder, chat_spaces_members_get_task,
+    chat_spaces_members_list_builder, chat_spaces_members_list_task,
     chat_spaces_members_patch_builder, chat_spaces_members_patch_task,
     chat_spaces_messages_create_builder, chat_spaces_messages_create_task,
     chat_spaces_messages_delete_builder, chat_spaces_messages_delete_task,
+    chat_spaces_messages_get_builder, chat_spaces_messages_get_task,
+    chat_spaces_messages_list_builder, chat_spaces_messages_list_task,
     chat_spaces_messages_patch_builder, chat_spaces_messages_patch_task,
     chat_spaces_messages_update_builder, chat_spaces_messages_update_task,
+    chat_spaces_messages_attachments_get_builder, chat_spaces_messages_attachments_get_task,
     chat_spaces_messages_reactions_create_builder, chat_spaces_messages_reactions_create_task,
     chat_spaces_messages_reactions_delete_builder, chat_spaces_messages_reactions_delete_task,
+    chat_spaces_messages_reactions_list_builder, chat_spaces_messages_reactions_list_task,
+    chat_spaces_space_events_get_builder, chat_spaces_space_events_get_task,
+    chat_spaces_space_events_list_builder, chat_spaces_space_events_list_task,
     chat_users_sections_create_builder, chat_users_sections_create_task,
     chat_users_sections_delete_builder, chat_users_sections_delete_task,
+    chat_users_sections_list_builder, chat_users_sections_list_task,
     chat_users_sections_patch_builder, chat_users_sections_patch_task,
     chat_users_sections_position_builder, chat_users_sections_position_task,
+    chat_users_sections_items_list_builder, chat_users_sections_items_list_task,
     chat_users_sections_items_move_builder, chat_users_sections_items_move_task,
+    chat_users_spaces_get_space_read_state_builder, chat_users_spaces_get_space_read_state_task,
     chat_users_spaces_update_space_read_state_builder, chat_users_spaces_update_space_read_state_task,
+    chat_users_spaces_space_notification_setting_get_builder, chat_users_spaces_space_notification_setting_get_task,
     chat_users_spaces_space_notification_setting_patch_builder, chat_users_spaces_space_notification_setting_patch_task,
+    chat_users_spaces_threads_get_thread_read_state_builder, chat_users_spaces_threads_get_thread_read_state_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::chat::Attachment;
 use crate::providers::gcp::clients::chat::CompleteImportSpaceResponse;
 use crate::providers::gcp::clients::chat::CustomEmoji;
 use crate::providers::gcp::clients::chat::Empty;
+use crate::providers::gcp::clients::chat::FindGroupChatsResponse;
 use crate::providers::gcp::clients::chat::GoogleChatV1Section;
+use crate::providers::gcp::clients::chat::ListCustomEmojisResponse;
+use crate::providers::gcp::clients::chat::ListMembershipsResponse;
+use crate::providers::gcp::clients::chat::ListMessagesResponse;
+use crate::providers::gcp::clients::chat::ListReactionsResponse;
+use crate::providers::gcp::clients::chat::ListSectionItemsResponse;
+use crate::providers::gcp::clients::chat::ListSectionsResponse;
+use crate::providers::gcp::clients::chat::ListSpaceEventsResponse;
+use crate::providers::gcp::clients::chat::ListSpacesResponse;
+use crate::providers::gcp::clients::chat::Media;
 use crate::providers::gcp::clients::chat::Membership;
 use crate::providers::gcp::clients::chat::Message;
 use crate::providers::gcp::clients::chat::MoveSectionItemResponse;
 use crate::providers::gcp::clients::chat::PositionSectionResponse;
 use crate::providers::gcp::clients::chat::Reaction;
+use crate::providers::gcp::clients::chat::SearchSpacesResponse;
 use crate::providers::gcp::clients::chat::Space;
+use crate::providers::gcp::clients::chat::SpaceEvent;
 use crate::providers::gcp::clients::chat::SpaceNotificationSetting;
 use crate::providers::gcp::clients::chat::SpaceReadState;
+use crate::providers::gcp::clients::chat::ThreadReadState;
 use crate::providers::gcp::clients::chat::UploadAttachmentResponse;
 use crate::providers::gcp::clients::chat::ChatCustomEmojisCreateArgs;
 use crate::providers::gcp::clients::chat::ChatCustomEmojisDeleteArgs;
+use crate::providers::gcp::clients::chat::ChatCustomEmojisGetArgs;
+use crate::providers::gcp::clients::chat::ChatCustomEmojisListArgs;
+use crate::providers::gcp::clients::chat::ChatMediaDownloadArgs;
 use crate::providers::gcp::clients::chat::ChatMediaUploadArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesCompleteImportArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesCreateArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesDeleteArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesFindDirectMessageArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesFindGroupChatsArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesGetArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesListArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesMembersCreateArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesMembersDeleteArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesMembersGetArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesMembersListArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesMembersPatchArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesMessagesAttachmentsGetArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesMessagesCreateArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesMessagesDeleteArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesMessagesGetArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesMessagesListArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesMessagesPatchArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesMessagesReactionsCreateArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesMessagesReactionsDeleteArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesMessagesReactionsListArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesMessagesUpdateArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesPatchArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesSearchArgs;
 use crate::providers::gcp::clients::chat::ChatSpacesSetupArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesSpaceEventsGetArgs;
+use crate::providers::gcp::clients::chat::ChatSpacesSpaceEventsListArgs;
 use crate::providers::gcp::clients::chat::ChatUsersSectionsCreateArgs;
 use crate::providers::gcp::clients::chat::ChatUsersSectionsDeleteArgs;
+use crate::providers::gcp::clients::chat::ChatUsersSectionsItemsListArgs;
 use crate::providers::gcp::clients::chat::ChatUsersSectionsItemsMoveArgs;
+use crate::providers::gcp::clients::chat::ChatUsersSectionsListArgs;
 use crate::providers::gcp::clients::chat::ChatUsersSectionsPatchArgs;
 use crate::providers::gcp::clients::chat::ChatUsersSectionsPositionArgs;
+use crate::providers::gcp::clients::chat::ChatUsersSpacesGetSpaceReadStateArgs;
+use crate::providers::gcp::clients::chat::ChatUsersSpacesSpaceNotificationSettingGetArgs;
 use crate::providers::gcp::clients::chat::ChatUsersSpacesSpaceNotificationSettingPatchArgs;
+use crate::providers::gcp::clients::chat::ChatUsersSpacesThreadsGetThreadReadStateArgs;
 use crate::providers::gcp::clients::chat::ChatUsersSpacesUpdateSpaceReadStateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
@@ -199,6 +255,122 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat custom emojis get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the CustomEmoji result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_custom_emojis_get(
+        &self,
+        args: &ChatCustomEmojisGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<CustomEmoji, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_custom_emojis_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_custom_emojis_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat custom emojis list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListCustomEmojisResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_custom_emojis_list(
+        &self,
+        args: &ChatCustomEmojisListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListCustomEmojisResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_custom_emojis_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_custom_emojis_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat media download.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Media result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_media_download(
+        &self,
+        args: &ChatMediaDownloadArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Media, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_media_download_builder(
+            &self.http_client,
+            &args.resourceName,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_media_download_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Chat media upload.
@@ -374,6 +546,164 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Chat spaces find direct message.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Space result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_find_direct_message(
+        &self,
+        args: &ChatSpacesFindDirectMessageArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Space, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_find_direct_message_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_find_direct_message_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat spaces find group chats.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the FindGroupChatsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_find_group_chats(
+        &self,
+        args: &ChatSpacesFindGroupChatsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<FindGroupChatsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_find_group_chats_builder(
+            &self.http_client,
+            &args.pageSize,
+            &args.pageToken,
+            &args.spaceView,
+            &args.users,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_find_group_chats_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat spaces get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Space result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_get(
+        &self,
+        args: &ChatSpacesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Space, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.useAdminAccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat spaces list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSpacesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_list(
+        &self,
+        args: &ChatSpacesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSpacesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_list_builder(
+            &self.http_client,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Chat spaces patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -417,6 +747,48 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat spaces search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SearchSpacesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_search(
+        &self,
+        args: &ChatSpacesSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SearchSpacesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_search_builder(
+            &self.http_client,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+            &args.useAdminAccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Chat spaces setup.
@@ -547,6 +919,89 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat spaces members get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Membership result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_members_get(
+        &self,
+        args: &ChatSpacesMembersGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Membership, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_members_get_builder(
+            &self.http_client,
+            &args.name,
+            &args.useAdminAccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_members_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat spaces members list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListMembershipsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_members_list(
+        &self,
+        args: &ChatSpacesMembersListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListMembershipsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_members_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.showGroups,
+            &args.showInvited,
+            &args.useAdminAccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_members_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Chat spaces members patch.
@@ -685,6 +1140,87 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Chat spaces messages get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Message result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_messages_get(
+        &self,
+        args: &ChatSpacesMessagesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Message, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_messages_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_messages_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat spaces messages list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListMessagesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_messages_list(
+        &self,
+        args: &ChatSpacesMessagesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListMessagesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_messages_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.showDeleted,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_messages_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Chat spaces messages patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -775,6 +1311,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Chat spaces messages attachments get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Attachment result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_messages_attachments_get(
+        &self,
+        args: &ChatSpacesMessagesAttachmentsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Attachment, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_messages_attachments_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_messages_attachments_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Chat spaces messages reactions create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -861,6 +1435,126 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Chat spaces messages reactions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListReactionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_messages_reactions_list(
+        &self,
+        args: &ChatSpacesMessagesReactionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListReactionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_messages_reactions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_messages_reactions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat spaces space events get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SpaceEvent result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_space_events_get(
+        &self,
+        args: &ChatSpacesSpaceEventsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SpaceEvent, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_space_events_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_space_events_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat spaces space events list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSpaceEventsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_spaces_space_events_list(
+        &self,
+        args: &ChatSpacesSpaceEventsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSpaceEventsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_spaces_space_events_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_spaces_space_events_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Chat users sections create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -945,6 +1639,46 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat users sections list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSectionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_users_sections_list(
+        &self,
+        args: &ChatUsersSectionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSectionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_users_sections_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_users_sections_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Chat users sections patch.
@@ -1034,6 +1768,47 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Chat users sections items list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListSectionItemsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_users_sections_items_list(
+        &self,
+        args: &ChatUsersSectionsItemsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListSectionItemsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_users_sections_items_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_users_sections_items_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Chat users sections items move.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1075,6 +1850,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat users spaces get space read state.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SpaceReadState result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_users_spaces_get_space_read_state(
+        &self,
+        args: &ChatUsersSpacesGetSpaceReadStateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SpaceReadState, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_users_spaces_get_space_read_state_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_users_spaces_get_space_read_state_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Chat users spaces update space read state.
@@ -1121,6 +1934,44 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Chat users spaces space notification setting get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the SpaceNotificationSetting result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_users_spaces_space_notification_setting_get(
+        &self,
+        args: &ChatUsersSpacesSpaceNotificationSettingGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<SpaceNotificationSetting, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_users_spaces_space_notification_setting_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_users_spaces_space_notification_setting_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Chat users spaces space notification setting patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1163,6 +2014,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chat users spaces threads get thread read state.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ThreadReadState result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chat_users_spaces_threads_get_thread_read_state(
+        &self,
+        args: &ChatUsersSpacesThreadsGetThreadReadStateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ThreadReadState, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chat_users_spaces_threads_get_thread_read_state_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chat_users_spaces_threads_get_thread_read_state_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

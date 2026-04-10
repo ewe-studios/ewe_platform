@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_get_execute()` to send, or `gkebackup_projects_locations_get` for simplest API.
+
+pub fn gkebackup_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_get_execute()` or `gkebackup_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_get_builder()` + `gkebackup_projects_locations_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_get_builder(client, &args.name)?;
+    gkebackup_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +186,16 @@ use serde::Serialize;
 pub fn gkebackup_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://gkebackup.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +337,13 @@ pub struct GkebackupProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +375,13372 @@ pub fn gkebackup_projects_locations_list(
         &args.pageToken,
     )?;
     gkebackup_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupChannels
+/// Creates a new BackupChannel in a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_channels_create_execute()` to send, or `gkebackup_projects_locations_backup_channels_create` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_channels_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupChannelId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupChannelId.as_ref() {
+        query_parts.push(format!("backupChannelId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupChannels
+/// Creates a new BackupChannel in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_channels_create_execute()` or `gkebackup_projects_locations_backup_channels_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupChannels
+/// Creates a new BackupChannel in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_channels_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_create_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_channels_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_channels_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_channels_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_channels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupChannelId
+    pub backupChannelId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupChannels
+/// Creates a new BackupChannel in a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_channels_create_builder()` + `gkebackup_projects_locations_backup_channels_create_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_create(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupChannelsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_channels_create_builder(
+        client,
+        &args.parent,
+        &args.backupChannelId,
+    )?;
+    gkebackup_projects_locations_backup_channels_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Deletes an existing BackupChannel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_channels_delete_execute()` to send, or `gkebackup_projects_locations_backup_channels_delete` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_channels_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels/{backupChannelsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Deletes an existing BackupChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_channels_delete_execute()` or `gkebackup_projects_locations_backup_channels_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Deletes an existing BackupChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_channels_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_delete_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_channels_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_channels_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_channels_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_channels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Deletes an existing BackupChannel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_channels_delete_builder()` + `gkebackup_projects_locations_backup_channels_delete_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_delete(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupChannelsDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_channels_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.force,
+    )?;
+    gkebackup_projects_locations_backup_channels_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Retrieve the details of a single BackupChannel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_channels_get_execute()` to send, or `gkebackup_projects_locations_backup_channels_get` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_channels_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels/{backupChannelsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Retrieve the details of a single BackupChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_channels_get_execute()` or `gkebackup_projects_locations_backup_channels_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupChannel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupChannel = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Retrieve the details of a single BackupChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_channels_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_channels_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_channels_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupChannel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_channels_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_channels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Retrieve the details of a single BackupChannel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_channels_get_builder()` + `gkebackup_projects_locations_backup_channels_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupChannelsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupChannel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_channels_get_builder(client, &args.name)?;
+    gkebackup_projects_locations_backup_channels_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels
+/// Lists BackupChannels in a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_channels_list_execute()` to send, or `gkebackup_projects_locations_backup_channels_list` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_channels_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels
+/// Lists BackupChannels in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_channels_list_execute()` or `gkebackup_projects_locations_backup_channels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupChannelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupChannelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels
+/// Lists BackupChannels in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_channels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_channels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_channels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupChannelsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_channels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels
+/// Lists BackupChannels in a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_channels_list_builder()` + `gkebackup_projects_locations_backup_channels_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupChannelsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupChannelsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_channels_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gkebackup_projects_locations_backup_channels_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Update a BackupChannel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_channels_patch_execute()` to send, or `gkebackup_projects_locations_backup_channels_patch` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_channels_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels/{backupChannelsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Update a BackupChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_channels_patch_execute()` or `gkebackup_projects_locations_backup_channels_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Update a BackupChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_channels_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_patch_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_channels_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_channels_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_channels_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_channels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}
+/// Update a BackupChannel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_channels_patch_builder()` + `gkebackup_projects_locations_backup_channels_patch_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_patch(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupChannelsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_channels_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    gkebackup_projects_locations_backup_channels_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings/{backupPlanBindingsId}
+/// Retrieve the details of a single BackupPlanBinding.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_execute()` to send, or `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings/{backupPlanBindingsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings/{backupPlanBindingsId}
+/// Retrieve the details of a single BackupPlanBinding.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_execute()` or `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupPlanBinding>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupPlanBinding = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings/{backupPlanBindingsId}
+/// Retrieve the details of a single BackupPlanBinding.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPlanBinding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_channels_backup_plan_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings/{backupPlanBindingsId}
+/// Retrieve the details of a single BackupPlanBinding.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_builder()` + `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPlanBinding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_builder(
+        client, &args.name,
+    )?;
+    gkebackup_projects_locations_backup_channels_backup_plan_bindings_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings
+/// Lists BackupPlanBindings in a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_execute()` to send, or `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings
+/// Lists BackupPlanBindings in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_execute()` or `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupPlanBindingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupPlanBindingsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings
+/// Lists BackupPlanBindings in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupPlanBindingsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_channels_backup_plan_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupChannels/{backupChannelsId}/backupPlanBindings
+/// Lists BackupPlanBindings in a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_builder()` + `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_channels_backup_plan_bindings_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListBackupPlanBindingsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gkebackup_projects_locations_backup_channels_backup_plan_bindings_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Creates a new BackupPlan in a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_create_execute()` to send, or `gkebackup_projects_locations_backup_plans_create` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupPlanId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupPlanId.as_ref() {
+        query_parts.push(format!("backupPlanId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Creates a new BackupPlan in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_create_execute()` or `gkebackup_projects_locations_backup_plans_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Creates a new BackupPlan in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_create_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupPlanId
+    pub backupPlanId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Creates a new BackupPlan in a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_create_builder()` + `gkebackup_projects_locations_backup_plans_create_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_create(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_create_builder(
+        client,
+        &args.parent,
+        &args.backupPlanId,
+    )?;
+    gkebackup_projects_locations_backup_plans_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Deletes an existing BackupPlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_delete_execute()` to send, or `gkebackup_projects_locations_backup_plans_delete` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Deletes an existing BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_delete_execute()` or `gkebackup_projects_locations_backup_plans_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Deletes an existing BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_delete_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Deletes an existing BackupPlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_delete_builder()` + `gkebackup_projects_locations_backup_plans_delete_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_delete(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        gkebackup_projects_locations_backup_plans_delete_builder(client, &args.name, &args.etag)?;
+    gkebackup_projects_locations_backup_plans_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Retrieve the details of a single BackupPlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_get_execute()` to send, or `gkebackup_projects_locations_backup_plans_get` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Retrieve the details of a single BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_get_execute()` or `gkebackup_projects_locations_backup_plans_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupPlan>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupPlan = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Retrieve the details of a single BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPlan>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Retrieve the details of a single BackupPlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_get_builder()` + `gkebackup_projects_locations_backup_plans_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupPlan>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_get_builder(client, &args.name)?;
+    gkebackup_projects_locations_backup_plans_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_get_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_get_iam_policy_execute()` or `gkebackup_projects_locations_backup_plans_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_get_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_get_iam_policy_builder()` + `gkebackup_projects_locations_backup_plans_get_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    gkebackup_projects_locations_backup_plans_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getTags
+/// Returns tags directly bound to a GCP resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_get_tags_execute()` to send, or `gkebackup_projects_locations_backup_plans_get_tags` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_get_tags_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}:getTags",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getTags
+/// Returns tags directly bound to a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_get_tags_execute()` or `gkebackup_projects_locations_backup_plans_get_tags`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_get_tags_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_get_tags_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GetTagsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getTags
+/// Returns tags directly bound to a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_get_tags_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_get_tags_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_get_tags()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_get_tags_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_get_tags_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GetTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_get_tags_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_get_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansGetTagsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:getTags
+/// Returns tags directly bound to a GCP resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_get_tags_builder()` + `gkebackup_projects_locations_backup_plans_get_tags_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_get_tags_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_get_tags(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansGetTagsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GetTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_get_tags_builder(client, &args.name)?;
+    gkebackup_projects_locations_backup_plans_get_tags_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Lists BackupPlans in a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_list_execute()` to send, or `gkebackup_projects_locations_backup_plans_list` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Lists BackupPlans in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_list_execute()` or `gkebackup_projects_locations_backup_plans_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupPlansResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupPlansResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Lists BackupPlans in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupPlansResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans
+/// Lists BackupPlans in a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_list_builder()` + `gkebackup_projects_locations_backup_plans_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupPlansResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gkebackup_projects_locations_backup_plans_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Update a BackupPlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_patch_execute()` to send, or `gkebackup_projects_locations_backup_plans_patch` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Update a BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_patch_execute()` or `gkebackup_projects_locations_backup_plans_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Update a BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_patch_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}
+/// Update a BackupPlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_patch_builder()` + `gkebackup_projects_locations_backup_plans_patch_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_patch(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    gkebackup_projects_locations_backup_plans_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_set_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_set_iam_policy_execute()` or `gkebackup_projects_locations_backup_plans_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_set_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_set_iam_policy_builder()` + `gkebackup_projects_locations_backup_plans_set_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gkebackup_projects_locations_backup_plans_set_iam_policy_builder(client, &args.resource)?;
+    gkebackup_projects_locations_backup_plans_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:setTags
+/// Updates tags directly bound to a GCP resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_set_tags_execute()` to send, or `gkebackup_projects_locations_backup_plans_set_tags` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_set_tags_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}:setTags",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:setTags
+/// Updates tags directly bound to a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_set_tags_execute()` or `gkebackup_projects_locations_backup_plans_set_tags`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_set_tags_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_set_tags_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SetTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SetTagsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:setTags
+/// Updates tags directly bound to a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_set_tags_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_set_tags_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_set_tags()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_set_tags_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_set_tags_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SetTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_set_tags_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_set_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansSetTagsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:setTags
+/// Updates tags directly bound to a GCP resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_set_tags_builder()` + `gkebackup_projects_locations_backup_plans_set_tags_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_set_tags_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_set_tags(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansSetTagsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SetTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_set_tags_builder(client, &args.name)?;
+    gkebackup_projects_locations_backup_plans_set_tags_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_backup_plans_test_iam_permissions` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_test_iam_permissions_execute()` or `gkebackup_projects_locations_backup_plans_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_test_iam_permissions_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_test_iam_permissions_builder()` + `gkebackup_projects_locations_backup_plans_test_iam_permissions_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    gkebackup_projects_locations_backup_plans_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
+/// Creates a Backup for the given BackupPlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_create_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_create` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    backupId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = backupId.as_ref() {
+        query_parts.push(format!("backupId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
+/// Creates a Backup for the given BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_create_execute()` or `gkebackup_projects_locations_backup_plans_backups_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
+/// Creates a Backup for the given BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_create_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_backups_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
+/// Creates a Backup for the given BackupPlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_create_builder()` + `gkebackup_projects_locations_backup_plans_backups_create_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_create(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_backups_create_builder(
+        client,
+        &args.parent,
+        &args.backupId,
+    )?;
+    gkebackup_projects_locations_backup_plans_backups_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Deletes an existing Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_delete_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_delete` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Deletes an existing Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_delete_execute()` or `gkebackup_projects_locations_backup_plans_backups_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Deletes an existing Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_delete_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_backups_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Deletes an existing Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_delete_builder()` + `gkebackup_projects_locations_backup_plans_backups_delete_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_delete(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_backups_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.force,
+    )?;
+    gkebackup_projects_locations_backup_plans_backups_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Retrieve the details of a single Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_get_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_get` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Retrieve the details of a single Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_get_execute()` or `gkebackup_projects_locations_backup_plans_backups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Backup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Backup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Retrieve the details of a single Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_backups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Retrieve the details of a single Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_get_builder()` + `gkebackup_projects_locations_backup_plans_backups_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gkebackup_projects_locations_backup_plans_backups_get_builder(client, &args.name)?;
+    gkebackup_projects_locations_backup_plans_backups_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getBackupIndexDownloadUrl
+/// Retrieve the link to the `backupIndex`.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_builder(
+    client: &SimpleHttpClient,
+    backup: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getBackupIndexDownloadUrl",
+        backup,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getBackupIndexDownloadUrl
+/// Retrieve the link to the `backupIndex`.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_execute()` or `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetBackupIndexDownloadUrlResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GetBackupIndexDownloadUrlResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getBackupIndexDownloadUrl
+/// Retrieve the link to the `backupIndex`.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GetBackupIndexDownloadUrlResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsGetBackupIndexDownloadUrlArgs {
+    /// Path parameter: backup
+    pub backup: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getBackupIndexDownloadUrl
+/// Retrieve the link to the `backupIndex`.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_builder()` + `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsGetBackupIndexDownloadUrlArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GetBackupIndexDownloadUrlResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_builder(
+            client,
+            &args.backup,
+        )?;
+    gkebackup_projects_locations_backup_plans_backups_get_backup_index_download_url_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_get_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_get_iam_policy_execute()` or `gkebackup_projects_locations_backup_plans_backups_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_get_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_backups_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_get_iam_policy_builder()` + `gkebackup_projects_locations_backup_plans_backups_get_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_backups_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    gkebackup_projects_locations_backup_plans_backups_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
+/// Lists the Backups for a given BackupPlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_list_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_list` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
+/// Lists the Backups for a given BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_list_execute()` or `gkebackup_projects_locations_backup_plans_backups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
+/// Lists the Backups for a given BackupPlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_backups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups
+/// Lists the Backups for a given BackupPlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_list_builder()` + `gkebackup_projects_locations_backup_plans_backups_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_backups_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    gkebackup_projects_locations_backup_plans_backups_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Update a Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_patch_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_patch` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Update a Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_patch_execute()` or `gkebackup_projects_locations_backup_plans_backups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Update a Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_patch_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_backups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}
+/// Update a Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_patch_builder()` + `gkebackup_projects_locations_backup_plans_backups_patch_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_patch(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_backups_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    gkebackup_projects_locations_backup_plans_backups_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_set_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_set_iam_policy_execute()` or `gkebackup_projects_locations_backup_plans_backups_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_set_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_backups_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_set_iam_policy_builder()` + `gkebackup_projects_locations_backup_plans_backups_set_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_backups_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    gkebackup_projects_locations_backup_plans_backups_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_execute()` or `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_builder()` + `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    gkebackup_projects_locations_backup_plans_backups_test_iam_permissions_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}
+/// Retrieve the details of a single VolumeBackup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_volume_backups_get` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}
+/// Retrieve the details of a single VolumeBackup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_execute()` or `gkebackup_projects_locations_backup_plans_backups_volume_backups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VolumeBackup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VolumeBackup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}
+/// Retrieve the details of a single VolumeBackup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VolumeBackup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_backups_volume_backups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_volume_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}
+/// Retrieve the details of a single VolumeBackup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_builder()` + `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VolumeBackup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_backups_volume_backups_get_builder(
+        client, &args.name,
+    )?;
+    gkebackup_projects_locations_backup_plans_backups_volume_backups_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_execute()` or `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_builder()` + `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_builder(
+            client,
+            &args.resource,
+            &args.options_requestedPolicyVersion,
+        )?;
+    gkebackup_projects_locations_backup_plans_backups_volume_backups_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups
+/// Lists the VolumeBackups for a given Backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_volume_backups_list_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_volume_backups_list` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups
+/// Lists the VolumeBackups for a given Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_list_execute()` or `gkebackup_projects_locations_backup_plans_backups_volume_backups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_volume_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListVolumeBackupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListVolumeBackupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups
+/// Lists the VolumeBackups for a given Backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_volume_backups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListVolumeBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_backup_plans_backups_volume_backups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_volume_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups
+/// Lists the VolumeBackups for a given Backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_list_builder()` + `gkebackup_projects_locations_backup_plans_backups_volume_backups_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListVolumeBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_backups_volume_backups_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gkebackup_projects_locations_backup_plans_backups_volume_backups_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_execute()` or `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_builder()` + `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_builder(
+            client,
+            &args.resource,
+        )?;
+    gkebackup_projects_locations_backup_plans_backups_volume_backups_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions` for simplest API.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_execute()` or `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/backupPlans/{backupPlansId}/backups/{backupsId}/volumeBackups/{volumeBackupsId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_builder()` + `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_builder(client, &args.resource)?;
+    gkebackup_projects_locations_backup_plans_backups_volume_backups_test_iam_permissions_execute(
+        builder,
+    )
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_operations_cancel_execute()` to send, or `gkebackup_projects_locations_operations_cancel` for simplest API.
+
+pub fn gkebackup_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_operations_cancel_execute()` or `gkebackup_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_operations_cancel_builder()` + `gkebackup_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_operations_cancel_builder(client, &args.name)?;
+    gkebackup_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_operations_delete_execute()` to send, or `gkebackup_projects_locations_operations_delete` for simplest API.
+
+pub fn gkebackup_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_operations_delete_execute()` or `gkebackup_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_operations_delete_builder()` + `gkebackup_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_operations_delete_builder(client, &args.name)?;
+    gkebackup_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_operations_get_execute()` to send, or `gkebackup_projects_locations_operations_get` for simplest API.
+
+pub fn gkebackup_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_operations_get_execute()` or `gkebackup_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_operations_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_operations_get_builder()` + `gkebackup_projects_locations_operations_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_operations_get_builder(client, &args.name)?;
+    gkebackup_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_operations_list_execute()` to send, or `gkebackup_projects_locations_operations_list` for simplest API.
+
+pub fn gkebackup_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_operations_list_execute()` or `gkebackup_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningListOperationsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_operations_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_operations_list_builder()` + `gkebackup_projects_locations_operations_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    gkebackup_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
+/// Creates a new RestoreChannel in a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_channels_create_execute()` to send, or `gkebackup_projects_locations_restore_channels_create` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_channels_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    restoreChannelId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = restoreChannelId.as_ref() {
+        query_parts.push(format!("restoreChannelId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
+/// Creates a new RestoreChannel in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_channels_create_execute()` or `gkebackup_projects_locations_restore_channels_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
+/// Creates a new RestoreChannel in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_channels_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_create_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_channels_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_channels_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_channels_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_channels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: restoreChannelId
+    pub restoreChannelId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
+/// Creates a new RestoreChannel in a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_channels_create_builder()` + `gkebackup_projects_locations_restore_channels_create_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_create(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestoreChannelsCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_channels_create_builder(
+        client,
+        &args.parent,
+        &args.restoreChannelId,
+    )?;
+    gkebackup_projects_locations_restore_channels_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Deletes an existing RestoreChannel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_channels_delete_execute()` to send, or `gkebackup_projects_locations_restore_channels_delete` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_channels_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels/{restoreChannelsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Deletes an existing RestoreChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_channels_delete_execute()` or `gkebackup_projects_locations_restore_channels_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Deletes an existing RestoreChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_channels_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_delete_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_channels_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_channels_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_channels_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_channels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Deletes an existing RestoreChannel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_channels_delete_builder()` + `gkebackup_projects_locations_restore_channels_delete_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_delete(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestoreChannelsDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_channels_delete_builder(
+        client, &args.name, &args.etag,
+    )?;
+    gkebackup_projects_locations_restore_channels_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Retrieve the details of a single RestoreChannel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_channels_get_execute()` to send, or `gkebackup_projects_locations_restore_channels_get` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_channels_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels/{restoreChannelsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Retrieve the details of a single RestoreChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_channels_get_execute()` or `gkebackup_projects_locations_restore_channels_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RestoreChannel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RestoreChannel = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Retrieve the details of a single RestoreChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_channels_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_channels_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_channels_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RestoreChannel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_channels_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_channels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Retrieve the details of a single RestoreChannel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_channels_get_builder()` + `gkebackup_projects_locations_restore_channels_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestoreChannelsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RestoreChannel>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_channels_get_builder(client, &args.name)?;
+    gkebackup_projects_locations_restore_channels_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
+/// Lists RestoreChannels in a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_channels_list_execute()` to send, or `gkebackup_projects_locations_restore_channels_list` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_channels_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
+/// Lists RestoreChannels in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_channels_list_execute()` or `gkebackup_projects_locations_restore_channels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRestoreChannelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRestoreChannelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
+/// Lists RestoreChannels in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_channels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_channels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_channels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListRestoreChannelsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_channels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels
+/// Lists RestoreChannels in a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_channels_list_builder()` + `gkebackup_projects_locations_restore_channels_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestoreChannelsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListRestoreChannelsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_channels_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gkebackup_projects_locations_restore_channels_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Update a RestoreChannel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_channels_patch_execute()` to send, or `gkebackup_projects_locations_restore_channels_patch` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_channels_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels/{restoreChannelsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Update a RestoreChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_channels_patch_execute()` or `gkebackup_projects_locations_restore_channels_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Update a RestoreChannel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_channels_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_patch_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_channels_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_channels_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_channels_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_channels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}
+/// Update a RestoreChannel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_channels_patch_builder()` + `gkebackup_projects_locations_restore_channels_patch_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_patch(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestoreChannelsPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_channels_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    gkebackup_projects_locations_restore_channels_patch_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings/{restorePlanBindingsId}
+/// Retrieve the details of a single RestorePlanBinding.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_execute()` to send, or `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings/{restorePlanBindingsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings/{restorePlanBindingsId}
+/// Retrieve the details of a single RestorePlanBinding.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_execute()` or `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RestorePlanBinding>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RestorePlanBinding = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings/{restorePlanBindingsId}
+/// Retrieve the details of a single RestorePlanBinding.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RestorePlanBinding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_channels_restore_plan_bindings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings/{restorePlanBindingsId}
+/// Retrieve the details of a single RestorePlanBinding.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_builder()` + `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RestorePlanBinding>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_builder(
+        client, &args.name,
+    )?;
+    gkebackup_projects_locations_restore_channels_restore_plan_bindings_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings
+/// Lists RestorePlanBindings in a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_execute()` to send, or `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings
+/// Lists RestorePlanBindings in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_execute()` or `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRestorePlanBindingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRestorePlanBindingsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings
+/// Lists RestorePlanBindings in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListRestorePlanBindingsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_channels_restore_plan_bindings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restoreChannels/{restoreChannelsId}/restorePlanBindings
+/// Lists RestorePlanBindings in a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_builder()` + `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_channels_restore_plan_bindings_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListRestorePlanBindingsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gkebackup_projects_locations_restore_channels_restore_plan_bindings_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans
+/// Creates a new RestorePlan in a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_create_execute()` to send, or `gkebackup_projects_locations_restore_plans_create` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    restorePlanId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = restorePlanId.as_ref() {
+        query_parts.push(format!("restorePlanId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans
+/// Creates a new RestorePlan in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_create_execute()` or `gkebackup_projects_locations_restore_plans_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans
+/// Creates a new RestorePlan in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_create_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: restorePlanId
+    pub restorePlanId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans
+/// Creates a new RestorePlan in a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_create_builder()` + `gkebackup_projects_locations_restore_plans_create_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_create(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_create_builder(
+        client,
+        &args.parent,
+        &args.restorePlanId,
+    )?;
+    gkebackup_projects_locations_restore_plans_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Deletes an existing RestorePlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_delete_execute()` to send, or `gkebackup_projects_locations_restore_plans_delete` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Deletes an existing RestorePlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_delete_execute()` or `gkebackup_projects_locations_restore_plans_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Deletes an existing RestorePlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_delete_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Deletes an existing RestorePlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_delete_builder()` + `gkebackup_projects_locations_restore_plans_delete_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_delete(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.force,
+    )?;
+    gkebackup_projects_locations_restore_plans_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Retrieve the details of a single RestorePlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_get_execute()` to send, or `gkebackup_projects_locations_restore_plans_get` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Retrieve the details of a single RestorePlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_get_execute()` or `gkebackup_projects_locations_restore_plans_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RestorePlan>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RestorePlan = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Retrieve the details of a single RestorePlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RestorePlan>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Retrieve the details of a single RestorePlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_get_builder()` + `gkebackup_projects_locations_restore_plans_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RestorePlan>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_get_builder(client, &args.name)?;
+    gkebackup_projects_locations_restore_plans_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_get_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_get_iam_policy_execute()` or `gkebackup_projects_locations_restore_plans_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_get_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_get_iam_policy_builder()` + `gkebackup_projects_locations_restore_plans_get_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    gkebackup_projects_locations_restore_plans_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getTags
+/// Returns tags directly bound to a GCP resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_get_tags_execute()` to send, or `gkebackup_projects_locations_restore_plans_get_tags` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_get_tags_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}:getTags",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getTags
+/// Returns tags directly bound to a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_get_tags_execute()` or `gkebackup_projects_locations_restore_plans_get_tags`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_get_tags_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_get_tags_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GetTagsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getTags
+/// Returns tags directly bound to a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_get_tags_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_get_tags_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_get_tags()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_get_tags_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_get_tags_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GetTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_get_tags_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_get_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansGetTagsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:getTags
+/// Returns tags directly bound to a GCP resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_get_tags_builder()` + `gkebackup_projects_locations_restore_plans_get_tags_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_get_tags_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_get_tags(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansGetTagsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GetTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_get_tags_builder(client, &args.name)?;
+    gkebackup_projects_locations_restore_plans_get_tags_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans
+/// Lists RestorePlans in a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_list_execute()` to send, or `gkebackup_projects_locations_restore_plans_list` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans
+/// Lists RestorePlans in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_list_execute()` or `gkebackup_projects_locations_restore_plans_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRestorePlansResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRestorePlansResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans
+/// Lists RestorePlans in a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRestorePlansResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans
+/// Lists RestorePlans in a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_list_builder()` + `gkebackup_projects_locations_restore_plans_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRestorePlansResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gkebackup_projects_locations_restore_plans_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Update a RestorePlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_patch_execute()` to send, or `gkebackup_projects_locations_restore_plans_patch` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Update a RestorePlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_patch_execute()` or `gkebackup_projects_locations_restore_plans_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Update a RestorePlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_patch_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}
+/// Update a RestorePlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_patch_builder()` + `gkebackup_projects_locations_restore_plans_patch_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_patch(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    gkebackup_projects_locations_restore_plans_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_set_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_set_iam_policy_execute()` or `gkebackup_projects_locations_restore_plans_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_set_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_set_iam_policy_builder()` + `gkebackup_projects_locations_restore_plans_set_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gkebackup_projects_locations_restore_plans_set_iam_policy_builder(client, &args.resource)?;
+    gkebackup_projects_locations_restore_plans_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:setTags
+/// Updates tags directly bound to a GCP resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_set_tags_execute()` to send, or `gkebackup_projects_locations_restore_plans_set_tags` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_set_tags_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}:setTags",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:setTags
+/// Updates tags directly bound to a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_set_tags_execute()` or `gkebackup_projects_locations_restore_plans_set_tags`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_set_tags_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_set_tags_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SetTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SetTagsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:setTags
+/// Updates tags directly bound to a GCP resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_set_tags_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_set_tags_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_set_tags()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_set_tags_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_set_tags_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SetTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_set_tags_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_set_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansSetTagsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:setTags
+/// Updates tags directly bound to a GCP resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_set_tags_builder()` + `gkebackup_projects_locations_restore_plans_set_tags_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_set_tags_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_set_tags(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansSetTagsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SetTagsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_set_tags_builder(client, &args.name)?;
+    gkebackup_projects_locations_restore_plans_set_tags_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_restore_plans_test_iam_permissions` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_test_iam_permissions_execute()` or `gkebackup_projects_locations_restore_plans_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_test_iam_permissions_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_test_iam_permissions_builder()` + `gkebackup_projects_locations_restore_plans_test_iam_permissions_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    gkebackup_projects_locations_restore_plans_test_iam_permissions_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
+/// Creates a new Restore for the given RestorePlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_create_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_create` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    restoreId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = restoreId.as_ref() {
+        query_parts.push(format!("restoreId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
+/// Creates a new Restore for the given RestorePlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_create_execute()` or `gkebackup_projects_locations_restore_plans_restores_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
+/// Creates a new Restore for the given RestorePlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_create_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_restores_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: restoreId
+    pub restoreId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
+/// Creates a new Restore for the given RestorePlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_create_builder()` + `gkebackup_projects_locations_restore_plans_restores_create_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_create(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresCreateArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_restores_create_builder(
+        client,
+        &args.parent,
+        &args.restoreId,
+    )?;
+    gkebackup_projects_locations_restore_plans_restores_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Deletes an existing Restore.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_delete_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_delete` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    etag: &Option<Option<String>>,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = etag.as_ref() {
+        query_parts.push(format!("etag={}", val));
+    }
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Deletes an existing Restore.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_delete_execute()` or `gkebackup_projects_locations_restore_plans_restores_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Deletes an existing Restore.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_delete_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_restores_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<Option<String>>,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Deletes an existing Restore.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_delete_builder()` + `gkebackup_projects_locations_restore_plans_restores_delete_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_delete(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresDeleteArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_restores_delete_builder(
+        client,
+        &args.name,
+        &args.etag,
+        &args.force,
+    )?;
+    gkebackup_projects_locations_restore_plans_restores_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Retrieves the details of a single Restore.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_get_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_get` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Retrieves the details of a single Restore.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_get_execute()` or `gkebackup_projects_locations_restore_plans_restores_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Restore>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Restore = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Retrieves the details of a single Restore.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Restore>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_restores_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Retrieves the details of a single Restore.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_get_builder()` + `gkebackup_projects_locations_restore_plans_restores_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Restore>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gkebackup_projects_locations_restore_plans_restores_get_builder(client, &args.name)?;
+    gkebackup_projects_locations_restore_plans_restores_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_get_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_get_iam_policy_execute()` or `gkebackup_projects_locations_restore_plans_restores_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_get_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_restores_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_get_iam_policy_builder()` + `gkebackup_projects_locations_restore_plans_restores_get_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_restores_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    gkebackup_projects_locations_restore_plans_restores_get_iam_policy_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
+/// Lists the Restores for a given RestorePlan.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_list_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_list` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
+/// Lists the Restores for a given RestorePlan.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_list_execute()` or `gkebackup_projects_locations_restore_plans_restores_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRestoresResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRestoresResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
+/// Lists the Restores for a given RestorePlan.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRestoresResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_restores_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores
+/// Lists the Restores for a given RestorePlan.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_list_builder()` + `gkebackup_projects_locations_restore_plans_restores_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRestoresResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_restores_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gkebackup_projects_locations_restore_plans_restores_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Update a Restore.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_patch_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_patch` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Update a Restore.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_patch_execute()` or `gkebackup_projects_locations_restore_plans_restores_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleLongrunningOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Update a Restore.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_patch_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_restores_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}
+/// Update a Restore.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_patch_builder()` + `gkebackup_projects_locations_restore_plans_restores_patch_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_patch(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_restores_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    gkebackup_projects_locations_restore_plans_restores_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_set_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_set_iam_policy_execute()` or `gkebackup_projects_locations_restore_plans_restores_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_set_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_restores_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_set_iam_policy_builder()` + `gkebackup_projects_locations_restore_plans_restores_set_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_restores_set_iam_policy_builder(
+        client,
+        &args.resource,
+    )?;
+    gkebackup_projects_locations_restore_plans_restores_set_iam_policy_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_execute()` or `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_builder()` + `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    gkebackup_projects_locations_restore_plans_restores_test_iam_permissions_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}
+/// Retrieve the details of a single VolumeRestore.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_volume_restores_get` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}
+/// Retrieve the details of a single VolumeRestore.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_execute()` or `gkebackup_projects_locations_restore_plans_restores_volume_restores_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VolumeRestore>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VolumeRestore = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}
+/// Retrieve the details of a single VolumeRestore.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VolumeRestore>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_restore_plans_restores_volume_restores_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_volume_restores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}
+/// Retrieve the details of a single VolumeRestore.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_builder()` + `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VolumeRestore>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_restores_volume_restores_get_builder(
+        client, &args.name,
+    )?;
+    gkebackup_projects_locations_restore_plans_restores_volume_restores_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_execute()` or `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_builder()` + `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_builder(
+            client,
+            &args.resource,
+            &args.options_requestedPolicyVersion,
+        )?;
+    gkebackup_projects_locations_restore_plans_restores_volume_restores_get_iam_policy_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores
+/// Lists the VolumeRestores for a given Restore.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_volume_restores_list_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_volume_restores_list` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores
+/// Lists the VolumeRestores for a given Restore.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_list_execute()` or `gkebackup_projects_locations_restore_plans_restores_volume_restores_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_volume_restores_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListVolumeRestoresResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListVolumeRestoresResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores
+/// Lists the VolumeRestores for a given Restore.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_list_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_volume_restores_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListVolumeRestoresResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_restore_plans_restores_volume_restores_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_volume_restores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores
+/// Lists the VolumeRestores for a given Restore.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_list_builder()` + `gkebackup_projects_locations_restore_plans_restores_volume_restores_list_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_list(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListVolumeRestoresResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_restores_volume_restores_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    gkebackup_projects_locations_restore_plans_restores_volume_restores_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_execute()` or `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_builder()` + `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_builder(
+            client,
+            &args.resource,
+        )?;
+    gkebackup_projects_locations_restore_plans_restores_volume_restores_set_iam_policy_execute(
+        builder,
+    )
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_execute()` to send, or `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions` for simplest API.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gkebackup.googleapis.com/v1/projects/{}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_execute()` or `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_task()`.
+/// For the simplest API, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/restorePlans/{restorePlansId}/restores/{restoresId}/volumeRestores/{volumeRestoresId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_builder()` + `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_execute()`.
+/// For task-level control, use `gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_builder(client, &args.resource)?;
+    gkebackup_projects_locations_restore_plans_restores_volume_restores_test_iam_permissions_execute(
+        builder,
+    )
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with GkebackupProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &GkebackupProjectsLocationsGetArgs) -> String {
+        format!("gcp::gkebackup::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with GkebackupProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &GkebackupProjectsLocationsListArgs) -> String {
+        format!("gcp::gkebackup::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsBackupChannelsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsBackupChannelsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsDeleteArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupChannel
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupChannel with GkebackupProjectsLocationsBackupChannelsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsGetArgs> for BackupChannel {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsGetArgs,
+    ) -> String {
+        format!("gcp::gkebackup::BackupChannel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::BackupChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupChannelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupChannelsResponse with GkebackupProjectsLocationsBackupChannelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsListArgs>
+    for ListBackupChannelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsListArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::ListBackupChannelsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListBackupChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsBackupChannelsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsPatchArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupPlanBinding
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupPlanBinding with GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsGetArgs>
+    for BackupPlanBinding
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsGetArgs,
+    ) -> String {
+        format!("gcp::gkebackup::BackupPlanBinding/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::BackupPlanBinding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupPlanBindingsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupPlanBindingsResponse with GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsListArgs>
+    for ListBackupPlanBindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupChannelsBackupPlanBindingsListArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::ListBackupPlanBindingsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListBackupPlanBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsBackupPlansCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsBackupPlansDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansDeleteArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupPlan
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupPlan with GkebackupProjectsLocationsBackupPlansGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansGetArgs> for BackupPlan {
+    fn generate_resource_id(&self, input: &GkebackupProjectsLocationsBackupPlansGetArgs) -> String {
+        format!("gcp::gkebackup::BackupPlan/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::BackupPlan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsBackupPlansGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetTagsResponse with GkebackupProjectsLocationsBackupPlansGetTagsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansGetTagsArgs> for GetTagsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansGetTagsArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GetTagsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GetTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupPlansResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupPlansResponse with GkebackupProjectsLocationsBackupPlansListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansListArgs> for ListBackupPlansResponse {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansListArgs,
+    ) -> String {
+        format!("gcp::gkebackup::ListBackupPlansResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListBackupPlansResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsBackupPlansPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansPatchArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsBackupPlansSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SetTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SetTagsResponse with GkebackupProjectsLocationsBackupPlansSetTagsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansSetTagsArgs> for SetTagsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansSetTagsArgs,
+    ) -> String {
+        format!("gcp::gkebackup::SetTagsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::SetTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with GkebackupProjectsLocationsBackupPlansTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsBackupPlansBackupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsBackupPlansBackupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsDeleteArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Backup
+// =============================================================================
+
+/// ResourceIdentifier implementation for Backup with GkebackupProjectsLocationsBackupPlansBackupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsGetArgs> for Backup {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsGetArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetBackupIndexDownloadUrlResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetBackupIndexDownloadUrlResponse with GkebackupProjectsLocationsBackupPlansBackupsGetBackupIndexDownloadUrlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsGetBackupIndexDownloadUrlArgs>
+    for GetBackupIndexDownloadUrlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsGetBackupIndexDownloadUrlArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::GetBackupIndexDownloadUrlResponse/{}",
+            input.backup
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GetBackupIndexDownloadUrlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsBackupPlansBackupsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupsResponse with GkebackupProjectsLocationsBackupPlansBackupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsListArgs>
+    for ListBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsListArgs,
+    ) -> String {
+        format!("gcp::gkebackup::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsBackupPlansBackupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsPatchArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsBackupPlansBackupsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with GkebackupProjectsLocationsBackupPlansBackupsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VolumeBackup
+// =============================================================================
+
+/// ResourceIdentifier implementation for VolumeBackup with GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetArgs>
+    for VolumeBackup
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetArgs,
+    ) -> String {
+        format!("gcp::gkebackup::VolumeBackup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::VolumeBackup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListVolumeBackupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListVolumeBackupsResponse with GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsListArgs>
+    for ListVolumeBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsListArgs,
+    ) -> String {
+        format!("gcp::gkebackup::ListVolumeBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListVolumeBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsTestIamPermissionsArgs,
+    > for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsBackupPlansBackupsVolumeBackupsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with GkebackupProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with GkebackupProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(&self, input: &GkebackupProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse with GkebackupProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &GkebackupProjectsLocationsOperationsListArgs) -> String {
+        format!(
+            "gcp::gkebackup::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsRestoreChannelsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsRestoreChannelsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsDeleteArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RestoreChannel
+// =============================================================================
+
+/// ResourceIdentifier implementation for RestoreChannel with GkebackupProjectsLocationsRestoreChannelsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsGetArgs> for RestoreChannel {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsGetArgs,
+    ) -> String {
+        format!("gcp::gkebackup::RestoreChannel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::RestoreChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRestoreChannelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRestoreChannelsResponse with GkebackupProjectsLocationsRestoreChannelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsListArgs>
+    for ListRestoreChannelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsListArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::ListRestoreChannelsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListRestoreChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsRestoreChannelsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsPatchArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RestorePlanBinding
+// =============================================================================
+
+/// ResourceIdentifier implementation for RestorePlanBinding with GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsGetArgs>
+    for RestorePlanBinding
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsGetArgs,
+    ) -> String {
+        format!("gcp::gkebackup::RestorePlanBinding/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::RestorePlanBinding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRestorePlanBindingsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRestorePlanBindingsResponse with GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsListArgs>
+    for ListRestorePlanBindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestoreChannelsRestorePlanBindingsListArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::ListRestorePlanBindingsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListRestorePlanBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsRestorePlansCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsRestorePlansDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansDeleteArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RestorePlan
+// =============================================================================
+
+/// ResourceIdentifier implementation for RestorePlan with GkebackupProjectsLocationsRestorePlansGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansGetArgs> for RestorePlan {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansGetArgs,
+    ) -> String {
+        format!("gcp::gkebackup::RestorePlan/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::RestorePlan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsRestorePlansGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GetTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GetTagsResponse with GkebackupProjectsLocationsRestorePlansGetTagsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansGetTagsArgs> for GetTagsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansGetTagsArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GetTagsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GetTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRestorePlansResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRestorePlansResponse with GkebackupProjectsLocationsRestorePlansListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansListArgs>
+    for ListRestorePlansResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansListArgs,
+    ) -> String {
+        format!("gcp::gkebackup::ListRestorePlansResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListRestorePlansResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsRestorePlansPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansPatchArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsRestorePlansSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SetTagsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SetTagsResponse with GkebackupProjectsLocationsRestorePlansSetTagsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansSetTagsArgs> for SetTagsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansSetTagsArgs,
+    ) -> String {
+        format!("gcp::gkebackup::SetTagsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::SetTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with GkebackupProjectsLocationsRestorePlansTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsRestorePlansRestoresCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::GoogleLongrunningOperation/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsRestorePlansRestoresDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresDeleteArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresDeleteArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Restore
+// =============================================================================
+
+/// ResourceIdentifier implementation for Restore with GkebackupProjectsLocationsRestorePlansRestoresGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresGetArgs> for Restore {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresGetArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Restore/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Restore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsRestorePlansRestoresGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRestoresResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRestoresResponse with GkebackupProjectsLocationsRestorePlansRestoresListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresListArgs>
+    for ListRestoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresListArgs,
+    ) -> String {
+        format!("gcp::gkebackup::ListRestoresResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListRestoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleLongrunningOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation with GkebackupProjectsLocationsRestorePlansRestoresPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresPatchArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresPatchArgs,
+    ) -> String {
+        format!("gcp::gkebackup::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsRestorePlansRestoresSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with GkebackupProjectsLocationsRestorePlansRestoresTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VolumeRestore
+// =============================================================================
+
+/// ResourceIdentifier implementation for VolumeRestore with GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetArgs>
+    for VolumeRestore
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetArgs,
+    ) -> String {
+        format!("gcp::gkebackup::VolumeRestore/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::VolumeRestore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListVolumeRestoresResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListVolumeRestoresResponse with GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresListArgs>
+    for ListVolumeRestoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresListArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::ListVolumeRestoresResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::ListVolumeRestoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresSetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::gkebackup::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresTestIamPermissionsArgs,
+    > for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkebackupProjectsLocationsRestorePlansRestoresVolumeRestoresTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::gkebackup::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gkebackup::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

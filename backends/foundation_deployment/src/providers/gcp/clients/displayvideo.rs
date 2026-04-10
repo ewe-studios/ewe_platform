@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -29,10 +29,13 @@ use serde::Serialize;
 pub fn displayvideo_advertisers_audit_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    readMask: &Option<String>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}:audit",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}:audit",
+        advertiserId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -165,7 +168,7 @@ pub struct DisplayvideoAdvertisersAuditArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v4/advertisers/{advertisersId}:audit
@@ -193,7 +196,7 @@ pub fn displayvideo_advertisers_audit(
     displayvideo_advertisers_audit_execute(builder)
 }
 
-/// GET v4/advertisers
+/// POST v4/advertisers
 /// Creates a new advertiser. Returns the newly created advertiser if successful. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -201,22 +204,19 @@ pub fn displayvideo_advertisers_audit(
 
 pub fn displayvideo_advertisers_create_builder(
     client: &SimpleHttpClient,
-    body: &Advertiser,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers
+/// POST v4/advertisers
 /// Creates a new advertiser. Returns the newly created advertiser if successful. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -290,7 +290,7 @@ pub fn displayvideo_advertisers_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers
+/// POST v4/advertisers
 /// Creates a new advertiser. Returns the newly created advertiser if successful. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -320,14 +320,7 @@ pub fn displayvideo_advertisers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`displayvideo_advertisers_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DisplayvideoAdvertisersCreateArgs {
-    /// Request body.
-    pub body: Advertiser,
-}
-
-/// GET v4/advertisers
+/// POST v4/advertisers
 /// Creates a new advertiser. Returns the newly created advertiser if successful. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -340,16 +333,15 @@ pub struct DisplayvideoAdvertisersCreateArgs {
 
 pub fn displayvideo_advertisers_create(
     client: &SimpleHttpClient,
-    args: &DisplayvideoAdvertisersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_create_builder(client, &args.body)?;
+    let builder = displayvideo_advertisers_create_builder(client)?;
     displayvideo_advertisers_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}
+/// DELETE v4/advertisers/{advertisersId}
 /// Deletes an advertiser. Deleting an advertiser will delete all of its child resources, for example, campaigns, insertion orders and line items. A deleted advertiser cannot be recovered.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -360,17 +352,20 @@ pub fn displayvideo_advertisers_delete_builder(
     advertiserId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}
+/// DELETE v4/advertisers/{advertisersId}
 /// Deletes an advertiser. Deleting an advertiser will delete all of its child resources, for example, campaigns, insertion orders and line items. A deleted advertiser cannot be recovered.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -444,7 +439,7 @@ pub fn displayvideo_advertisers_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}
+/// DELETE v4/advertisers/{advertisersId}
 /// Deletes an advertiser. Deleting an advertiser will delete all of its child resources, for example, campaigns, insertion orders and line items. A deleted advertiser cannot be recovered.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -481,7 +476,7 @@ pub struct DisplayvideoAdvertisersDeleteArgs {
     pub advertiserId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}
+/// DELETE v4/advertisers/{advertisersId}
 /// Deletes an advertiser. Deleting an advertiser will delete all of its child resources, for example, campaigns, insertion orders and line items. A deleted advertiser cannot be recovered.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -503,7 +498,7 @@ pub fn displayvideo_advertisers_delete(
     displayvideo_advertisers_delete_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}:editAssignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}:editAssignedTargetingOptions
 /// Edits targeting options under a single advertiser. The operation will delete the assigned targeting options provided in BulkEditAdvertiserAssignedTargetingOptionsRequest.delete_requests and then create the assigned targeting options provided in BulkEditAdvertiserAssignedTargetingOptionsRequest.create_requests .
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -512,24 +507,22 @@ pub fn displayvideo_advertisers_delete(
 pub fn displayvideo_advertisers_edit_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &BulkEditAdvertiserAssignedTargetingOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}:editAssignedTargetingOptions",
+        advertiserId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}:editAssignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}:editAssignedTargetingOptions
 /// Edits targeting options under a single advertiser. The operation will delete the assigned targeting options provided in BulkEditAdvertiserAssignedTargetingOptionsRequest.delete_requests and then create the assigned targeting options provided in BulkEditAdvertiserAssignedTargetingOptionsRequest.create_requests .
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -607,7 +600,7 @@ pub fn displayvideo_advertisers_edit_assigned_targeting_options_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}:editAssignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}:editAssignedTargetingOptions
 /// Edits targeting options under a single advertiser. The operation will delete the assigned targeting options provided in BulkEditAdvertiserAssignedTargetingOptionsRequest.delete_requests and then create the assigned targeting options provided in BulkEditAdvertiserAssignedTargetingOptionsRequest.create_requests .
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -646,11 +639,9 @@ pub fn displayvideo_advertisers_edit_assigned_targeting_options_execute(
 pub struct DisplayvideoAdvertisersEditAssignedTargetingOptionsArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: BulkEditAdvertiserAssignedTargetingOptionsRequest,
 }
 
-/// GET v4/advertisers/{advertisersId}:editAssignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}:editAssignedTargetingOptions
 /// Edits targeting options under a single advertiser. The operation will delete the assigned targeting options provided in BulkEditAdvertiserAssignedTargetingOptionsRequest.delete_requests and then create the assigned targeting options provided in BulkEditAdvertiserAssignedTargetingOptionsRequest.create_requests .
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -675,9 +666,365 @@ pub fn displayvideo_advertisers_edit_assigned_targeting_options(
     let builder = displayvideo_advertisers_edit_assigned_targeting_options_builder(
         client,
         &args.advertiserId,
-        &args.body,
     )?;
     displayvideo_advertisers_edit_assigned_targeting_options_execute(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}
+/// Gets an advertiser.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_get_execute()` to send, or `displayvideo_advertisers_get` for simplest API.
+
+pub fn displayvideo_advertisers_get_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}",
+        advertiserId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}
+/// Gets an advertiser.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_get_execute()` or `displayvideo_advertisers_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Advertiser>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Advertiser = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}
+/// Gets an advertiser.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}
+/// Gets an advertiser.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_get_builder()` + `displayvideo_advertisers_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_get_builder(client, &args.advertiserId)?;
+    displayvideo_advertisers_get_execute(builder)
+}
+
+/// GET v4/advertisers
+/// Lists advertisers that are accessible to the current user. The order is defined by the order_by parameter. A single partner_id is required. Cross-partner listing is not supported.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_list_execute()` to send, or `displayvideo_advertisers_list` for simplest API.
+
+pub fn displayvideo_advertisers_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers
+/// Lists advertisers that are accessible to the current user. The order is defined by the order_by parameter. A single partner_id is required. Cross-partner listing is not supported.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_list_execute()` or `displayvideo_advertisers_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdvertisersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdvertisersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers
+/// Lists advertisers that are accessible to the current user. The order is defined by the order_by parameter. A single partner_id is required. Cross-partner listing is not supported.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAdvertisersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/advertisers
+/// Lists advertisers that are accessible to the current user. The order is defined by the order_by parameter. A single partner_id is required. Cross-partner listing is not supported.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_list_builder()` + `displayvideo_advertisers_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAdvertisersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_list_builder(
+        client,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
+    )?;
+    displayvideo_advertisers_list_execute(builder)
 }
 
 /// GET v4/advertisers/{advertisersId}:listAssignedTargetingOptions
@@ -689,14 +1036,15 @@ pub fn displayvideo_advertisers_edit_assigned_targeting_options(
 pub fn displayvideo_advertisers_list_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}:listAssignedTargetingOptions",
+        advertiserId,
     );
 
     // Build request
@@ -845,13 +1193,13 @@ pub struct DisplayvideoAdvertisersListAssignedTargetingOptionsArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v4/advertisers/{advertisersId}:listAssignedTargetingOptions
@@ -887,7 +1235,179 @@ pub fn displayvideo_advertisers_list_assigned_targeting_options(
     displayvideo_advertisers_list_assigned_targeting_options_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets:bulkCreate
+/// PATCH v4/advertisers/{advertisersId}
+/// Updates an existing advertiser. Returns the updated advertiser if successful.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_patch_execute()` to send, or `displayvideo_advertisers_patch` for simplest API.
+
+pub fn displayvideo_advertisers_patch_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}
+/// Updates an existing advertiser. Returns the updated advertiser if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_patch_execute()` or `displayvideo_advertisers_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Advertiser>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Advertiser = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/advertisers/{advertisersId}
+/// Updates an existing advertiser. Returns the updated advertiser if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_patch_task()`.
+/// For the simplest API, use `displayvideo_advertisers_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/advertisers/{advertisersId}
+/// Updates an existing advertiser. Returns the updated advertiser if successful.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_patch_builder()` + `displayvideo_advertisers_patch_execute()`.
+/// For task-level control, use `displayvideo_advertisers_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        displayvideo_advertisers_patch_builder(client, &args.advertiserId, &args.updateMask)?;
+    displayvideo_advertisers_patch_execute(builder)
+}
+
+/// POST v4/advertisers/{advertisersId}/adAssets:bulkCreate
 /// Creates multiple ad assets in a single request. Returns the newly-created ad assets if successful. Only supports the creation of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -896,23 +1416,22 @@ pub fn displayvideo_advertisers_list_assigned_targeting_options(
 pub fn displayvideo_advertisers_ad_assets_bulk_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &BulkCreateAdAssetsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets:bulkCreate",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets:bulkCreate",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets:bulkCreate
+/// POST v4/advertisers/{advertisersId}/adAssets:bulkCreate
 /// Creates multiple ad assets in a single request. Returns the newly-created ad assets if successful. Only supports the creation of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -986,7 +1505,7 @@ pub fn displayvideo_advertisers_ad_assets_bulk_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets:bulkCreate
+/// POST v4/advertisers/{advertisersId}/adAssets:bulkCreate
 /// Creates multiple ad assets in a single request. Returns the newly-created ad assets if successful. Only supports the creation of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1025,11 +1544,9 @@ pub fn displayvideo_advertisers_ad_assets_bulk_create_execute(
 pub struct DisplayvideoAdvertisersAdAssetsBulkCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: BulkCreateAdAssetsRequest,
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets:bulkCreate
+/// POST v4/advertisers/{advertisersId}/adAssets:bulkCreate
 /// Creates multiple ad assets in a single request. Returns the newly-created ad assets if successful. Only supports the creation of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1051,15 +1568,12 @@ pub fn displayvideo_advertisers_ad_assets_bulk_create(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_assets_bulk_create_builder(
-        client,
-        &args.advertiserId,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_ad_assets_bulk_create_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_ad_assets_bulk_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets
+/// POST v4/advertisers/{advertisersId}/adAssets
 /// Creates an ad asset. Returns the newly-created ad asset if successful. Only supports the creation of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1068,22 +1582,22 @@ pub fn displayvideo_advertisers_ad_assets_bulk_create(
 pub fn displayvideo_advertisers_ad_assets_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &CreateAdAssetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets
+/// POST v4/advertisers/{advertisersId}/adAssets
 /// Creates an ad asset. Returns the newly-created ad asset if successful. Only supports the creation of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1157,7 +1671,7 @@ pub fn displayvideo_advertisers_ad_assets_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets
+/// POST v4/advertisers/{advertisersId}/adAssets
 /// Creates an ad asset. Returns the newly-created ad asset if successful. Only supports the creation of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1192,11 +1706,9 @@ pub fn displayvideo_advertisers_ad_assets_create_execute(
 pub struct DisplayvideoAdvertisersAdAssetsCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: CreateAdAssetRequest,
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets
+/// POST v4/advertisers/{advertisersId}/adAssets
 /// Creates an ad asset. Returns the newly-created ad asset if successful. Only supports the creation of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1214,8 +1726,7 @@ pub fn displayvideo_advertisers_ad_assets_create(
     impl StreamIterator<D = Result<ApiResponse<AdAsset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_ad_assets_create_builder(client, &args.advertiserId, &args.body)?;
+    let builder = displayvideo_advertisers_ad_assets_create_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_ad_assets_create_execute(builder)
 }
 
@@ -1231,8 +1742,10 @@ pub fn displayvideo_advertisers_ad_assets_get_builder(
     adAssetId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets/{}",
+        advertiserId, adAssetId,
+    );
 
     // Build request
     let builder = client
@@ -1381,7 +1894,207 @@ pub fn displayvideo_advertisers_ad_assets_get(
     displayvideo_advertisers_ad_assets_get_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets:uploadAdAsset
+/// GET v4/advertisers/{advertisersId}/adAssets
+/// Lists ad assets under an advertiser ID. Only supports the retrieval of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_ad_assets_list_execute()` to send, or `displayvideo_advertisers_ad_assets_list` for simplest API.
+
+pub fn displayvideo_advertisers_ad_assets_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/adAssets
+/// Lists ad assets under an advertiser ID. Only supports the retrieval of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_ad_assets_list_execute()` or `displayvideo_advertisers_ad_assets_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_assets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_assets_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdAssetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdAssetsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/adAssets
+/// Lists ad assets under an advertiser ID. Only supports the retrieval of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_ad_assets_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_ad_assets_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_ad_assets_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_assets_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_ad_assets_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAdAssetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_ad_assets_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_ad_assets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdAssetsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/adAssets
+/// Lists ad assets under an advertiser ID. Only supports the retrieval of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_ad_assets_list_builder()` + `displayvideo_advertisers_ad_assets_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_ad_assets_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_assets_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersAdAssetsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAdAssetsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_ad_assets_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_ad_assets_list_execute(builder)
+}
+
+/// POST v4/advertisers/{advertisersId}/adAssets:uploadAdAsset
 /// Uploads and creates an ad asset. Returns the ID of the newly-created ad asset if successful. Only supports the uploading of assets with the AdAssetType AD_ASSET_TYPE_IMAGE.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1390,23 +2103,22 @@ pub fn displayvideo_advertisers_ad_assets_get(
 pub fn displayvideo_advertisers_ad_assets_upload_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &UploadAdAssetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets:uploadAdAsset",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adAssets:uploadAdAsset",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets:uploadAdAsset
+/// POST v4/advertisers/{advertisersId}/adAssets:uploadAdAsset
 /// Uploads and creates an ad asset. Returns the ID of the newly-created ad asset if successful. Only supports the uploading of assets with the AdAssetType AD_ASSET_TYPE_IMAGE.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1480,7 +2192,7 @@ pub fn displayvideo_advertisers_ad_assets_upload_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets:uploadAdAsset
+/// POST v4/advertisers/{advertisersId}/adAssets:uploadAdAsset
 /// Uploads and creates an ad asset. Returns the ID of the newly-created ad asset if successful. Only supports the uploading of assets with the AdAssetType AD_ASSET_TYPE_IMAGE.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1517,11 +2229,9 @@ pub fn displayvideo_advertisers_ad_assets_upload_execute(
 pub struct DisplayvideoAdvertisersAdAssetsUploadArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: UploadAdAssetRequest,
 }
 
-/// GET v4/advertisers/{advertisersId}/adAssets:uploadAdAsset
+/// POST v4/advertisers/{advertisersId}/adAssets:uploadAdAsset
 /// Uploads and creates an ad asset. Returns the ID of the newly-created ad asset if successful. Only supports the uploading of assets with the AdAssetType AD_ASSET_TYPE_IMAGE.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1541,13 +2251,12 @@ pub fn displayvideo_advertisers_ad_assets_upload(
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_ad_assets_upload_builder(client, &args.advertiserId, &args.body)?;
+    let builder = displayvideo_advertisers_ad_assets_upload_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_ad_assets_upload_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroupAds
-/// Creates an ad group ad.
+/// POST v4/advertisers/{advertisersId}/adGroupAds
+/// Creates an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_group_ads_create_execute()` to send, or `displayvideo_advertisers_ad_group_ads_create` for simplest API.
@@ -1555,23 +2264,23 @@ pub fn displayvideo_advertisers_ad_assets_upload(
 pub fn displayvideo_advertisers_ad_group_ads_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &AdGroupAd,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroupAds
-/// Creates an ad group ad.
+/// POST v4/advertisers/{advertisersId}/adGroupAds
+/// Creates an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1644,8 +2353,8 @@ pub fn displayvideo_advertisers_ad_group_ads_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroupAds
-/// Creates an ad group ad.
+/// POST v4/advertisers/{advertisersId}/adGroupAds
+/// Creates an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1679,12 +2388,10 @@ pub fn displayvideo_advertisers_ad_group_ads_create_execute(
 pub struct DisplayvideoAdvertisersAdGroupAdsCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: AdGroupAd,
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroupAds
-/// Creates an ad group ad.
+/// POST v4/advertisers/{advertisersId}/adGroupAds
+/// Creates an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `displayvideo_advertisers_ad_group_ads_create_builder()` + `displayvideo_advertisers_ad_group_ads_create_execute()`.
@@ -1701,16 +2408,12 @@ pub fn displayvideo_advertisers_ad_group_ads_create(
     impl StreamIterator<D = Result<ApiResponse<AdGroupAd>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_group_ads_create_builder(
-        client,
-        &args.advertiserId,
-        &args.body,
-    )?;
+    let builder = displayvideo_advertisers_ad_group_ads_create_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_ad_group_ads_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
-/// Deletes an ad group ad.
+/// DELETE v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Deletes an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_group_ads_delete_execute()` to send, or `displayvideo_advertisers_ad_group_ads_delete` for simplest API.
@@ -1721,19 +2424,21 @@ pub fn displayvideo_advertisers_ad_group_ads_delete_builder(
     adGroupAdId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds/{}",
+        advertiserId, adGroupAdId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
-/// Deletes an ad group ad.
+/// DELETE v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Deletes an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1806,8 +2511,8 @@ pub fn displayvideo_advertisers_ad_group_ads_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
-/// Deletes an ad group ad.
+/// DELETE v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Deletes an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -1845,8 +2550,8 @@ pub struct DisplayvideoAdvertisersAdGroupAdsDeleteArgs {
     pub adGroupAdId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
-/// Deletes an ad group ad.
+/// DELETE v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Deletes an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `displayvideo_advertisers_ad_group_ads_delete_builder()` + `displayvideo_advertisers_ad_group_ads_delete_execute()`.
@@ -1871,20 +2576,21 @@ pub fn displayvideo_advertisers_ad_group_ads_delete(
     displayvideo_advertisers_ad_group_ads_delete_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups:bulkEditAssignedTargetingOptions
-/// Bulk edits targeting options for multiple ad groups. The same set of delete and create requests will be applied to all specified ad groups. Specifically, the operation will delete the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.delete_requests from each ad group, and then create the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.create_requests. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Gets an ad group ad.
 ///
 /// Returns `ClientRequestBuilder` for customization.
-/// Use `displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_execute()` to send, or `displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options` for simplest API.
+/// Use `displayvideo_advertisers_ad_group_ads_get_execute()` to send, or `displayvideo_advertisers_ad_group_ads_get` for simplest API.
 
-pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_builder(
+pub fn displayvideo_advertisers_ad_group_ads_get_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &BulkEditAdGroupAssignedTargetingOptionsRequest,
+    adGroupAdId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
-        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups:bulkEditAssignedTargetingOptions",
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds/{}",
+        advertiserId, adGroupAdId,
     );
 
     // Build request
@@ -1892,13 +2598,553 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_b
         .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups:bulkEditAssignedTargetingOptions
-/// Bulk edits targeting options for multiple ad groups. The same set of delete and create requests will be applied to all specified ad groups. Specifically, the operation will delete the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.delete_requests from each ad group, and then create the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.create_requests. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Gets an ad group ad.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_ad_group_ads_get_execute()` or `displayvideo_advertisers_ad_group_ads_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_group_ads_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_group_ads_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdGroupAd>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdGroupAd = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Gets an ad group ad.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_ad_group_ads_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_ad_group_ads_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_ad_group_ads_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_group_ads_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_ad_group_ads_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdGroupAd>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_ad_group_ads_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_ad_group_ads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupAdsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupAdId
+    pub adGroupAdId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Gets an ad group ad.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_ad_group_ads_get_builder()` + `displayvideo_advertisers_ad_group_ads_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_ad_group_ads_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_group_ads_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersAdGroupAdsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdGroupAd>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_ad_group_ads_get_builder(
+        client,
+        &args.advertiserId,
+        &args.adGroupAdId,
+    )?;
+    displayvideo_advertisers_ad_group_ads_get_execute(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroupAds
+/// Lists ad group ads.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_ad_group_ads_list_execute()` to send, or `displayvideo_advertisers_ad_group_ads_list` for simplest API.
+
+pub fn displayvideo_advertisers_ad_group_ads_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroupAds
+/// Lists ad group ads.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_ad_group_ads_list_execute()` or `displayvideo_advertisers_ad_group_ads_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_group_ads_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_group_ads_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdGroupAdsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdGroupAdsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroupAds
+/// Lists ad group ads.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_ad_group_ads_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_ad_group_ads_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_ad_group_ads_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_group_ads_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_ad_group_ads_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAdGroupAdsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_ad_group_ads_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_ad_group_ads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupAdsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroupAds
+/// Lists ad group ads.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_ad_group_ads_list_builder()` + `displayvideo_advertisers_ad_group_ads_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_ad_group_ads_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_group_ads_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersAdGroupAdsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAdGroupAdsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_ad_group_ads_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_ad_group_ads_list_execute(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Updates an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_ad_group_ads_patch_execute()` to send, or `displayvideo_advertisers_ad_group_ads_patch` for simplest API.
+
+pub fn displayvideo_advertisers_ad_group_ads_patch_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    adGroupAdId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroupAds/{}",
+        advertiserId, adGroupAdId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Updates an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_ad_group_ads_patch_execute()` or `displayvideo_advertisers_ad_group_ads_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_group_ads_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_group_ads_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdGroupAd>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdGroupAd = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Updates an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_ad_group_ads_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_ad_group_ads_patch_task()`.
+/// For the simplest API, use `displayvideo_advertisers_ad_group_ads_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_group_ads_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_ad_group_ads_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdGroupAd>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_ad_group_ads_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_ad_group_ads_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupAdsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupAdId
+    pub adGroupAdId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
+/// Updates an ad group ad. This method is only supported for Demand Gen ads. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_ad_group_ads_patch_builder()` + `displayvideo_advertisers_ad_group_ads_patch_execute()`.
+/// For task-level control, use `displayvideo_advertisers_ad_group_ads_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_group_ads_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersAdGroupAdsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdGroupAd>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_ad_group_ads_patch_builder(
+        client,
+        &args.advertiserId,
+        &args.adGroupAdId,
+        &args.updateMask,
+    )?;
+    displayvideo_advertisers_ad_group_ads_patch_execute(builder)
+}
+
+/// POST v4/advertisers/{advertisersId}/adGroups:bulkEditAssignedTargetingOptions
+/// Bulk edits targeting options for multiple ad groups. The same set of delete and create requests will be applied to all specified ad groups. Specifically, the operation will delete the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.delete_requests from each ad group, and then create the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.create_requests. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_execute()` to send, or `displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options` for simplest API.
+
+pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups:bulkEditAssignedTargetingOptions",
+        advertiserId,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v4/advertisers/{advertisersId}/adGroups:bulkEditAssignedTargetingOptions
+/// Bulk edits targeting options for multiple ad groups. The same set of delete and create requests will be applied to all specified ad groups. Specifically, the operation will delete the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.delete_requests from each ad group, and then create the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.create_requests. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -1972,8 +3218,8 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_t
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups:bulkEditAssignedTargetingOptions
-/// Bulk edits targeting options for multiple ad groups. The same set of delete and create requests will be applied to all specified ad groups. Specifically, the operation will delete the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.delete_requests from each ad group, and then create the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.create_requests. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// POST v4/advertisers/{advertisersId}/adGroups:bulkEditAssignedTargetingOptions
+/// Bulk edits targeting options for multiple ad groups. The same set of delete and create requests will be applied to all specified ad groups. Specifically, the operation will delete the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.delete_requests from each ad group, and then create the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.create_requests. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2012,12 +3258,10 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_e
 pub struct DisplayvideoAdvertisersAdGroupsBulkEditAssignedTargetingOptionsArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: BulkEditAdGroupAssignedTargetingOptionsRequest,
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups:bulkEditAssignedTargetingOptions
-/// Bulk edits targeting options for multiple ad groups. The same set of delete and create requests will be applied to all specified ad groups. Specifically, the operation will delete the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.delete_requests from each ad group, and then create the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.create_requests. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// POST v4/advertisers/{advertisersId}/adGroups:bulkEditAssignedTargetingOptions
+/// Bulk edits targeting options for multiple ad groups. The same set of delete and create requests will be applied to all specified ad groups. Specifically, the operation will delete the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.delete_requests from each ad group, and then create the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.create_requests. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_builder()` + `displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_execute()`.
@@ -2041,7 +3285,6 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options(
     let builder = displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_builder(
         client,
         &args.advertiserId,
-        &args.body,
     )?;
     displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_execute(builder)
 }
@@ -2055,15 +3298,16 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options(
 pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    adGroupIds: &Option<String>,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    adGroupIds: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups:bulkListAssignedTargetingOptions",
+        advertiserId,
     );
 
     // Build request
@@ -2213,15 +3457,15 @@ pub struct DisplayvideoAdvertisersAdGroupsBulkListAssignedTargetingOptionsArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: adGroupIds
-    pub adGroupIds: Option<String>,
+    pub adGroupIds: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v4/advertisers/{advertisersId}/adGroups:bulkListAssignedTargetingOptions
@@ -2258,8 +3502,8 @@ pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options(
     displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups
-/// Creates a new ad group. Returns the newly created ad group if successful.
+/// POST v4/advertisers/{advertisersId}/adGroups
+/// Creates a new ad group. Returns the newly created ad group if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_create_execute()` to send, or `displayvideo_advertisers_ad_groups_create` for simplest API.
@@ -2267,23 +3511,23 @@ pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options(
 pub fn displayvideo_advertisers_ad_groups_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &AdGroup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups
-/// Creates a new ad group. Returns the newly created ad group if successful.
+/// POST v4/advertisers/{advertisersId}/adGroups
+/// Creates a new ad group. Returns the newly created ad group if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2356,8 +3600,8 @@ pub fn displayvideo_advertisers_ad_groups_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups
-/// Creates a new ad group. Returns the newly created ad group if successful.
+/// POST v4/advertisers/{advertisersId}/adGroups
+/// Creates a new ad group. Returns the newly created ad group if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2391,12 +3635,10 @@ pub fn displayvideo_advertisers_ad_groups_create_execute(
 pub struct DisplayvideoAdvertisersAdGroupsCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: AdGroup,
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups
-/// Creates a new ad group. Returns the newly created ad group if successful.
+/// POST v4/advertisers/{advertisersId}/adGroups
+/// Creates a new ad group. Returns the newly created ad group if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `displayvideo_advertisers_ad_groups_create_builder()` + `displayvideo_advertisers_ad_groups_create_execute()`.
@@ -2413,13 +3655,12 @@ pub fn displayvideo_advertisers_ad_groups_create(
     impl StreamIterator<D = Result<ApiResponse<AdGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_ad_groups_create_builder(client, &args.advertiserId, &args.body)?;
+    let builder = displayvideo_advertisers_ad_groups_create_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_ad_groups_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
-/// Deletes a AdGroup. Returns error code NOT_FOUND if the ad group does not exist.
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Deletes a AdGroup. Returns error code NOT_FOUND if the ad group does not exist. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_delete_execute()` to send, or `displayvideo_advertisers_ad_groups_delete` for simplest API.
@@ -2430,19 +3671,21 @@ pub fn displayvideo_advertisers_ad_groups_delete_builder(
     adGroupId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}",
+        advertiserId, adGroupId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
-/// Deletes a AdGroup. Returns error code NOT_FOUND if the ad group does not exist.
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Deletes a AdGroup. Returns error code NOT_FOUND if the ad group does not exist. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2515,8 +3758,8 @@ pub fn displayvideo_advertisers_ad_groups_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
-/// Deletes a AdGroup. Returns error code NOT_FOUND if the ad group does not exist.
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Deletes a AdGroup. Returns error code NOT_FOUND if the ad group does not exist. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2554,8 +3797,8 @@ pub struct DisplayvideoAdvertisersAdGroupsDeleteArgs {
     pub adGroupId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
-/// Deletes a AdGroup. Returns error code NOT_FOUND if the ad group does not exist.
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Deletes a AdGroup. Returns error code NOT_FOUND if the ad group does not exist. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `displayvideo_advertisers_ad_groups_delete_builder()` + `displayvideo_advertisers_ad_groups_delete_execute()`.
@@ -2580,8 +3823,551 @@ pub fn displayvideo_advertisers_ad_groups_delete(
     displayvideo_advertisers_ad_groups_delete_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
-/// Assigns a targeting option to an ad group. Returns the assigned targeting option if successful. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Gets an ad group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_ad_groups_get_execute()` to send, or `displayvideo_advertisers_ad_groups_get` for simplest API.
+
+pub fn displayvideo_advertisers_ad_groups_get_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    adGroupId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}",
+        advertiserId, adGroupId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Gets an ad group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_ad_groups_get_execute()` or `displayvideo_advertisers_ad_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Gets an ad group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_ad_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_ad_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_ad_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_ad_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_ad_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Gets an ad group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_ad_groups_get_builder()` + `displayvideo_advertisers_ad_groups_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersAdGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_ad_groups_get_builder(
+        client,
+        &args.advertiserId,
+        &args.adGroupId,
+    )?;
+    displayvideo_advertisers_ad_groups_get_execute(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups
+/// Lists ad groups.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_ad_groups_list_execute()` to send, or `displayvideo_advertisers_ad_groups_list` for simplest API.
+
+pub fn displayvideo_advertisers_ad_groups_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups
+/// Lists ad groups.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_ad_groups_list_execute()` or `displayvideo_advertisers_ad_groups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdGroupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups
+/// Lists ad groups.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_ad_groups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_ad_groups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_ad_groups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAdGroupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_ad_groups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_ad_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups
+/// Lists ad groups.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_ad_groups_list_builder()` + `displayvideo_advertisers_ad_groups_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersAdGroupsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAdGroupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_ad_groups_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_ad_groups_list_execute(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Updates an existing ad group. Returns the updated ad group if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_ad_groups_patch_execute()` to send, or `displayvideo_advertisers_ad_groups_patch` for simplest API.
+
+pub fn displayvideo_advertisers_ad_groups_patch_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    adGroupId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}",
+        advertiserId, adGroupId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Updates an existing ad group. Returns the updated ad group if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_ad_groups_patch_execute()` or `displayvideo_advertisers_ad_groups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AdGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Updates an existing ad group. Returns the updated ad group if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_ad_groups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_patch_task()`.
+/// For the simplest API, use `displayvideo_advertisers_ad_groups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_ad_groups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_ad_groups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_ad_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
+/// Updates an existing ad group. Returns the updated ad group if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_ad_groups_patch_builder()` + `displayvideo_advertisers_ad_groups_patch_execute()`.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersAdGroupsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AdGroup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_ad_groups_patch_builder(
+        client,
+        &args.advertiserId,
+        &args.adGroupId,
+        &args.updateMask,
+    )?;
+    displayvideo_advertisers_ad_groups_patch_execute(builder)
+}
+
+/// POST v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Assigns a targeting option to an ad group. Returns the assigned targeting option if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_execute()` to send, or `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create` for simplest API.
@@ -2591,25 +4377,25 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     advertiserId: &String,
     adGroupId: &String,
     targetingType: &String,
-    body: &AssignedTargetingOption,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/targetingTypes/{}/assignedTargetingOptions",
+        advertiserId,
+        adGroupId,
+        targetingType,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
-/// Assigns a targeting option to an ad group. Returns the assigned targeting option if successful. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// POST v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Assigns a targeting option to an ad group. Returns the assigned targeting option if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2682,8 +4468,8 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
-/// Assigns a targeting option to an ad group. Returns the assigned targeting option if successful. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// POST v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Assigns a targeting option to an ad group. Returns the assigned targeting option if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2726,12 +4512,10 @@ pub struct DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptions
     pub adGroupId: String,
     /// Path parameter: targetingType
     pub targetingType: String,
-    /// Request body.
-    pub body: AssignedTargetingOption,
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
-/// Assigns a targeting option to an ad group. Returns the assigned targeting option if successful. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// POST v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Assigns a targeting option to an ad group. Returns the assigned targeting option if successful. This method is only supported for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_builder()` + `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_execute()`.
@@ -2750,14 +4534,14 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_builder(client, &args.advertiserId, &args.adGroupId, &args.targetingType, &args.body)?;
+    let builder = displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_builder(client, &args.advertiserId, &args.adGroupId, &args.targetingType)?;
     displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_execute(
         builder,
     )
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
-/// Deletes an assigned targeting option from an ad group. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Deletes an assigned targeting option from an ad group. This method is only supported for Demand Gen ad groups with the AdGroupFormat AD_GROUP_FORMAT_DEMAND_GEN. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
 /// Use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_execute()` to send, or `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete` for simplest API.
@@ -2772,18 +4556,22 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/targetingTypes/{}/assignedTargetingOptions/{}",
+        advertiserId,
+        adGroupId,
+        targetingType,
+        assignedTargetingOptionId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
-/// Deletes an assigned targeting option from an ad group. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Deletes an assigned targeting option from an ad group. This method is only supported for Demand Gen ad groups with the AdGroupFormat AD_GROUP_FORMAT_DEMAND_GEN. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
 /// and returns a `TaskIterator` for customization before execution.
@@ -2856,8 +4644,8 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
-/// Deletes an assigned targeting option from an ad group. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Deletes an assigned targeting option from an ad group. This method is only supported for Demand Gen ad groups with the AdGroupFormat AD_GROUP_FORMAT_DEMAND_GEN. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
 /// and returns the parsed response via a `StreamIterator`.
@@ -2902,8 +4690,8 @@ pub struct DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptions
     pub assignedTargetingOptionId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
-/// Deletes an assigned targeting option from an ad group. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Deletes an assigned targeting option from an ad group. This method is only supported for Demand Gen ad groups with the AdGroupFormat AD_GROUP_FORMAT_DEMAND_GEN. Retrieval and management of Demand Gen resources is currently in beta. This method is only available to allowlisted users.
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_builder()` + `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_execute()`.
@@ -2926,7 +4714,413 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     )
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to an ad group. Inherited assigned targeting options are not included.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_execute()` to send, or `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get` for simplest API.
+
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    adGroupId: &String,
+    targetingType: &String,
+    assignedTargetingOptionId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/targetingTypes/{}/assignedTargetingOptions/{}",
+        advertiserId,
+        adGroupId,
+        targetingType,
+        assignedTargetingOptionId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to an ad group. Inherited assigned targeting options are not included.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_execute()` or `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AssignedTargetingOption>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AssignedTargetingOption = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to an ad group. Inherited assigned targeting options are not included.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to an ad group. Inherited assigned targeting options are not included.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_builder()` + `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_builder(
+            client,
+            &args.advertiserId,
+            &args.adGroupId,
+            &args.targetingType,
+            &args.assignedTargetingOptionId,
+        )?;
+    displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_execute(
+        builder,
+    )
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to an ad group. Inherited assigned targeting options are not included.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_execute()` to send, or `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list` for simplest API.
+
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    adGroupId: &String,
+    targetingType: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/targetingTypes/{}/assignedTargetingOptions",
+        advertiserId,
+        adGroupId,
+        targetingType,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to an ad group. Inherited assigned targeting options are not included.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_execute()` or `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdGroupAssignedTargetingOptionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdGroupAssignedTargetingOptionsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to an ad group. Inherited assigned targeting options are not included.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdGroupAssignedTargetingOptionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to an ad group. Inherited assigned targeting options are not included.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_builder()` + `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdGroupAssignedTargetingOptionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_builder(
+            client,
+            &args.advertiserId,
+            &args.adGroupId,
+            &args.targetingType,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )?;
+    displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_execute(
+        builder,
+    )
+}
+
+/// POST v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Creates a new association between the identified resource and a YouTube asset. Returns the newly-created association. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2937,12 +5131,14 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     advertiserId: &String,
     adGroupId: &String,
     youtubeAssetType: &String,
-    linkedEntity_lineItemId: &Option<String>,
-    body: &YoutubeAssetAssociation,
+    linkedEntity_lineItemId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/youtubeAssetTypes/{}/youtubeAssetAssociations",
+        advertiserId,
+        adGroupId,
+        youtubeAssetType,
     );
 
     // Build request
@@ -2958,15 +5154,13 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// POST v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Creates a new association between the identified resource and a YouTube asset. Returns the newly-created association. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3040,7 +5234,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// POST v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Creates a new association between the identified resource and a YouTube asset. Returns the newly-created association. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3082,12 +5276,10 @@ pub struct DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociati
     /// Path parameter: youtubeAssetType
     pub youtubeAssetType: String,
     /// Query parameter: linkedEntity_lineItemId
-    pub linkedEntity_lineItemId: Option<String>,
-    /// Request body.
-    pub body: YoutubeAssetAssociation,
+    pub linkedEntity_lineItemId: Option<Option<String>>,
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// POST v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Creates a new association between the identified resource and a YouTube asset. Returns the newly-created association. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3107,13 +5299,13 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_builder(client, &args.advertiserId, &args.adGroupId, &args.youtubeAssetType, &args.linkedEntity_lineItemId, &args.body)?;
+    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_builder(client, &args.advertiserId, &args.adGroupId, &args.youtubeAssetType, &args.linkedEntity_lineItemId)?;
     displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_execute(
         builder,
     )
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
 /// Deletes an existing association between the identified resource and a YouTube asset. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3125,11 +5317,15 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     adGroupId: &String,
     youtubeAssetType: &String,
     youtubeAssetAssociationId: &String,
-    linkedEntity_lineItemId: &Option<String>,
+    linkedEntity_lineItemId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/youtubeAssetTypes/{}/youtubeAssetAssociations/{}",
+        advertiserId,
+        adGroupId,
+        youtubeAssetType,
+        youtubeAssetAssociationId,
     );
 
     // Build request
@@ -3145,13 +5341,13 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
 /// Deletes an existing association between the identified resource and a YouTube asset. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3225,7 +5421,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
 /// Deletes an existing association between the identified resource and a YouTube asset. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3267,10 +5463,10 @@ pub struct DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociati
     /// Path parameter: youtubeAssetAssociationId
     pub youtubeAssetAssociationId: String,
     /// Query parameter: linkedEntity_lineItemId
-    pub linkedEntity_lineItemId: Option<String>,
+    pub linkedEntity_lineItemId: Option<Option<String>>,
 }
 
-/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
+/// DELETE v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
 /// Deletes an existing association between the identified resource and a YouTube asset. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3294,7 +5490,214 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     )
 }
 
-/// GET v4/advertisers/{advertisersId}/assets
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// Lists the YouTube asset associations linked to the given resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_execute()` to send, or `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list` for simplest API.
+
+pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    adGroupId: &String,
+    youtubeAssetType: &String,
+    linkedEntity_lineItemId: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/adGroups/{}/youtubeAssetTypes/{}/youtubeAssetAssociations",
+        advertiserId,
+        adGroupId,
+        youtubeAssetType,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = linkedEntity_lineItemId.as_ref() {
+        query_parts.push(format!("linkedEntity.lineItemId={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// Lists the YouTube asset associations linked to the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_execute()` or `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListYoutubeAssetAssociationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListYoutubeAssetAssociationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// Lists the YouTube asset associations linked to the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListYoutubeAssetAssociationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Path parameter: youtubeAssetType
+    pub youtubeAssetType: String,
+    /// Query parameter: linkedEntity_lineItemId
+    pub linkedEntity_lineItemId: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// Lists the YouTube asset associations linked to the given resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_builder()` + `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListYoutubeAssetAssociationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_builder(client, &args.advertiserId, &args.adGroupId, &args.youtubeAssetType, &args.linkedEntity_lineItemId, &args.orderBy, &args.pageSize, &args.pageToken)?;
+    displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_execute(
+        builder,
+    )
+}
+
+/// POST v4/advertisers/{advertisersId}/assets
 /// Uploads an asset. Returns the ID of the newly uploaded asset if successful. The asset file size should be no more than 10 MB for images, 200 MB for ZIP files, and 1 GB for videos. Must be used within the [multipart media upload process](/display-`video/api/guides/how-tos/upload`#multipart). Examples using provided client libraries can be found in our [Creating Creatives guide](/display-`video/api/guides/creating-creatives/overview`#upload_an_asset).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3303,22 +5706,22 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 pub fn displayvideo_advertisers_assets_upload_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &CreateAssetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}/assets",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/assets",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/assets
+/// POST v4/advertisers/{advertisersId}/assets
 /// Uploads an asset. Returns the ID of the newly uploaded asset if successful. The asset file size should be no more than 10 MB for images, 200 MB for ZIP files, and 1 GB for videos. Must be used within the [multipart media upload process](/display-`video/api/guides/how-tos/upload`#multipart). Examples using provided client libraries can be found in our [Creating Creatives guide](/display-`video/api/guides/creating-creatives/overview`#upload_an_asset).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3392,7 +5795,7 @@ pub fn displayvideo_advertisers_assets_upload_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/assets
+/// POST v4/advertisers/{advertisersId}/assets
 /// Uploads an asset. Returns the ID of the newly uploaded asset if successful. The asset file size should be no more than 10 MB for images, 200 MB for ZIP files, and 1 GB for videos. Must be used within the [multipart media upload process](/display-`video/api/guides/how-tos/upload`#multipart). Examples using provided client libraries can be found in our [Creating Creatives guide](/display-`video/api/guides/creating-creatives/overview`#upload_an_asset).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3429,11 +5832,9 @@ pub fn displayvideo_advertisers_assets_upload_execute(
 pub struct DisplayvideoAdvertisersAssetsUploadArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: CreateAssetRequest,
 }
 
-/// GET v4/advertisers/{advertisersId}/assets
+/// POST v4/advertisers/{advertisersId}/assets
 /// Uploads an asset. Returns the ID of the newly uploaded asset if successful. The asset file size should be no more than 10 MB for images, 200 MB for ZIP files, and 1 GB for videos. Must be used within the [multipart media upload process](/display-`video/api/guides/how-tos/upload`#multipart). Examples using provided client libraries can be found in our [Creating Creatives guide](/display-`video/api/guides/creating-creatives/overview`#upload_an_asset).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3453,12 +5854,11 @@ pub fn displayvideo_advertisers_assets_upload(
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_assets_upload_builder(client, &args.advertiserId, &args.body)?;
+    let builder = displayvideo_advertisers_assets_upload_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_assets_upload_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/campaigns
+/// POST v4/advertisers/{advertisersId}/campaigns
 /// Creates a new campaign. Returns the newly created campaign if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3467,22 +5867,22 @@ pub fn displayvideo_advertisers_assets_upload(
 pub fn displayvideo_advertisers_campaigns_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &Campaign,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/campaigns
+/// POST v4/advertisers/{advertisersId}/campaigns
 /// Creates a new campaign. Returns the newly created campaign if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3556,7 +5956,7 @@ pub fn displayvideo_advertisers_campaigns_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/campaigns
+/// POST v4/advertisers/{advertisersId}/campaigns
 /// Creates a new campaign. Returns the newly created campaign if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3591,11 +5991,9 @@ pub fn displayvideo_advertisers_campaigns_create_execute(
 pub struct DisplayvideoAdvertisersCampaignsCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: Campaign,
 }
 
-/// GET v4/advertisers/{advertisersId}/campaigns
+/// POST v4/advertisers/{advertisersId}/campaigns
 /// Creates a new campaign. Returns the newly created campaign if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3613,12 +6011,11 @@ pub fn displayvideo_advertisers_campaigns_create(
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_campaigns_create_builder(client, &args.advertiserId, &args.body)?;
+    let builder = displayvideo_advertisers_campaigns_create_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_campaigns_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// DELETE v4/advertisers/{advertisersId}/campaigns/{campaignsId}
 /// Permanently deletes a campaign. A deleted campaign cannot be recovered. The campaign should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3630,18 +6027,20 @@ pub fn displayvideo_advertisers_campaigns_delete_builder(
     campaignId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns/{}",
+        advertiserId, campaignId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// DELETE v4/advertisers/{advertisersId}/campaigns/{campaignsId}
 /// Permanently deletes a campaign. A deleted campaign cannot be recovered. The campaign should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3715,7 +6114,7 @@ pub fn displayvideo_advertisers_campaigns_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// DELETE v4/advertisers/{advertisersId}/campaigns/{campaignsId}
 /// Permanently deletes a campaign. A deleted campaign cannot be recovered. The campaign should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3754,7 +6153,7 @@ pub struct DisplayvideoAdvertisersCampaignsDeleteArgs {
     pub campaignId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// DELETE v4/advertisers/{advertisersId}/campaigns/{campaignsId}
 /// Permanently deletes a campaign. A deleted campaign cannot be recovered. The campaign should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3780,7 +6179,550 @@ pub fn displayvideo_advertisers_campaigns_delete(
     displayvideo_advertisers_campaigns_delete_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/channels
+/// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// Gets a campaign.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_campaigns_get_execute()` to send, or `displayvideo_advertisers_campaigns_get` for simplest API.
+
+pub fn displayvideo_advertisers_campaigns_get_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    campaignId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns/{}",
+        advertiserId, campaignId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// Gets a campaign.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_campaigns_get_execute()` or `displayvideo_advertisers_campaigns_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_campaigns_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_campaigns_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Campaign>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Campaign = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// Gets a campaign.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_campaigns_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_campaigns_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_campaigns_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_campaigns_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_campaigns_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_campaigns_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_campaigns_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCampaignsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: campaignId
+    pub campaignId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// Gets a campaign.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_campaigns_get_builder()` + `displayvideo_advertisers_campaigns_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_campaigns_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_campaigns_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersCampaignsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_campaigns_get_builder(
+        client,
+        &args.advertiserId,
+        &args.campaignId,
+    )?;
+    displayvideo_advertisers_campaigns_get_execute(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/campaigns
+/// Lists campaigns in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, campaigns with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_campaigns_list_execute()` to send, or `displayvideo_advertisers_campaigns_list` for simplest API.
+
+pub fn displayvideo_advertisers_campaigns_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/campaigns
+/// Lists campaigns in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, campaigns with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_campaigns_list_execute()` or `displayvideo_advertisers_campaigns_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_campaigns_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_campaigns_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCampaignsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCampaignsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/campaigns
+/// Lists campaigns in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, campaigns with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_campaigns_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_campaigns_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_campaigns_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_campaigns_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_campaigns_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCampaignsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_campaigns_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_campaigns_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCampaignsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/campaigns
+/// Lists campaigns in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, campaigns with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_campaigns_list_builder()` + `displayvideo_advertisers_campaigns_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_campaigns_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_campaigns_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersCampaignsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCampaignsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_campaigns_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_campaigns_list_execute(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// Updates an existing campaign. Returns the updated campaign if successful.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_campaigns_patch_execute()` to send, or `displayvideo_advertisers_campaigns_patch` for simplest API.
+
+pub fn displayvideo_advertisers_campaigns_patch_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    campaignId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/campaigns/{}",
+        advertiserId, campaignId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// Updates an existing campaign. Returns the updated campaign if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_campaigns_patch_execute()` or `displayvideo_advertisers_campaigns_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_campaigns_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_campaigns_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Campaign>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Campaign = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// Updates an existing campaign. Returns the updated campaign if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_campaigns_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_campaigns_patch_task()`.
+/// For the simplest API, use `displayvideo_advertisers_campaigns_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_campaigns_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_campaigns_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_campaigns_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_campaigns_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCampaignsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: campaignId
+    pub campaignId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/advertisers/{advertisersId}/campaigns/{campaignsId}
+/// Updates an existing campaign. Returns the updated campaign if successful.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_campaigns_patch_builder()` + `displayvideo_advertisers_campaigns_patch_execute()`.
+/// For task-level control, use `displayvideo_advertisers_campaigns_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_campaigns_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersCampaignsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_campaigns_patch_builder(
+        client,
+        &args.advertiserId,
+        &args.campaignId,
+        &args.updateMask,
+    )?;
+    displayvideo_advertisers_campaigns_patch_execute(builder)
+}
+
+/// POST v4/advertisers/{advertisersId}/channels
 /// Creates a new channel. Returns the newly created channel if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3789,11 +6731,13 @@ pub fn displayvideo_advertisers_campaigns_delete(
 pub fn displayvideo_advertisers_channels_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    partnerId: &Option<String>,
-    body: &Channel,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}/channels",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/channels",
+        advertiserId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3808,15 +6752,13 @@ pub fn displayvideo_advertisers_channels_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/channels
+/// POST v4/advertisers/{advertisersId}/channels
 /// Creates a new channel. Returns the newly created channel if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3890,7 +6832,7 @@ pub fn displayvideo_advertisers_channels_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/channels
+/// POST v4/advertisers/{advertisersId}/channels
 /// Creates a new channel. Returns the newly created channel if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3926,12 +6868,10 @@ pub struct DisplayvideoAdvertisersChannelsCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
-    /// Request body.
-    pub body: Channel,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/advertisers/{advertisersId}/channels
+/// POST v4/advertisers/{advertisersId}/channels
 /// Creates a new channel. Returns the newly created channel if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3953,7 +6893,6 @@ pub fn displayvideo_advertisers_channels_create(
         client,
         &args.advertiserId,
         &args.partnerId,
-        &args.body,
     )?;
     displayvideo_advertisers_channels_create_execute(builder)
 }
@@ -3968,11 +6907,13 @@ pub fn displayvideo_advertisers_channels_get_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
     channelId: &String,
-    partnerId: &Option<String>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}",
+        advertiserId, channelId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4105,7 +7046,7 @@ pub struct DisplayvideoAdvertisersChannelsGetArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/advertisers/{advertisersId}/channels/{channelsId}
@@ -4135,7 +7076,214 @@ pub fn displayvideo_advertisers_channels_get(
     displayvideo_advertisers_channels_get_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/channels/{channelId}
+/// GET v4/advertisers/{advertisersId}/channels
+/// Lists channels for a partner or advertiser.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_channels_list_execute()` to send, or `displayvideo_advertisers_channels_list` for simplest API.
+
+pub fn displayvideo_advertisers_channels_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/channels",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/channels
+/// Lists channels for a partner or advertiser.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_channels_list_execute()` or `displayvideo_advertisers_channels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_channels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_channels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListChannelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListChannelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/channels
+/// Lists channels for a partner or advertiser.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_channels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_channels_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_channels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_channels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_channels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListChannelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_channels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersChannelsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/channels
+/// Lists channels for a partner or advertiser.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_channels_list_builder()` + `displayvideo_advertisers_channels_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_channels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_channels_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersChannelsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListChannelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_channels_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
+    )?;
+    displayvideo_advertisers_channels_list_execute(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/channels/{channelId}
 /// Updates a channel. Returns the updated channel if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4145,14 +7293,13 @@ pub fn displayvideo_advertisers_channels_patch_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
     channelId: &String,
-    partnerId: &Option<String>,
-    updateMask: &Option<String>,
-    body: &Channel,
+    partnerId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}",
-        channelId,
+        advertiserId, channelId,
     );
 
     // Build request
@@ -4171,15 +7318,13 @@ pub fn displayvideo_advertisers_channels_patch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .patch(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/channels/{channelId}
+/// PATCH v4/advertisers/{advertisersId}/channels/{channelId}
 /// Updates a channel. Returns the updated channel if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4253,7 +7398,7 @@ pub fn displayvideo_advertisers_channels_patch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/channels/{channelId}
+/// PATCH v4/advertisers/{advertisersId}/channels/{channelId}
 /// Updates a channel. Returns the updated channel if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4291,14 +7436,12 @@ pub struct DisplayvideoAdvertisersChannelsPatchArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
     /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Channel,
+    pub updateMask: Option<Option<String>>,
 }
 
-/// GET v4/advertisers/{advertisersId}/channels/{channelId}
+/// PATCH v4/advertisers/{advertisersId}/channels/{channelId}
 /// Updates a channel. Returns the updated channel if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4322,12 +7465,11 @@ pub fn displayvideo_advertisers_channels_patch(
         &args.channelId,
         &args.partnerId,
         &args.updateMask,
-        &args.body,
     )?;
     displayvideo_advertisers_channels_patch_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites:bulkEdit
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites:bulkEdit
 /// Bulk edits sites under a single channel. The operation will delete the sites provided in BulkEditSitesRequest.deleted_sites and then create the sites provided in BulkEditSitesRequest.created_sites.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4337,25 +7479,22 @@ pub fn displayvideo_advertisers_channels_sites_bulk_edit_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
     channelId: &String,
-    body: &BulkEditSitesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites:bulkEdit",
-        advertiserId,
+        advertiserId, channelId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites:bulkEdit
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites:bulkEdit
 /// Bulk edits sites under a single channel. The operation will delete the sites provided in BulkEditSitesRequest.deleted_sites and then create the sites provided in BulkEditSitesRequest.created_sites.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4429,7 +7568,7 @@ pub fn displayvideo_advertisers_channels_sites_bulk_edit_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites:bulkEdit
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites:bulkEdit
 /// Bulk edits sites under a single channel. The operation will delete the sites provided in BulkEditSitesRequest.deleted_sites and then create the sites provided in BulkEditSitesRequest.created_sites.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4468,11 +7607,9 @@ pub struct DisplayvideoAdvertisersChannelsSitesBulkEditArgs {
     pub advertiserId: String,
     /// Path parameter: channelId
     pub channelId: String,
-    /// Request body.
-    pub body: BulkEditSitesRequest,
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites:bulkEdit
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites:bulkEdit
 /// Bulk edits sites under a single channel. The operation will delete the sites provided in BulkEditSitesRequest.deleted_sites and then create the sites provided in BulkEditSitesRequest.created_sites.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4496,12 +7633,11 @@ pub fn displayvideo_advertisers_channels_sites_bulk_edit(
         client,
         &args.advertiserId,
         &args.channelId,
-        &args.body,
     )?;
     displayvideo_advertisers_channels_sites_bulk_edit_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites
 /// Creates a site in a channel.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4511,13 +7647,12 @@ pub fn displayvideo_advertisers_channels_sites_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
     channelId: &String,
-    partnerId: &Option<String>,
-    body: &Site,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites",
-        advertiserId,
+        advertiserId, channelId,
     );
 
     // Build request
@@ -4533,15 +7668,13 @@ pub fn displayvideo_advertisers_channels_sites_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites
 /// Creates a site in a channel.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4615,7 +7748,7 @@ pub fn displayvideo_advertisers_channels_sites_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites
 /// Creates a site in a channel.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4653,12 +7786,10 @@ pub struct DisplayvideoAdvertisersChannelsSitesCreateArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
-    /// Request body.
-    pub body: Site,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites
 /// Creates a site in a channel.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4681,12 +7812,11 @@ pub fn displayvideo_advertisers_channels_sites_create(
         &args.advertiserId,
         &args.channelId,
         &args.partnerId,
-        &args.body,
     )?;
     displayvideo_advertisers_channels_sites_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites/{sitesId}
+/// DELETE v4/advertisers/{advertiserId}/channels/{channelsId}/sites/{sitesId}
 /// Deletes a site from a channel.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4697,12 +7827,12 @@ pub fn displayvideo_advertisers_channels_sites_delete_builder(
     advertiserId: &String,
     channelId: &String,
     urlOrAppId: &String,
-    partnerId: &Option<String>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites/{}",
-        advertiserId,
+        advertiserId, channelId, urlOrAppId,
     );
 
     // Build request
@@ -4718,13 +7848,13 @@ pub fn displayvideo_advertisers_channels_sites_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites/{sitesId}
+/// DELETE v4/advertisers/{advertiserId}/channels/{channelsId}/sites/{sitesId}
 /// Deletes a site from a channel.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4798,7 +7928,7 @@ pub fn displayvideo_advertisers_channels_sites_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites/{sitesId}
+/// DELETE v4/advertisers/{advertiserId}/channels/{channelsId}/sites/{sitesId}
 /// Deletes a site from a channel.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4838,10 +7968,10 @@ pub struct DisplayvideoAdvertisersChannelsSitesDeleteArgs {
     /// Path parameter: urlOrAppId
     pub urlOrAppId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites/{sitesId}
+/// DELETE v4/advertisers/{advertiserId}/channels/{channelsId}/sites/{sitesId}
 /// Deletes a site from a channel.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4879,15 +8009,17 @@ pub fn displayvideo_advertisers_channels_sites_list_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
     channelId: &String,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    partnerId: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites",
+        advertiserId, channelId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -5034,15 +8166,15 @@ pub struct DisplayvideoAdvertisersChannelsSitesListArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/advertisers/{advertisersId}/channels/{channelsId}/sites
@@ -5078,7 +8210,7 @@ pub fn displayvideo_advertisers_channels_sites_list(
     displayvideo_advertisers_channels_sites_list_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites:replace
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites:replace
 /// Replaces all of the sites under a single channel. The operation will replace the sites under a channel with the sites provided in ReplaceSitesRequest.new_sites. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5088,25 +8220,22 @@ pub fn displayvideo_advertisers_channels_sites_replace_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
     channelId: &String,
-    body: &ReplaceSitesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/channels/{}/sites:replace",
-        advertiserId,
+        advertiserId, channelId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites:replace
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites:replace
 /// Replaces all of the sites under a single channel. The operation will replace the sites under a channel with the sites provided in ReplaceSitesRequest.new_sites. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5180,7 +8309,7 @@ pub fn displayvideo_advertisers_channels_sites_replace_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites:replace
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites:replace
 /// Replaces all of the sites under a single channel. The operation will replace the sites under a channel with the sites provided in ReplaceSitesRequest.new_sites. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5219,11 +8348,9 @@ pub struct DisplayvideoAdvertisersChannelsSitesReplaceArgs {
     pub advertiserId: String,
     /// Path parameter: channelId
     pub channelId: String,
-    /// Request body.
-    pub body: ReplaceSitesRequest,
 }
 
-/// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites:replace
+/// POST v4/advertisers/{advertiserId}/channels/{channelsId}/sites:replace
 /// Replaces all of the sites under a single channel. The operation will replace the sites under a channel with the sites provided in ReplaceSitesRequest.new_sites. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5247,12 +8374,11 @@ pub fn displayvideo_advertisers_channels_sites_replace(
         client,
         &args.advertiserId,
         &args.channelId,
-        &args.body,
     )?;
     displayvideo_advertisers_channels_sites_replace_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/creatives
+/// POST v4/advertisers/{advertisersId}/creatives
 /// Creates a new creative. Returns the newly created creative if successful. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5261,22 +8387,22 @@ pub fn displayvideo_advertisers_channels_sites_replace(
 pub fn displayvideo_advertisers_creatives_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &Creative,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}/creatives",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/creatives",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/creatives
+/// POST v4/advertisers/{advertisersId}/creatives
 /// Creates a new creative. Returns the newly created creative if successful. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5350,7 +8476,7 @@ pub fn displayvideo_advertisers_creatives_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/creatives
+/// POST v4/advertisers/{advertisersId}/creatives
 /// Creates a new creative. Returns the newly created creative if successful. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5385,11 +8511,9 @@ pub fn displayvideo_advertisers_creatives_create_execute(
 pub struct DisplayvideoAdvertisersCreativesCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: Creative,
 }
 
-/// GET v4/advertisers/{advertisersId}/creatives
+/// POST v4/advertisers/{advertisersId}/creatives
 /// Creates a new creative. Returns the newly created creative if successful. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5407,12 +8531,11 @@ pub fn displayvideo_advertisers_creatives_create(
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_creatives_create_builder(client, &args.advertiserId, &args.body)?;
+    let builder = displayvideo_advertisers_creatives_create_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_creatives_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// DELETE v4/advertisers/{advertisersId}/creatives/{creativesId}
 /// Deletes a creative. Returns error code NOT_FOUND if the creative does not exist. The creative should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, before it can be deleted. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5424,18 +8547,20 @@ pub fn displayvideo_advertisers_creatives_delete_builder(
     creativeId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/creatives/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/creatives/{}",
+        advertiserId, creativeId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// DELETE v4/advertisers/{advertisersId}/creatives/{creativesId}
 /// Deletes a creative. Returns error code NOT_FOUND if the creative does not exist. The creative should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, before it can be deleted. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5509,7 +8634,7 @@ pub fn displayvideo_advertisers_creatives_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// DELETE v4/advertisers/{advertisersId}/creatives/{creativesId}
 /// Deletes a creative. Returns error code NOT_FOUND if the creative does not exist. The creative should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, before it can be deleted. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5548,7 +8673,7 @@ pub struct DisplayvideoAdvertisersCreativesDeleteArgs {
     pub creativeId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// DELETE v4/advertisers/{advertisersId}/creatives/{creativesId}
 /// Deletes a creative. Returns error code NOT_FOUND if the creative does not exist. The creative should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, before it can be deleted. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5574,7 +8699,550 @@ pub fn displayvideo_advertisers_creatives_delete(
     displayvideo_advertisers_creatives_delete_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/insertionOrders
+/// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// Gets a creative.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_creatives_get_execute()` to send, or `displayvideo_advertisers_creatives_get` for simplest API.
+
+pub fn displayvideo_advertisers_creatives_get_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    creativeId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/creatives/{}",
+        advertiserId, creativeId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// Gets a creative.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_creatives_get_execute()` or `displayvideo_advertisers_creatives_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_creatives_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_creatives_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Creative>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Creative = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// Gets a creative.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_creatives_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_creatives_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_creatives_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_creatives_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_creatives_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_creatives_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_creatives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCreativesGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// Gets a creative.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_creatives_get_builder()` + `displayvideo_advertisers_creatives_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_creatives_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_creatives_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersCreativesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_creatives_get_builder(
+        client,
+        &args.advertiserId,
+        &args.creativeId,
+    )?;
+    displayvideo_advertisers_creatives_get_execute(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/creatives
+/// Lists creatives in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, creatives with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_creatives_list_execute()` to send, or `displayvideo_advertisers_creatives_list` for simplest API.
+
+pub fn displayvideo_advertisers_creatives_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/creatives",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/creatives
+/// Lists creatives in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, creatives with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_creatives_list_execute()` or `displayvideo_advertisers_creatives_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_creatives_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_creatives_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCreativesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCreativesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/creatives
+/// Lists creatives in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, creatives with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_creatives_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_creatives_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_creatives_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_creatives_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_creatives_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_creatives_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_creatives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCreativesListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/creatives
+/// Lists creatives in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, creatives with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_creatives_list_builder()` + `displayvideo_advertisers_creatives_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_creatives_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_creatives_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersCreativesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_creatives_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_creatives_list_execute(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// Updates an existing creative. Returns the updated creative if successful. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_creatives_patch_execute()` to send, or `displayvideo_advertisers_creatives_patch` for simplest API.
+
+pub fn displayvideo_advertisers_creatives_patch_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    creativeId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/creatives/{}",
+        advertiserId, creativeId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// Updates an existing creative. Returns the updated creative if successful. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_creatives_patch_execute()` or `displayvideo_advertisers_creatives_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_creatives_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_creatives_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Creative>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Creative = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// Updates an existing creative. Returns the updated creative if successful. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_creatives_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_creatives_patch_task()`.
+/// For the simplest API, use `displayvideo_advertisers_creatives_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_creatives_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_creatives_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_creatives_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_creatives_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCreativesPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/advertisers/{advertisersId}/creatives/{creativesId}
+/// Updates an existing creative. Returns the updated creative if successful. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_creatives_patch_builder()` + `displayvideo_advertisers_creatives_patch_execute()`.
+/// For task-level control, use `displayvideo_advertisers_creatives_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_creatives_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersCreativesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_creatives_patch_builder(
+        client,
+        &args.advertiserId,
+        &args.creativeId,
+        &args.updateMask,
+    )?;
+    displayvideo_advertisers_creatives_patch_execute(builder)
+}
+
+/// POST v4/advertisers/{advertisersId}/insertionOrders
 /// Creates a new insertion order. Returns the newly created insertion order if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5583,23 +9251,22 @@ pub fn displayvideo_advertisers_creatives_delete(
 pub fn displayvideo_advertisers_insertion_orders_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &InsertionOrder,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/insertionOrders
+/// POST v4/advertisers/{advertisersId}/insertionOrders
 /// Creates a new insertion order. Returns the newly created insertion order if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5673,7 +9340,7 @@ pub fn displayvideo_advertisers_insertion_orders_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/insertionOrders
+/// POST v4/advertisers/{advertisersId}/insertionOrders
 /// Creates a new insertion order. Returns the newly created insertion order if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5710,11 +9377,9 @@ pub fn displayvideo_advertisers_insertion_orders_create_execute(
 pub struct DisplayvideoAdvertisersInsertionOrdersCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: InsertionOrder,
 }
 
-/// GET v4/advertisers/{advertisersId}/insertionOrders
+/// POST v4/advertisers/{advertisersId}/insertionOrders
 /// Creates a new insertion order. Returns the newly created insertion order if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5734,15 +9399,12 @@ pub fn displayvideo_advertisers_insertion_orders_create(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_insertion_orders_create_builder(
-        client,
-        &args.advertiserId,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_insertion_orders_create_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_insertion_orders_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// DELETE v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
 /// Deletes an insertion order. Returns error code NOT_FOUND if the insertion order does not exist. The insertion order should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5754,18 +9416,20 @@ pub fn displayvideo_advertisers_insertion_orders_delete_builder(
     insertionOrderId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders/{}",
+        advertiserId, insertionOrderId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// DELETE v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
 /// Deletes an insertion order. Returns error code NOT_FOUND if the insertion order does not exist. The insertion order should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5839,7 +9503,7 @@ pub fn displayvideo_advertisers_insertion_orders_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// DELETE v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
 /// Deletes an insertion order. Returns error code NOT_FOUND if the insertion order does not exist. The insertion order should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5878,7 +9542,7 @@ pub struct DisplayvideoAdvertisersInsertionOrdersDeleteArgs {
     pub insertionOrderId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// DELETE v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
 /// Deletes an insertion order. Returns error code NOT_FOUND if the insertion order does not exist. The insertion order should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5904,6 +9568,561 @@ pub fn displayvideo_advertisers_insertion_orders_delete(
     displayvideo_advertisers_insertion_orders_delete_execute(builder)
 }
 
+/// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// Gets an insertion order. Returns error code NOT_FOUND if the insertion order does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_insertion_orders_get_execute()` to send, or `displayvideo_advertisers_insertion_orders_get` for simplest API.
+
+pub fn displayvideo_advertisers_insertion_orders_get_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    insertionOrderId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders/{}",
+        advertiserId, insertionOrderId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// Gets an insertion order. Returns error code NOT_FOUND if the insertion order does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_insertion_orders_get_execute()` or `displayvideo_advertisers_insertion_orders_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_insertion_orders_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_insertion_orders_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InsertionOrder>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InsertionOrder = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// Gets an insertion order. Returns error code NOT_FOUND if the insertion order does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_insertion_orders_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_insertion_orders_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_insertion_orders_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_insertion_orders_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_insertion_orders_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InsertionOrder>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_insertion_orders_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_insertion_orders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersInsertionOrdersGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: insertionOrderId
+    pub insertionOrderId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// Gets an insertion order. Returns error code NOT_FOUND if the insertion order does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_insertion_orders_get_builder()` + `displayvideo_advertisers_insertion_orders_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_insertion_orders_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_insertion_orders_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersInsertionOrdersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InsertionOrder>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_insertion_orders_get_builder(
+        client,
+        &args.advertiserId,
+        &args.insertionOrderId,
+    )?;
+    displayvideo_advertisers_insertion_orders_get_execute(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/insertionOrders
+/// Lists insertion orders in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, insertion orders with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_insertion_orders_list_execute()` to send, or `displayvideo_advertisers_insertion_orders_list` for simplest API.
+
+pub fn displayvideo_advertisers_insertion_orders_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/insertionOrders
+/// Lists insertion orders in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, insertion orders with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_insertion_orders_list_execute()` or `displayvideo_advertisers_insertion_orders_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_insertion_orders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_insertion_orders_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInsertionOrdersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInsertionOrdersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/insertionOrders
+/// Lists insertion orders in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, insertion orders with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_insertion_orders_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_insertion_orders_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_insertion_orders_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_insertion_orders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_insertion_orders_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInsertionOrdersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_insertion_orders_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_insertion_orders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersInsertionOrdersListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/insertionOrders
+/// Lists insertion orders in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, insertion orders with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_insertion_orders_list_builder()` + `displayvideo_advertisers_insertion_orders_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_insertion_orders_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_insertion_orders_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersInsertionOrdersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInsertionOrdersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_insertion_orders_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_insertion_orders_list_execute(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// Updates an existing insertion order. Returns the updated insertion order if successful.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_insertion_orders_patch_execute()` to send, or `displayvideo_advertisers_insertion_orders_patch` for simplest API.
+
+pub fn displayvideo_advertisers_insertion_orders_patch_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    insertionOrderId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/insertionOrders/{}",
+        advertiserId, insertionOrderId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// Updates an existing insertion order. Returns the updated insertion order if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_insertion_orders_patch_execute()` or `displayvideo_advertisers_insertion_orders_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_insertion_orders_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_insertion_orders_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InsertionOrder>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InsertionOrder = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// Updates an existing insertion order. Returns the updated insertion order if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_insertion_orders_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_insertion_orders_patch_task()`.
+/// For the simplest API, use `displayvideo_advertisers_insertion_orders_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_insertion_orders_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_insertion_orders_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InsertionOrder>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_insertion_orders_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_insertion_orders_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersInsertionOrdersPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: insertionOrderId
+    pub insertionOrderId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
+/// Updates an existing insertion order. Returns the updated insertion order if successful.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_insertion_orders_patch_builder()` + `displayvideo_advertisers_insertion_orders_patch_execute()`.
+/// For task-level control, use `displayvideo_advertisers_insertion_orders_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_insertion_orders_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersInsertionOrdersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InsertionOrder>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_insertion_orders_patch_builder(
+        client,
+        &args.advertiserId,
+        &args.insertionOrderId,
+        &args.updateMask,
+    )?;
+    displayvideo_advertisers_insertion_orders_patch_execute(builder)
+}
+
 /// GET v4/advertisers/{advertisersId}/invoices
 /// Lists invoices posted for an advertiser in a given month. Invoices generated by billing profiles with a "Partner" invoice level are not retrievable through this method.
 ///
@@ -5913,13 +10132,16 @@ pub fn displayvideo_advertisers_insertion_orders_delete(
 pub fn displayvideo_advertisers_invoices_list_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    issueMonth: &Option<String>,
-    loiSapinInvoiceType: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    issueMonth: &Option<Option<String>>,
+    loiSapinInvoiceType: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}/invoices",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/invoices",
+        advertiserId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6061,13 +10283,13 @@ pub struct DisplayvideoAdvertisersInvoicesListArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: issueMonth
-    pub issueMonth: Option<String>,
+    pub issueMonth: Option<Option<String>>,
     /// Query parameter: loiSapinInvoiceType
-    pub loiSapinInvoiceType: Option<String>,
+    pub loiSapinInvoiceType: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v4/advertisers/{advertisersId}/invoices
@@ -6110,11 +10332,12 @@ pub fn displayvideo_advertisers_invoices_list(
 pub fn displayvideo_advertisers_invoices_lookup_invoice_currency_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    invoiceMonth: &Option<String>,
+    invoiceMonth: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/invoices:lookupInvoiceCurrency",
+        advertiserId,
     );
 
     // Build request
@@ -6250,7 +10473,7 @@ pub struct DisplayvideoAdvertisersInvoicesLookupInvoiceCurrencyArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: invoiceMonth
-    pub invoiceMonth: Option<String>,
+    pub invoiceMonth: Option<Option<String>>,
 }
 
 /// GET v4/advertisers/{advertisersId}/invoices:lookupInvoiceCurrency
@@ -6283,7 +10506,7 @@ pub fn displayvideo_advertisers_invoices_lookup_invoice_currency(
     displayvideo_advertisers_invoices_lookup_invoice_currency_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems:bulkEditAssignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/lineItems:bulkEditAssignedTargetingOptions
 /// Bulk edits targeting options under multiple line items. The operation will delete the assigned targeting options provided in BulkEditAssignedTargetingOptionsRequest.delete_requests and then create the assigned targeting options provided in BulkEditAssignedTargetingOptionsRequest.create_requests. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkUpdate` * `lineItems`.patch * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6292,24 +10515,22 @@ pub fn displayvideo_advertisers_invoices_lookup_invoice_currency(
 pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &BulkEditAssignedTargetingOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems:bulkEditAssignedTargetingOptions",
+        advertiserId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems:bulkEditAssignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/lineItems:bulkEditAssignedTargetingOptions
 /// Bulk edits targeting options under multiple line items. The operation will delete the assigned targeting options provided in BulkEditAssignedTargetingOptionsRequest.delete_requests and then create the assigned targeting options provided in BulkEditAssignedTargetingOptionsRequest.create_requests. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkUpdate` * `lineItems`.patch * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6383,7 +10604,7 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems:bulkEditAssignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/lineItems:bulkEditAssignedTargetingOptions
 /// Bulk edits targeting options under multiple line items. The operation will delete the assigned targeting options provided in BulkEditAssignedTargetingOptionsRequest.delete_requests and then create the assigned targeting options provided in BulkEditAssignedTargetingOptionsRequest.create_requests. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkUpdate` * `lineItems`.patch * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6423,11 +10644,9 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_
 pub struct DisplayvideoAdvertisersLineItemsBulkEditAssignedTargetingOptionsArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: BulkEditAssignedTargetingOptionsRequest,
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems:bulkEditAssignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/lineItems:bulkEditAssignedTargetingOptions
 /// Bulk edits targeting options under multiple line items. The operation will delete the assigned targeting options provided in BulkEditAssignedTargetingOptionsRequest.delete_requests and then create the assigned targeting options provided in BulkEditAssignedTargetingOptionsRequest.create_requests. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkUpdate` * `lineItems`.patch * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6452,7 +10671,6 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options(
     let builder = displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_builder(
         client,
         &args.advertiserId,
-        &args.body,
     )?;
     displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_execute(builder)
 }
@@ -6466,15 +10684,16 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options(
 pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    filter: &Option<String>,
-    lineItemIds: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    lineItemIds: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems:bulkListAssignedTargetingOptions",
+        advertiserId,
     );
 
     // Build request
@@ -6623,15 +10842,15 @@ pub struct DisplayvideoAdvertisersLineItemsBulkListAssignedTargetingOptionsArgs 
     /// Path parameter: advertiserId
     pub advertiserId: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: lineItemIds
-    pub lineItemIds: Option<String>,
+    pub lineItemIds: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v4/advertisers/{advertisersId}/lineItems:bulkListAssignedTargetingOptions
@@ -6668,7 +10887,7 @@ pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options(
     displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems:bulkUpdate
+/// POST v4/advertisers/{advertisersId}/lineItems:bulkUpdate
 /// Updates multiple line items. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * BulkEditAssignedTargetingOptions * UpdateLineItem * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6677,23 +10896,22 @@ pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options(
 pub fn displayvideo_advertisers_line_items_bulk_update_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &BulkUpdateLineItemsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems:bulkUpdate",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems:bulkUpdate",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems:bulkUpdate
+/// POST v4/advertisers/{advertisersId}/lineItems:bulkUpdate
 /// Updates multiple line items. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * BulkEditAssignedTargetingOptions * UpdateLineItem * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6767,7 +10985,7 @@ pub fn displayvideo_advertisers_line_items_bulk_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems:bulkUpdate
+/// POST v4/advertisers/{advertisersId}/lineItems:bulkUpdate
 /// Updates multiple line items. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * BulkEditAssignedTargetingOptions * UpdateLineItem * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6806,11 +11024,9 @@ pub fn displayvideo_advertisers_line_items_bulk_update_execute(
 pub struct DisplayvideoAdvertisersLineItemsBulkUpdateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: BulkUpdateLineItemsRequest,
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems:bulkUpdate
+/// POST v4/advertisers/{advertisersId}/lineItems:bulkUpdate
 /// Updates multiple line items. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * BulkEditAssignedTargetingOptions * UpdateLineItem * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6832,15 +11048,12 @@ pub fn displayvideo_advertisers_line_items_bulk_update(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_bulk_update_builder(
-        client,
-        &args.advertiserId,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_line_items_bulk_update_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_line_items_bulk_update_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems
+/// POST v4/advertisers/{advertisersId}/lineItems
 /// Creates a new line item. Returns the newly created line item if successful. YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6849,22 +11062,22 @@ pub fn displayvideo_advertisers_line_items_bulk_update(
 pub fn displayvideo_advertisers_line_items_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &LineItem,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems
+/// POST v4/advertisers/{advertisersId}/lineItems
 /// Creates a new line item. Returns the newly created line item if successful. YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6938,7 +11151,7 @@ pub fn displayvideo_advertisers_line_items_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems
+/// POST v4/advertisers/{advertisersId}/lineItems
 /// Creates a new line item. Returns the newly created line item if successful. YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6973,11 +11186,9 @@ pub fn displayvideo_advertisers_line_items_create_execute(
 pub struct DisplayvideoAdvertisersLineItemsCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: LineItem,
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems
+/// POST v4/advertisers/{advertisersId}/lineItems
 /// Creates a new line item. Returns the newly created line item if successful. YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6995,12 +11206,11 @@ pub fn displayvideo_advertisers_line_items_create(
     impl StreamIterator<D = Result<ApiResponse<LineItem>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_line_items_create_builder(client, &args.advertiserId, &args.body)?;
+    let builder = displayvideo_advertisers_line_items_create_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_line_items_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
 /// Deletes a line item. Returns error code NOT_FOUND if the line item does not exist. The line item should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it. YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7012,18 +11222,20 @@ pub fn displayvideo_advertisers_line_items_delete_builder(
     lineItemId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}",
+        advertiserId, lineItemId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
 /// Deletes a line item. Returns error code NOT_FOUND if the line item does not exist. The line item should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it. YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7097,7 +11309,7 @@ pub fn displayvideo_advertisers_line_items_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
 /// Deletes a line item. Returns error code NOT_FOUND if the line item does not exist. The line item should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it. YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7136,7 +11348,7 @@ pub struct DisplayvideoAdvertisersLineItemsDeleteArgs {
     pub lineItemId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
 /// Deletes a line item. Returns error code NOT_FOUND if the line item does not exist. The line item should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it. YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7162,7 +11374,7 @@ pub fn displayvideo_advertisers_line_items_delete(
     displayvideo_advertisers_line_items_delete_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}:duplicate
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}:duplicate
 /// Duplicates a line item. Returns the ID of the created line item if successful. YouTube & Partners line items cannot be created or updated using the API. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7172,23 +11384,22 @@ pub fn displayvideo_advertisers_line_items_duplicate_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
     lineItemId: &String,
-    body: &DuplicateLineItemRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}:duplicate",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}:duplicate",
+        advertiserId, lineItemId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}:duplicate
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}:duplicate
 /// Duplicates a line item. Returns the ID of the created line item if successful. YouTube & Partners line items cannot be created or updated using the API. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7262,7 +11473,7 @@ pub fn displayvideo_advertisers_line_items_duplicate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}:duplicate
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}:duplicate
 /// Duplicates a line item. Returns the ID of the created line item if successful. YouTube & Partners line items cannot be created or updated using the API. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7301,11 +11512,9 @@ pub struct DisplayvideoAdvertisersLineItemsDuplicateArgs {
     pub advertiserId: String,
     /// Path parameter: lineItemId
     pub lineItemId: String,
-    /// Request body.
-    pub body: DuplicateLineItemRequest,
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}:duplicate
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}:duplicate
 /// Duplicates a line item. Returns the ID of the created line item if successful. YouTube & Partners line items cannot be created or updated using the API. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7329,12 +11538,554 @@ pub fn displayvideo_advertisers_line_items_duplicate(
         client,
         &args.advertiserId,
         &args.lineItemId,
-        &args.body,
     )?;
     displayvideo_advertisers_line_items_duplicate_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// Gets a line item.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_line_items_get_execute()` to send, or `displayvideo_advertisers_line_items_get` for simplest API.
+
+pub fn displayvideo_advertisers_line_items_get_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    lineItemId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}",
+        advertiserId, lineItemId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// Gets a line item.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_line_items_get_execute()` or `displayvideo_advertisers_line_items_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LineItem>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LineItem = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// Gets a line item.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_line_items_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_line_items_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_line_items_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_line_items_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LineItem>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_line_items_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_line_items_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// Gets a line item.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_line_items_get_builder()` + `displayvideo_advertisers_line_items_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_line_items_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersLineItemsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LineItem>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_line_items_get_builder(
+        client,
+        &args.advertiserId,
+        &args.lineItemId,
+    )?;
+    displayvideo_advertisers_line_items_get_execute(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems
+/// Lists line items in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, line items with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_line_items_list_execute()` to send, or `displayvideo_advertisers_line_items_list` for simplest API.
+
+pub fn displayvideo_advertisers_line_items_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems
+/// Lists line items in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, line items with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_line_items_list_execute()` or `displayvideo_advertisers_line_items_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLineItemsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLineItemsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems
+/// Lists line items in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, line items with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_line_items_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_line_items_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_line_items_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_line_items_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLineItemsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_line_items_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_line_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems
+/// Lists line items in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, line items with ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_line_items_list_builder()` + `displayvideo_advertisers_line_items_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_line_items_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersLineItemsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLineItemsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_line_items_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_line_items_list_execute(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// Updates an existing line item. Returns the updated line item if successful. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * BulkEditAssignedTargetingOptions * BulkUpdateLineItems * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_line_items_patch_execute()` to send, or `displayvideo_advertisers_line_items_patch` for simplest API.
+
+pub fn displayvideo_advertisers_line_items_patch_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    lineItemId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}",
+        advertiserId, lineItemId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// Updates an existing line item. Returns the updated line item if successful. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * BulkEditAssignedTargetingOptions * BulkUpdateLineItems * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_line_items_patch_execute()` or `displayvideo_advertisers_line_items_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LineItem>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LineItem = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// Updates an existing line item. Returns the updated line item if successful. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * BulkEditAssignedTargetingOptions * BulkUpdateLineItems * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_line_items_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_line_items_patch_task()`.
+/// For the simplest API, use `displayvideo_advertisers_line_items_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_line_items_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LineItem>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_line_items_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_line_items_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
+/// Updates an existing line item. Returns the updated line item if successful. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * BulkEditAssignedTargetingOptions * BulkUpdateLineItems * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_line_items_patch_builder()` + `displayvideo_advertisers_line_items_patch_execute()`.
+/// For task-level control, use `displayvideo_advertisers_line_items_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersLineItemsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LineItem>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_line_items_patch_builder(
+        client,
+        &args.advertiserId,
+        &args.lineItemId,
+        &args.updateMask,
+    )?;
+    displayvideo_advertisers_line_items_patch_execute(builder)
+}
+
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to a line item. Returns the assigned targeting option if successful. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkEditAssignedTargetingOptions` * `lineItems`.`bulkUpdate` * `lineItems`.patch * DeleteLineItemAssignedTargetingOption YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7345,24 +12096,24 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     advertiserId: &String,
     lineItemId: &String,
     targetingType: &String,
-    body: &AssignedTargetingOption,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/targetingTypes/{}/assignedTargetingOptions",
+        advertiserId,
+        lineItemId,
+        targetingType,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to a line item. Returns the assigned targeting option if successful. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkEditAssignedTargetingOptions` * `lineItems`.`bulkUpdate` * `lineItems`.patch * DeleteLineItemAssignedTargetingOption YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7436,7 +12187,7 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to a line item. Returns the assigned targeting option if successful. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkEditAssignedTargetingOptions` * `lineItems`.`bulkUpdate` * `lineItems`.patch * DeleteLineItemAssignedTargetingOption YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7480,11 +12231,9 @@ pub struct DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOption
     pub lineItemId: String,
     /// Path parameter: targetingType
     pub targetingType: String,
-    /// Request body.
-    pub body: AssignedTargetingOption,
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to a line item. Returns the assigned targeting option if successful. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkEditAssignedTargetingOptions` * `lineItems`.`bulkUpdate` * `lineItems`.patch * DeleteLineItemAssignedTargetingOption YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7504,13 +12253,13 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_builder(client, &args.advertiserId, &args.lineItemId, &args.targetingType, &args.body)?;
+    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_builder(client, &args.advertiserId, &args.lineItemId, &args.targetingType)?;
     displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_execute(
         builder,
     )
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from a line item. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkEditAssignedTargetingOptions` * `lineItems`.`bulkUpdate` * `lineItems`.patch * CreateLineItemAssignedTargetingOption YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7526,17 +12275,21 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/targetingTypes/{}/assignedTargetingOptions/{}",
+        advertiserId,
+        lineItemId,
+        targetingType,
+        assignedTargetingOptionId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from a line item. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkEditAssignedTargetingOptions` * `lineItems`.`bulkUpdate` * `lineItems`.patch * CreateLineItemAssignedTargetingOption YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7610,7 +12363,7 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from a line item. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkEditAssignedTargetingOptions` * `lineItems`.`bulkUpdate` * `lineItems`.patch * CreateLineItemAssignedTargetingOption YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7656,7 +12409,7 @@ pub struct DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOption
     pub assignedTargetingOptionId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from a line item. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkEditAssignedTargetingOptions` * `lineItems`.`bulkUpdate` * `lineItems`.patch * CreateLineItemAssignedTargetingOption YouTube & Partners line items cannot be created or updated using the API.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7680,7 +12433,403 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     )
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to a line item.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_execute()` to send, or `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get` for simplest API.
+
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    lineItemId: &String,
+    targetingType: &String,
+    assignedTargetingOptionId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/targetingTypes/{}/assignedTargetingOptions/{}",
+        advertiserId,
+        lineItemId,
+        targetingType,
+        assignedTargetingOptionId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to a line item.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_execute()` or `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AssignedTargetingOption>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AssignedTargetingOption = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to a line item.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to a line item.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_builder()` + `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_builder(
+            client,
+            &args.advertiserId,
+            &args.lineItemId,
+            &args.targetingType,
+            &args.assignedTargetingOptionId,
+        )?;
+    displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_execute(
+        builder,
+    )
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to a line item.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_execute()` to send, or `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list` for simplest API.
+
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    lineItemId: &String,
+    targetingType: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/targetingTypes/{}/assignedTargetingOptions",
+        advertiserId,
+        lineItemId,
+        targetingType,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to a line item.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_execute()` or `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLineItemAssignedTargetingOptionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLineItemAssignedTargetingOptionsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to a line item.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLineItemAssignedTargetingOptionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to a line item.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_builder()` + `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListLineItemAssignedTargetingOptionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_builder(client, &args.advertiserId, &args.lineItemId, &args.targetingType, &args.filter, &args.orderBy, &args.pageSize, &args.pageToken)?;
+    displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_execute(
+        builder,
+    )
+}
+
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Creates a new association between the identified resource and a YouTube asset. Returns the newly-created association. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7691,12 +12840,14 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     advertiserId: &String,
     lineItemId: &String,
     youtubeAssetType: &String,
-    linkedEntity_adGroupId: &Option<String>,
-    body: &YoutubeAssetAssociation,
+    linkedEntity_adGroupId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/youtubeAssetTypes/{}/youtubeAssetAssociations",
+        advertiserId,
+        lineItemId,
+        youtubeAssetType,
     );
 
     // Build request
@@ -7712,15 +12863,13 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Creates a new association between the identified resource and a YouTube asset. Returns the newly-created association. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7794,7 +12943,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Creates a new association between the identified resource and a YouTube asset. Returns the newly-created association. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7836,12 +12985,10 @@ pub struct DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociat
     /// Path parameter: youtubeAssetType
     pub youtubeAssetType: String,
     /// Query parameter: linkedEntity_adGroupId
-    pub linkedEntity_adGroupId: Option<String>,
-    /// Request body.
-    pub body: YoutubeAssetAssociation,
+    pub linkedEntity_adGroupId: Option<Option<String>>,
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// POST v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Creates a new association between the identified resource and a YouTube asset. Returns the newly-created association. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7861,11 +13008,11 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_builder(client, &args.advertiserId, &args.lineItemId, &args.youtubeAssetType, &args.linkedEntity_adGroupId, &args.body)?;
+    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_builder(client, &args.advertiserId, &args.lineItemId, &args.youtubeAssetType, &args.linkedEntity_adGroupId)?;
     displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
 /// Deletes an existing association between the identified resource and a YouTube asset. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7877,11 +13024,15 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     lineItemId: &String,
     youtubeAssetType: &String,
     youtubeAssetAssociationId: &String,
-    linkedEntity_adGroupId: &Option<String>,
+    linkedEntity_adGroupId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/youtubeAssetTypes/{}/youtubeAssetAssociations/{}",
+        advertiserId,
+        lineItemId,
+        youtubeAssetType,
+        youtubeAssetAssociationId,
     );
 
     // Build request
@@ -7897,13 +13048,13 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
 /// Deletes an existing association between the identified resource and a YouTube asset. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7977,7 +13128,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
 /// Deletes an existing association between the identified resource and a YouTube asset. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8019,10 +13170,10 @@ pub struct DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociat
     /// Path parameter: youtubeAssetAssociationId
     pub youtubeAssetAssociationId: String,
     /// Query parameter: linkedEntity_adGroupId
-    pub linkedEntity_adGroupId: Option<String>,
+    pub linkedEntity_adGroupId: Option<Option<String>>,
 }
 
-/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
+/// DELETE v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
 /// Deletes an existing association between the identified resource and a YouTube asset. *Warning:* This method is only available to an informed subset of users.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8044,7 +13195,214 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/locationLists
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// Lists the YouTube asset associations linked to the given resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_execute()` to send, or `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list` for simplest API.
+
+pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    lineItemId: &String,
+    youtubeAssetType: &String,
+    linkedEntity_adGroupId: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/lineItems/{}/youtubeAssetTypes/{}/youtubeAssetAssociations",
+        advertiserId,
+        lineItemId,
+        youtubeAssetType,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = linkedEntity_adGroupId.as_ref() {
+        query_parts.push(format!("linkedEntity.adGroupId={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// Lists the YouTube asset associations linked to the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_execute()` or `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListYoutubeAssetAssociationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListYoutubeAssetAssociationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// Lists the YouTube asset associations linked to the given resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListYoutubeAssetAssociationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Path parameter: youtubeAssetType
+    pub youtubeAssetType: String,
+    /// Query parameter: linkedEntity_adGroupId
+    pub linkedEntity_adGroupId: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
+/// Lists the YouTube asset associations linked to the given resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_builder()` + `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListYoutubeAssetAssociationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_builder(client, &args.advertiserId, &args.lineItemId, &args.youtubeAssetType, &args.linkedEntity_adGroupId, &args.orderBy, &args.pageSize, &args.pageToken)?;
+    displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_execute(
+        builder,
+    )
+}
+
+/// POST v4/advertisers/{advertisersId}/locationLists
 /// Creates a new location list. Returns the newly created location list if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8053,23 +13411,22 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 pub fn displayvideo_advertisers_location_lists_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &LocationList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/locationLists
+/// POST v4/advertisers/{advertisersId}/locationLists
 /// Creates a new location list. Returns the newly created location list if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8143,7 +13500,7 @@ pub fn displayvideo_advertisers_location_lists_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/locationLists
+/// POST v4/advertisers/{advertisersId}/locationLists
 /// Creates a new location list. Returns the newly created location list if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8180,11 +13537,9 @@ pub fn displayvideo_advertisers_location_lists_create_execute(
 pub struct DisplayvideoAdvertisersLocationListsCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: LocationList,
 }
 
-/// GET v4/advertisers/{advertisersId}/locationLists
+/// POST v4/advertisers/{advertisersId}/locationLists
 /// Creates a new location list. Returns the newly created location list if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8204,11 +13559,8 @@ pub fn displayvideo_advertisers_location_lists_create(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_location_lists_create_builder(
-        client,
-        &args.advertiserId,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_location_lists_create_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_location_lists_create_execute(builder)
 }
 
@@ -8224,8 +13576,10 @@ pub fn displayvideo_advertisers_location_lists_get_builder(
     locationListId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}",
+        advertiserId, locationListId,
+    );
 
     // Build request
     let builder = client
@@ -8378,7 +13732,207 @@ pub fn displayvideo_advertisers_location_lists_get(
     displayvideo_advertisers_location_lists_get_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/locationLists/{locationListId}
+/// GET v4/advertisers/{advertisersId}/locationLists
+/// Lists location lists based on a given advertiser id.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_location_lists_list_execute()` to send, or `displayvideo_advertisers_location_lists_list` for simplest API.
+
+pub fn displayvideo_advertisers_location_lists_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/locationLists
+/// Lists location lists based on a given advertiser id.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_location_lists_list_execute()` or `displayvideo_advertisers_location_lists_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_location_lists_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_location_lists_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLocationListsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLocationListsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/locationLists
+/// Lists location lists based on a given advertiser id.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_location_lists_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_location_lists_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_location_lists_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_location_lists_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_location_lists_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLocationListsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_location_lists_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_location_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLocationListsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/locationLists
+/// Lists location lists based on a given advertiser id.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_location_lists_list_builder()` + `displayvideo_advertisers_location_lists_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_location_lists_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_location_lists_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersLocationListsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLocationListsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_location_lists_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_location_lists_list_execute(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/locationLists/{locationListId}
 /// Updates a location list. Returns the updated location list if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8388,13 +13942,12 @@ pub fn displayvideo_advertisers_location_lists_patch_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
     locationListId: &String,
-    updateMask: &Option<String>,
-    body: &LocationList,
+    updateMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}",
-        locationListId,
+        advertiserId, locationListId,
     );
 
     // Build request
@@ -8410,15 +13963,13 @@ pub fn displayvideo_advertisers_location_lists_patch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .patch(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/locationLists/{locationListId}
+/// PATCH v4/advertisers/{advertisersId}/locationLists/{locationListId}
 /// Updates a location list. Returns the updated location list if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8492,7 +14043,7 @@ pub fn displayvideo_advertisers_location_lists_patch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/locationLists/{locationListId}
+/// PATCH v4/advertisers/{advertisersId}/locationLists/{locationListId}
 /// Updates a location list. Returns the updated location list if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8532,12 +14083,10 @@ pub struct DisplayvideoAdvertisersLocationListsPatchArgs {
     /// Path parameter: locationListId
     pub locationListId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: LocationList,
+    pub updateMask: Option<Option<String>>,
 }
 
-/// GET v4/advertisers/{advertisersId}/locationLists/{locationListId}
+/// PATCH v4/advertisers/{advertisersId}/locationLists/{locationListId}
 /// Updates a location list. Returns the updated location list if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8562,12 +14111,11 @@ pub fn displayvideo_advertisers_location_lists_patch(
         &args.advertiserId,
         &args.locationListId,
         &args.updateMask,
-        &args.body,
     )?;
     displayvideo_advertisers_location_lists_patch_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListsId}/assignedLocations:bulkEdit
+/// POST v4/advertisers/{advertiserId}/locationLists/{locationListsId}/assignedLocations:bulkEdit
 /// Bulk edits multiple assignments between locations and a single location list. The operation will delete the assigned locations provided in `deletedAssignedLocations` and then create the assigned locations provided in `createdAssignedLocations`.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8577,25 +14125,23 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_buil
     client: &SimpleHttpClient,
     advertiserId: &String,
     locationListId: &String,
-    body: &BulkEditAssignedLocationsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}/assignedLocations:bulkEdit",
         advertiserId,
+        locationListId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListsId}/assignedLocations:bulkEdit
+/// POST v4/advertisers/{advertiserId}/locationLists/{locationListsId}/assignedLocations:bulkEdit
 /// Bulk edits multiple assignments between locations and a single location list. The operation will delete the assigned locations provided in `deletedAssignedLocations` and then create the assigned locations provided in `createdAssignedLocations`.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8669,7 +14215,7 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_task
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListsId}/assignedLocations:bulkEdit
+/// POST v4/advertisers/{advertiserId}/locationLists/{locationListsId}/assignedLocations:bulkEdit
 /// Bulk edits multiple assignments between locations and a single location list. The operation will delete the assigned locations provided in `deletedAssignedLocations` and then create the assigned locations provided in `createdAssignedLocations`.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8710,11 +14256,9 @@ pub struct DisplayvideoAdvertisersLocationListsAssignedLocationsBulkEditArgs {
     pub advertiserId: String,
     /// Path parameter: locationListId
     pub locationListId: String,
-    /// Request body.
-    pub body: BulkEditAssignedLocationsRequest,
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListsId}/assignedLocations:bulkEdit
+/// POST v4/advertisers/{advertiserId}/locationLists/{locationListsId}/assignedLocations:bulkEdit
 /// Bulk edits multiple assignments between locations and a single location list. The operation will delete the assigned locations provided in `deletedAssignedLocations` and then create the assigned locations provided in `createdAssignedLocations`.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8740,12 +14284,11 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit(
         client,
         &args.advertiserId,
         &args.locationListId,
-        &args.body,
     )?;
     displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
+/// POST v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
 /// Creates an assignment between a location and a location list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8755,7 +14298,6 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_create_builder
     client: &SimpleHttpClient,
     advertiserId: &String,
     locationListId: &String,
-    body: &AssignedLocation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8765,15 +14307,13 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_create_builder
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
+/// POST v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
 /// Creates an assignment between a location and a location list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8847,7 +14387,7 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
+/// POST v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
 /// Creates an assignment between a location and a location list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8886,11 +14426,9 @@ pub struct DisplayvideoAdvertisersLocationListsAssignedLocationsCreateArgs {
     pub advertiserId: String,
     /// Path parameter: locationListId
     pub locationListId: String,
-    /// Request body.
-    pub body: AssignedLocation,
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
+/// POST v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
 /// Creates an assignment between a location and a location list.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8914,12 +14452,11 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_create(
         client,
         &args.advertiserId,
         &args.locationListId,
-        &args.body,
     )?;
     displayvideo_advertisers_location_lists_assigned_locations_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations/{assignedLocationsId}
+/// DELETE v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations/{assignedLocationsId}
 /// Deletes the assignment between a location and a location list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8936,17 +14473,18 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_delete_builder
         "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}/assignedLocations/{}",
         advertiserId,
         locationListId,
+        assignedLocationId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations/{assignedLocationsId}
+/// DELETE v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations/{assignedLocationsId}
 /// Deletes the assignment between a location and a location list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9020,7 +14558,7 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations/{assignedLocationsId}
+/// DELETE v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations/{assignedLocationsId}
 /// Deletes the assignment between a location and a location list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9061,7 +14599,7 @@ pub struct DisplayvideoAdvertisersLocationListsAssignedLocationsDeleteArgs {
     pub assignedLocationId: String,
 }
 
-/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations/{assignedLocationsId}
+/// DELETE v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations/{assignedLocationsId}
 /// Deletes the assignment between a location and a location list.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9088,7 +14626,215 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_delete(
     displayvideo_advertisers_location_lists_assigned_locations_delete_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists
+/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
+/// Lists locations assigned to a location list.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_location_lists_assigned_locations_list_execute()` to send, or `displayvideo_advertisers_location_lists_assigned_locations_list` for simplest API.
+
+pub fn displayvideo_advertisers_location_lists_assigned_locations_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    locationListId: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/locationLists/{}/assignedLocations",
+        advertiserId, locationListId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
+/// Lists locations assigned to a location list.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_location_lists_assigned_locations_list_execute()` or `displayvideo_advertisers_location_lists_assigned_locations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_location_lists_assigned_locations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_location_lists_assigned_locations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAssignedLocationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAssignedLocationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
+/// Lists locations assigned to a location list.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_location_lists_assigned_locations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_location_lists_assigned_locations_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_location_lists_assigned_locations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_location_lists_assigned_locations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_location_lists_assigned_locations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAssignedLocationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_location_lists_assigned_locations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_location_lists_assigned_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLocationListsAssignedLocationsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: locationListId
+    pub locationListId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
+/// Lists locations assigned to a location list.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_location_lists_assigned_locations_list_builder()` + `displayvideo_advertisers_location_lists_assigned_locations_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_location_lists_assigned_locations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_location_lists_assigned_locations_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersLocationListsAssignedLocationsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAssignedLocationsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_location_lists_assigned_locations_list_builder(
+        client,
+        &args.advertiserId,
+        &args.locationListId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_location_lists_assigned_locations_list_execute(builder)
+}
+
+/// POST v4/advertisers/{advertisersId}/negativeKeywordLists
 /// Creates a new negative keyword list. Returns the newly created negative keyword list if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9097,23 +14843,22 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_delete(
 pub fn displayvideo_advertisers_negative_keyword_lists_create_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
-    body: &NegativeKeywordList,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists",
+        advertiserId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists
+/// POST v4/advertisers/{advertisersId}/negativeKeywordLists
 /// Creates a new negative keyword list. Returns the newly created negative keyword list if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9187,7 +14932,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists
+/// POST v4/advertisers/{advertisersId}/negativeKeywordLists
 /// Creates a new negative keyword list. Returns the newly created negative keyword list if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9224,11 +14969,9 @@ pub fn displayvideo_advertisers_negative_keyword_lists_create_execute(
 pub struct DisplayvideoAdvertisersNegativeKeywordListsCreateArgs {
     /// Path parameter: advertiserId
     pub advertiserId: String,
-    /// Request body.
-    pub body: NegativeKeywordList,
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists
+/// POST v4/advertisers/{advertisersId}/negativeKeywordLists
 /// Creates a new negative keyword list. Returns the newly created negative keyword list if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9248,15 +14991,12 @@ pub fn displayvideo_advertisers_negative_keyword_lists_create(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_negative_keyword_lists_create_builder(
-        client,
-        &args.advertiserId,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_advertisers_negative_keyword_lists_create_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_negative_keyword_lists_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
+/// DELETE v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
 /// Deletes a negative keyword list given an advertiser ID and a negative keyword list ID.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9268,18 +15008,20 @@ pub fn displayvideo_advertisers_negative_keyword_lists_delete_builder(
     negativeKeywordListId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}",
+        advertiserId, negativeKeywordListId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
+/// DELETE v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
 /// Deletes a negative keyword list given an advertiser ID and a negative keyword list ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9353,7 +15095,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
+/// DELETE v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
 /// Deletes a negative keyword list given an advertiser ID and a negative keyword list ID.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9392,7 +15134,7 @@ pub struct DisplayvideoAdvertisersNegativeKeywordListsDeleteArgs {
     pub negativeKeywordListId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
+/// DELETE v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
 /// Deletes a negative keyword list given an advertiser ID and a negative keyword list ID.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9418,7 +15160,365 @@ pub fn displayvideo_advertisers_negative_keyword_lists_delete(
     displayvideo_advertisers_negative_keyword_lists_delete_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListId}
+/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
+/// Gets a negative keyword list given an advertiser ID and a negative keyword list ID.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_negative_keyword_lists_get_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_get` for simplest API.
+
+pub fn displayvideo_advertisers_negative_keyword_lists_get_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    negativeKeywordListId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}",
+        advertiserId, negativeKeywordListId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
+/// Gets a negative keyword list given an advertiser ID and a negative keyword list ID.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_negative_keyword_lists_get_execute()` or `displayvideo_advertisers_negative_keyword_lists_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_negative_keyword_lists_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_negative_keyword_lists_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NegativeKeywordList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: NegativeKeywordList = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
+/// Gets a negative keyword list given an advertiser ID and a negative keyword list ID.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_negative_keyword_lists_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_negative_keyword_lists_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_negative_keyword_lists_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_negative_keyword_lists_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_negative_keyword_lists_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NegativeKeywordList>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_negative_keyword_lists_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: negativeKeywordListId
+    pub negativeKeywordListId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
+/// Gets a negative keyword list given an advertiser ID and a negative keyword list ID.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_negative_keyword_lists_get_builder()` + `displayvideo_advertisers_negative_keyword_lists_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_negative_keyword_lists_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_negative_keyword_lists_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<NegativeKeywordList>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_negative_keyword_lists_get_builder(
+        client,
+        &args.advertiserId,
+        &args.negativeKeywordListId,
+    )?;
+    displayvideo_advertisers_negative_keyword_lists_get_execute(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/negativeKeywordLists
+/// Lists negative keyword lists based on a given advertiser id.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_negative_keyword_lists_list_execute()` to send, or `displayvideo_advertisers_negative_keyword_lists_list` for simplest API.
+
+pub fn displayvideo_advertisers_negative_keyword_lists_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists",
+        advertiserId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/negativeKeywordLists
+/// Lists negative keyword lists based on a given advertiser id.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_negative_keyword_lists_list_execute()` or `displayvideo_advertisers_negative_keyword_lists_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_negative_keyword_lists_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_negative_keyword_lists_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListNegativeKeywordListsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListNegativeKeywordListsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/negativeKeywordLists
+/// Lists negative keyword lists based on a given advertiser id.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_negative_keyword_lists_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_negative_keyword_lists_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_negative_keyword_lists_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_negative_keyword_lists_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_negative_keyword_lists_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNegativeKeywordListsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_advertisers_negative_keyword_lists_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/negativeKeywordLists
+/// Lists negative keyword lists based on a given advertiser id.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_negative_keyword_lists_list_builder()` + `displayvideo_advertisers_negative_keyword_lists_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_negative_keyword_lists_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_negative_keyword_lists_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListNegativeKeywordListsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_negative_keyword_lists_list_builder(
+        client,
+        &args.advertiserId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_negative_keyword_lists_list_execute(builder)
+}
+
+/// PATCH v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListId}
 /// Updates a negative keyword list. Returns the updated negative keyword list if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9428,13 +15528,12 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch_builder(
     client: &SimpleHttpClient,
     advertiserId: &String,
     negativeKeywordListId: &String,
-    updateMask: &Option<String>,
-    body: &NegativeKeywordList,
+    updateMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}",
-        negativeKeywordListId,
+        advertiserId, negativeKeywordListId,
     );
 
     // Build request
@@ -9450,15 +15549,13 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .patch(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListId}
+/// PATCH v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListId}
 /// Updates a negative keyword list. Returns the updated negative keyword list if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9532,7 +15629,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListId}
+/// PATCH v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListId}
 /// Updates a negative keyword list. Returns the updated negative keyword list if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9572,12 +15669,10 @@ pub struct DisplayvideoAdvertisersNegativeKeywordListsPatchArgs {
     /// Path parameter: negativeKeywordListId
     pub negativeKeywordListId: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: NegativeKeywordList,
+    pub updateMask: Option<Option<String>>,
 }
 
-/// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListId}
+/// PATCH v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListId}
 /// Updates a negative keyword list. Returns the updated negative keyword list if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9602,12 +15697,11 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch(
         &args.advertiserId,
         &args.negativeKeywordListId,
         &args.updateMask,
-        &args.body,
     )?;
     displayvideo_advertisers_negative_keyword_lists_patch_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:bulkEdit
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:bulkEdit
 /// Bulk edits negative keywords in a single negative keyword list. The operation will delete the negative keywords provided in BulkEditNegativeKeywordsRequest.deleted_negative_keywords and then create the negative keywords provided in BulkEditNegativeKeywordsRequest.created_negative_keywords. This operation is guaranteed to be atomic and will never result in a partial success or partial failure.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9617,25 +15711,23 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_ed
     client: &SimpleHttpClient,
     advertiserId: &String,
     negativeKeywordListId: &String,
-    body: &BulkEditNegativeKeywordsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords:bulkEdit",
         advertiserId,
+        negativeKeywordListId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:bulkEdit
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:bulkEdit
 /// Bulk edits negative keywords in a single negative keyword list. The operation will delete the negative keywords provided in BulkEditNegativeKeywordsRequest.deleted_negative_keywords and then create the negative keywords provided in BulkEditNegativeKeywordsRequest.created_negative_keywords. This operation is guaranteed to be atomic and will never result in a partial success or partial failure.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9709,7 +15801,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_ed
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:bulkEdit
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:bulkEdit
 /// Bulk edits negative keywords in a single negative keyword list. The operation will delete the negative keywords provided in BulkEditNegativeKeywordsRequest.deleted_negative_keywords and then create the negative keywords provided in BulkEditNegativeKeywordsRequest.created_negative_keywords. This operation is guaranteed to be atomic and will never result in a partial success or partial failure.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9751,11 +15843,9 @@ pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsBulkEditAr
     pub advertiserId: String,
     /// Path parameter: negativeKeywordListId
     pub negativeKeywordListId: String,
-    /// Request body.
-    pub body: BulkEditNegativeKeywordsRequest,
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:bulkEdit
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:bulkEdit
 /// Bulk edits negative keywords in a single negative keyword list. The operation will delete the negative keywords provided in BulkEditNegativeKeywordsRequest.deleted_negative_keywords and then create the negative keywords provided in BulkEditNegativeKeywordsRequest.created_negative_keywords. This operation is guaranteed to be atomic and will never result in a partial success or partial failure.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9782,12 +15872,11 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_ed
             client,
             &args.advertiserId,
             &args.negativeKeywordListId,
-            &args.body,
         )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
 /// Creates a negative keyword in a negative keyword list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9797,25 +15886,23 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_
     client: &SimpleHttpClient,
     advertiserId: &String,
     negativeKeywordListId: &String,
-    body: &NegativeKeyword,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords",
         advertiserId,
+        negativeKeywordListId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
 /// Creates a negative keyword in a negative keyword list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9889,7 +15976,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
 /// Creates a negative keyword in a negative keyword list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9929,11 +16016,9 @@ pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsCreateArgs
     pub advertiserId: String,
     /// Path parameter: negativeKeywordListId
     pub negativeKeywordListId: String,
-    /// Request body.
-    pub body: NegativeKeyword,
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
 /// Creates a negative keyword in a negative keyword list.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9957,12 +16042,11 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create(
         client,
         &args.advertiserId,
         &args.negativeKeywordListId,
-        &args.body,
     )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords/{negativeKeywordsId}
+/// DELETE v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords/{negativeKeywordsId}
 /// Deletes a negative keyword from a negative keyword list.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -9978,17 +16062,19 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords/{}",
         advertiserId,
+        negativeKeywordListId,
+        keywordValue,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords/{negativeKeywordsId}
+/// DELETE v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords/{negativeKeywordsId}
 /// Deletes a negative keyword from a negative keyword list.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10062,7 +16148,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords/{negativeKeywordsId}
+/// DELETE v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords/{negativeKeywordsId}
 /// Deletes a negative keyword from a negative keyword list.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10104,7 +16190,7 @@ pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsDeleteArgs
     pub keywordValue: String,
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords/{negativeKeywordsId}
+/// DELETE v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords/{negativeKeywordsId}
 /// Deletes a negative keyword from a negative keyword list.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10141,14 +16227,16 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_bu
     client: &SimpleHttpClient,
     advertiserId: &String,
     negativeKeywordListId: &String,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords",
+        advertiserId,
+        negativeKeywordListId,
     );
 
     // Build request
@@ -10296,13 +16384,13 @@ pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsListArgs {
     /// Path parameter: negativeKeywordListId
     pub negativeKeywordListId: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
@@ -10339,7 +16427,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list(
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_execute(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:replace
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:replace
 /// Replaces all negative keywords in a single negative keyword list. The operation will replace the keywords in a negative keyword list with keywords provided in ReplaceNegativeKeywordsRequest.new_negative_keywords.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10349,25 +16437,23 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace
     client: &SimpleHttpClient,
     advertiserId: &String,
     negativeKeywordListId: &String,
-    body: &ReplaceNegativeKeywordsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/negativeKeywordLists/{}/negativeKeywords:replace",
         advertiserId,
+        negativeKeywordListId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:replace
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:replace
 /// Replaces all negative keywords in a single negative keyword list. The operation will replace the keywords in a negative keyword list with keywords provided in ReplaceNegativeKeywordsRequest.new_negative_keywords.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10441,7 +16527,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:replace
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:replace
 /// Replaces all negative keywords in a single negative keyword list. The operation will replace the keywords in a negative keyword list with keywords provided in ReplaceNegativeKeywordsRequest.new_negative_keywords.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10483,11 +16569,9 @@ pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsReplaceArg
     pub advertiserId: String,
     /// Path parameter: negativeKeywordListId
     pub negativeKeywordListId: String,
-    /// Request body.
-    pub body: ReplaceNegativeKeywordsRequest,
 }
 
-/// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:replace
+/// POST v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:replace
 /// Replaces all negative keywords in a single negative keyword list. The operation will replace the keywords in a negative keyword list with keywords provided in ReplaceNegativeKeywordsRequest.new_negative_keywords.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10514,12 +16598,11 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace
             client,
             &args.advertiserId,
             &args.negativeKeywordListId,
-            &args.body,
         )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to an advertiser. Returns the assigned targeting option if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10529,24 +16612,23 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_creat
     client: &SimpleHttpClient,
     advertiserId: &String,
     targetingType: &String,
-    body: &AssignedTargetingOption,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/targetingTypes/{}/assignedTargetingOptions",
+        advertiserId,
+        targetingType,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to an advertiser. Returns the assigned targeting option if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10620,7 +16702,7 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_creat
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to an advertiser. Returns the assigned targeting option if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10660,11 +16742,9 @@ pub struct DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsCreateAr
     pub advertiserId: String,
     /// Path parameter: targetingType
     pub targetingType: String,
-    /// Request body.
-    pub body: AssignedTargetingOption,
 }
 
-/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to an advertiser. Returns the assigned targeting option if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10689,12 +16769,11 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_creat
             client,
             &args.advertiserId,
             &args.targetingType,
-            &args.body,
         )?;
     displayvideo_advertisers_targeting_types_assigned_targeting_options_create_execute(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from an advertiser.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -10709,17 +16788,20 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delet
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/advertisers/{}/targetingTypes/{}/assignedTargetingOptions/{}",
+        advertiserId,
+        targetingType,
+        assignedTargetingOptionId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from an advertiser.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -10793,7 +16875,7 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delet
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from an advertiser.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -10835,7 +16917,7 @@ pub struct DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsDeleteAr
     pub assignedTargetingOptionId: String,
 }
 
-/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from an advertiser.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -10863,6 +16945,392 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delet
     displayvideo_advertisers_targeting_types_assigned_targeting_options_delete_execute(builder)
 }
 
+/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to an advertiser.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_targeting_types_assigned_targeting_options_get_execute()` to send, or `displayvideo_advertisers_targeting_types_assigned_targeting_options_get` for simplest API.
+
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    targetingType: &String,
+    assignedTargetingOptionId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/targetingTypes/{}/assignedTargetingOptions/{}",
+        advertiserId,
+        targetingType,
+        assignedTargetingOptionId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to an advertiser.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_get_execute()` or `displayvideo_advertisers_targeting_types_assigned_targeting_options_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_targeting_types_assigned_targeting_options_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AssignedTargetingOption>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AssignedTargetingOption = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to an advertiser.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_get_task()`.
+/// For the simplest API, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_targeting_types_assigned_targeting_options_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        displayvideo_advertisers_targeting_types_assigned_targeting_options_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_targeting_types_assigned_targeting_options_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
+/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to an advertiser.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_get_builder()` + `displayvideo_advertisers_targeting_types_assigned_targeting_options_get_execute()`.
+/// For task-level control, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_targeting_types_assigned_targeting_options_get_builder(
+        client,
+        &args.advertiserId,
+        &args.targetingType,
+        &args.assignedTargetingOptionId,
+    )?;
+    displayvideo_advertisers_targeting_types_assigned_targeting_options_get_execute(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to an advertiser.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_advertisers_targeting_types_assigned_targeting_options_list_execute()` to send, or `displayvideo_advertisers_targeting_types_assigned_targeting_options_list` for simplest API.
+
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &String,
+    targetingType: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/advertisers/{}/targetingTypes/{}/assignedTargetingOptions",
+        advertiserId,
+        targetingType,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to an advertiser.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_list_execute()` or `displayvideo_advertisers_targeting_types_assigned_targeting_options_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_targeting_types_assigned_targeting_options_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAdvertiserAssignedTargetingOptionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAdvertiserAssignedTargetingOptionsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to an advertiser.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_list_task()`.
+/// For the simplest API, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_advertisers_targeting_types_assigned_targeting_options_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdvertiserAssignedTargetingOptionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        displayvideo_advertisers_targeting_types_assigned_targeting_options_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_advertisers_targeting_types_assigned_targeting_options_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to an advertiser.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_list_builder()` + `displayvideo_advertisers_targeting_types_assigned_targeting_options_list_execute()`.
+/// For task-level control, use `displayvideo_advertisers_targeting_types_assigned_targeting_options_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAdvertiserAssignedTargetingOptionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_advertisers_targeting_types_assigned_targeting_options_list_builder(
+        client,
+        &args.advertiserId,
+        &args.targetingType,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_advertisers_targeting_types_assigned_targeting_options_list_execute(builder)
+}
+
 /// GET v4/combinedAudiences/{combinedAudiencesId}
 /// Gets a combined audience.
 ///
@@ -10872,11 +17340,14 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delet
 pub fn displayvideo_combined_audiences_get_builder(
     client: &SimpleHttpClient,
     combinedAudienceId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/combinedAudiences/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/combinedAudiences/{}",
+        combinedAudienceId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -11012,9 +17483,9 @@ pub struct DisplayvideoCombinedAudiencesGetArgs {
     /// Path parameter: combinedAudienceId
     pub combinedAudienceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/combinedAudiences/{combinedAudiencesId}
@@ -11054,12 +17525,12 @@ pub fn displayvideo_combined_audiences_get(
 
 pub fn displayvideo_combined_audiences_list_builder(
     client: &SimpleHttpClient,
-    advertiserId: &Option<String>,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/combinedAudiences",);
@@ -11210,17 +17681,17 @@ pub fn displayvideo_combined_audiences_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoCombinedAudiencesListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/combinedAudiences
@@ -11257,7 +17728,7 @@ pub fn displayvideo_combined_audiences_list(
     displayvideo_combined_audiences_list_execute(builder)
 }
 
-/// GET v4/customBiddingAlgorithms
+/// POST v4/customBiddingAlgorithms
 /// Creates a new custom bidding algorithm. Returns the newly created custom bidding algorithm if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -11265,22 +17736,19 @@ pub fn displayvideo_combined_audiences_list(
 
 pub fn displayvideo_custom_bidding_algorithms_create_builder(
     client: &SimpleHttpClient,
-    body: &CustomBiddingAlgorithm,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/customBiddingAlgorithms
+/// POST v4/customBiddingAlgorithms
 /// Creates a new custom bidding algorithm. Returns the newly created custom bidding algorithm if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -11354,7 +17822,7 @@ pub fn displayvideo_custom_bidding_algorithms_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/customBiddingAlgorithms
+/// POST v4/customBiddingAlgorithms
 /// Creates a new custom bidding algorithm. Returns the newly created custom bidding algorithm if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -11386,14 +17854,7 @@ pub fn displayvideo_custom_bidding_algorithms_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`displayvideo_custom_bidding_algorithms_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DisplayvideoCustomBiddingAlgorithmsCreateArgs {
-    /// Request body.
-    pub body: CustomBiddingAlgorithm,
-}
-
-/// GET v4/customBiddingAlgorithms
+/// POST v4/customBiddingAlgorithms
 /// Creates a new custom bidding algorithm. Returns the newly created custom bidding algorithm if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -11406,14 +17867,13 @@ pub struct DisplayvideoCustomBiddingAlgorithmsCreateArgs {
 
 pub fn displayvideo_custom_bidding_algorithms_create(
     client: &SimpleHttpClient,
-    args: &DisplayvideoCustomBiddingAlgorithmsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomBiddingAlgorithm>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_custom_bidding_algorithms_create_builder(client, &args.body)?;
+    let builder = displayvideo_custom_bidding_algorithms_create_builder(client)?;
     displayvideo_custom_bidding_algorithms_create_execute(builder)
 }
 
@@ -11426,12 +17886,14 @@ pub fn displayvideo_custom_bidding_algorithms_create(
 pub fn displayvideo_custom_bidding_algorithms_get_builder(
     client: &SimpleHttpClient,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}",
+        customBiddingAlgorithmId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -11567,9 +18029,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsGetArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}
@@ -11601,6 +18063,396 @@ pub fn displayvideo_custom_bidding_algorithms_get(
     displayvideo_custom_bidding_algorithms_get_execute(builder)
 }
 
+/// GET v4/customBiddingAlgorithms
+/// Lists custom bidding algorithms that are accessible to the current user and can be used in bidding stratgies. The order is defined by the order_by parameter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_custom_bidding_algorithms_list_execute()` to send, or `displayvideo_custom_bidding_algorithms_list` for simplest API.
+
+pub fn displayvideo_custom_bidding_algorithms_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/customBiddingAlgorithms
+/// Lists custom bidding algorithms that are accessible to the current user and can be used in bidding stratgies. The order is defined by the order_by parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_custom_bidding_algorithms_list_execute()` or `displayvideo_custom_bidding_algorithms_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_custom_bidding_algorithms_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_custom_bidding_algorithms_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCustomBiddingAlgorithmsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCustomBiddingAlgorithmsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/customBiddingAlgorithms
+/// Lists custom bidding algorithms that are accessible to the current user and can be used in bidding stratgies. The order is defined by the order_by parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_custom_bidding_algorithms_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_custom_bidding_algorithms_list_task()`.
+/// For the simplest API, use `displayvideo_custom_bidding_algorithms_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_custom_bidding_algorithms_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_custom_bidding_algorithms_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCustomBiddingAlgorithmsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_custom_bidding_algorithms_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_custom_bidding_algorithms_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/customBiddingAlgorithms
+/// Lists custom bidding algorithms that are accessible to the current user and can be used in bidding stratgies. The order is defined by the order_by parameter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_custom_bidding_algorithms_list_builder()` + `displayvideo_custom_bidding_algorithms_list_execute()`.
+/// For task-level control, use `displayvideo_custom_bidding_algorithms_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_custom_bidding_algorithms_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoCustomBiddingAlgorithmsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCustomBiddingAlgorithmsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_custom_bidding_algorithms_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
+    )?;
+    displayvideo_custom_bidding_algorithms_list_execute(builder)
+}
+
+/// PATCH v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}
+/// Updates an existing custom bidding algorithm. Returns the updated custom bidding algorithm if successful. Requests updating a custom bidding algorithm assigned to a line item will return an error.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_custom_bidding_algorithms_patch_execute()` to send, or `displayvideo_custom_bidding_algorithms_patch` for simplest API.
+
+pub fn displayvideo_custom_bidding_algorithms_patch_builder(
+    client: &SimpleHttpClient,
+    customBiddingAlgorithmId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}",
+        customBiddingAlgorithmId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}
+/// Updates an existing custom bidding algorithm. Returns the updated custom bidding algorithm if successful. Requests updating a custom bidding algorithm assigned to a line item will return an error.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_custom_bidding_algorithms_patch_execute()` or `displayvideo_custom_bidding_algorithms_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_custom_bidding_algorithms_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_custom_bidding_algorithms_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomBiddingAlgorithm>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CustomBiddingAlgorithm = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}
+/// Updates an existing custom bidding algorithm. Returns the updated custom bidding algorithm if successful. Requests updating a custom bidding algorithm assigned to a line item will return an error.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_custom_bidding_algorithms_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_custom_bidding_algorithms_patch_task()`.
+/// For the simplest API, use `displayvideo_custom_bidding_algorithms_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_custom_bidding_algorithms_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_custom_bidding_algorithms_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomBiddingAlgorithm>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_custom_bidding_algorithms_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_custom_bidding_algorithms_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsPatchArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}
+/// Updates an existing custom bidding algorithm. Returns the updated custom bidding algorithm if successful. Requests updating a custom bidding algorithm assigned to a line item will return an error.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_custom_bidding_algorithms_patch_builder()` + `displayvideo_custom_bidding_algorithms_patch_execute()`.
+/// For task-level control, use `displayvideo_custom_bidding_algorithms_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_custom_bidding_algorithms_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoCustomBiddingAlgorithmsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CustomBiddingAlgorithm>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_custom_bidding_algorithms_patch_builder(
+        client,
+        &args.customBiddingAlgorithmId,
+        &args.updateMask,
+    )?;
+    displayvideo_custom_bidding_algorithms_patch_execute(builder)
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}:uploadRules
 /// Creates a rules reference object for an AlgorithmRules file. The resulting reference object provides a resource path where the AlgorithmRules file should be uploaded. This reference object should be included when creating a new CustomBiddingAlgorithmRules resource.
 ///
@@ -11610,12 +18462,14 @@ pub fn displayvideo_custom_bidding_algorithms_get(
 pub fn displayvideo_custom_bidding_algorithms_upload_rules_builder(
     client: &SimpleHttpClient,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}:uploadRules",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}:uploadRules",
+        customBiddingAlgorithmId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -11753,9 +18607,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsUploadRulesArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}:uploadRules
@@ -11798,12 +18652,14 @@ pub fn displayvideo_custom_bidding_algorithms_upload_rules(
 pub fn displayvideo_custom_bidding_algorithms_upload_script_builder(
     client: &SimpleHttpClient,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}:uploadScript",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}:uploadScript",
+        customBiddingAlgorithmId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -11939,9 +18795,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsUploadScriptArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}:uploadScript
@@ -11973,7 +18829,7 @@ pub fn displayvideo_custom_bidding_algorithms_upload_script(
     displayvideo_custom_bidding_algorithms_upload_script_execute(builder)
 }
 
-/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
+/// POST v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
 /// Creates a new rules resource. Returns the newly created rules resource if successful. Requests creating a custom bidding rules resource under an algorithm assigned to a line item will return an error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -11982,13 +18838,14 @@ pub fn displayvideo_custom_bidding_algorithms_upload_script(
 pub fn displayvideo_custom_bidding_algorithms_rules_create_builder(
     client: &SimpleHttpClient,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
-    body: &CustomBiddingAlgorithmRules,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/rules",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/rules",
+        customBiddingAlgorithmId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -12006,15 +18863,13 @@ pub fn displayvideo_custom_bidding_algorithms_rules_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
+/// POST v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
 /// Creates a new rules resource. Returns the newly created rules resource if successful. Requests creating a custom bidding rules resource under an algorithm assigned to a line item will return an error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -12088,7 +18943,7 @@ pub fn displayvideo_custom_bidding_algorithms_rules_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
+/// POST v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
 /// Creates a new rules resource. Returns the newly created rules resource if successful. Requests creating a custom bidding rules resource under an algorithm assigned to a line item will return an error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -12128,14 +18983,12 @@ pub struct DisplayvideoCustomBiddingAlgorithmsRulesCreateArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
-    /// Request body.
-    pub body: CustomBiddingAlgorithmRules,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
+/// POST v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
 /// Creates a new rules resource. Returns the newly created rules resource if successful. Requests creating a custom bidding rules resource under an algorithm assigned to a line item will return an error.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -12162,7 +19015,6 @@ pub fn displayvideo_custom_bidding_algorithms_rules_create(
         &args.customBiddingAlgorithmId,
         &args.advertiserId,
         &args.partnerId,
-        &args.body,
     )?;
     displayvideo_custom_bidding_algorithms_rules_create_execute(builder)
 }
@@ -12177,12 +19029,14 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get_builder(
     client: &SimpleHttpClient,
     customBiddingAlgorithmId: &String,
     customBiddingAlgorithmRulesId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/rules/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/rules/{}",
+        customBiddingAlgorithmId, customBiddingAlgorithmRulesId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -12322,9 +19176,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsRulesGetArgs {
     /// Path parameter: customBiddingAlgorithmRulesId
     pub customBiddingAlgorithmRulesId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules/{rulesId}
@@ -12359,7 +19213,219 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get(
     displayvideo_custom_bidding_algorithms_rules_get_execute(builder)
 }
 
-/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
+/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
+/// Lists rules resources that belong to the given algorithm. The order is defined by the order_by parameter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_custom_bidding_algorithms_rules_list_execute()` to send, or `displayvideo_custom_bidding_algorithms_rules_list` for simplest API.
+
+pub fn displayvideo_custom_bidding_algorithms_rules_list_builder(
+    client: &SimpleHttpClient,
+    customBiddingAlgorithmId: &String,
+    advertiserId: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/rules",
+        customBiddingAlgorithmId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
+/// Lists rules resources that belong to the given algorithm. The order is defined by the order_by parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_custom_bidding_algorithms_rules_list_execute()` or `displayvideo_custom_bidding_algorithms_rules_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_custom_bidding_algorithms_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_custom_bidding_algorithms_rules_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCustomBiddingAlgorithmRulesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCustomBiddingAlgorithmRulesResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
+/// Lists rules resources that belong to the given algorithm. The order is defined by the order_by parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_custom_bidding_algorithms_rules_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_custom_bidding_algorithms_rules_list_task()`.
+/// For the simplest API, use `displayvideo_custom_bidding_algorithms_rules_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_custom_bidding_algorithms_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_custom_bidding_algorithms_rules_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCustomBiddingAlgorithmRulesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_custom_bidding_algorithms_rules_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_custom_bidding_algorithms_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsRulesListArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
+/// Lists rules resources that belong to the given algorithm. The order is defined by the order_by parameter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_custom_bidding_algorithms_rules_list_builder()` + `displayvideo_custom_bidding_algorithms_rules_list_execute()`.
+/// For task-level control, use `displayvideo_custom_bidding_algorithms_rules_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_custom_bidding_algorithms_rules_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoCustomBiddingAlgorithmsRulesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCustomBiddingAlgorithmRulesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_custom_bidding_algorithms_rules_list_builder(
+        client,
+        &args.customBiddingAlgorithmId,
+        &args.advertiserId,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
+    )?;
+    displayvideo_custom_bidding_algorithms_rules_list_execute(builder)
+}
+
+/// POST v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
 /// Creates a new custom bidding script. Returns the newly created script if successful. Requests creating a custom bidding script under an algorithm assigned to a line item will return an error.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -12368,13 +19434,14 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get(
 pub fn displayvideo_custom_bidding_algorithms_scripts_create_builder(
     client: &SimpleHttpClient,
     customBiddingAlgorithmId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
-    body: &CustomBiddingScript,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/scripts",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/scripts",
+        customBiddingAlgorithmId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -12392,15 +19459,13 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
+/// POST v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
 /// Creates a new custom bidding script. Returns the newly created script if successful. Requests creating a custom bidding script under an algorithm assigned to a line item will return an error.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -12474,7 +19539,7 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
+/// POST v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
 /// Creates a new custom bidding script. Returns the newly created script if successful. Requests creating a custom bidding script under an algorithm assigned to a line item will return an error.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -12512,14 +19577,12 @@ pub struct DisplayvideoCustomBiddingAlgorithmsScriptsCreateArgs {
     /// Path parameter: customBiddingAlgorithmId
     pub customBiddingAlgorithmId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
-    /// Request body.
-    pub body: CustomBiddingScript,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
+/// POST v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
 /// Creates a new custom bidding script. Returns the newly created script if successful. Requests creating a custom bidding script under an algorithm assigned to a line item will return an error.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -12544,7 +19607,6 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_create(
         &args.customBiddingAlgorithmId,
         &args.advertiserId,
         &args.partnerId,
-        &args.body,
     )?;
     displayvideo_custom_bidding_algorithms_scripts_create_execute(builder)
 }
@@ -12559,12 +19621,14 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get_builder(
     client: &SimpleHttpClient,
     customBiddingAlgorithmId: &String,
     customBiddingScriptId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/scripts/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/scripts/{}",
+        customBiddingAlgorithmId, customBiddingScriptId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -12702,9 +19766,9 @@ pub struct DisplayvideoCustomBiddingAlgorithmsScriptsGetArgs {
     /// Path parameter: customBiddingScriptId
     pub customBiddingScriptId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts/{scriptsId}
@@ -12737,6 +19801,217 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get(
     displayvideo_custom_bidding_algorithms_scripts_get_execute(builder)
 }
 
+/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
+/// Lists custom bidding scripts that belong to the given algorithm. The order is defined by the order_by parameter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_custom_bidding_algorithms_scripts_list_execute()` to send, or `displayvideo_custom_bidding_algorithms_scripts_list` for simplest API.
+
+pub fn displayvideo_custom_bidding_algorithms_scripts_list_builder(
+    client: &SimpleHttpClient,
+    customBiddingAlgorithmId: &String,
+    advertiserId: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customBiddingAlgorithms/{}/scripts",
+        customBiddingAlgorithmId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
+/// Lists custom bidding scripts that belong to the given algorithm. The order is defined by the order_by parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_custom_bidding_algorithms_scripts_list_execute()` or `displayvideo_custom_bidding_algorithms_scripts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_custom_bidding_algorithms_scripts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_custom_bidding_algorithms_scripts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListCustomBiddingScriptsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListCustomBiddingScriptsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
+/// Lists custom bidding scripts that belong to the given algorithm. The order is defined by the order_by parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_custom_bidding_algorithms_scripts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_custom_bidding_algorithms_scripts_list_task()`.
+/// For the simplest API, use `displayvideo_custom_bidding_algorithms_scripts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_custom_bidding_algorithms_scripts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_custom_bidding_algorithms_scripts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCustomBiddingScriptsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_custom_bidding_algorithms_scripts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_custom_bidding_algorithms_scripts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsScriptsListArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
+/// Lists custom bidding scripts that belong to the given algorithm. The order is defined by the order_by parameter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_custom_bidding_algorithms_scripts_list_builder()` + `displayvideo_custom_bidding_algorithms_scripts_list_execute()`.
+/// For task-level control, use `displayvideo_custom_bidding_algorithms_scripts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_custom_bidding_algorithms_scripts_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoCustomBiddingAlgorithmsScriptsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListCustomBiddingScriptsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_custom_bidding_algorithms_scripts_list_builder(
+        client,
+        &args.customBiddingAlgorithmId,
+        &args.advertiserId,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
+    )?;
+    displayvideo_custom_bidding_algorithms_scripts_list_execute(builder)
+}
+
 /// GET v4/customLists/{customListsId}
 /// Gets a custom list.
 ///
@@ -12746,10 +20021,13 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get(
 pub fn displayvideo_custom_lists_get_builder(
     client: &SimpleHttpClient,
     customListId: &String,
-    advertiserId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/customLists/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/customLists/{}",
+        customListId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -12880,7 +20158,7 @@ pub struct DisplayvideoCustomListsGetArgs {
     /// Path parameter: customListId
     pub customListId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
 }
 
 /// GET v4/customLists/{customListsId}
@@ -12914,11 +20192,11 @@ pub fn displayvideo_custom_lists_get(
 
 pub fn displayvideo_custom_lists_list_builder(
     client: &SimpleHttpClient,
-    advertiserId: &Option<String>,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/customLists",);
@@ -13064,15 +20342,15 @@ pub fn displayvideo_custom_lists_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoCustomListsListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v4/customLists
@@ -13106,7 +20384,7 @@ pub fn displayvideo_custom_lists_list(
     displayvideo_custom_lists_list_execute(builder)
 }
 
-/// GET v4/firstPartyAndPartnerAudiences
+/// POST v4/firstPartyAndPartnerAudiences
 /// Creates a FirstPartyAndPartnerAudience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13114,8 +20392,7 @@ pub fn displayvideo_custom_lists_list(
 
 pub fn displayvideo_first_party_and_partner_audiences_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: &Option<String>,
-    body: &FirstPartyAndPartnerAudience,
+    advertiserId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -13134,15 +20411,13 @@ pub fn displayvideo_first_party_and_partner_audiences_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/firstPartyAndPartnerAudiences
+/// POST v4/firstPartyAndPartnerAudiences
 /// Creates a FirstPartyAndPartnerAudience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13216,7 +20491,7 @@ pub fn displayvideo_first_party_and_partner_audiences_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/firstPartyAndPartnerAudiences
+/// POST v4/firstPartyAndPartnerAudiences
 /// Creates a FirstPartyAndPartnerAudience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13254,12 +20529,10 @@ pub fn displayvideo_first_party_and_partner_audiences_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoFirstPartyAndPartnerAudiencesCreateArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Request body.
-    pub body: FirstPartyAndPartnerAudience,
+    pub advertiserId: Option<Option<String>>,
 }
 
-/// GET v4/firstPartyAndPartnerAudiences
+/// POST v4/firstPartyAndPartnerAudiences
 /// Creates a FirstPartyAndPartnerAudience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13281,15 +20554,12 @@ pub fn displayvideo_first_party_and_partner_audiences_create(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_first_party_and_partner_audiences_create_builder(
-        client,
-        &args.advertiserId,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_first_party_and_partner_audiences_create_builder(client, &args.advertiserId)?;
     displayvideo_first_party_and_partner_audiences_create_execute(builder)
 }
 
-/// GET v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}:editCustomerMatchMembers
+/// POST v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}:editCustomerMatchMembers
 /// Updates the member list of a Customer Match audience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13298,24 +20568,22 @@ pub fn displayvideo_first_party_and_partner_audiences_create(
 pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_members_builder(
     client: &SimpleHttpClient,
     firstPartyAndPartnerAudienceId: &String,
-    body: &EditCustomerMatchMembersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/firstPartyAndPartnerAudiences/{}:editCustomerMatchMembers",
+        firstPartyAndPartnerAudienceId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}:editCustomerMatchMembers
+/// POST v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}:editCustomerMatchMembers
 /// Updates the member list of a Customer Match audience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13389,7 +20657,7 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}:editCustomerMatchMembers
+/// POST v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}:editCustomerMatchMembers
 /// Updates the member list of a Customer Match audience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13429,11 +20697,9 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
 pub struct DisplayvideoFirstPartyAndPartnerAudiencesEditCustomerMatchMembersArgs {
     /// Path parameter: firstPartyAndPartnerAudienceId
     pub firstPartyAndPartnerAudienceId: String,
-    /// Request body.
-    pub body: EditCustomerMatchMembersRequest,
 }
 
-/// GET v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}:editCustomerMatchMembers
+/// POST v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}:editCustomerMatchMembers
 /// Updates the member list of a Customer Match audience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -13459,7 +20725,6 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
         displayvideo_first_party_and_partner_audiences_edit_customer_match_members_builder(
             client,
             &args.firstPartyAndPartnerAudienceId,
-            &args.body,
         )?;
     displayvideo_first_party_and_partner_audiences_edit_customer_match_members_execute(builder)
 }
@@ -13473,12 +20738,14 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
 pub fn displayvideo_first_party_and_partner_audiences_get_builder(
     client: &SimpleHttpClient,
     firstPartyAndPartnerAudienceId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/firstPartyAndPartnerAudiences/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/firstPartyAndPartnerAudiences/{}",
+        firstPartyAndPartnerAudienceId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -13616,9 +20883,9 @@ pub struct DisplayvideoFirstPartyAndPartnerAudiencesGetArgs {
     /// Path parameter: firstPartyAndPartnerAudienceId
     pub firstPartyAndPartnerAudienceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}
@@ -13652,6 +20919,408 @@ pub fn displayvideo_first_party_and_partner_audiences_get(
     displayvideo_first_party_and_partner_audiences_get_execute(builder)
 }
 
+/// GET v4/firstPartyAndPartnerAudiences
+/// Lists first party and partner audiences. The order is defined by the order_by parameter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_first_party_and_partner_audiences_list_execute()` to send, or `displayvideo_first_party_and_partner_audiences_list` for simplest API.
+
+pub fn displayvideo_first_party_and_partner_audiences_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://displayvideo.googleapis.com/v4/firstPartyAndPartnerAudiences",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/firstPartyAndPartnerAudiences
+/// Lists first party and partner audiences. The order is defined by the order_by parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_first_party_and_partner_audiences_list_execute()` or `displayvideo_first_party_and_partner_audiences_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_first_party_and_partner_audiences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_first_party_and_partner_audiences_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListFirstPartyAndPartnerAudiencesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListFirstPartyAndPartnerAudiencesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/firstPartyAndPartnerAudiences
+/// Lists first party and partner audiences. The order is defined by the order_by parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_first_party_and_partner_audiences_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_first_party_and_partner_audiences_list_task()`.
+/// For the simplest API, use `displayvideo_first_party_and_partner_audiences_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_first_party_and_partner_audiences_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_first_party_and_partner_audiences_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListFirstPartyAndPartnerAudiencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_first_party_and_partner_audiences_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_first_party_and_partner_audiences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFirstPartyAndPartnerAudiencesListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/firstPartyAndPartnerAudiences
+/// Lists first party and partner audiences. The order is defined by the order_by parameter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_first_party_and_partner_audiences_list_builder()` + `displayvideo_first_party_and_partner_audiences_list_execute()`.
+/// For task-level control, use `displayvideo_first_party_and_partner_audiences_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_first_party_and_partner_audiences_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoFirstPartyAndPartnerAudiencesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListFirstPartyAndPartnerAudiencesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_first_party_and_partner_audiences_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
+    )?;
+    displayvideo_first_party_and_partner_audiences_list_execute(builder)
+}
+
+/// PATCH v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}
+/// Updates an existing FirstPartyAndPartnerAudience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_first_party_and_partner_audiences_patch_execute()` to send, or `displayvideo_first_party_and_partner_audiences_patch` for simplest API.
+
+pub fn displayvideo_first_party_and_partner_audiences_patch_builder(
+    client: &SimpleHttpClient,
+    firstPartyAndPartnerAudienceId: &String,
+    advertiserId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/firstPartyAndPartnerAudiences/{}",
+        firstPartyAndPartnerAudienceId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}
+/// Updates an existing FirstPartyAndPartnerAudience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_first_party_and_partner_audiences_patch_execute()` or `displayvideo_first_party_and_partner_audiences_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_first_party_and_partner_audiences_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_first_party_and_partner_audiences_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FirstPartyAndPartnerAudience>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: FirstPartyAndPartnerAudience = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}
+/// Updates an existing FirstPartyAndPartnerAudience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_first_party_and_partner_audiences_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_first_party_and_partner_audiences_patch_task()`.
+/// For the simplest API, use `displayvideo_first_party_and_partner_audiences_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_first_party_and_partner_audiences_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_first_party_and_partner_audiences_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FirstPartyAndPartnerAudience>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_first_party_and_partner_audiences_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_first_party_and_partner_audiences_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFirstPartyAndPartnerAudiencesPatchArgs {
+    /// Path parameter: firstPartyAndPartnerAudienceId
+    pub firstPartyAndPartnerAudienceId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}
+/// Updates an existing FirstPartyAndPartnerAudience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_first_party_and_partner_audiences_patch_builder()` + `displayvideo_first_party_and_partner_audiences_patch_execute()`.
+/// For task-level control, use `displayvideo_first_party_and_partner_audiences_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_first_party_and_partner_audiences_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoFirstPartyAndPartnerAudiencesPatchArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<FirstPartyAndPartnerAudience>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_first_party_and_partner_audiences_patch_builder(
+        client,
+        &args.firstPartyAndPartnerAudienceId,
+        &args.advertiserId,
+        &args.updateMask,
+    )?;
+    displayvideo_first_party_and_partner_audiences_patch_execute(builder)
+}
+
 /// GET v4/floodlightGroups/{floodlightGroupsId}
 /// Gets a Floodlight group.
 ///
@@ -13661,10 +21330,13 @@ pub fn displayvideo_first_party_and_partner_audiences_get(
 pub fn displayvideo_floodlight_groups_get_builder(
     client: &SimpleHttpClient,
     floodlightGroupId: &String,
-    partnerId: &Option<String>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/floodlightGroups/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/floodlightGroups/{}",
+        floodlightGroupId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -13797,7 +21469,7 @@ pub struct DisplayvideoFloodlightGroupsGetArgs {
     /// Path parameter: floodlightGroupId
     pub floodlightGroupId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/floodlightGroups/{floodlightGroupsId}
@@ -13828,7 +21500,7 @@ pub fn displayvideo_floodlight_groups_get(
     displayvideo_floodlight_groups_get_execute(builder)
 }
 
-/// GET v4/floodlightGroups/{floodlightGroupId}
+/// PATCH v4/floodlightGroups/{floodlightGroupId}
 /// Updates an existing Floodlight group. Returns the updated Floodlight group if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -13837,9 +21509,8 @@ pub fn displayvideo_floodlight_groups_get(
 pub fn displayvideo_floodlight_groups_patch_builder(
     client: &SimpleHttpClient,
     floodlightGroupId: &String,
-    partnerId: &Option<String>,
-    updateMask: &Option<String>,
-    body: &FloodlightGroup,
+    partnerId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -13863,15 +21534,13 @@ pub fn displayvideo_floodlight_groups_patch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .patch(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/floodlightGroups/{floodlightGroupId}
+/// PATCH v4/floodlightGroups/{floodlightGroupId}
 /// Updates an existing Floodlight group. Returns the updated Floodlight group if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -13945,7 +21614,7 @@ pub fn displayvideo_floodlight_groups_patch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/floodlightGroups/{floodlightGroupId}
+/// PATCH v4/floodlightGroups/{floodlightGroupId}
 /// Updates an existing Floodlight group. Returns the updated Floodlight group if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -13983,14 +21652,12 @@ pub struct DisplayvideoFloodlightGroupsPatchArgs {
     /// Path parameter: floodlightGroupId
     pub floodlightGroupId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
     /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: FloodlightGroup,
+    pub updateMask: Option<Option<String>>,
 }
 
-/// GET v4/floodlightGroups/{floodlightGroupId}
+/// PATCH v4/floodlightGroups/{floodlightGroupId}
 /// Updates an existing Floodlight group. Returns the updated Floodlight group if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -14015,7 +21682,6 @@ pub fn displayvideo_floodlight_groups_patch(
         &args.floodlightGroupId,
         &args.partnerId,
         &args.updateMask,
-        &args.body,
     )?;
     displayvideo_floodlight_groups_patch_execute(builder)
 }
@@ -14030,11 +21696,12 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get_builder(
     client: &SimpleHttpClient,
     floodlightGroupId: &String,
     floodlightActivityId: &String,
-    partnerId: &Option<String>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/floodlightGroups/{}/floodlightActivities/{}",
+        floodlightGroupId, floodlightActivityId,
     );
 
     // Build request
@@ -14170,7 +21837,7 @@ pub struct DisplayvideoFloodlightGroupsFloodlightActivitiesGetArgs {
     /// Path parameter: floodlightActivityId
     pub floodlightActivityId: String,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/floodlightGroups/{floodlightGroupsId}/floodlightActivities/{floodlightActivitiesId}
@@ -14211,14 +21878,16 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get(
 pub fn displayvideo_floodlight_groups_floodlight_activities_list_builder(
     client: &SimpleHttpClient,
     floodlightGroupId: &String,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    partnerId: &Option<String>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/floodlightGroups/{}/floodlightActivities",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/floodlightGroups/{}/floodlightActivities",
+        floodlightGroupId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -14362,13 +22031,13 @@ pub struct DisplayvideoFloodlightGroupsFloodlightActivitiesListArgs {
     /// Path parameter: floodlightGroupId
     pub floodlightGroupId: String,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/floodlightGroups/{floodlightGroupsId}/floodlightActivities
@@ -14413,11 +22082,14 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_list(
 pub fn displayvideo_google_audiences_get_builder(
     client: &SimpleHttpClient,
     googleAudienceId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/googleAudiences/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/googleAudiences/{}",
+        googleAudienceId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -14553,9 +22225,9 @@ pub struct DisplayvideoGoogleAudiencesGetArgs {
     /// Path parameter: googleAudienceId
     pub googleAudienceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/googleAudiences/{googleAudiencesId}
@@ -14595,12 +22267,12 @@ pub fn displayvideo_google_audiences_get(
 
 pub fn displayvideo_google_audiences_list_builder(
     client: &SimpleHttpClient,
-    advertiserId: &Option<String>,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/googleAudiences",);
@@ -14751,17 +22423,17 @@ pub fn displayvideo_google_audiences_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoGoogleAudiencesListArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/googleAudiences
@@ -14798,7 +22470,7 @@ pub fn displayvideo_google_audiences_list(
     displayvideo_google_audiences_list_execute(builder)
 }
 
-/// GET v4/guaranteedOrders
+/// POST v4/guaranteedOrders
 /// Creates a new guaranteed order. Returns the newly created guaranteed order if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -14806,9 +22478,8 @@ pub fn displayvideo_google_audiences_list(
 
 pub fn displayvideo_guaranteed_orders_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
-    body: &GuaranteedOrder,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/guaranteedOrders",);
@@ -14829,15 +22500,13 @@ pub fn displayvideo_guaranteed_orders_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/guaranteedOrders
+/// POST v4/guaranteedOrders
 /// Creates a new guaranteed order. Returns the newly created guaranteed order if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -14911,7 +22580,7 @@ pub fn displayvideo_guaranteed_orders_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/guaranteedOrders
+/// POST v4/guaranteedOrders
 /// Creates a new guaranteed order. Returns the newly created guaranteed order if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -14947,14 +22616,12 @@ pub fn displayvideo_guaranteed_orders_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoGuaranteedOrdersCreateArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
-    /// Request body.
-    pub body: GuaranteedOrder,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/guaranteedOrders
+/// POST v4/guaranteedOrders
 /// Creates a new guaranteed order. Returns the newly created guaranteed order if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -14974,16 +22641,12 @@ pub fn displayvideo_guaranteed_orders_create(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_guaranteed_orders_create_builder(
-        client,
-        &args.advertiserId,
-        &args.partnerId,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_guaranteed_orders_create_builder(client, &args.advertiserId, &args.partnerId)?;
     displayvideo_guaranteed_orders_create_execute(builder)
 }
 
-/// GET v4/guaranteedOrders/{guaranteedOrdersId}:editGuaranteedOrderReadAccessors
+/// POST v4/guaranteedOrders/{guaranteedOrdersId}:editGuaranteedOrderReadAccessors
 /// Edits read advertisers of a guaranteed order.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -14992,24 +22655,22 @@ pub fn displayvideo_guaranteed_orders_create(
 pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_builder(
     client: &SimpleHttpClient,
     guaranteedOrderId: &String,
-    body: &EditGuaranteedOrderReadAccessorsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/guaranteedOrders/{}:editGuaranteedOrderReadAccessors",
+        guaranteedOrderId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/guaranteedOrders/{guaranteedOrdersId}:editGuaranteedOrderReadAccessors
+/// POST v4/guaranteedOrders/{guaranteedOrdersId}:editGuaranteedOrderReadAccessors
 /// Edits read advertisers of a guaranteed order.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -15083,7 +22744,7 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/guaranteedOrders/{guaranteedOrdersId}:editGuaranteedOrderReadAccessors
+/// POST v4/guaranteedOrders/{guaranteedOrdersId}:editGuaranteedOrderReadAccessors
 /// Edits read advertisers of a guaranteed order.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -15122,11 +22783,9 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_execu
 pub struct DisplayvideoGuaranteedOrdersEditGuaranteedOrderReadAccessorsArgs {
     /// Path parameter: guaranteedOrderId
     pub guaranteedOrderId: String,
-    /// Request body.
-    pub body: EditGuaranteedOrderReadAccessorsRequest,
 }
 
-/// GET v4/guaranteedOrders/{guaranteedOrdersId}:editGuaranteedOrderReadAccessors
+/// POST v4/guaranteedOrders/{guaranteedOrdersId}:editGuaranteedOrderReadAccessors
 /// Edits read advertisers of a guaranteed order.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -15151,7 +22810,6 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors(
     let builder = displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_builder(
         client,
         &args.guaranteedOrderId,
-        &args.body,
     )?;
     displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_execute(builder)
 }
@@ -15165,11 +22823,14 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors(
 pub fn displayvideo_guaranteed_orders_get_builder(
     client: &SimpleHttpClient,
     guaranteedOrderId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/guaranteedOrders/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/guaranteedOrders/{}",
+        guaranteedOrderId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -15305,9 +22966,9 @@ pub struct DisplayvideoGuaranteedOrdersGetArgs {
     /// Path parameter: guaranteedOrderId
     pub guaranteedOrderId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/guaranteedOrders/{guaranteedOrdersId}
@@ -15339,7 +23000,411 @@ pub fn displayvideo_guaranteed_orders_get(
     displayvideo_guaranteed_orders_get_execute(builder)
 }
 
-/// GET v4/inventorySourceGroups
+/// GET v4/guaranteedOrders
+/// Lists guaranteed orders that are accessible to the current user. The order is defined by the order_by parameter. If a filter by entity_status is not specified, guaranteed orders with entity status ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_guaranteed_orders_list_execute()` to send, or `displayvideo_guaranteed_orders_list` for simplest API.
+
+pub fn displayvideo_guaranteed_orders_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/guaranteedOrders",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/guaranteedOrders
+/// Lists guaranteed orders that are accessible to the current user. The order is defined by the order_by parameter. If a filter by entity_status is not specified, guaranteed orders with entity status ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_guaranteed_orders_list_execute()` or `displayvideo_guaranteed_orders_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_guaranteed_orders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_guaranteed_orders_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListGuaranteedOrdersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListGuaranteedOrdersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/guaranteedOrders
+/// Lists guaranteed orders that are accessible to the current user. The order is defined by the order_by parameter. If a filter by entity_status is not specified, guaranteed orders with entity status ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_guaranteed_orders_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_guaranteed_orders_list_task()`.
+/// For the simplest API, use `displayvideo_guaranteed_orders_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_guaranteed_orders_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_guaranteed_orders_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListGuaranteedOrdersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_guaranteed_orders_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_guaranteed_orders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoGuaranteedOrdersListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/guaranteedOrders
+/// Lists guaranteed orders that are accessible to the current user. The order is defined by the order_by parameter. If a filter by entity_status is not specified, guaranteed orders with entity status ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_guaranteed_orders_list_builder()` + `displayvideo_guaranteed_orders_list_execute()`.
+/// For task-level control, use `displayvideo_guaranteed_orders_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_guaranteed_orders_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoGuaranteedOrdersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListGuaranteedOrdersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_guaranteed_orders_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
+    )?;
+    displayvideo_guaranteed_orders_list_execute(builder)
+}
+
+/// PATCH v4/guaranteedOrders/{guaranteedOrdersId}
+/// Updates an existing guaranteed order. Returns the updated guaranteed order if successful.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_guaranteed_orders_patch_execute()` to send, or `displayvideo_guaranteed_orders_patch` for simplest API.
+
+pub fn displayvideo_guaranteed_orders_patch_builder(
+    client: &SimpleHttpClient,
+    guaranteedOrderId: &String,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/guaranteedOrders/{}",
+        guaranteedOrderId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/guaranteedOrders/{guaranteedOrdersId}
+/// Updates an existing guaranteed order. Returns the updated guaranteed order if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_guaranteed_orders_patch_execute()` or `displayvideo_guaranteed_orders_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_guaranteed_orders_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_guaranteed_orders_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GuaranteedOrder>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GuaranteedOrder = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/guaranteedOrders/{guaranteedOrdersId}
+/// Updates an existing guaranteed order. Returns the updated guaranteed order if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_guaranteed_orders_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_guaranteed_orders_patch_task()`.
+/// For the simplest API, use `displayvideo_guaranteed_orders_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_guaranteed_orders_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_guaranteed_orders_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GuaranteedOrder>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_guaranteed_orders_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_guaranteed_orders_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoGuaranteedOrdersPatchArgs {
+    /// Path parameter: guaranteedOrderId
+    pub guaranteedOrderId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/guaranteedOrders/{guaranteedOrdersId}
+/// Updates an existing guaranteed order. Returns the updated guaranteed order if successful.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_guaranteed_orders_patch_builder()` + `displayvideo_guaranteed_orders_patch_execute()`.
+/// For task-level control, use `displayvideo_guaranteed_orders_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_guaranteed_orders_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoGuaranteedOrdersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<GuaranteedOrder>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_guaranteed_orders_patch_builder(
+        client,
+        &args.guaranteedOrderId,
+        &args.advertiserId,
+        &args.partnerId,
+        &args.updateMask,
+    )?;
+    displayvideo_guaranteed_orders_patch_execute(builder)
+}
+
+/// POST v4/inventorySourceGroups
 /// Creates a new inventory source group. Returns the newly created inventory source group if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -15347,9 +23412,8 @@ pub fn displayvideo_guaranteed_orders_get(
 
 pub fn displayvideo_inventory_source_groups_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
-    body: &InventorySourceGroup,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySourceGroups",);
@@ -15370,15 +23434,13 @@ pub fn displayvideo_inventory_source_groups_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/inventorySourceGroups
+/// POST v4/inventorySourceGroups
 /// Creates a new inventory source group. Returns the newly created inventory source group if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -15452,7 +23514,7 @@ pub fn displayvideo_inventory_source_groups_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/inventorySourceGroups
+/// POST v4/inventorySourceGroups
 /// Creates a new inventory source group. Returns the newly created inventory source group if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -15488,14 +23550,12 @@ pub fn displayvideo_inventory_source_groups_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoInventorySourceGroupsCreateArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
-    /// Request body.
-    pub body: InventorySourceGroup,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/inventorySourceGroups
+/// POST v4/inventorySourceGroups
 /// Creates a new inventory source group. Returns the newly created inventory source group if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -15519,12 +23579,11 @@ pub fn displayvideo_inventory_source_groups_create(
         client,
         &args.advertiserId,
         &args.partnerId,
-        &args.body,
     )?;
     displayvideo_inventory_source_groups_create_execute(builder)
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
+/// DELETE v4/inventorySourceGroups/{inventorySourceGroupsId}
 /// Deletes an inventory source group.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -15533,11 +23592,14 @@ pub fn displayvideo_inventory_source_groups_create(
 pub fn displayvideo_inventory_source_groups_delete_builder(
     client: &SimpleHttpClient,
     inventorySourceGroupId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}",
+        inventorySourceGroupId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -15555,13 +23617,13 @@ pub fn displayvideo_inventory_source_groups_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
+/// DELETE v4/inventorySourceGroups/{inventorySourceGroupsId}
 /// Deletes an inventory source group.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -15635,7 +23697,7 @@ pub fn displayvideo_inventory_source_groups_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
+/// DELETE v4/inventorySourceGroups/{inventorySourceGroupsId}
 /// Deletes an inventory source group.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -15671,12 +23733,12 @@ pub struct DisplayvideoInventorySourceGroupsDeleteArgs {
     /// Path parameter: inventorySourceGroupId
     pub inventorySourceGroupId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
+/// DELETE v4/inventorySourceGroups/{inventorySourceGroupsId}
 /// Deletes an inventory source group.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -15703,7 +23765,404 @@ pub fn displayvideo_inventory_source_groups_delete(
     displayvideo_inventory_source_groups_delete_execute(builder)
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupId}
+/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
+/// Gets an inventory source group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_inventory_source_groups_get_execute()` to send, or `displayvideo_inventory_source_groups_get` for simplest API.
+
+pub fn displayvideo_inventory_source_groups_get_builder(
+    client: &SimpleHttpClient,
+    inventorySourceGroupId: &String,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}",
+        inventorySourceGroupId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
+/// Gets an inventory source group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_inventory_source_groups_get_execute()` or `displayvideo_inventory_source_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_inventory_source_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_inventory_source_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InventorySourceGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InventorySourceGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
+/// Gets an inventory source group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_inventory_source_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_inventory_source_groups_get_task()`.
+/// For the simplest API, use `displayvideo_inventory_source_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_inventory_source_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_inventory_source_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InventorySourceGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_inventory_source_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_inventory_source_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsGetArgs {
+    /// Path parameter: inventorySourceGroupId
+    pub inventorySourceGroupId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
+/// Gets an inventory source group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_inventory_source_groups_get_builder()` + `displayvideo_inventory_source_groups_get_execute()`.
+/// For task-level control, use `displayvideo_inventory_source_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_inventory_source_groups_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoInventorySourceGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InventorySourceGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_inventory_source_groups_get_builder(
+        client,
+        &args.inventorySourceGroupId,
+        &args.advertiserId,
+        &args.partnerId,
+    )?;
+    displayvideo_inventory_source_groups_get_execute(builder)
+}
+
+/// GET v4/inventorySourceGroups
+/// Lists inventory source groups that are accessible to the current user. The order is defined by the order_by parameter.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_inventory_source_groups_list_execute()` to send, or `displayvideo_inventory_source_groups_list` for simplest API.
+
+pub fn displayvideo_inventory_source_groups_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySourceGroups",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/inventorySourceGroups
+/// Lists inventory source groups that are accessible to the current user. The order is defined by the order_by parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_inventory_source_groups_list_execute()` or `displayvideo_inventory_source_groups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_inventory_source_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_inventory_source_groups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInventorySourceGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInventorySourceGroupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/inventorySourceGroups
+/// Lists inventory source groups that are accessible to the current user. The order is defined by the order_by parameter.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_inventory_source_groups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_inventory_source_groups_list_task()`.
+/// For the simplest API, use `displayvideo_inventory_source_groups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_inventory_source_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_inventory_source_groups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInventorySourceGroupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_inventory_source_groups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_inventory_source_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/inventorySourceGroups
+/// Lists inventory source groups that are accessible to the current user. The order is defined by the order_by parameter.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_inventory_source_groups_list_builder()` + `displayvideo_inventory_source_groups_list_execute()`.
+/// For task-level control, use `displayvideo_inventory_source_groups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_inventory_source_groups_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoInventorySourceGroupsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInventorySourceGroupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_inventory_source_groups_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
+    )?;
+    displayvideo_inventory_source_groups_list_execute(builder)
+}
+
+/// PATCH v4/inventorySourceGroups/{inventorySourceGroupId}
 /// Updates an inventory source group. Returns the updated inventory source group if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -15712,10 +24171,9 @@ pub fn displayvideo_inventory_source_groups_delete(
 pub fn displayvideo_inventory_source_groups_patch_builder(
     client: &SimpleHttpClient,
     inventorySourceGroupId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
-    updateMask: &Option<String>,
-    body: &InventorySourceGroup,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -15742,15 +24200,13 @@ pub fn displayvideo_inventory_source_groups_patch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .patch(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupId}
+/// PATCH v4/inventorySourceGroups/{inventorySourceGroupId}
 /// Updates an inventory source group. Returns the updated inventory source group if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -15824,7 +24280,7 @@ pub fn displayvideo_inventory_source_groups_patch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupId}
+/// PATCH v4/inventorySourceGroups/{inventorySourceGroupId}
 /// Updates an inventory source group. Returns the updated inventory source group if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -15862,16 +24318,14 @@ pub struct DisplayvideoInventorySourceGroupsPatchArgs {
     /// Path parameter: inventorySourceGroupId
     pub inventorySourceGroupId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
     /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: InventorySourceGroup,
+    pub updateMask: Option<Option<String>>,
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupId}
+/// PATCH v4/inventorySourceGroups/{inventorySourceGroupId}
 /// Updates an inventory source group. Returns the updated inventory source group if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -15897,12 +24351,11 @@ pub fn displayvideo_inventory_source_groups_patch(
         &args.advertiserId,
         &args.partnerId,
         &args.updateMask,
-        &args.body,
     )?;
     displayvideo_inventory_source_groups_patch_execute(builder)
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources:bulkEdit
+/// POST v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources:bulkEdit
 /// Bulk edits multiple assignments between inventory sources and a single inventory source group. The operation will delete the assigned inventory sources provided in BulkEditAssignedInventorySourcesRequest.deleted_assigned_inventory_sources and then create the assigned inventory sources provided in BulkEditAssignedInventorySourcesRequest.created_assigned_inventory_sources.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -15911,24 +24364,22 @@ pub fn displayvideo_inventory_source_groups_patch(
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_builder(
     client: &SimpleHttpClient,
     inventorySourceGroupId: &String,
-    body: &BulkEditAssignedInventorySourcesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}/assignedInventorySources:bulkEdit",
+        inventorySourceGroupId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources:bulkEdit
+/// POST v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources:bulkEdit
 /// Bulk edits multiple assignments between inventory sources and a single inventory source group. The operation will delete the assigned inventory sources provided in BulkEditAssignedInventorySourcesRequest.deleted_assigned_inventory_sources and then create the assigned inventory sources provided in BulkEditAssignedInventorySourcesRequest.created_assigned_inventory_sources.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -16002,7 +24453,7 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources:bulkEdit
+/// POST v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources:bulkEdit
 /// Bulk edits multiple assignments between inventory sources and a single inventory source group. The operation will delete the assigned inventory sources provided in BulkEditAssignedInventorySourcesRequest.deleted_assigned_inventory_sources and then create the assigned inventory sources provided in BulkEditAssignedInventorySourcesRequest.created_assigned_inventory_sources.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -16042,11 +24493,9 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
 pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesBulkEditArgs {
     /// Path parameter: inventorySourceGroupId
     pub inventorySourceGroupId: String,
-    /// Request body.
-    pub body: BulkEditAssignedInventorySourcesRequest,
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources:bulkEdit
+/// POST v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources:bulkEdit
 /// Bulk edits multiple assignments between inventory sources and a single inventory source group. The operation will delete the assigned inventory sources provided in BulkEditAssignedInventorySourcesRequest.deleted_assigned_inventory_sources and then create the assigned inventory sources provided in BulkEditAssignedInventorySourcesRequest.created_assigned_inventory_sources.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -16072,12 +24521,11 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
         displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_builder(
             client,
             &args.inventorySourceGroupId,
-            &args.body,
         )?;
     displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_execute(builder)
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
+/// POST v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
 /// Creates an assignment between an inventory source and an inventory source group.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -16086,13 +24534,13 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create_builder(
     client: &SimpleHttpClient,
     inventorySourceGroupId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
-    body: &AssignedInventorySource,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}/assignedInventorySources",
+        inventorySourceGroupId,
     );
 
     // Build request
@@ -16111,15 +24559,13 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create_bu
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
+/// POST v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
 /// Creates an assignment between an inventory source and an inventory source group.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -16193,7 +24639,7 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create_ta
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
+/// POST v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
 /// Creates an assignment between an inventory source and an inventory source group.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -16232,14 +24678,12 @@ pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesCreateArgs {
     /// Path parameter: inventorySourceGroupId
     pub inventorySourceGroupId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
-    /// Request body.
-    pub body: AssignedInventorySource,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
+/// POST v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
 /// Creates an assignment between an inventory source and an inventory source group.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -16264,12 +24708,11 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create(
         &args.inventorySourceGroupId,
         &args.advertiserId,
         &args.partnerId,
-        &args.body,
     )?;
     displayvideo_inventory_source_groups_assigned_inventory_sources_create_execute(builder)
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources/{assignedInventorySourcesId}
+/// DELETE v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources/{assignedInventorySourcesId}
 /// Deletes the assignment between an inventory source and an inventory source group.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -16279,12 +24722,14 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete_bu
     client: &SimpleHttpClient,
     inventorySourceGroupId: &String,
     assignedInventorySourceId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}/assignedInventorySources/{}",
+        inventorySourceGroupId,
+        assignedInventorySourceId,
     );
 
     // Build request
@@ -16303,13 +24748,13 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete_bu
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources/{assignedInventorySourcesId}
+/// DELETE v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources/{assignedInventorySourcesId}
 /// Deletes the assignment between an inventory source and an inventory source group.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -16383,7 +24828,7 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete_ta
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources/{assignedInventorySourcesId}
+/// DELETE v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources/{assignedInventorySourcesId}
 /// Deletes the assignment between an inventory source and an inventory source group.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -16422,12 +24867,12 @@ pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesDeleteArgs {
     /// Path parameter: assignedInventorySourceId
     pub assignedInventorySourceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources/{assignedInventorySourcesId}
+/// DELETE v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources/{assignedInventorySourcesId}
 /// Deletes the assignment between an inventory source and an inventory source group.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -16455,7 +24900,225 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete(
     displayvideo_inventory_source_groups_assigned_inventory_sources_delete_execute(builder)
 }
 
-/// GET v4/inventorySources
+/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
+/// Lists inventory sources assigned to an inventory source group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_inventory_source_groups_assigned_inventory_sources_list_execute()` to send, or `displayvideo_inventory_source_groups_assigned_inventory_sources_list` for simplest API.
+
+pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list_builder(
+    client: &SimpleHttpClient,
+    inventorySourceGroupId: &String,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/inventorySourceGroups/{}/assignedInventorySources",
+        inventorySourceGroupId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
+/// Lists inventory sources assigned to an inventory source group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_inventory_source_groups_assigned_inventory_sources_list_execute()` or `displayvideo_inventory_source_groups_assigned_inventory_sources_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_inventory_source_groups_assigned_inventory_sources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAssignedInventorySourcesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAssignedInventorySourcesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
+/// Lists inventory sources assigned to an inventory source group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_inventory_source_groups_assigned_inventory_sources_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_inventory_source_groups_assigned_inventory_sources_list_task()`.
+/// For the simplest API, use `displayvideo_inventory_source_groups_assigned_inventory_sources_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_inventory_source_groups_assigned_inventory_sources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAssignedInventorySourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_inventory_source_groups_assigned_inventory_sources_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_inventory_source_groups_assigned_inventory_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesListArgs {
+    /// Path parameter: inventorySourceGroupId
+    pub inventorySourceGroupId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
+/// Lists inventory sources assigned to an inventory source group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_inventory_source_groups_assigned_inventory_sources_list_builder()` + `displayvideo_inventory_source_groups_assigned_inventory_sources_list_execute()`.
+/// For task-level control, use `displayvideo_inventory_source_groups_assigned_inventory_sources_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListAssignedInventorySourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_inventory_source_groups_assigned_inventory_sources_list_builder(
+        client,
+        &args.inventorySourceGroupId,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
+    )?;
+    displayvideo_inventory_source_groups_assigned_inventory_sources_list_execute(builder)
+}
+
+/// POST v4/inventorySources
 /// Creates a new inventory source. Returns the newly created inventory source if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -16463,9 +25126,8 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete(
 
 pub fn displayvideo_inventory_sources_create_builder(
     client: &SimpleHttpClient,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
-    body: &InventorySource,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySources",);
@@ -16486,15 +25148,13 @@ pub fn displayvideo_inventory_sources_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/inventorySources
+/// POST v4/inventorySources
 /// Creates a new inventory source. Returns the newly created inventory source if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -16568,7 +25228,7 @@ pub fn displayvideo_inventory_sources_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/inventorySources
+/// POST v4/inventorySources
 /// Creates a new inventory source. Returns the newly created inventory source if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -16604,14 +25264,12 @@ pub fn displayvideo_inventory_sources_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoInventorySourcesCreateArgs {
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
-    /// Request body.
-    pub body: InventorySource,
+    pub partnerId: Option<Option<String>>,
 }
 
-/// GET v4/inventorySources
+/// POST v4/inventorySources
 /// Creates a new inventory source. Returns the newly created inventory source if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -16631,16 +25289,12 @@ pub fn displayvideo_inventory_sources_create(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_inventory_sources_create_builder(
-        client,
-        &args.advertiserId,
-        &args.partnerId,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_inventory_sources_create_builder(client, &args.advertiserId, &args.partnerId)?;
     displayvideo_inventory_sources_create_execute(builder)
 }
 
-/// GET v4/inventorySources/{inventorySourcesId}:editInventorySourceReadWriteAccessors
+/// POST v4/inventorySources/{inventorySourcesId}:editInventorySourceReadWriteAccessors
 /// Edits `read/write` accessors of an inventory source. Returns the updated read_write_accessors for the inventory source.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -16649,24 +25303,22 @@ pub fn displayvideo_inventory_sources_create(
 pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_builder(
     client: &SimpleHttpClient,
     inventorySourceId: &String,
-    body: &EditInventorySourceReadWriteAccessorsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/inventorySources/{}:editInventorySourceReadWriteAccessors",
+        inventorySourceId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/inventorySources/{inventorySourcesId}:editInventorySourceReadWriteAccessors
+/// POST v4/inventorySources/{inventorySourcesId}:editInventorySourceReadWriteAccessors
 /// Edits `read/write` accessors of an inventory source. Returns the updated read_write_accessors for the inventory source.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -16740,7 +25392,7 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/inventorySources/{inventorySourcesId}:editInventorySourceReadWriteAccessors
+/// POST v4/inventorySources/{inventorySourcesId}:editInventorySourceReadWriteAccessors
 /// Edits `read/write` accessors of an inventory source. Returns the updated read_write_accessors for the inventory source.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -16778,11 +25430,9 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
 pub struct DisplayvideoInventorySourcesEditInventorySourceReadWriteAccessorsArgs {
     /// Path parameter: inventorySourceId
     pub inventorySourceId: String,
-    /// Request body.
-    pub body: EditInventorySourceReadWriteAccessorsRequest,
 }
 
-/// GET v4/inventorySources/{inventorySourcesId}:editInventorySourceReadWriteAccessors
+/// POST v4/inventorySources/{inventorySourcesId}:editInventorySourceReadWriteAccessors
 /// Edits `read/write` accessors of an inventory source. Returns the updated read_write_accessors for the inventory source.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -16806,7 +25456,6 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
         displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_builder(
             client,
             &args.inventorySourceId,
-            &args.body,
         )?;
     displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_execute(builder)
 }
@@ -16820,11 +25469,14 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
 pub fn displayvideo_inventory_sources_get_builder(
     client: &SimpleHttpClient,
     inventorySourceId: &String,
-    advertiserId: &Option<String>,
-    partnerId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySources/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/inventorySources/{}",
+        inventorySourceId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -16960,9 +25612,9 @@ pub struct DisplayvideoInventorySourcesGetArgs {
     /// Path parameter: inventorySourceId
     pub inventorySourceId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: partnerId
-    pub partnerId: Option<String>,
+    pub partnerId: Option<Option<String>>,
 }
 
 /// GET v4/inventorySources/{inventorySourcesId}
@@ -16994,6 +25646,410 @@ pub fn displayvideo_inventory_sources_get(
     displayvideo_inventory_sources_get_execute(builder)
 }
 
+/// GET v4/inventorySources
+/// Lists inventory sources that are accessible to the current user. The order is defined by the order_by parameter. If a filter by entity_status is not specified, inventory sources with entity status ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_inventory_sources_list_execute()` to send, or `displayvideo_inventory_sources_list` for simplest API.
+
+pub fn displayvideo_inventory_sources_list_builder(
+    client: &SimpleHttpClient,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/inventorySources",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/inventorySources
+/// Lists inventory sources that are accessible to the current user. The order is defined by the order_by parameter. If a filter by entity_status is not specified, inventory sources with entity status ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_inventory_sources_list_execute()` or `displayvideo_inventory_sources_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_inventory_sources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_inventory_sources_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInventorySourcesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInventorySourcesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/inventorySources
+/// Lists inventory sources that are accessible to the current user. The order is defined by the order_by parameter. If a filter by entity_status is not specified, inventory sources with entity status ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_inventory_sources_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_inventory_sources_list_task()`.
+/// For the simplest API, use `displayvideo_inventory_sources_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_inventory_sources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_inventory_sources_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInventorySourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_inventory_sources_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_inventory_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourcesListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+}
+
+/// GET v4/inventorySources
+/// Lists inventory sources that are accessible to the current user. The order is defined by the order_by parameter. If a filter by entity_status is not specified, inventory sources with entity status ENTITY_STATUS_ARCHIVED will not be included in the results.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_inventory_sources_list_builder()` + `displayvideo_inventory_sources_list_execute()`.
+/// For task-level control, use `displayvideo_inventory_sources_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_inventory_sources_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoInventorySourcesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListInventorySourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_inventory_sources_list_builder(
+        client,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.partnerId,
+    )?;
+    displayvideo_inventory_sources_list_execute(builder)
+}
+
+/// PATCH v4/inventorySources/{inventorySourcesId}
+/// Updates an existing inventory source. Returns the updated inventory source if successful.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_inventory_sources_patch_execute()` to send, or `displayvideo_inventory_sources_patch` for simplest API.
+
+pub fn displayvideo_inventory_sources_patch_builder(
+    client: &SimpleHttpClient,
+    inventorySourceId: &String,
+    advertiserId: &Option<Option<String>>,
+    partnerId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/inventorySources/{}",
+        inventorySourceId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = partnerId.as_ref() {
+        query_parts.push(format!("partnerId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/inventorySources/{inventorySourcesId}
+/// Updates an existing inventory source. Returns the updated inventory source if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_inventory_sources_patch_execute()` or `displayvideo_inventory_sources_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_inventory_sources_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_inventory_sources_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InventorySource>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InventorySource = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/inventorySources/{inventorySourcesId}
+/// Updates an existing inventory source. Returns the updated inventory source if successful.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_inventory_sources_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_inventory_sources_patch_task()`.
+/// For the simplest API, use `displayvideo_inventory_sources_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_inventory_sources_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_inventory_sources_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InventorySource>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_inventory_sources_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_inventory_sources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourcesPatchArgs {
+    /// Path parameter: inventorySourceId
+    pub inventorySourceId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/inventorySources/{inventorySourcesId}
+/// Updates an existing inventory source. Returns the updated inventory source if successful.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_inventory_sources_patch_builder()` + `displayvideo_inventory_sources_patch_execute()`.
+/// For task-level control, use `displayvideo_inventory_sources_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_inventory_sources_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoInventorySourcesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InventorySource>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_inventory_sources_patch_builder(
+        client,
+        &args.inventorySourceId,
+        &args.advertiserId,
+        &args.partnerId,
+        &args.updateMask,
+    )?;
+    displayvideo_inventory_sources_patch_execute(builder)
+}
+
 /// GET download/{downloadId}
 /// Downloads media. Download is supported on the URI /`download/{resource_name`=**}?alt=media. **Note**: Download requests will not be successful without including alt=media query string.
 ///
@@ -17005,7 +26061,10 @@ pub fn displayvideo_media_download_builder(
     resourceName: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/download/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/download/{}",
+        resourceName,
+    );
 
     // Build request
     let builder = client
@@ -17152,7 +26211,7 @@ pub fn displayvideo_media_download(
     displayvideo_media_download_execute(builder)
 }
 
-/// GET media/{mediaId}
+/// POST media/{mediaId}
 /// Uploads media. Upload is supported on the URI /`upload/media/{resource_name`=**}?upload_type=media. **Note**: Upload requests will not be successful without including upload_type=media query string.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -17161,22 +26220,19 @@ pub fn displayvideo_media_download(
 pub fn displayvideo_media_upload_builder(
     client: &SimpleHttpClient,
     resourceName: &String,
-    body: &GoogleBytestreamMedia,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/media/{}",);
+    let endpoint_url = format!("https://displayvideo.googleapis.com/media/{}", resourceName,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET media/{mediaId}
+/// POST media/{mediaId}
 /// Uploads media. Upload is supported on the URI /`upload/media/{resource_name`=**}?upload_type=media. **Note**: Upload requests will not be successful without including upload_type=media query string.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -17250,7 +26306,7 @@ pub fn displayvideo_media_upload_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET media/{mediaId}
+/// POST media/{mediaId}
 /// Uploads media. Upload is supported on the URI /`upload/media/{resource_name`=**}?upload_type=media. **Note**: Upload requests will not be successful without including upload_type=media query string.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -17287,11 +26343,9 @@ pub fn displayvideo_media_upload_execute(
 pub struct DisplayvideoMediaUploadArgs {
     /// Path parameter: resourceName
     pub resourceName: String,
-    /// Request body.
-    pub body: GoogleBytestreamMedia,
 }
 
-/// GET media/{mediaId}
+/// POST media/{mediaId}
 /// Uploads media. Upload is supported on the URI /`upload/media/{resource_name`=**}?upload_type=media. **Note**: Upload requests will not be successful without including upload_type=media query string.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -17311,11 +26365,11 @@ pub fn displayvideo_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_media_upload_builder(client, &args.resourceName, &args.body)?;
+    let builder = displayvideo_media_upload_builder(client, &args.resourceName)?;
     displayvideo_media_upload_execute(builder)
 }
 
-/// GET v4/partners/{partnersId}:editAssignedTargetingOptions
+/// POST v4/partners/{partnersId}:editAssignedTargetingOptions
 /// Edits targeting options under a single partner. The operation will delete the assigned targeting options provided in BulkEditPartnerAssignedTargetingOptionsRequest.`deleteRequests` and then create the assigned targeting options provided in BulkEditPartnerAssignedTargetingOptionsRequest.`createRequests` .
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -17324,23 +26378,22 @@ pub fn displayvideo_media_upload(
 pub fn displayvideo_partners_edit_assigned_targeting_options_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
-    body: &BulkEditPartnerAssignedTargetingOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/partners/{}:editAssignedTargetingOptions",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/partners/{}:editAssignedTargetingOptions",
+        partnerId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/partners/{partnersId}:editAssignedTargetingOptions
+/// POST v4/partners/{partnersId}:editAssignedTargetingOptions
 /// Edits targeting options under a single partner. The operation will delete the assigned targeting options provided in BulkEditPartnerAssignedTargetingOptionsRequest.`deleteRequests` and then create the assigned targeting options provided in BulkEditPartnerAssignedTargetingOptionsRequest.`createRequests` .
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -17415,7 +26468,7 @@ pub fn displayvideo_partners_edit_assigned_targeting_options_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/partners/{partnersId}:editAssignedTargetingOptions
+/// POST v4/partners/{partnersId}:editAssignedTargetingOptions
 /// Edits targeting options under a single partner. The operation will delete the assigned targeting options provided in BulkEditPartnerAssignedTargetingOptionsRequest.`deleteRequests` and then create the assigned targeting options provided in BulkEditPartnerAssignedTargetingOptionsRequest.`createRequests` .
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -17454,11 +26507,9 @@ pub fn displayvideo_partners_edit_assigned_targeting_options_execute(
 pub struct DisplayvideoPartnersEditAssignedTargetingOptionsArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
-    /// Request body.
-    pub body: BulkEditPartnerAssignedTargetingOptionsRequest,
 }
 
-/// GET v4/partners/{partnersId}:editAssignedTargetingOptions
+/// POST v4/partners/{partnersId}:editAssignedTargetingOptions
 /// Edits targeting options under a single partner. The operation will delete the assigned targeting options provided in BulkEditPartnerAssignedTargetingOptionsRequest.`deleteRequests` and then create the assigned targeting options provided in BulkEditPartnerAssignedTargetingOptionsRequest.`createRequests` .
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -17480,11 +26531,8 @@ pub fn displayvideo_partners_edit_assigned_targeting_options(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_partners_edit_assigned_targeting_options_builder(
-        client,
-        &args.partnerId,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_partners_edit_assigned_targeting_options_builder(client, &args.partnerId)?;
     displayvideo_partners_edit_assigned_targeting_options_execute(builder)
 }
 
@@ -17499,7 +26547,10 @@ pub fn displayvideo_partners_get_builder(
     partnerId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/partners/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/partners/{}",
+        partnerId,
+    );
 
     // Build request
     let builder = client
@@ -17650,10 +26701,10 @@ pub fn displayvideo_partners_get(
 
 pub fn displayvideo_partners_list_builder(
     client: &SimpleHttpClient,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/partners",);
@@ -17796,13 +26847,13 @@ pub fn displayvideo_partners_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct DisplayvideoPartnersListArgs {
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v4/partners
@@ -17835,7 +26886,7 @@ pub fn displayvideo_partners_list(
     displayvideo_partners_list_execute(builder)
 }
 
-/// GET v4/partners/{partnersId}/channels
+/// POST v4/partners/{partnersId}/channels
 /// Creates a new channel. Returns the newly created channel if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -17844,11 +26895,13 @@ pub fn displayvideo_partners_list(
 pub fn displayvideo_partners_channels_create_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
-    advertiserId: &Option<String>,
-    body: &Channel,
+    advertiserId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/partners/{}/channels",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/partners/{}/channels",
+        partnerId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -17863,15 +26916,13 @@ pub fn displayvideo_partners_channels_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/partners/{partnersId}/channels
+/// POST v4/partners/{partnersId}/channels
 /// Creates a new channel. Returns the newly created channel if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -17945,7 +26996,7 @@ pub fn displayvideo_partners_channels_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/partners/{partnersId}/channels
+/// POST v4/partners/{partnersId}/channels
 /// Creates a new channel. Returns the newly created channel if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -17981,12 +27032,10 @@ pub struct DisplayvideoPartnersChannelsCreateArgs {
     /// Path parameter: partnerId
     pub partnerId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Request body.
-    pub body: Channel,
+    pub advertiserId: Option<Option<String>>,
 }
 
-/// GET v4/partners/{partnersId}/channels
+/// POST v4/partners/{partnersId}/channels
 /// Creates a new channel. Returns the newly created channel if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -18004,12 +27053,8 @@ pub fn displayvideo_partners_channels_create(
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_partners_channels_create_builder(
-        client,
-        &args.partnerId,
-        &args.advertiserId,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_partners_channels_create_builder(client, &args.partnerId, &args.advertiserId)?;
     displayvideo_partners_channels_create_execute(builder)
 }
 
@@ -18023,10 +27068,13 @@ pub fn displayvideo_partners_channels_get_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
     channelId: &String,
-    advertiserId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/partners/{}/channels/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}",
+        partnerId, channelId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -18159,7 +27207,7 @@ pub struct DisplayvideoPartnersChannelsGetArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
 }
 
 /// GET v4/partners/{partnersId}/channels/{channelsId}
@@ -18189,7 +27237,214 @@ pub fn displayvideo_partners_channels_get(
     displayvideo_partners_channels_get_execute(builder)
 }
 
-/// GET v4/partners/{partnersId}/channels/{channelId}
+/// GET v4/partners/{partnersId}/channels
+/// Lists channels for a partner or advertiser.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_partners_channels_list_execute()` to send, or `displayvideo_partners_channels_list` for simplest API.
+
+pub fn displayvideo_partners_channels_list_builder(
+    client: &SimpleHttpClient,
+    partnerId: &String,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/partners/{}/channels",
+        partnerId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = advertiserId.as_ref() {
+        query_parts.push(format!("advertiserId={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/partners/{partnersId}/channels
+/// Lists channels for a partner or advertiser.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_partners_channels_list_execute()` or `displayvideo_partners_channels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_partners_channels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_partners_channels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListChannelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListChannelsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/partners/{partnersId}/channels
+/// Lists channels for a partner or advertiser.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_partners_channels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_partners_channels_list_task()`.
+/// For the simplest API, use `displayvideo_partners_channels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_partners_channels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_partners_channels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListChannelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_partners_channels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_partners_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersChannelsListArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/partners/{partnersId}/channels
+/// Lists channels for a partner or advertiser.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_partners_channels_list_builder()` + `displayvideo_partners_channels_list_execute()`.
+/// For task-level control, use `displayvideo_partners_channels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_partners_channels_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoPartnersChannelsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListChannelsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_partners_channels_list_builder(
+        client,
+        &args.partnerId,
+        &args.advertiserId,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_partners_channels_list_execute(builder)
+}
+
+/// PATCH v4/partners/{partnersId}/channels/{channelId}
 /// Updates a channel. Returns the updated channel if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -18199,14 +27454,13 @@ pub fn displayvideo_partners_channels_patch_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
     channelId: &String,
-    advertiserId: &Option<String>,
-    updateMask: &Option<String>,
-    body: &Channel,
+    advertiserId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}",
-        channelId,
+        partnerId, channelId,
     );
 
     // Build request
@@ -18225,15 +27479,13 @@ pub fn displayvideo_partners_channels_patch_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .patch(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/partners/{partnersId}/channels/{channelId}
+/// PATCH v4/partners/{partnersId}/channels/{channelId}
 /// Updates a channel. Returns the updated channel if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -18307,7 +27559,7 @@ pub fn displayvideo_partners_channels_patch_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/partners/{partnersId}/channels/{channelId}
+/// PATCH v4/partners/{partnersId}/channels/{channelId}
 /// Updates a channel. Returns the updated channel if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -18345,14 +27597,12 @@ pub struct DisplayvideoPartnersChannelsPatchArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Channel,
+    pub updateMask: Option<Option<String>>,
 }
 
-/// GET v4/partners/{partnersId}/channels/{channelId}
+/// PATCH v4/partners/{partnersId}/channels/{channelId}
 /// Updates a channel. Returns the updated channel if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -18376,12 +27626,11 @@ pub fn displayvideo_partners_channels_patch(
         &args.channelId,
         &args.advertiserId,
         &args.updateMask,
-        &args.body,
     )?;
     displayvideo_partners_channels_patch_execute(builder)
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites:bulkEdit
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites:bulkEdit
 /// Bulk edits sites under a single channel. The operation will delete the sites provided in BulkEditSitesRequest.deleted_sites and then create the sites provided in BulkEditSitesRequest.created_sites.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -18391,25 +27640,22 @@ pub fn displayvideo_partners_channels_sites_bulk_edit_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
     channelId: &String,
-    body: &BulkEditSitesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites:bulkEdit",
-        partnerId,
+        partnerId, channelId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites:bulkEdit
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites:bulkEdit
 /// Bulk edits sites under a single channel. The operation will delete the sites provided in BulkEditSitesRequest.deleted_sites and then create the sites provided in BulkEditSitesRequest.created_sites.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -18483,7 +27729,7 @@ pub fn displayvideo_partners_channels_sites_bulk_edit_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites:bulkEdit
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites:bulkEdit
 /// Bulk edits sites under a single channel. The operation will delete the sites provided in BulkEditSitesRequest.deleted_sites and then create the sites provided in BulkEditSitesRequest.created_sites.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -18522,11 +27768,9 @@ pub struct DisplayvideoPartnersChannelsSitesBulkEditArgs {
     pub partnerId: String,
     /// Path parameter: channelId
     pub channelId: String,
-    /// Request body.
-    pub body: BulkEditSitesRequest,
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites:bulkEdit
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites:bulkEdit
 /// Bulk edits sites under a single channel. The operation will delete the sites provided in BulkEditSitesRequest.deleted_sites and then create the sites provided in BulkEditSitesRequest.created_sites.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -18550,12 +27794,11 @@ pub fn displayvideo_partners_channels_sites_bulk_edit(
         client,
         &args.partnerId,
         &args.channelId,
-        &args.body,
     )?;
     displayvideo_partners_channels_sites_bulk_edit_execute(builder)
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites
 /// Creates a site in a channel.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -18565,13 +27808,12 @@ pub fn displayvideo_partners_channels_sites_create_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
     channelId: &String,
-    advertiserId: &Option<String>,
-    body: &Site,
+    advertiserId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites",
-        partnerId,
+        partnerId, channelId,
     );
 
     // Build request
@@ -18587,15 +27829,13 @@ pub fn displayvideo_partners_channels_sites_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites
 /// Creates a site in a channel.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -18669,7 +27909,7 @@ pub fn displayvideo_partners_channels_sites_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites
 /// Creates a site in a channel.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -18707,12 +27947,10 @@ pub struct DisplayvideoPartnersChannelsSitesCreateArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
-    /// Request body.
-    pub body: Site,
+    pub advertiserId: Option<Option<String>>,
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites
 /// Creates a site in a channel.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -18735,12 +27973,11 @@ pub fn displayvideo_partners_channels_sites_create(
         &args.partnerId,
         &args.channelId,
         &args.advertiserId,
-        &args.body,
     )?;
     displayvideo_partners_channels_sites_create_execute(builder)
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites/{sitesId}
+/// DELETE v4/partners/{partnerId}/channels/{channelsId}/sites/{sitesId}
 /// Deletes a site from a channel.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -18751,12 +27988,12 @@ pub fn displayvideo_partners_channels_sites_delete_builder(
     partnerId: &String,
     channelId: &String,
     urlOrAppId: &String,
-    advertiserId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites/{}",
-        partnerId,
+        partnerId, channelId, urlOrAppId,
     );
 
     // Build request
@@ -18772,13 +28009,13 @@ pub fn displayvideo_partners_channels_sites_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites/{sitesId}
+/// DELETE v4/partners/{partnerId}/channels/{channelsId}/sites/{sitesId}
 /// Deletes a site from a channel.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -18852,7 +28089,7 @@ pub fn displayvideo_partners_channels_sites_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites/{sitesId}
+/// DELETE v4/partners/{partnerId}/channels/{channelsId}/sites/{sitesId}
 /// Deletes a site from a channel.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -18892,10 +28129,10 @@ pub struct DisplayvideoPartnersChannelsSitesDeleteArgs {
     /// Path parameter: urlOrAppId
     pub urlOrAppId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites/{sitesId}
+/// DELETE v4/partners/{partnerId}/channels/{channelsId}/sites/{sitesId}
 /// Deletes a site from a channel.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -18933,15 +28170,17 @@ pub fn displayvideo_partners_channels_sites_list_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
     channelId: &String,
-    advertiserId: &Option<String>,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites",
+        partnerId, channelId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -19088,15 +28327,15 @@ pub struct DisplayvideoPartnersChannelsSitesListArgs {
     /// Path parameter: channelId
     pub channelId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v4/partners/{partnersId}/channels/{channelsId}/sites
@@ -19132,7 +28371,7 @@ pub fn displayvideo_partners_channels_sites_list(
     displayvideo_partners_channels_sites_list_execute(builder)
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites:replace
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites:replace
 /// Replaces all of the sites under a single channel. The operation will replace the sites under a channel with the sites provided in ReplaceSitesRequest.new_sites. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -19142,25 +28381,22 @@ pub fn displayvideo_partners_channels_sites_replace_builder(
     client: &SimpleHttpClient,
     partnerId: &String,
     channelId: &String,
-    body: &ReplaceSitesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/channels/{}/sites:replace",
-        partnerId,
+        partnerId, channelId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites:replace
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites:replace
 /// Replaces all of the sites under a single channel. The operation will replace the sites under a channel with the sites provided in ReplaceSitesRequest.new_sites. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -19234,7 +28470,7 @@ pub fn displayvideo_partners_channels_sites_replace_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites:replace
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites:replace
 /// Replaces all of the sites under a single channel. The operation will replace the sites under a channel with the sites provided in ReplaceSitesRequest.new_sites. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -19273,11 +28509,9 @@ pub struct DisplayvideoPartnersChannelsSitesReplaceArgs {
     pub partnerId: String,
     /// Path parameter: channelId
     pub channelId: String,
-    /// Request body.
-    pub body: ReplaceSitesRequest,
 }
 
-/// GET v4/partners/{partnerId}/channels/{channelsId}/sites:replace
+/// POST v4/partners/{partnerId}/channels/{channelsId}/sites:replace
 /// Replaces all of the sites under a single channel. The operation will replace the sites under a channel with the sites provided in ReplaceSitesRequest.new_sites. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -19301,12 +28535,11 @@ pub fn displayvideo_partners_channels_sites_replace(
         client,
         &args.partnerId,
         &args.channelId,
-        &args.body,
     )?;
     displayvideo_partners_channels_sites_replace_execute(builder)
 }
 
-/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to a partner. Returns the assigned targeting option if successful.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -19316,24 +28549,23 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create_b
     client: &SimpleHttpClient,
     partnerId: &String,
     targetingType: &String,
-    body: &AssignedTargetingOption,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/targetingTypes/{}/assignedTargetingOptions",
+        partnerId,
+        targetingType,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to a partner. Returns the assigned targeting option if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -19407,7 +28639,7 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create_t
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to a partner. Returns the assigned targeting option if successful.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -19447,11 +28679,9 @@ pub struct DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsCreateArgs 
     pub partnerId: String,
     /// Path parameter: targetingType
     pub targetingType: String,
-    /// Request body.
-    pub body: AssignedTargetingOption,
 }
 
-/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// POST v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to a partner. Returns the assigned targeting option if successful.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -19475,12 +28705,11 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create(
         client,
         &args.partnerId,
         &args.targetingType,
-        &args.body,
     )?;
     displayvideo_partners_targeting_types_assigned_targeting_options_create_execute(builder)
 }
 
-/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from a partner.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -19495,17 +28724,20 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete_b
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/partners/{}/targetingTypes/{}/assignedTargetingOptions/{}",
+        partnerId,
+        targetingType,
+        assignedTargetingOptionId,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from a partner.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -19579,7 +28811,7 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete_t
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from a partner.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -19621,7 +28853,7 @@ pub struct DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsDeleteArgs 
     pub assignedTargetingOptionId: String,
 }
 
-/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// DELETE v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from a partner.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -19648,7 +28880,391 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete(
     displayvideo_partners_targeting_types_assigned_targeting_options_delete_execute(builder)
 }
 
-/// GET v4/sdfdownloadtasks
+/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to a partner.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_partners_targeting_types_assigned_targeting_options_get_execute()` to send, or `displayvideo_partners_targeting_types_assigned_targeting_options_get` for simplest API.
+
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get_builder(
+    client: &SimpleHttpClient,
+    partnerId: &String,
+    targetingType: &String,
+    assignedTargetingOptionId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/partners/{}/targetingTypes/{}/assignedTargetingOptions/{}",
+        partnerId,
+        targetingType,
+        assignedTargetingOptionId,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to a partner.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_partners_targeting_types_assigned_targeting_options_get_execute()` or `displayvideo_partners_targeting_types_assigned_targeting_options_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_partners_targeting_types_assigned_targeting_options_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AssignedTargetingOption>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AssignedTargetingOption = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to a partner.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_partners_targeting_types_assigned_targeting_options_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_partners_targeting_types_assigned_targeting_options_get_task()`.
+/// For the simplest API, use `displayvideo_partners_targeting_types_assigned_targeting_options_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_partners_targeting_types_assigned_targeting_options_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_partners_targeting_types_assigned_targeting_options_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_partners_targeting_types_assigned_targeting_options_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsGetArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
+/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
+/// Gets a single targeting option assigned to a partner.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_partners_targeting_types_assigned_targeting_options_get_builder()` + `displayvideo_partners_targeting_types_assigned_targeting_options_get_execute()`.
+/// For task-level control, use `displayvideo_partners_targeting_types_assigned_targeting_options_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_partners_targeting_types_assigned_targeting_options_get_builder(
+        client,
+        &args.partnerId,
+        &args.targetingType,
+        &args.assignedTargetingOptionId,
+    )?;
+    displayvideo_partners_targeting_types_assigned_targeting_options_get_execute(builder)
+}
+
+/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to a partner.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_partners_targeting_types_assigned_targeting_options_list_execute()` to send, or `displayvideo_partners_targeting_types_assigned_targeting_options_list` for simplest API.
+
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list_builder(
+    client: &SimpleHttpClient,
+    partnerId: &String,
+    targetingType: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/partners/{}/targetingTypes/{}/assignedTargetingOptions",
+        partnerId,
+        targetingType,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to a partner.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_partners_targeting_types_assigned_targeting_options_list_execute()` or `displayvideo_partners_targeting_types_assigned_targeting_options_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_partners_targeting_types_assigned_targeting_options_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPartnerAssignedTargetingOptionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPartnerAssignedTargetingOptionsResponse =
+                    serde_json::from_str(&body)
+                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to a partner.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_partners_targeting_types_assigned_targeting_options_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_partners_targeting_types_assigned_targeting_options_list_task()`.
+/// For the simplest API, use `displayvideo_partners_targeting_types_assigned_targeting_options_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_partners_targeting_types_assigned_targeting_options_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPartnerAssignedTargetingOptionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_partners_targeting_types_assigned_targeting_options_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_partners_targeting_types_assigned_targeting_options_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
+/// Lists the targeting options assigned to a partner.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_partners_targeting_types_assigned_targeting_options_list_builder()` + `displayvideo_partners_targeting_types_assigned_targeting_options_list_execute()`.
+/// For task-level control, use `displayvideo_partners_targeting_types_assigned_targeting_options_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPartnerAssignedTargetingOptionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_partners_targeting_types_assigned_targeting_options_list_builder(
+        client,
+        &args.partnerId,
+        &args.targetingType,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_partners_targeting_types_assigned_targeting_options_list_execute(builder)
+}
+
+/// POST v4/sdfdownloadtasks
 /// Creates an SDF Download Task. Returns an Operation. An SDF Download Task is a long-running, asynchronous operation. The metadata type of this operation is SdfDownloadTaskMetadata. If the request is successful, the response type of the operation is SdfDownloadTask. The response will not include the download files, which must be retrieved with media.download. The state of operation can be retrieved with sdfdownloadtasks.operations.get. Any errors can be found in the error.message. Note that error.details is expected to be empty.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -19656,22 +29272,19 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete(
 
 pub fn displayvideo_sdfdownloadtasks_create_builder(
     client: &SimpleHttpClient,
-    body: &CreateSdfDownloadTaskRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/sdfdownloadtasks",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/sdfdownloadtasks
+/// POST v4/sdfdownloadtasks
 /// Creates an SDF Download Task. Returns an Operation. An SDF Download Task is a long-running, asynchronous operation. The metadata type of this operation is SdfDownloadTaskMetadata. If the request is successful, the response type of the operation is SdfDownloadTask. The response will not include the download files, which must be retrieved with media.download. The state of operation can be retrieved with sdfdownloadtasks.operations.get. Any errors can be found in the error.message. Note that error.details is expected to be empty.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -19745,7 +29358,7 @@ pub fn displayvideo_sdfdownloadtasks_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/sdfdownloadtasks
+/// POST v4/sdfdownloadtasks
 /// Creates an SDF Download Task. Returns an Operation. An SDF Download Task is a long-running, asynchronous operation. The metadata type of this operation is SdfDownloadTaskMetadata. If the request is successful, the response type of the operation is SdfDownloadTask. The response will not include the download files, which must be retrieved with media.download. The state of operation can be retrieved with sdfdownloadtasks.operations.get. Any errors can be found in the error.message. Note that error.details is expected to be empty.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -19775,14 +29388,7 @@ pub fn displayvideo_sdfdownloadtasks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`displayvideo_sdfdownloadtasks_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DisplayvideoSdfdownloadtasksCreateArgs {
-    /// Request body.
-    pub body: CreateSdfDownloadTaskRequest,
-}
-
-/// GET v4/sdfdownloadtasks
+/// POST v4/sdfdownloadtasks
 /// Creates an SDF Download Task. Returns an Operation. An SDF Download Task is a long-running, asynchronous operation. The metadata type of this operation is SdfDownloadTaskMetadata. If the request is successful, the response type of the operation is SdfDownloadTask. The response will not include the download files, which must be retrieved with media.download. The state of operation can be retrieved with sdfdownloadtasks.operations.get. Any errors can be found in the error.message. Note that error.details is expected to be empty.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -19795,12 +29401,11 @@ pub struct DisplayvideoSdfdownloadtasksCreateArgs {
 
 pub fn displayvideo_sdfdownloadtasks_create(
     client: &SimpleHttpClient,
-    args: &DisplayvideoSdfdownloadtasksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_sdfdownloadtasks_create_builder(client, &args.body)?;
+    let builder = displayvideo_sdfdownloadtasks_create_builder(client)?;
     displayvideo_sdfdownloadtasks_create_execute(builder)
 }
 
@@ -19815,8 +29420,10 @@ pub fn displayvideo_sdfdownloadtasks_operations_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/sdfdownloadtasks/operations/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/sdfdownloadtasks/operations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -19970,8 +29577,10 @@ pub fn displayvideo_sdfuploadtasks_operations_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/sdfuploadtasks/operations/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/sdfuploadtasks/operations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -20124,11 +29733,13 @@ pub fn displayvideo_targeting_types_targeting_options_get_builder(
     client: &SimpleHttpClient,
     targetingType: &String,
     targetingOptionId: &String,
-    advertiserId: &Option<String>,
+    advertiserId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/targetingTypes/{}/targetingOptions/{}",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/targetingTypes/{}/targetingOptions/{}",
+        targetingType, targetingOptionId,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -20263,7 +29874,7 @@ pub struct DisplayvideoTargetingTypesTargetingOptionsGetArgs {
     /// Path parameter: targetingOptionId
     pub targetingOptionId: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
 }
 
 /// GET v4/targetingTypes/{targetingTypesId}/targetingOptions/{targetingOptionsId}
@@ -20304,15 +29915,17 @@ pub fn displayvideo_targeting_types_targeting_options_get(
 pub fn displayvideo_targeting_types_targeting_options_list_builder(
     client: &SimpleHttpClient,
     targetingType: &String,
-    advertiserId: &Option<String>,
-    filter: &Option<String>,
-    orderBy: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    advertiserId: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/targetingTypes/{}/targetingOptions",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/targetingTypes/{}/targetingOptions",
+        targetingType,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -20459,15 +30072,15 @@ pub struct DisplayvideoTargetingTypesTargetingOptionsListArgs {
     /// Path parameter: targetingType
     pub targetingType: String,
     /// Query parameter: advertiserId
-    pub advertiserId: Option<String>,
+    pub advertiserId: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: orderBy
-    pub orderBy: Option<String>,
+    pub orderBy: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v4/targetingTypes/{targetingTypesId}/targetingOptions
@@ -20504,7 +30117,7 @@ pub fn displayvideo_targeting_types_targeting_options_list(
     displayvideo_targeting_types_targeting_options_list_execute(builder)
 }
 
-/// GET v4/targetingTypes/{targetingTypesId}/targetingOptions:search
+/// POST v4/targetingTypes/{targetingTypesId}/targetingOptions:search
 /// Searches for targeting options of a given type based on the given search terms.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -20513,24 +30126,22 @@ pub fn displayvideo_targeting_types_targeting_options_list(
 pub fn displayvideo_targeting_types_targeting_options_search_builder(
     client: &SimpleHttpClient,
     targetingType: &String,
-    body: &SearchTargetingOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://displayvideo.googleapis.com/v4/targetingTypes/{}/targetingOptions:search",
+        targetingType,
     );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/targetingTypes/{targetingTypesId}/targetingOptions:search
+/// POST v4/targetingTypes/{targetingTypesId}/targetingOptions:search
 /// Searches for targeting options of a given type based on the given search terms.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -20604,7 +30215,7 @@ pub fn displayvideo_targeting_types_targeting_options_search_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/targetingTypes/{targetingTypesId}/targetingOptions:search
+/// POST v4/targetingTypes/{targetingTypesId}/targetingOptions:search
 /// Searches for targeting options of a given type based on the given search terms.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -20643,11 +30254,9 @@ pub fn displayvideo_targeting_types_targeting_options_search_execute(
 pub struct DisplayvideoTargetingTypesTargetingOptionsSearchArgs {
     /// Path parameter: targetingType
     pub targetingType: String,
-    /// Request body.
-    pub body: SearchTargetingOptionsRequest,
 }
 
-/// GET v4/targetingTypes/{targetingTypesId}/targetingOptions:search
+/// POST v4/targetingTypes/{targetingTypesId}/targetingOptions:search
 /// Searches for targeting options of a given type based on the given search terms.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -20669,15 +30278,12 @@ pub fn displayvideo_targeting_types_targeting_options_search(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_targeting_types_targeting_options_search_builder(
-        client,
-        &args.targetingType,
-        &args.body,
-    )?;
+    let builder =
+        displayvideo_targeting_types_targeting_options_search_builder(client, &args.targetingType)?;
     displayvideo_targeting_types_targeting_options_search_execute(builder)
 }
 
-/// GET v4/users/{usersId}:bulkEditAssignedUserRoles
+/// POST v4/users/{usersId}:bulkEditAssignedUserRoles
 /// Bulk edits user roles for a user. The operation will delete the assigned user roles provided in BulkEditAssignedUserRolesRequest.`deletedAssignedUserRoles` and then assign the user roles provided in BulkEditAssignedUserRolesRequest.`createdAssignedUserRoles`. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -20686,23 +30292,22 @@ pub fn displayvideo_targeting_types_targeting_options_search(
 pub fn displayvideo_users_bulk_edit_assigned_user_roles_builder(
     client: &SimpleHttpClient,
     userId: &String,
-    body: &BulkEditAssignedUserRolesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://displayvideo.googleapis.com/v4/users/{}:bulkEditAssignedUserRoles",);
+    let endpoint_url = format!(
+        "https://displayvideo.googleapis.com/v4/users/{}:bulkEditAssignedUserRoles",
+        userId,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/users/{usersId}:bulkEditAssignedUserRoles
+/// POST v4/users/{usersId}:bulkEditAssignedUserRoles
 /// Bulk edits user roles for a user. The operation will delete the assigned user roles provided in BulkEditAssignedUserRolesRequest.`deletedAssignedUserRoles` and then assign the user roles provided in BulkEditAssignedUserRolesRequest.`createdAssignedUserRoles`. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -20776,7 +30381,7 @@ pub fn displayvideo_users_bulk_edit_assigned_user_roles_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/users/{usersId}:bulkEditAssignedUserRoles
+/// POST v4/users/{usersId}:bulkEditAssignedUserRoles
 /// Bulk edits user roles for a user. The operation will delete the assigned user roles provided in BulkEditAssignedUserRolesRequest.`deletedAssignedUserRoles` and then assign the user roles provided in BulkEditAssignedUserRolesRequest.`createdAssignedUserRoles`. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -20815,11 +30420,9 @@ pub fn displayvideo_users_bulk_edit_assigned_user_roles_execute(
 pub struct DisplayvideoUsersBulkEditAssignedUserRolesArgs {
     /// Path parameter: userId
     pub userId: String,
-    /// Request body.
-    pub body: BulkEditAssignedUserRolesRequest,
 }
 
-/// GET v4/users/{usersId}:bulkEditAssignedUserRoles
+/// POST v4/users/{usersId}:bulkEditAssignedUserRoles
 /// Bulk edits user roles for a user. The operation will delete the assigned user roles provided in BulkEditAssignedUserRolesRequest.`deletedAssignedUserRoles` and then assign the user roles provided in BulkEditAssignedUserRolesRequest.`createdAssignedUserRoles`. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -20841,12 +30444,11 @@ pub fn displayvideo_users_bulk_edit_assigned_user_roles(
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_users_bulk_edit_assigned_user_roles_builder(client, &args.userId, &args.body)?;
+    let builder = displayvideo_users_bulk_edit_assigned_user_roles_builder(client, &args.userId)?;
     displayvideo_users_bulk_edit_assigned_user_roles_execute(builder)
 }
 
-/// GET v4/users
+/// POST v4/users
 /// Creates a new user. Returns the newly created user if successful. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -20854,22 +30456,19 @@ pub fn displayvideo_users_bulk_edit_assigned_user_roles(
 
 pub fn displayvideo_users_create_builder(
     client: &SimpleHttpClient,
-    body: &User,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v4/users
+/// POST v4/users
 /// Creates a new user. Returns the newly created user if successful. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -20943,7 +30542,7 @@ pub fn displayvideo_users_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/users
+/// POST v4/users
 /// Creates a new user. Returns the newly created user if successful. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -20973,14 +30572,7 @@ pub fn displayvideo_users_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`displayvideo_users_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DisplayvideoUsersCreateArgs {
-    /// Request body.
-    pub body: User,
-}
-
-/// GET v4/users
+/// POST v4/users
 /// Creates a new user. Returns the newly created user if successful. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -20993,16 +30585,15 @@ pub struct DisplayvideoUsersCreateArgs {
 
 pub fn displayvideo_users_create(
     client: &SimpleHttpClient,
-    args: &DisplayvideoUsersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_users_create_builder(client, &args.body)?;
+    let builder = displayvideo_users_create_builder(client)?;
     displayvideo_users_create_execute(builder)
 }
 
-/// GET v4/users/{usersId}
+/// DELETE v4/users/{usersId}
 /// Deletes a user. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -21013,17 +30604,17 @@ pub fn displayvideo_users_delete_builder(
     userId: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users/{}",);
+    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users/{}", userId,);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v4/users/{usersId}
+/// DELETE v4/users/{usersId}
 /// Deletes a user. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -21097,7 +30688,7 @@ pub fn displayvideo_users_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v4/users/{usersId}
+/// DELETE v4/users/{usersId}
 /// Deletes a user. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -21134,7 +30725,7 @@ pub struct DisplayvideoUsersDeleteArgs {
     pub userId: String,
 }
 
-/// GET v4/users/{usersId}
+/// DELETE v4/users/{usersId}
 /// Deletes a user. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -21154,4 +30745,5346 @@ pub fn displayvideo_users_delete(
 > {
     let builder = displayvideo_users_delete_builder(client, &args.userId)?;
     displayvideo_users_delete_execute(builder)
+}
+
+/// GET v4/users/{usersId}
+/// Gets a user. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_users_get_execute()` to send, or `displayvideo_users_get` for simplest API.
+
+pub fn displayvideo_users_get_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users/{}", userId,);
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/users/{usersId}
+/// Gets a user. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_users_get_execute()` or `displayvideo_users_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_users_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_users_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<User>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: User = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/users/{usersId}
+/// Gets a user. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_users_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_users_get_task()`.
+/// For the simplest API, use `displayvideo_users_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_users_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_users_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_users_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoUsersGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
+/// GET v4/users/{usersId}
+/// Gets a user. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_users_get_builder()` + `displayvideo_users_get_execute()`.
+/// For task-level control, use `displayvideo_users_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_users_get(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoUsersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_users_get_builder(client, &args.userId)?;
+    displayvideo_users_get_execute(builder)
+}
+
+/// GET v4/users
+/// Lists users that are accessible to the current user. If two users have user roles on the same partner or advertiser, they can access each other. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_users_list_execute()` to send, or `displayvideo_users_list` for simplest API.
+
+pub fn displayvideo_users_list_builder(
+    client: &SimpleHttpClient,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v4/users
+/// Lists users that are accessible to the current user. If two users have user roles on the same partner or advertiser, they can access each other. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_users_list_execute()` or `displayvideo_users_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_users_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_users_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUsersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListUsersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v4/users
+/// Lists users that are accessible to the current user. If two users have user roles on the same partner or advertiser, they can access each other. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_users_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_users_list_task()`.
+/// For the simplest API, use `displayvideo_users_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_users_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_users_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = displayvideo_users_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoUsersListArgs {
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v4/users
+/// Lists users that are accessible to the current user. If two users have user roles on the same partner or advertiser, they can access each other. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_users_list_builder()` + `displayvideo_users_list_execute()`.
+/// For task-level control, use `displayvideo_users_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_users_list(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoUsersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_users_list_builder(
+        client,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    displayvideo_users_list_execute(builder)
+}
+
+/// PATCH v4/users/{usersId}
+/// Updates an existing user. Returns the updated user if successful. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `displayvideo_users_patch_execute()` to send, or `displayvideo_users_patch` for simplest API.
+
+pub fn displayvideo_users_patch_builder(
+    client: &SimpleHttpClient,
+    userId: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://displayvideo.googleapis.com/v4/users/{}", userId,);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v4/users/{usersId}
+/// Updates an existing user. Returns the updated user if successful. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `displayvideo_users_patch_execute()` or `displayvideo_users_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_users_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_users_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<User>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: User = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v4/users/{usersId}
+/// Updates an existing user. Returns the updated user if successful. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `displayvideo_users_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `displayvideo_users_patch_task()`.
+/// For the simplest API, use `displayvideo_users_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `displayvideo_users_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn displayvideo_users_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = displayvideo_users_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`displayvideo_users_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoUsersPatchArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v4/users/{usersId}
+/// Updates an existing user. Returns the updated user if successful. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `displayvideo_users_patch_builder()` + `displayvideo_users_patch_execute()`.
+/// For task-level control, use `displayvideo_users_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn displayvideo_users_patch(
+    client: &SimpleHttpClient,
+    args: &DisplayvideoUsersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = displayvideo_users_patch_builder(client, &args.userId, &args.updateMask)?;
+    displayvideo_users_patch_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AuditAdvertiserResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AuditAdvertiserResponse with DisplayvideoAdvertisersAuditArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAuditArgs> for AuditAdvertiserResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAuditArgs) -> String {
+        format!(
+            "gcp::displayvideo::AuditAdvertiserResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AuditAdvertiserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Advertiser
+// =============================================================================
+
+/// ResourceIdentifier implementation for Advertiser with DisplayvideoAdvertisersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCreateArgs> for Advertiser {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCreateArgs) -> String {
+        "gcp::displayvideo::Advertiser".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Advertiser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersDeleteArgs) -> String {
+        format!("gcp::displayvideo::Empty/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkEditAdvertiserAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkEditAdvertiserAssignedTargetingOptionsResponse with DisplayvideoAdvertisersEditAssignedTargetingOptionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersEditAssignedTargetingOptionsArgs>
+    for BulkEditAdvertiserAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersEditAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkEditAdvertiserAssignedTargetingOptionsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkEditAdvertiserAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Advertiser
+// =============================================================================
+
+/// ResourceIdentifier implementation for Advertiser with DisplayvideoAdvertisersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersGetArgs> for Advertiser {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersGetArgs) -> String {
+        format!("gcp::displayvideo::Advertiser/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Advertiser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdvertisersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdvertisersResponse with DisplayvideoAdvertisersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersListArgs> for ListAdvertisersResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersListArgs) -> String {
+        "gcp::displayvideo::ListAdvertisersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListAdvertisersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkListAdvertiserAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkListAdvertiserAssignedTargetingOptionsResponse with DisplayvideoAdvertisersListAssignedTargetingOptionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersListAssignedTargetingOptionsArgs>
+    for BulkListAdvertiserAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersListAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkListAdvertiserAssignedTargetingOptionsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkListAdvertiserAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Advertiser
+// =============================================================================
+
+/// ResourceIdentifier implementation for Advertiser with DisplayvideoAdvertisersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersPatchArgs> for Advertiser {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersPatchArgs) -> String {
+        format!("gcp::displayvideo::Advertiser/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Advertiser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkCreateAdAssetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkCreateAdAssetsResponse with DisplayvideoAdvertisersAdAssetsBulkCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdAssetsBulkCreateArgs>
+    for BulkCreateAdAssetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdAssetsBulkCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkCreateAdAssetsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkCreateAdAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdAsset
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdAsset with DisplayvideoAdvertisersAdAssetsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdAssetsCreateArgs> for AdAsset {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdAssetsCreateArgs) -> String {
+        format!("gcp::displayvideo::AdAsset/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AdAsset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdAsset
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdAsset with DisplayvideoAdvertisersAdAssetsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdAssetsGetArgs> for AdAsset {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdAssetsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::AdAsset/{}/{}",
+            input.advertiserId, input.adAssetId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AdAsset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdAssetsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdAssetsResponse with DisplayvideoAdvertisersAdAssetsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdAssetsListArgs> for ListAdAssetsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdAssetsListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListAdAssetsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListAdAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadAdAssetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadAdAssetResponse with DisplayvideoAdvertisersAdAssetsUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdAssetsUploadArgs> for UploadAdAssetResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdAssetsUploadArgs) -> String {
+        format!(
+            "gcp::displayvideo::UploadAdAssetResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::UploadAdAssetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdGroupAd
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdGroupAd with DisplayvideoAdvertisersAdGroupAdsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupAdsCreateArgs> for AdGroupAd {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupAdsCreateArgs) -> String {
+        format!("gcp::displayvideo::AdGroupAd/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AdGroupAd"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersAdGroupAdsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupAdsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupAdsDeleteArgs) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}",
+            input.advertiserId, input.adGroupAdId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdGroupAd
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdGroupAd with DisplayvideoAdvertisersAdGroupAdsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupAdsGetArgs> for AdGroupAd {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupAdsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::AdGroupAd/{}/{}",
+            input.advertiserId, input.adGroupAdId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AdGroupAd"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdGroupAdsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdGroupAdsResponse with DisplayvideoAdvertisersAdGroupAdsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupAdsListArgs> for ListAdGroupAdsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupAdsListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListAdGroupAdsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListAdGroupAdsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdGroupAd
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdGroupAd with DisplayvideoAdvertisersAdGroupAdsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupAdsPatchArgs> for AdGroupAd {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupAdsPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::AdGroupAd/{}/{}",
+            input.advertiserId, input.adGroupAdId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AdGroupAd"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkEditAdGroupAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkEditAdGroupAssignedTargetingOptionsResponse with DisplayvideoAdvertisersAdGroupsBulkEditAssignedTargetingOptionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsBulkEditAssignedTargetingOptionsArgs>
+    for BulkEditAdGroupAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsBulkEditAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkEditAdGroupAssignedTargetingOptionsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkEditAdGroupAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkListAdGroupAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkListAdGroupAssignedTargetingOptionsResponse with DisplayvideoAdvertisersAdGroupsBulkListAssignedTargetingOptionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsBulkListAssignedTargetingOptionsArgs>
+    for BulkListAdGroupAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsBulkListAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkListAdGroupAssignedTargetingOptionsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkListAdGroupAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdGroup with DisplayvideoAdvertisersAdGroupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsCreateArgs> for AdGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupsCreateArgs) -> String {
+        format!("gcp::displayvideo::AdGroup/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AdGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersAdGroupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupsDeleteArgs) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}",
+            input.advertiserId, input.adGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdGroup with DisplayvideoAdvertisersAdGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsGetArgs> for AdGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::AdGroup/{}/{}",
+            input.advertiserId, input.adGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AdGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdGroupsResponse with DisplayvideoAdvertisersAdGroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsListArgs> for ListAdGroupsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupsListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListAdGroupsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListAdGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AdGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for AdGroup with DisplayvideoAdvertisersAdGroupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsPatchArgs> for AdGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupsPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::AdGroup/{}/{}",
+            input.advertiserId, input.adGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AdGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AssignedTargetingOption
+// =============================================================================
+
+/// ResourceIdentifier implementation for AssignedTargetingOption with DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsCreateArgs,
+    > for AssignedTargetingOption
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::AssignedTargetingOption/{}/{}/{}",
+            input.advertiserId, input.adGroupId, input.targetingType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AssignedTargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsDeleteArgs,
+    > for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}/{}/{}",
+            input.advertiserId,
+            input.adGroupId,
+            input.targetingType,
+            input.assignedTargetingOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AssignedTargetingOption
+// =============================================================================
+
+/// ResourceIdentifier implementation for AssignedTargetingOption with DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsGetArgs>
+    for AssignedTargetingOption
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::AssignedTargetingOption/{}/{}/{}/{}",
+            input.advertiserId,
+            input.adGroupId,
+            input.targetingType,
+            input.assignedTargetingOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AssignedTargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdGroupAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdGroupAssignedTargetingOptionsResponse with DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsListArgs,
+    > for ListAdGroupAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListAdGroupAssignedTargetingOptionsResponse/{}/{}/{}",
+            input.advertiserId, input.adGroupId, input.targetingType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListAdGroupAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for YoutubeAssetAssociation
+// =============================================================================
+
+/// ResourceIdentifier implementation for YoutubeAssetAssociation with DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs,
+    > for YoutubeAssetAssociation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::YoutubeAssetAssociation/{}/{}/{}",
+            input.advertiserId, input.adGroupId, input.youtubeAssetType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::YoutubeAssetAssociation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsDeleteArgs,
+    > for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}/{}/{}",
+            input.advertiserId,
+            input.adGroupId,
+            input.youtubeAssetType,
+            input.youtubeAssetAssociationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListYoutubeAssetAssociationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListYoutubeAssetAssociationsResponse with DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsListArgs,
+    > for ListYoutubeAssetAssociationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListYoutubeAssetAssociationsResponse/{}/{}/{}",
+            input.advertiserId, input.adGroupId, input.youtubeAssetType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListYoutubeAssetAssociationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CreateAssetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateAssetResponse with DisplayvideoAdvertisersAssetsUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAssetsUploadArgs> for CreateAssetResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAssetsUploadArgs) -> String {
+        format!(
+            "gcp::displayvideo::CreateAssetResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CreateAssetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Campaign
+// =============================================================================
+
+/// ResourceIdentifier implementation for Campaign with DisplayvideoAdvertisersCampaignsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCampaignsCreateArgs> for Campaign {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCampaignsCreateArgs) -> String {
+        format!("gcp::displayvideo::Campaign/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Campaign"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersCampaignsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCampaignsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCampaignsDeleteArgs) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}",
+            input.advertiserId, input.campaignId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Campaign
+// =============================================================================
+
+/// ResourceIdentifier implementation for Campaign with DisplayvideoAdvertisersCampaignsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCampaignsGetArgs> for Campaign {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCampaignsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::Campaign/{}/{}",
+            input.advertiserId, input.campaignId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Campaign"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCampaignsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCampaignsResponse with DisplayvideoAdvertisersCampaignsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCampaignsListArgs> for ListCampaignsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCampaignsListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListCampaignsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListCampaignsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Campaign
+// =============================================================================
+
+/// ResourceIdentifier implementation for Campaign with DisplayvideoAdvertisersCampaignsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCampaignsPatchArgs> for Campaign {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCampaignsPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::Campaign/{}/{}",
+            input.advertiserId, input.campaignId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Campaign"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with DisplayvideoAdvertisersChannelsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsCreateArgs> for Channel {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersChannelsCreateArgs) -> String {
+        format!("gcp::displayvideo::Channel/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with DisplayvideoAdvertisersChannelsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsGetArgs> for Channel {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersChannelsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::Channel/{}/{}",
+            input.advertiserId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListChannelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListChannelsResponse with DisplayvideoAdvertisersChannelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsListArgs> for ListChannelsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersChannelsListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListChannelsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with DisplayvideoAdvertisersChannelsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsPatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersChannelsPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::Channel/{}/{}",
+            input.advertiserId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkEditSitesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkEditSitesResponse with DisplayvideoAdvertisersChannelsSitesBulkEditArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsSitesBulkEditArgs>
+    for BulkEditSitesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersChannelsSitesBulkEditArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkEditSitesResponse/{}/{}",
+            input.advertiserId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkEditSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Site
+// =============================================================================
+
+/// ResourceIdentifier implementation for Site with DisplayvideoAdvertisersChannelsSitesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsSitesCreateArgs> for Site {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersChannelsSitesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Site/{}/{}",
+            input.advertiserId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Site"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersChannelsSitesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsSitesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersChannelsSitesDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}/{}",
+            input.advertiserId, input.channelId, input.urlOrAppId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSitesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSitesResponse with DisplayvideoAdvertisersChannelsSitesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsSitesListArgs> for ListSitesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersChannelsSitesListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListSitesResponse/{}/{}",
+            input.advertiserId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReplaceSitesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReplaceSitesResponse with DisplayvideoAdvertisersChannelsSitesReplaceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsSitesReplaceArgs> for ReplaceSitesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersChannelsSitesReplaceArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ReplaceSitesResponse/{}/{}",
+            input.advertiserId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ReplaceSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Creative
+// =============================================================================
+
+/// ResourceIdentifier implementation for Creative with DisplayvideoAdvertisersCreativesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCreativesCreateArgs> for Creative {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCreativesCreateArgs) -> String {
+        format!("gcp::displayvideo::Creative/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Creative"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersCreativesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCreativesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCreativesDeleteArgs) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}",
+            input.advertiserId, input.creativeId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Creative
+// =============================================================================
+
+/// ResourceIdentifier implementation for Creative with DisplayvideoAdvertisersCreativesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCreativesGetArgs> for Creative {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCreativesGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::Creative/{}/{}",
+            input.advertiserId, input.creativeId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Creative"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCreativesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCreativesResponse with DisplayvideoAdvertisersCreativesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCreativesListArgs> for ListCreativesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCreativesListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListCreativesResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListCreativesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Creative
+// =============================================================================
+
+/// ResourceIdentifier implementation for Creative with DisplayvideoAdvertisersCreativesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCreativesPatchArgs> for Creative {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCreativesPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::Creative/{}/{}",
+            input.advertiserId, input.creativeId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Creative"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InsertionOrder
+// =============================================================================
+
+/// ResourceIdentifier implementation for InsertionOrder with DisplayvideoAdvertisersInsertionOrdersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInsertionOrdersCreateArgs> for InsertionOrder {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersInsertionOrdersCreateArgs,
+    ) -> String {
+        format!("gcp::displayvideo::InsertionOrder/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::InsertionOrder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersInsertionOrdersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInsertionOrdersDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersInsertionOrdersDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}",
+            input.advertiserId, input.insertionOrderId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InsertionOrder
+// =============================================================================
+
+/// ResourceIdentifier implementation for InsertionOrder with DisplayvideoAdvertisersInsertionOrdersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInsertionOrdersGetArgs> for InsertionOrder {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersInsertionOrdersGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::InsertionOrder/{}/{}",
+            input.advertiserId, input.insertionOrderId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::InsertionOrder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInsertionOrdersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInsertionOrdersResponse with DisplayvideoAdvertisersInsertionOrdersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInsertionOrdersListArgs>
+    for ListInsertionOrdersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersInsertionOrdersListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListInsertionOrdersResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListInsertionOrdersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InsertionOrder
+// =============================================================================
+
+/// ResourceIdentifier implementation for InsertionOrder with DisplayvideoAdvertisersInsertionOrdersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInsertionOrdersPatchArgs> for InsertionOrder {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersInsertionOrdersPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::InsertionOrder/{}/{}",
+            input.advertiserId, input.insertionOrderId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::InsertionOrder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInvoicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInvoicesResponse with DisplayvideoAdvertisersInvoicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInvoicesListArgs> for ListInvoicesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersInvoicesListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListInvoicesResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListInvoicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LookupInvoiceCurrencyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LookupInvoiceCurrencyResponse with DisplayvideoAdvertisersInvoicesLookupInvoiceCurrencyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInvoicesLookupInvoiceCurrencyArgs>
+    for LookupInvoiceCurrencyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersInvoicesLookupInvoiceCurrencyArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::LookupInvoiceCurrencyResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::LookupInvoiceCurrencyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkEditAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkEditAssignedTargetingOptionsResponse with DisplayvideoAdvertisersLineItemsBulkEditAssignedTargetingOptionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsBulkEditAssignedTargetingOptionsArgs>
+    for BulkEditAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsBulkEditAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkEditAssignedTargetingOptionsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkEditAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkListAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkListAssignedTargetingOptionsResponse with DisplayvideoAdvertisersLineItemsBulkListAssignedTargetingOptionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsBulkListAssignedTargetingOptionsArgs>
+    for BulkListAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsBulkListAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkListAssignedTargetingOptionsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkListAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkUpdateLineItemsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkUpdateLineItemsResponse with DisplayvideoAdvertisersLineItemsBulkUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsBulkUpdateArgs>
+    for BulkUpdateLineItemsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsBulkUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkUpdateLineItemsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkUpdateLineItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LineItem
+// =============================================================================
+
+/// ResourceIdentifier implementation for LineItem with DisplayvideoAdvertisersLineItemsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsCreateArgs> for LineItem {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersLineItemsCreateArgs) -> String {
+        format!("gcp::displayvideo::LineItem/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::LineItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersLineItemsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersLineItemsDeleteArgs) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}",
+            input.advertiserId, input.lineItemId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DuplicateLineItemResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DuplicateLineItemResponse with DisplayvideoAdvertisersLineItemsDuplicateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsDuplicateArgs>
+    for DuplicateLineItemResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsDuplicateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::DuplicateLineItemResponse/{}/{}",
+            input.advertiserId, input.lineItemId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::DuplicateLineItemResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LineItem
+// =============================================================================
+
+/// ResourceIdentifier implementation for LineItem with DisplayvideoAdvertisersLineItemsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsGetArgs> for LineItem {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersLineItemsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::LineItem/{}/{}",
+            input.advertiserId, input.lineItemId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::LineItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLineItemsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLineItemsResponse with DisplayvideoAdvertisersLineItemsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsListArgs> for ListLineItemsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersLineItemsListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListLineItemsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListLineItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LineItem
+// =============================================================================
+
+/// ResourceIdentifier implementation for LineItem with DisplayvideoAdvertisersLineItemsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsPatchArgs> for LineItem {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersLineItemsPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::LineItem/{}/{}",
+            input.advertiserId, input.lineItemId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::LineItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AssignedTargetingOption
+// =============================================================================
+
+/// ResourceIdentifier implementation for AssignedTargetingOption with DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsCreateArgs,
+    > for AssignedTargetingOption
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::AssignedTargetingOption/{}/{}/{}",
+            input.advertiserId, input.lineItemId, input.targetingType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AssignedTargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsDeleteArgs,
+    > for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}/{}/{}",
+            input.advertiserId,
+            input.lineItemId,
+            input.targetingType,
+            input.assignedTargetingOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AssignedTargetingOption
+// =============================================================================
+
+/// ResourceIdentifier implementation for AssignedTargetingOption with DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsGetArgs,
+    > for AssignedTargetingOption
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::AssignedTargetingOption/{}/{}/{}/{}",
+            input.advertiserId,
+            input.lineItemId,
+            input.targetingType,
+            input.assignedTargetingOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AssignedTargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLineItemAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLineItemAssignedTargetingOptionsResponse with DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsListArgs,
+    > for ListLineItemAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListLineItemAssignedTargetingOptionsResponse/{}/{}/{}",
+            input.advertiserId, input.lineItemId, input.targetingType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListLineItemAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for YoutubeAssetAssociation
+// =============================================================================
+
+/// ResourceIdentifier implementation for YoutubeAssetAssociation with DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs,
+    > for YoutubeAssetAssociation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::YoutubeAssetAssociation/{}/{}/{}",
+            input.advertiserId, input.lineItemId, input.youtubeAssetType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::YoutubeAssetAssociation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsDeleteArgs,
+    > for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}/{}/{}",
+            input.advertiserId,
+            input.lineItemId,
+            input.youtubeAssetType,
+            input.youtubeAssetAssociationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListYoutubeAssetAssociationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListYoutubeAssetAssociationsResponse with DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsListArgs,
+    > for ListYoutubeAssetAssociationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListYoutubeAssetAssociationsResponse/{}/{}/{}",
+            input.advertiserId, input.lineItemId, input.youtubeAssetType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListYoutubeAssetAssociationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LocationList
+// =============================================================================
+
+/// ResourceIdentifier implementation for LocationList with DisplayvideoAdvertisersLocationListsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsCreateArgs> for LocationList {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLocationListsCreateArgs,
+    ) -> String {
+        format!("gcp::displayvideo::LocationList/{}", input.advertiserId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::LocationList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LocationList
+// =============================================================================
+
+/// ResourceIdentifier implementation for LocationList with DisplayvideoAdvertisersLocationListsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsGetArgs> for LocationList {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersLocationListsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::LocationList/{}/{}",
+            input.advertiserId, input.locationListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::LocationList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationListsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationListsResponse with DisplayvideoAdvertisersLocationListsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsListArgs>
+    for ListLocationListsResponse
+{
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersLocationListsListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListLocationListsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListLocationListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LocationList
+// =============================================================================
+
+/// ResourceIdentifier implementation for LocationList with DisplayvideoAdvertisersLocationListsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsPatchArgs> for LocationList {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLocationListsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::LocationList/{}/{}",
+            input.advertiserId, input.locationListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::LocationList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkEditAssignedLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkEditAssignedLocationsResponse with DisplayvideoAdvertisersLocationListsAssignedLocationsBulkEditArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsAssignedLocationsBulkEditArgs>
+    for BulkEditAssignedLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLocationListsAssignedLocationsBulkEditArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkEditAssignedLocationsResponse/{}/{}",
+            input.advertiserId, input.locationListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkEditAssignedLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AssignedLocation
+// =============================================================================
+
+/// ResourceIdentifier implementation for AssignedLocation with DisplayvideoAdvertisersLocationListsAssignedLocationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsAssignedLocationsCreateArgs>
+    for AssignedLocation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLocationListsAssignedLocationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::AssignedLocation/{}/{}",
+            input.advertiserId, input.locationListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AssignedLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersLocationListsAssignedLocationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsAssignedLocationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLocationListsAssignedLocationsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}/{}",
+            input.advertiserId, input.locationListId, input.assignedLocationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAssignedLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAssignedLocationsResponse with DisplayvideoAdvertisersLocationListsAssignedLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsAssignedLocationsListArgs>
+    for ListAssignedLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLocationListsAssignedLocationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListAssignedLocationsResponse/{}/{}",
+            input.advertiserId, input.locationListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListAssignedLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NegativeKeywordList
+// =============================================================================
+
+/// ResourceIdentifier implementation for NegativeKeywordList with DisplayvideoAdvertisersNegativeKeywordListsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsCreateArgs>
+    for NegativeKeywordList
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::NegativeKeywordList/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::NegativeKeywordList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersNegativeKeywordListsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}",
+            input.advertiserId, input.negativeKeywordListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NegativeKeywordList
+// =============================================================================
+
+/// ResourceIdentifier implementation for NegativeKeywordList with DisplayvideoAdvertisersNegativeKeywordListsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsGetArgs>
+    for NegativeKeywordList
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::NegativeKeywordList/{}/{}",
+            input.advertiserId, input.negativeKeywordListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::NegativeKeywordList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNegativeKeywordListsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNegativeKeywordListsResponse with DisplayvideoAdvertisersNegativeKeywordListsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsListArgs>
+    for ListNegativeKeywordListsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListNegativeKeywordListsResponse/{}",
+            input.advertiserId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListNegativeKeywordListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NegativeKeywordList
+// =============================================================================
+
+/// ResourceIdentifier implementation for NegativeKeywordList with DisplayvideoAdvertisersNegativeKeywordListsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsPatchArgs>
+    for NegativeKeywordList
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::NegativeKeywordList/{}/{}",
+            input.advertiserId, input.negativeKeywordListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::NegativeKeywordList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkEditNegativeKeywordsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkEditNegativeKeywordsResponse with DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsBulkEditArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsBulkEditArgs>
+    for BulkEditNegativeKeywordsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsBulkEditArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkEditNegativeKeywordsResponse/{}/{}",
+            input.advertiserId, input.negativeKeywordListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkEditNegativeKeywordsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for NegativeKeyword
+// =============================================================================
+
+/// ResourceIdentifier implementation for NegativeKeyword with DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsCreateArgs>
+    for NegativeKeyword
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::NegativeKeyword/{}/{}",
+            input.advertiserId, input.negativeKeywordListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::NegativeKeyword"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}/{}",
+            input.advertiserId, input.negativeKeywordListId, input.keywordValue
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListNegativeKeywordsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListNegativeKeywordsResponse with DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsListArgs>
+    for ListNegativeKeywordsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListNegativeKeywordsResponse/{}/{}",
+            input.advertiserId, input.negativeKeywordListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListNegativeKeywordsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReplaceNegativeKeywordsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReplaceNegativeKeywordsResponse with DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsReplaceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsReplaceArgs>
+    for ReplaceNegativeKeywordsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsReplaceArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ReplaceNegativeKeywordsResponse/{}/{}",
+            input.advertiserId, input.negativeKeywordListId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ReplaceNegativeKeywordsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AssignedTargetingOption
+// =============================================================================
+
+/// ResourceIdentifier implementation for AssignedTargetingOption with DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsCreateArgs>
+    for AssignedTargetingOption
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::AssignedTargetingOption/{}/{}",
+            input.advertiserId, input.targetingType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AssignedTargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}/{}",
+            input.advertiserId, input.targetingType, input.assignedTargetingOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AssignedTargetingOption
+// =============================================================================
+
+/// ResourceIdentifier implementation for AssignedTargetingOption with DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsGetArgs>
+    for AssignedTargetingOption
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::AssignedTargetingOption/{}/{}/{}",
+            input.advertiserId, input.targetingType, input.assignedTargetingOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AssignedTargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAdvertiserAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAdvertiserAssignedTargetingOptionsResponse with DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs>
+    for ListAdvertiserAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListAdvertiserAssignedTargetingOptionsResponse/{}/{}",
+            input.advertiserId, input.targetingType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListAdvertiserAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CombinedAudience
+// =============================================================================
+
+/// ResourceIdentifier implementation for CombinedAudience with DisplayvideoCombinedAudiencesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCombinedAudiencesGetArgs> for CombinedAudience {
+    fn generate_resource_id(&self, input: &DisplayvideoCombinedAudiencesGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::CombinedAudience/{}",
+            input.combinedAudienceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CombinedAudience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCombinedAudiencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCombinedAudiencesResponse with DisplayvideoCombinedAudiencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCombinedAudiencesListArgs> for ListCombinedAudiencesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoCombinedAudiencesListArgs) -> String {
+        "gcp::displayvideo::ListCombinedAudiencesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListCombinedAudiencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomBiddingAlgorithm
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomBiddingAlgorithm with DisplayvideoCustomBiddingAlgorithmsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsCreateArgs> for CustomBiddingAlgorithm {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsCreateArgs,
+    ) -> String {
+        "gcp::displayvideo::CustomBiddingAlgorithm".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CustomBiddingAlgorithm"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomBiddingAlgorithm
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomBiddingAlgorithm with DisplayvideoCustomBiddingAlgorithmsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsGetArgs> for CustomBiddingAlgorithm {
+    fn generate_resource_id(&self, input: &DisplayvideoCustomBiddingAlgorithmsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::CustomBiddingAlgorithm/{}",
+            input.customBiddingAlgorithmId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CustomBiddingAlgorithm"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCustomBiddingAlgorithmsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCustomBiddingAlgorithmsResponse with DisplayvideoCustomBiddingAlgorithmsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsListArgs>
+    for ListCustomBiddingAlgorithmsResponse
+{
+    fn generate_resource_id(&self, input: &DisplayvideoCustomBiddingAlgorithmsListArgs) -> String {
+        "gcp::displayvideo::ListCustomBiddingAlgorithmsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListCustomBiddingAlgorithmsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomBiddingAlgorithm
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomBiddingAlgorithm with DisplayvideoCustomBiddingAlgorithmsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsPatchArgs> for CustomBiddingAlgorithm {
+    fn generate_resource_id(&self, input: &DisplayvideoCustomBiddingAlgorithmsPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::CustomBiddingAlgorithm/{}",
+            input.customBiddingAlgorithmId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CustomBiddingAlgorithm"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomBiddingAlgorithmRulesRef
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomBiddingAlgorithmRulesRef with DisplayvideoCustomBiddingAlgorithmsUploadRulesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsUploadRulesArgs>
+    for CustomBiddingAlgorithmRulesRef
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsUploadRulesArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::CustomBiddingAlgorithmRulesRef/{}",
+            input.customBiddingAlgorithmId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CustomBiddingAlgorithmRulesRef"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomBiddingScriptRef
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomBiddingScriptRef with DisplayvideoCustomBiddingAlgorithmsUploadScriptArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsUploadScriptArgs>
+    for CustomBiddingScriptRef
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsUploadScriptArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::CustomBiddingScriptRef/{}",
+            input.customBiddingAlgorithmId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CustomBiddingScriptRef"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomBiddingAlgorithmRules
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomBiddingAlgorithmRules with DisplayvideoCustomBiddingAlgorithmsRulesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsRulesCreateArgs>
+    for CustomBiddingAlgorithmRules
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsRulesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::CustomBiddingAlgorithmRules/{}",
+            input.customBiddingAlgorithmId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CustomBiddingAlgorithmRules"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomBiddingAlgorithmRules
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomBiddingAlgorithmRules with DisplayvideoCustomBiddingAlgorithmsRulesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsRulesGetArgs>
+    for CustomBiddingAlgorithmRules
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsRulesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::CustomBiddingAlgorithmRules/{}/{}",
+            input.customBiddingAlgorithmId, input.customBiddingAlgorithmRulesId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CustomBiddingAlgorithmRules"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCustomBiddingAlgorithmRulesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCustomBiddingAlgorithmRulesResponse with DisplayvideoCustomBiddingAlgorithmsRulesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsRulesListArgs>
+    for ListCustomBiddingAlgorithmRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsRulesListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListCustomBiddingAlgorithmRulesResponse/{}",
+            input.customBiddingAlgorithmId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListCustomBiddingAlgorithmRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomBiddingScript
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomBiddingScript with DisplayvideoCustomBiddingAlgorithmsScriptsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsScriptsCreateArgs>
+    for CustomBiddingScript
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsScriptsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::CustomBiddingScript/{}",
+            input.customBiddingAlgorithmId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CustomBiddingScript"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomBiddingScript
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomBiddingScript with DisplayvideoCustomBiddingAlgorithmsScriptsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsScriptsGetArgs> for CustomBiddingScript {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsScriptsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::CustomBiddingScript/{}/{}",
+            input.customBiddingAlgorithmId, input.customBiddingScriptId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CustomBiddingScript"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCustomBiddingScriptsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCustomBiddingScriptsResponse with DisplayvideoCustomBiddingAlgorithmsScriptsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsScriptsListArgs>
+    for ListCustomBiddingScriptsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsScriptsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListCustomBiddingScriptsResponse/{}",
+            input.customBiddingAlgorithmId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListCustomBiddingScriptsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CustomList
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomList with DisplayvideoCustomListsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomListsGetArgs> for CustomList {
+    fn generate_resource_id(&self, input: &DisplayvideoCustomListsGetArgs) -> String {
+        format!("gcp::displayvideo::CustomList/{}", input.customListId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::CustomList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCustomListsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCustomListsResponse with DisplayvideoCustomListsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomListsListArgs> for ListCustomListsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoCustomListsListArgs) -> String {
+        "gcp::displayvideo::ListCustomListsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListCustomListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FirstPartyAndPartnerAudience
+// =============================================================================
+
+/// ResourceIdentifier implementation for FirstPartyAndPartnerAudience with DisplayvideoFirstPartyAndPartnerAudiencesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFirstPartyAndPartnerAudiencesCreateArgs>
+    for FirstPartyAndPartnerAudience
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFirstPartyAndPartnerAudiencesCreateArgs,
+    ) -> String {
+        "gcp::displayvideo::FirstPartyAndPartnerAudience".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::FirstPartyAndPartnerAudience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EditCustomerMatchMembersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EditCustomerMatchMembersResponse with DisplayvideoFirstPartyAndPartnerAudiencesEditCustomerMatchMembersArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFirstPartyAndPartnerAudiencesEditCustomerMatchMembersArgs>
+    for EditCustomerMatchMembersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFirstPartyAndPartnerAudiencesEditCustomerMatchMembersArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::EditCustomerMatchMembersResponse/{}",
+            input.firstPartyAndPartnerAudienceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::EditCustomerMatchMembersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FirstPartyAndPartnerAudience
+// =============================================================================
+
+/// ResourceIdentifier implementation for FirstPartyAndPartnerAudience with DisplayvideoFirstPartyAndPartnerAudiencesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFirstPartyAndPartnerAudiencesGetArgs>
+    for FirstPartyAndPartnerAudience
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFirstPartyAndPartnerAudiencesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::FirstPartyAndPartnerAudience/{}",
+            input.firstPartyAndPartnerAudienceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::FirstPartyAndPartnerAudience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListFirstPartyAndPartnerAudiencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListFirstPartyAndPartnerAudiencesResponse with DisplayvideoFirstPartyAndPartnerAudiencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFirstPartyAndPartnerAudiencesListArgs>
+    for ListFirstPartyAndPartnerAudiencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFirstPartyAndPartnerAudiencesListArgs,
+    ) -> String {
+        "gcp::displayvideo::ListFirstPartyAndPartnerAudiencesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListFirstPartyAndPartnerAudiencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FirstPartyAndPartnerAudience
+// =============================================================================
+
+/// ResourceIdentifier implementation for FirstPartyAndPartnerAudience with DisplayvideoFirstPartyAndPartnerAudiencesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFirstPartyAndPartnerAudiencesPatchArgs>
+    for FirstPartyAndPartnerAudience
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFirstPartyAndPartnerAudiencesPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::FirstPartyAndPartnerAudience/{}",
+            input.firstPartyAndPartnerAudienceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::FirstPartyAndPartnerAudience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FloodlightGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for FloodlightGroup with DisplayvideoFloodlightGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFloodlightGroupsGetArgs> for FloodlightGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoFloodlightGroupsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::FloodlightGroup/{}",
+            input.floodlightGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::FloodlightGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FloodlightGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for FloodlightGroup with DisplayvideoFloodlightGroupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFloodlightGroupsPatchArgs> for FloodlightGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoFloodlightGroupsPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::FloodlightGroup/{}",
+            input.floodlightGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::FloodlightGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FloodlightActivity
+// =============================================================================
+
+/// ResourceIdentifier implementation for FloodlightActivity with DisplayvideoFloodlightGroupsFloodlightActivitiesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFloodlightGroupsFloodlightActivitiesGetArgs>
+    for FloodlightActivity
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFloodlightGroupsFloodlightActivitiesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::FloodlightActivity/{}/{}",
+            input.floodlightGroupId, input.floodlightActivityId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::FloodlightActivity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListFloodlightActivitiesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListFloodlightActivitiesResponse with DisplayvideoFloodlightGroupsFloodlightActivitiesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFloodlightGroupsFloodlightActivitiesListArgs>
+    for ListFloodlightActivitiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFloodlightGroupsFloodlightActivitiesListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListFloodlightActivitiesResponse/{}",
+            input.floodlightGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListFloodlightActivitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleAudience
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleAudience with DisplayvideoGoogleAudiencesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGoogleAudiencesGetArgs> for GoogleAudience {
+    fn generate_resource_id(&self, input: &DisplayvideoGoogleAudiencesGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::GoogleAudience/{}",
+            input.googleAudienceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::GoogleAudience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGoogleAudiencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGoogleAudiencesResponse with DisplayvideoGoogleAudiencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGoogleAudiencesListArgs> for ListGoogleAudiencesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoGoogleAudiencesListArgs) -> String {
+        "gcp::displayvideo::ListGoogleAudiencesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListGoogleAudiencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GuaranteedOrder
+// =============================================================================
+
+/// ResourceIdentifier implementation for GuaranteedOrder with DisplayvideoGuaranteedOrdersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGuaranteedOrdersCreateArgs> for GuaranteedOrder {
+    fn generate_resource_id(&self, input: &DisplayvideoGuaranteedOrdersCreateArgs) -> String {
+        "gcp::displayvideo::GuaranteedOrder".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::GuaranteedOrder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for EditGuaranteedOrderReadAccessorsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for EditGuaranteedOrderReadAccessorsResponse with DisplayvideoGuaranteedOrdersEditGuaranteedOrderReadAccessorsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGuaranteedOrdersEditGuaranteedOrderReadAccessorsArgs>
+    for EditGuaranteedOrderReadAccessorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoGuaranteedOrdersEditGuaranteedOrderReadAccessorsArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::EditGuaranteedOrderReadAccessorsResponse/{}",
+            input.guaranteedOrderId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::EditGuaranteedOrderReadAccessorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GuaranteedOrder
+// =============================================================================
+
+/// ResourceIdentifier implementation for GuaranteedOrder with DisplayvideoGuaranteedOrdersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGuaranteedOrdersGetArgs> for GuaranteedOrder {
+    fn generate_resource_id(&self, input: &DisplayvideoGuaranteedOrdersGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::GuaranteedOrder/{}",
+            input.guaranteedOrderId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::GuaranteedOrder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListGuaranteedOrdersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListGuaranteedOrdersResponse with DisplayvideoGuaranteedOrdersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGuaranteedOrdersListArgs> for ListGuaranteedOrdersResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoGuaranteedOrdersListArgs) -> String {
+        "gcp::displayvideo::ListGuaranteedOrdersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListGuaranteedOrdersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GuaranteedOrder
+// =============================================================================
+
+/// ResourceIdentifier implementation for GuaranteedOrder with DisplayvideoGuaranteedOrdersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGuaranteedOrdersPatchArgs> for GuaranteedOrder {
+    fn generate_resource_id(&self, input: &DisplayvideoGuaranteedOrdersPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::GuaranteedOrder/{}",
+            input.guaranteedOrderId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::GuaranteedOrder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InventorySourceGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for InventorySourceGroup with DisplayvideoInventorySourceGroupsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsCreateArgs> for InventorySourceGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourceGroupsCreateArgs) -> String {
+        "gcp::displayvideo::InventorySourceGroup".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::InventorySourceGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoInventorySourceGroupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourceGroupsDeleteArgs) -> String {
+        format!("gcp::displayvideo::Empty/{}", input.inventorySourceGroupId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InventorySourceGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for InventorySourceGroup with DisplayvideoInventorySourceGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsGetArgs> for InventorySourceGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourceGroupsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::InventorySourceGroup/{}",
+            input.inventorySourceGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::InventorySourceGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInventorySourceGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInventorySourceGroupsResponse with DisplayvideoInventorySourceGroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsListArgs>
+    for ListInventorySourceGroupsResponse
+{
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourceGroupsListArgs) -> String {
+        "gcp::displayvideo::ListInventorySourceGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListInventorySourceGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InventorySourceGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for InventorySourceGroup with DisplayvideoInventorySourceGroupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsPatchArgs> for InventorySourceGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourceGroupsPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::InventorySourceGroup/{}",
+            input.inventorySourceGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::InventorySourceGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkEditAssignedInventorySourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkEditAssignedInventorySourcesResponse with DisplayvideoInventorySourceGroupsAssignedInventorySourcesBulkEditArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsAssignedInventorySourcesBulkEditArgs>
+    for BulkEditAssignedInventorySourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesBulkEditArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkEditAssignedInventorySourcesResponse/{}",
+            input.inventorySourceGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkEditAssignedInventorySourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AssignedInventorySource
+// =============================================================================
+
+/// ResourceIdentifier implementation for AssignedInventorySource with DisplayvideoInventorySourceGroupsAssignedInventorySourcesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsAssignedInventorySourcesCreateArgs>
+    for AssignedInventorySource
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::AssignedInventorySource/{}",
+            input.inventorySourceGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AssignedInventorySource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoInventorySourceGroupsAssignedInventorySourcesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsAssignedInventorySourcesDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}",
+            input.inventorySourceGroupId, input.assignedInventorySourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAssignedInventorySourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAssignedInventorySourcesResponse with DisplayvideoInventorySourceGroupsAssignedInventorySourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsAssignedInventorySourcesListArgs>
+    for ListAssignedInventorySourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListAssignedInventorySourcesResponse/{}",
+            input.inventorySourceGroupId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListAssignedInventorySourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InventorySource
+// =============================================================================
+
+/// ResourceIdentifier implementation for InventorySource with DisplayvideoInventorySourcesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourcesCreateArgs> for InventorySource {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourcesCreateArgs) -> String {
+        "gcp::displayvideo::InventorySource".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::InventorySource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InventorySourceAccessors
+// =============================================================================
+
+/// ResourceIdentifier implementation for InventorySourceAccessors with DisplayvideoInventorySourcesEditInventorySourceReadWriteAccessorsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourcesEditInventorySourceReadWriteAccessorsArgs>
+    for InventorySourceAccessors
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoInventorySourcesEditInventorySourceReadWriteAccessorsArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::InventorySourceAccessors/{}",
+            input.inventorySourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::InventorySourceAccessors"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InventorySource
+// =============================================================================
+
+/// ResourceIdentifier implementation for InventorySource with DisplayvideoInventorySourcesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourcesGetArgs> for InventorySource {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourcesGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::InventorySource/{}",
+            input.inventorySourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::InventorySource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInventorySourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInventorySourcesResponse with DisplayvideoInventorySourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourcesListArgs> for ListInventorySourcesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourcesListArgs) -> String {
+        "gcp::displayvideo::ListInventorySourcesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListInventorySourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InventorySource
+// =============================================================================
+
+/// ResourceIdentifier implementation for InventorySource with DisplayvideoInventorySourcesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourcesPatchArgs> for InventorySource {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourcesPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::InventorySource/{}",
+            input.inventorySourceId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::InventorySource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleBytestreamMedia
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleBytestreamMedia with DisplayvideoMediaDownloadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoMediaDownloadArgs> for GoogleBytestreamMedia {
+    fn generate_resource_id(&self, input: &DisplayvideoMediaDownloadArgs) -> String {
+        format!(
+            "gcp::displayvideo::GoogleBytestreamMedia/{}",
+            input.resourceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::GoogleBytestreamMedia"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleBytestreamMedia
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleBytestreamMedia with DisplayvideoMediaUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoMediaUploadArgs> for GoogleBytestreamMedia {
+    fn generate_resource_id(&self, input: &DisplayvideoMediaUploadArgs) -> String {
+        format!(
+            "gcp::displayvideo::GoogleBytestreamMedia/{}",
+            input.resourceName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::GoogleBytestreamMedia"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkEditPartnerAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkEditPartnerAssignedTargetingOptionsResponse with DisplayvideoPartnersEditAssignedTargetingOptionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersEditAssignedTargetingOptionsArgs>
+    for BulkEditPartnerAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoPartnersEditAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkEditPartnerAssignedTargetingOptionsResponse/{}",
+            input.partnerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkEditPartnerAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Partner
+// =============================================================================
+
+/// ResourceIdentifier implementation for Partner with DisplayvideoPartnersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersGetArgs> for Partner {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersGetArgs) -> String {
+        format!("gcp::displayvideo::Partner/{}", input.partnerId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Partner"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPartnersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPartnersResponse with DisplayvideoPartnersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersListArgs> for ListPartnersResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersListArgs) -> String {
+        "gcp::displayvideo::ListPartnersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListPartnersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with DisplayvideoPartnersChannelsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersChannelsCreateArgs> for Channel {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersChannelsCreateArgs) -> String {
+        format!("gcp::displayvideo::Channel/{}", input.partnerId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with DisplayvideoPartnersChannelsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersChannelsGetArgs> for Channel {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersChannelsGetArgs) -> String {
+        format!(
+            "gcp::displayvideo::Channel/{}/{}",
+            input.partnerId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListChannelsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListChannelsResponse with DisplayvideoPartnersChannelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersChannelsListArgs> for ListChannelsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersChannelsListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListChannelsResponse/{}",
+            input.partnerId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with DisplayvideoPartnersChannelsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersChannelsPatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersChannelsPatchArgs) -> String {
+        format!(
+            "gcp::displayvideo::Channel/{}/{}",
+            input.partnerId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkEditSitesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkEditSitesResponse with DisplayvideoPartnersChannelsSitesBulkEditArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersChannelsSitesBulkEditArgs> for BulkEditSitesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoPartnersChannelsSitesBulkEditArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkEditSitesResponse/{}/{}",
+            input.partnerId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkEditSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Site
+// =============================================================================
+
+/// ResourceIdentifier implementation for Site with DisplayvideoPartnersChannelsSitesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersChannelsSitesCreateArgs> for Site {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersChannelsSitesCreateArgs) -> String {
+        format!(
+            "gcp::displayvideo::Site/{}/{}",
+            input.partnerId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Site"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoPartnersChannelsSitesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersChannelsSitesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersChannelsSitesDeleteArgs) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}/{}",
+            input.partnerId, input.channelId, input.urlOrAppId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSitesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSitesResponse with DisplayvideoPartnersChannelsSitesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersChannelsSitesListArgs> for ListSitesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersChannelsSitesListArgs) -> String {
+        format!(
+            "gcp::displayvideo::ListSitesResponse/{}/{}",
+            input.partnerId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ReplaceSitesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ReplaceSitesResponse with DisplayvideoPartnersChannelsSitesReplaceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersChannelsSitesReplaceArgs> for ReplaceSitesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersChannelsSitesReplaceArgs) -> String {
+        format!(
+            "gcp::displayvideo::ReplaceSitesResponse/{}/{}",
+            input.partnerId, input.channelId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ReplaceSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AssignedTargetingOption
+// =============================================================================
+
+/// ResourceIdentifier implementation for AssignedTargetingOption with DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsCreateArgs>
+    for AssignedTargetingOption
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::AssignedTargetingOption/{}/{}",
+            input.partnerId, input.targetingType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AssignedTargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::Empty/{}/{}/{}",
+            input.partnerId, input.targetingType, input.assignedTargetingOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AssignedTargetingOption
+// =============================================================================
+
+/// ResourceIdentifier implementation for AssignedTargetingOption with DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsGetArgs>
+    for AssignedTargetingOption
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::AssignedTargetingOption/{}/{}/{}",
+            input.partnerId, input.targetingType, input.assignedTargetingOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::AssignedTargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPartnerAssignedTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPartnerAssignedTargetingOptionsResponse with DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs>
+    for ListPartnerAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListPartnerAssignedTargetingOptionsResponse/{}/{}",
+            input.partnerId, input.targetingType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListPartnerAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DisplayvideoSdfdownloadtasksCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoSdfdownloadtasksCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &DisplayvideoSdfdownloadtasksCreateArgs) -> String {
+        "gcp::displayvideo::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DisplayvideoSdfdownloadtasksOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoSdfdownloadtasksOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoSdfdownloadtasksOperationsGetArgs,
+    ) -> String {
+        format!("gcp::displayvideo::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with DisplayvideoSdfuploadtasksOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoSdfuploadtasksOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &DisplayvideoSdfuploadtasksOperationsGetArgs) -> String {
+        format!("gcp::displayvideo::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TargetingOption
+// =============================================================================
+
+/// ResourceIdentifier implementation for TargetingOption with DisplayvideoTargetingTypesTargetingOptionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoTargetingTypesTargetingOptionsGetArgs> for TargetingOption {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoTargetingTypesTargetingOptionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::TargetingOption/{}/{}",
+            input.targetingType, input.targetingOptionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::TargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTargetingOptionsResponse with DisplayvideoTargetingTypesTargetingOptionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoTargetingTypesTargetingOptionsListArgs>
+    for ListTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoTargetingTypesTargetingOptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::ListTargetingOptionsResponse/{}",
+            input.targetingType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchTargetingOptionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchTargetingOptionsResponse with DisplayvideoTargetingTypesTargetingOptionsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoTargetingTypesTargetingOptionsSearchArgs>
+    for SearchTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoTargetingTypesTargetingOptionsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::SearchTargetingOptionsResponse/{}",
+            input.targetingType
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::SearchTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BulkEditAssignedUserRolesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkEditAssignedUserRolesResponse with DisplayvideoUsersBulkEditAssignedUserRolesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoUsersBulkEditAssignedUserRolesArgs>
+    for BulkEditAssignedUserRolesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoUsersBulkEditAssignedUserRolesArgs,
+    ) -> String {
+        format!(
+            "gcp::displayvideo::BulkEditAssignedUserRolesResponse/{}",
+            input.userId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::BulkEditAssignedUserRolesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for User
+// =============================================================================
+
+/// ResourceIdentifier implementation for User with DisplayvideoUsersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoUsersCreateArgs> for User {
+    fn generate_resource_id(&self, input: &DisplayvideoUsersCreateArgs) -> String {
+        "gcp::displayvideo::User".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DisplayvideoUsersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoUsersDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DisplayvideoUsersDeleteArgs) -> String {
+        format!("gcp::displayvideo::Empty/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for User
+// =============================================================================
+
+/// ResourceIdentifier implementation for User with DisplayvideoUsersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoUsersGetArgs> for User {
+    fn generate_resource_id(&self, input: &DisplayvideoUsersGetArgs) -> String {
+        format!("gcp::displayvideo::User/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListUsersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListUsersResponse with DisplayvideoUsersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoUsersListArgs> for ListUsersResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoUsersListArgs) -> String {
+        "gcp::displayvideo::ListUsersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::ListUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for User
+// =============================================================================
+
+/// ResourceIdentifier implementation for User with DisplayvideoUsersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoUsersPatchArgs> for User {
+    fn generate_resource_id(&self, input: &DisplayvideoUsersPatchArgs) -> String {
+        format!("gcp::displayvideo::User/{}", input.userId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::displayvideo::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

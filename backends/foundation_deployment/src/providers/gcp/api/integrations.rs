@@ -12,14 +12,22 @@
 #![cfg(feature = "gcp")]
 
 use crate::providers::gcp::clients::integrations::{
+    integrations_callback_generate_token_builder, integrations_callback_generate_token_task,
+    integrations_connector_platform_regions_enumerate_builder, integrations_connector_platform_regions_enumerate_task,
+    integrations_projects_get_clientmetadata_builder, integrations_projects_get_clientmetadata_task,
     integrations_projects_locations_generate_open_api_spec_builder, integrations_projects_locations_generate_open_api_spec_task,
+    integrations_projects_locations_get_clients_builder, integrations_projects_locations_get_clients_task,
     integrations_projects_locations_apps_script_projects_create_builder, integrations_projects_locations_apps_script_projects_create_task,
     integrations_projects_locations_apps_script_projects_link_builder, integrations_projects_locations_apps_script_projects_link_task,
     integrations_projects_locations_auth_configs_create_builder, integrations_projects_locations_auth_configs_create_task,
     integrations_projects_locations_auth_configs_delete_builder, integrations_projects_locations_auth_configs_delete_task,
+    integrations_projects_locations_auth_configs_get_builder, integrations_projects_locations_auth_configs_get_task,
+    integrations_projects_locations_auth_configs_list_builder, integrations_projects_locations_auth_configs_list_task,
     integrations_projects_locations_auth_configs_patch_builder, integrations_projects_locations_auth_configs_patch_task,
     integrations_projects_locations_certificates_create_builder, integrations_projects_locations_certificates_create_task,
     integrations_projects_locations_certificates_delete_builder, integrations_projects_locations_certificates_delete_task,
+    integrations_projects_locations_certificates_get_builder, integrations_projects_locations_certificates_get_task,
+    integrations_projects_locations_certificates_list_builder, integrations_projects_locations_certificates_list_task,
     integrations_projects_locations_certificates_patch_builder, integrations_projects_locations_certificates_patch_task,
     integrations_projects_locations_clients_change_config_builder, integrations_projects_locations_clients_change_config_task,
     integrations_projects_locations_clients_deprovision_builder, integrations_projects_locations_clients_deprovision_task,
@@ -30,17 +38,31 @@ use crate::providers::gcp::clients::integrations::{
     integrations_projects_locations_clients_switch_variable_masking_builder, integrations_projects_locations_clients_switch_variable_masking_task,
     integrations_projects_locations_clients_toggle_http_builder, integrations_projects_locations_clients_toggle_http_task,
     integrations_projects_locations_cloud_functions_create_builder, integrations_projects_locations_cloud_functions_create_task,
+    integrations_projects_locations_connections_get_connection_schema_metadata_builder, integrations_projects_locations_connections_get_connection_schema_metadata_task,
+    integrations_projects_locations_connections_list_builder, integrations_projects_locations_connections_list_task,
+    integrations_projects_locations_connections_runtime_action_schemas_list_builder, integrations_projects_locations_connections_runtime_action_schemas_list_task,
+    integrations_projects_locations_connections_runtime_entity_schemas_list_builder, integrations_projects_locations_connections_runtime_entity_schemas_list_task,
     integrations_projects_locations_integrations_delete_builder, integrations_projects_locations_integrations_delete_task,
     integrations_projects_locations_integrations_execute_builder, integrations_projects_locations_integrations_execute_task,
     integrations_projects_locations_integrations_execute_event_builder, integrations_projects_locations_integrations_execute_event_task,
+    integrations_projects_locations_integrations_list_builder, integrations_projects_locations_integrations_list_task,
     integrations_projects_locations_integrations_schedule_builder, integrations_projects_locations_integrations_schedule_task,
+    integrations_projects_locations_integrations_search_builder, integrations_projects_locations_integrations_search_task,
     integrations_projects_locations_integrations_test_builder, integrations_projects_locations_integrations_test_task,
     integrations_projects_locations_integrations_executions_cancel_builder, integrations_projects_locations_integrations_executions_cancel_task,
+    integrations_projects_locations_integrations_executions_download_builder, integrations_projects_locations_integrations_executions_download_task,
+    integrations_projects_locations_integrations_executions_get_builder, integrations_projects_locations_integrations_executions_get_task,
+    integrations_projects_locations_integrations_executions_list_builder, integrations_projects_locations_integrations_executions_list_task,
     integrations_projects_locations_integrations_executions_replay_builder, integrations_projects_locations_integrations_executions_replay_task,
     integrations_projects_locations_integrations_executions_suspensions_lift_builder, integrations_projects_locations_integrations_executions_suspensions_lift_task,
+    integrations_projects_locations_integrations_executions_suspensions_list_builder, integrations_projects_locations_integrations_executions_suspensions_list_task,
     integrations_projects_locations_integrations_executions_suspensions_resolve_builder, integrations_projects_locations_integrations_executions_suspensions_resolve_task,
     integrations_projects_locations_integrations_versions_create_builder, integrations_projects_locations_integrations_versions_create_task,
     integrations_projects_locations_integrations_versions_delete_builder, integrations_projects_locations_integrations_versions_delete_task,
+    integrations_projects_locations_integrations_versions_download_builder, integrations_projects_locations_integrations_versions_download_task,
+    integrations_projects_locations_integrations_versions_download_json_package_builder, integrations_projects_locations_integrations_versions_download_json_package_task,
+    integrations_projects_locations_integrations_versions_get_builder, integrations_projects_locations_integrations_versions_get_task,
+    integrations_projects_locations_integrations_versions_list_builder, integrations_projects_locations_integrations_versions_list_task,
     integrations_projects_locations_integrations_versions_patch_builder, integrations_projects_locations_integrations_versions_patch_task,
     integrations_projects_locations_integrations_versions_publish_builder, integrations_projects_locations_integrations_versions_publish_task,
     integrations_projects_locations_integrations_versions_test_builder, integrations_projects_locations_integrations_versions_test_task,
@@ -48,25 +70,40 @@ use crate::providers::gcp::clients::integrations::{
     integrations_projects_locations_integrations_versions_upload_builder, integrations_projects_locations_integrations_versions_upload_task,
     integrations_projects_locations_integrations_versions_test_cases_create_builder, integrations_projects_locations_integrations_versions_test_cases_create_task,
     integrations_projects_locations_integrations_versions_test_cases_delete_builder, integrations_projects_locations_integrations_versions_test_cases_delete_task,
+    integrations_projects_locations_integrations_versions_test_cases_download_builder, integrations_projects_locations_integrations_versions_test_cases_download_task,
     integrations_projects_locations_integrations_versions_test_cases_execute_builder, integrations_projects_locations_integrations_versions_test_cases_execute_task,
     integrations_projects_locations_integrations_versions_test_cases_execute_test_builder, integrations_projects_locations_integrations_versions_test_cases_execute_test_task,
+    integrations_projects_locations_integrations_versions_test_cases_get_builder, integrations_projects_locations_integrations_versions_test_cases_get_task,
+    integrations_projects_locations_integrations_versions_test_cases_list_builder, integrations_projects_locations_integrations_versions_test_cases_list_task,
     integrations_projects_locations_integrations_versions_test_cases_patch_builder, integrations_projects_locations_integrations_versions_test_cases_patch_task,
     integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_builder, integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_task,
     integrations_projects_locations_integrations_versions_test_cases_upload_builder, integrations_projects_locations_integrations_versions_test_cases_upload_task,
     integrations_projects_locations_products_auth_configs_create_builder, integrations_projects_locations_products_auth_configs_create_task,
     integrations_projects_locations_products_auth_configs_delete_builder, integrations_projects_locations_products_auth_configs_delete_task,
+    integrations_projects_locations_products_auth_configs_get_builder, integrations_projects_locations_products_auth_configs_get_task,
+    integrations_projects_locations_products_auth_configs_list_builder, integrations_projects_locations_products_auth_configs_list_task,
     integrations_projects_locations_products_auth_configs_patch_builder, integrations_projects_locations_products_auth_configs_patch_task,
     integrations_projects_locations_products_certificates_create_builder, integrations_projects_locations_products_certificates_create_task,
     integrations_projects_locations_products_certificates_delete_builder, integrations_projects_locations_products_certificates_delete_task,
+    integrations_projects_locations_products_certificates_get_builder, integrations_projects_locations_products_certificates_get_task,
+    integrations_projects_locations_products_certificates_list_builder, integrations_projects_locations_products_certificates_list_task,
     integrations_projects_locations_products_certificates_patch_builder, integrations_projects_locations_products_certificates_patch_task,
     integrations_projects_locations_products_cloud_functions_create_builder, integrations_projects_locations_products_cloud_functions_create_task,
     integrations_projects_locations_products_integrations_execute_builder, integrations_projects_locations_products_integrations_execute_task,
+    integrations_projects_locations_products_integrations_list_builder, integrations_projects_locations_products_integrations_list_task,
     integrations_projects_locations_products_integrations_schedule_builder, integrations_projects_locations_products_integrations_schedule_task,
     integrations_projects_locations_products_integrations_test_builder, integrations_projects_locations_products_integrations_test_task,
+    integrations_projects_locations_products_integrations_executions_download_builder, integrations_projects_locations_products_integrations_executions_download_task,
+    integrations_projects_locations_products_integrations_executions_get_builder, integrations_projects_locations_products_integrations_executions_get_task,
+    integrations_projects_locations_products_integrations_executions_list_builder, integrations_projects_locations_products_integrations_executions_list_task,
     integrations_projects_locations_products_integrations_executions_suspensions_lift_builder, integrations_projects_locations_products_integrations_executions_suspensions_lift_task,
+    integrations_projects_locations_products_integrations_executions_suspensions_list_builder, integrations_projects_locations_products_integrations_executions_suspensions_list_task,
     integrations_projects_locations_products_integrations_executions_suspensions_resolve_builder, integrations_projects_locations_products_integrations_executions_suspensions_resolve_task,
     integrations_projects_locations_products_integrations_versions_create_builder, integrations_projects_locations_products_integrations_versions_create_task,
     integrations_projects_locations_products_integrations_versions_delete_builder, integrations_projects_locations_products_integrations_versions_delete_task,
+    integrations_projects_locations_products_integrations_versions_download_builder, integrations_projects_locations_products_integrations_versions_download_task,
+    integrations_projects_locations_products_integrations_versions_get_builder, integrations_projects_locations_products_integrations_versions_get_task,
+    integrations_projects_locations_products_integrations_versions_list_builder, integrations_projects_locations_products_integrations_versions_list_task,
     integrations_projects_locations_products_integrations_versions_patch_builder, integrations_projects_locations_products_integrations_versions_patch_task,
     integrations_projects_locations_products_integrations_versions_publish_builder, integrations_projects_locations_products_integrations_versions_publish_task,
     integrations_projects_locations_products_integrations_versions_takeover_edit_lock_builder, integrations_projects_locations_products_integrations_versions_takeover_edit_lock_task,
@@ -74,20 +111,32 @@ use crate::providers::gcp::clients::integrations::{
     integrations_projects_locations_products_integrations_versions_upload_builder, integrations_projects_locations_products_integrations_versions_upload_task,
     integrations_projects_locations_products_sfdc_instances_create_builder, integrations_projects_locations_products_sfdc_instances_create_task,
     integrations_projects_locations_products_sfdc_instances_delete_builder, integrations_projects_locations_products_sfdc_instances_delete_task,
+    integrations_projects_locations_products_sfdc_instances_get_builder, integrations_projects_locations_products_sfdc_instances_get_task,
+    integrations_projects_locations_products_sfdc_instances_list_builder, integrations_projects_locations_products_sfdc_instances_list_task,
     integrations_projects_locations_products_sfdc_instances_patch_builder, integrations_projects_locations_products_sfdc_instances_patch_task,
     integrations_projects_locations_products_sfdc_instances_sfdc_channels_create_builder, integrations_projects_locations_products_sfdc_instances_sfdc_channels_create_task,
     integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete_builder, integrations_projects_locations_products_sfdc_instances_sfdc_channels_delete_task,
+    integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_builder, integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_task,
+    integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_builder, integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_task,
     integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch_builder, integrations_projects_locations_products_sfdc_instances_sfdc_channels_patch_task,
     integrations_projects_locations_sfdc_instances_create_builder, integrations_projects_locations_sfdc_instances_create_task,
     integrations_projects_locations_sfdc_instances_delete_builder, integrations_projects_locations_sfdc_instances_delete_task,
+    integrations_projects_locations_sfdc_instances_get_builder, integrations_projects_locations_sfdc_instances_get_task,
+    integrations_projects_locations_sfdc_instances_list_builder, integrations_projects_locations_sfdc_instances_list_task,
     integrations_projects_locations_sfdc_instances_patch_builder, integrations_projects_locations_sfdc_instances_patch_task,
     integrations_projects_locations_sfdc_instances_sfdc_channels_create_builder, integrations_projects_locations_sfdc_instances_sfdc_channels_create_task,
     integrations_projects_locations_sfdc_instances_sfdc_channels_delete_builder, integrations_projects_locations_sfdc_instances_sfdc_channels_delete_task,
+    integrations_projects_locations_sfdc_instances_sfdc_channels_get_builder, integrations_projects_locations_sfdc_instances_sfdc_channels_get_task,
+    integrations_projects_locations_sfdc_instances_sfdc_channels_list_builder, integrations_projects_locations_sfdc_instances_sfdc_channels_list_task,
     integrations_projects_locations_sfdc_instances_sfdc_channels_patch_builder, integrations_projects_locations_sfdc_instances_sfdc_channels_patch_task,
     integrations_projects_locations_templates_create_builder, integrations_projects_locations_templates_create_task,
     integrations_projects_locations_templates_delete_builder, integrations_projects_locations_templates_delete_task,
+    integrations_projects_locations_templates_download_builder, integrations_projects_locations_templates_download_task,
+    integrations_projects_locations_templates_get_builder, integrations_projects_locations_templates_get_task,
     integrations_projects_locations_templates_import_builder, integrations_projects_locations_templates_import_task,
+    integrations_projects_locations_templates_list_builder, integrations_projects_locations_templates_list_task,
     integrations_projects_locations_templates_patch_builder, integrations_projects_locations_templates_patch_task,
+    integrations_projects_locations_templates_search_builder, integrations_projects_locations_templates_search_task,
     integrations_projects_locations_templates_share_builder, integrations_projects_locations_templates_share_task,
     integrations_projects_locations_templates_unshare_builder, integrations_projects_locations_templates_unshare_task,
     integrations_projects_locations_templates_upload_builder, integrations_projects_locations_templates_upload_task,
@@ -98,22 +147,48 @@ use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alpha
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaCancelExecutionResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaCertificate;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaDownloadExecutionResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaDownloadTemplateResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaExecuteEventResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaExecution;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaGenerateTokenResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaGetClientMetadataResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaGetClientResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaImportTemplateResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaIntegrationVersion;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaLiftSuspensionResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListAuthConfigsResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListCertificatesResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListConnectionsResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListExecutionsResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListIntegrationsResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListSuspensionsResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListTemplatesResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaListTestCasesResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaReplayExecutionResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaResolveSuspensionResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse;
+use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaSearchTemplatesResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaSfdcChannel;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaSfdcInstance;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse;
@@ -125,13 +200,20 @@ use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alpha
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaUploadTestCaseResponse;
 use crate::providers::gcp::clients::integrations::GoogleCloudIntegrationsV1alphaUseTemplateResponse;
 use crate::providers::gcp::clients::integrations::GoogleProtobufEmpty;
+use crate::providers::gcp::clients::integrations::IntegrationsCallbackGenerateTokenArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsConnectorPlatformRegionsEnumerateArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsGetClientmetadataArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsAppsScriptProjectsCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsAppsScriptProjectsLinkArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsAuthConfigsCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsAuthConfigsDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsAuthConfigsGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsAuthConfigsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsAuthConfigsPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsCertificatesCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsCertificatesDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsCertificatesGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsCertificatesListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsCertificatesPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsClientsChangeConfigArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsClientsDeprovisionArgs;
@@ -142,25 +224,43 @@ use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsC
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsClientsSwitchVariableMaskingArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsClientsToggleHttpArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsCloudFunctionsCreateArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsConnectionsGetConnectionSchemaMetadataArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsConnectionsListArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsConnectionsRuntimeActionSchemasListArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsConnectionsRuntimeEntitySchemasListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsGenerateOpenApiSpecArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsGetClientsArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsDeleteArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsExecuteArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsExecuteEventArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsExecutionsCancelArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsExecutionsDownloadArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsExecutionsGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsExecutionsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsExecutionsReplayArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsLiftArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsResolveArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsScheduleArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsSearchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsTestArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsDownloadArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsDownloadJsonPackageArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsPublishArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestCasesCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDownloadArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteTestArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestCasesGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestCasesListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestCasesPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestCasesTakeoverEditLockArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsTestCasesUploadArgs;
@@ -168,18 +268,30 @@ use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsI
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsIntegrationsVersionsUploadArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsAuthConfigsCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsAuthConfigsDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsAuthConfigsGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsAuthConfigsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsAuthConfigsPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsCertificatesCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsCertificatesDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsCertificatesGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsCertificatesListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsCertificatesPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsCloudFunctionsCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsExecuteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsExecutionsDownloadArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsExecutionsGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsExecutionsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsLiftArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsResolveArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsScheduleArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsTestArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsVersionsCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsVersionsDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsVersionsDownloadArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsVersionsGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsVersionsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsVersionsPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsVersionsPublishArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsVersionsTakeoverEditLockArgs;
@@ -187,20 +299,32 @@ use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsP
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsIntegrationsVersionsUploadArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsSfdcInstancesCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsSfdcInstancesDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsSfdcInstancesGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsSfdcInstancesListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsSfdcInstancesPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsSfdcInstancesCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsSfdcInstancesDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsSfdcInstancesGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsSfdcInstancesListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsSfdcInstancesPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsGetArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsPatchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesCreateArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesDeleteArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesDownloadArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesGetArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesImportArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesListArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesPatchArgs;
+use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesSearchArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesShareArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesUnshareArgs;
 use crate::providers::gcp::clients::integrations::IntegrationsProjectsLocationsTemplatesUploadArgs;
@@ -246,6 +370,123 @@ where
         }
     }
 
+    /// Integrations callback generate token.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaGenerateTokenResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_callback_generate_token(
+        &self,
+        args: &IntegrationsCallbackGenerateTokenArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaGenerateTokenResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_callback_generate_token_builder(
+            &self.http_client,
+            &args.code,
+            &args.gcpProjectId,
+            &args.product,
+            &args.redirectUri,
+            &args.state,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_callback_generate_token_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations connector platform regions enumerate.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_connector_platform_regions_enumerate(
+        &self,
+        args: &IntegrationsConnectorPlatformRegionsEnumerateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_connector_platform_regions_enumerate_builder(
+            &self.http_client,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_connector_platform_regions_enumerate_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects get clientmetadata.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaGetClientMetadataResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_get_clientmetadata(
+        &self,
+        args: &IntegrationsProjectsGetClientmetadataArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaGetClientMetadataResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_get_clientmetadata_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_get_clientmetadata_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations generate open api spec.
     ///
     /// Automatically stores the result in the state store on success.
@@ -287,6 +528,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations get clients.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaGetClientResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_get_clients(
+        &self,
+        args: &IntegrationsProjectsLocationsGetClientsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaGetClientResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_get_clients_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_get_clients_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations apps script projects create.
@@ -464,6 +743,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations auth configs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaAuthConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_auth_configs_get(
+        &self,
+        args: &IntegrationsProjectsLocationsAuthConfigsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaAuthConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_auth_configs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_auth_configs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations auth configs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListAuthConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_auth_configs_list(
+        &self,
+        args: &IntegrationsProjectsLocationsAuthConfigsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListAuthConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_auth_configs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_auth_configs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations auth configs patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -595,6 +954,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations certificates get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaCertificate result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_certificates_get(
+        &self,
+        args: &IntegrationsProjectsLocationsCertificatesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaCertificate, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_certificates_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_certificates_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations certificates list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListCertificatesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_certificates_list(
+        &self,
+        args: &IntegrationsProjectsLocationsCertificatesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListCertificatesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_certificates_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_certificates_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations certificates patch.
@@ -1028,6 +1467,168 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations connections get connection schema metadata.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_connections_get_connection_schema_metadata(
+        &self,
+        args: &IntegrationsProjectsLocationsConnectionsGetConnectionSchemaMetadataArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_connections_get_connection_schema_metadata_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_connections_get_connection_schema_metadata_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations connections list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListConnectionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_connections_list(
+        &self,
+        args: &IntegrationsProjectsLocationsConnectionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListConnectionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_connections_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_connections_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations connections runtime action schemas list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_connections_runtime_action_schemas_list(
+        &self,
+        args: &IntegrationsProjectsLocationsConnectionsRuntimeActionSchemasListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_connections_runtime_action_schemas_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_connections_runtime_action_schemas_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations connections runtime entity schemas list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_connections_runtime_entity_schemas_list(
+        &self,
+        args: &IntegrationsProjectsLocationsConnectionsRuntimeEntitySchemasListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_connections_runtime_entity_schemas_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_connections_runtime_entity_schemas_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations integrations delete.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1158,6 +1759,48 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations integrations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListIntegrationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_list(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListIntegrationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations integrations schedule.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1201,9 +1844,52 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations integrations search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_search(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_search_builder(
+            &self.http_client,
+            &args.parent,
+            &args.enableNaturalLanguageQueryUnderstanding,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations integrations test.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1215,7 +1901,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn integrations_projects_locations_integrations_test(
         &self,
         args: &IntegrationsProjectsLocationsIntegrationsTestArgs,
@@ -1236,12 +1922,7 @@ where
         let task = integrations_projects_locations_integrations_test_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations integrations executions cancel.
@@ -1285,6 +1966,140 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations integrations executions download.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaDownloadExecutionResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_executions_download(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsExecutionsDownloadArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaDownloadExecutionResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_executions_download_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_executions_download_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations integrations executions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaExecution result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_executions_get(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsExecutionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaExecution, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_executions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_executions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations integrations executions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListExecutionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_executions_list(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsExecutionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListExecutionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_executions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.filterParams.customFilter,
+            &args.filterParams.endTime,
+            &args.filterParams.eventStatuses,
+            &args.filterParams.executionId,
+            &args.filterParams.parameterKey,
+            &args.filterParams.parameterPairKey,
+            &args.filterParams.parameterPairValue,
+            &args.filterParams.parameterType,
+            &args.filterParams.parameterValue,
+            &args.filterParams.startTime,
+            &args.filterParams.taskStatuses,
+            &args.filterParams.workflowName,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+            &args.refreshAcl,
+            &args.snapshotMetadataWithoutParams,
+            &args.truncateParams,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_executions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations integrations executions replay.
@@ -1371,6 +2186,48 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations integrations executions suspensions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListSuspensionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_executions_suspensions_list(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListSuspensionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_executions_suspensions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_executions_suspensions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations integrations executions suspensions resolve.
@@ -1504,6 +2361,166 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations integrations versions download.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_versions_download(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsVersionsDownloadArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_versions_download_builder(
+            &self.http_client,
+            &args.name,
+            &args.fileFormat,
+            &args.files,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_versions_download_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations integrations versions download json package.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_versions_download_json_package(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsVersionsDownloadJsonPackageArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_versions_download_json_package_builder(
+            &self.http_client,
+            &args.name,
+            &args.files,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_versions_download_json_package_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations integrations versions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaIntegrationVersion result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_versions_get(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsVersionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaIntegrationVersion, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_versions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_versions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations integrations versions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_versions_list(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsVersionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_versions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.fieldMask,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_versions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations integrations versions patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1593,7 +2610,7 @@ where
 
     /// Integrations projects locations integrations versions test.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1605,7 +2622,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn integrations_projects_locations_integrations_versions_test(
         &self,
         args: &IntegrationsProjectsLocationsIntegrationsVersionsTestArgs,
@@ -1626,12 +2643,7 @@ where
         let task = integrations_projects_locations_integrations_versions_test_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations integrations versions unpublish.
@@ -1807,6 +2819,45 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations integrations versions test cases download.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_versions_test_cases_download(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDownloadArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_versions_test_cases_download_builder(
+            &self.http_client,
+            &args.name,
+            &args.fileFormat,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_versions_test_cases_download_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations integrations versions test cases execute.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1893,6 +2944,87 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations integrations versions test cases get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaTestCase result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_versions_test_cases_get(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaTestCase, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_versions_test_cases_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_versions_test_cases_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations integrations versions test cases list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListTestCasesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_integrations_versions_test_cases_list(
+        &self,
+        args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListTestCasesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_integrations_versions_test_cases_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_integrations_versions_test_cases_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations integrations versions test cases patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1939,7 +3071,7 @@ where
 
     /// Integrations projects locations integrations versions test cases takeover edit lock.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1951,7 +3083,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock(
         &self,
         args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesTakeoverEditLockArgs,
@@ -1972,17 +3104,12 @@ where
         let task = integrations_projects_locations_integrations_versions_test_cases_takeover_edit_lock_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations integrations versions test cases upload.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -1994,7 +3121,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn integrations_projects_locations_integrations_versions_test_cases_upload(
         &self,
         args: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesUploadArgs,
@@ -2015,12 +3142,7 @@ where
         let task = integrations_projects_locations_integrations_versions_test_cases_upload_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations products auth configs create.
@@ -2110,6 +3232,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products auth configs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaAuthConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_auth_configs_get(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsAuthConfigsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaAuthConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_auth_configs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_auth_configs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products auth configs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListAuthConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_auth_configs_list(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsAuthConfigsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListAuthConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_auth_configs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_auth_configs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations products auth configs patch.
@@ -2245,6 +3447,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations products certificates get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaCertificate result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_certificates_get(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsCertificatesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaCertificate, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_certificates_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_certificates_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products certificates list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListCertificatesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_certificates_list(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsCertificatesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListCertificatesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_certificates_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_certificates_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations products certificates patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -2375,6 +3657,48 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations products integrations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListIntegrationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_integrations_list(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsIntegrationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListIntegrationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_integrations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_integrations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations products integrations schedule.
     ///
     /// Automatically stores the result in the state store on success.
@@ -2420,7 +3744,7 @@ where
 
     /// Integrations projects locations products integrations test.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -2432,7 +3756,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn integrations_projects_locations_products_integrations_test(
         &self,
         args: &IntegrationsProjectsLocationsProductsIntegrationsTestArgs,
@@ -2453,12 +3777,141 @@ where
         let task = integrations_projects_locations_products_integrations_test_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Integrations projects locations products integrations executions download.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaDownloadExecutionResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_integrations_executions_download(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsDownloadArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaDownloadExecutionResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_integrations_executions_download_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = integrations_projects_locations_products_integrations_executions_download_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products integrations executions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaExecution result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_integrations_executions_get(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaExecution, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_integrations_executions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_integrations_executions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products integrations executions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListExecutionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_integrations_executions_list(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListExecutionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_integrations_executions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.filterParams.customFilter,
+            &args.filterParams.endTime,
+            &args.filterParams.eventStatuses,
+            &args.filterParams.executionId,
+            &args.filterParams.parameterKey,
+            &args.filterParams.parameterPairKey,
+            &args.filterParams.parameterPairValue,
+            &args.filterParams.parameterType,
+            &args.filterParams.parameterValue,
+            &args.filterParams.startTime,
+            &args.filterParams.taskStatuses,
+            &args.filterParams.workflowName,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+            &args.refreshAcl,
+            &args.snapshotMetadataWithoutParams,
+            &args.truncateParams,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_integrations_executions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations products integrations executions suspensions lift.
@@ -2502,6 +3955,48 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products integrations executions suspensions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListSuspensionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_integrations_executions_suspensions_list(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsIntegrationsExecutionsSuspensionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListSuspensionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_integrations_executions_suspensions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_integrations_executions_suspensions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations products integrations executions suspensions resolve.
@@ -2633,6 +4128,127 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products integrations versions download.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_integrations_versions_download(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsDownloadArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_integrations_versions_download_builder(
+            &self.http_client,
+            &args.name,
+            &args.fileFormat,
+            &args.files,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_integrations_versions_download_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products integrations versions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaIntegrationVersion result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_integrations_versions_get(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaIntegrationVersion, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_integrations_versions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_integrations_versions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products integrations versions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_integrations_versions_list(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsIntegrationsVersionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_integrations_versions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.fieldMask,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_integrations_versions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations products integrations versions patch.
@@ -2937,6 +4553,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations products sfdc instances get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaSfdcInstance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_sfdc_instances_get(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsSfdcInstancesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaSfdcInstance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_sfdc_instances_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_sfdc_instances_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products sfdc instances list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_sfdc_instances_list(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsSfdcInstancesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_sfdc_instances_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_sfdc_instances_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations products sfdc instances patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -3065,6 +4761,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products sfdc instances sfdc channels get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaSfdcChannel result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_get(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaSfdcChannel, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_sfdc_instances_sfdc_channels_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations products sfdc instances sfdc channels list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_products_sfdc_instances_sfdc_channels_list(
+        &self,
+        args: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_products_sfdc_instances_sfdc_channels_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations products sfdc instances sfdc channels patch.
@@ -3197,6 +4973,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations sfdc instances get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaSfdcInstance result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_sfdc_instances_get(
+        &self,
+        args: &IntegrationsProjectsLocationsSfdcInstancesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaSfdcInstance, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_sfdc_instances_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_sfdc_instances_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations sfdc instances list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_sfdc_instances_list(
+        &self,
+        args: &IntegrationsProjectsLocationsSfdcInstancesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_sfdc_instances_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_sfdc_instances_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations sfdc instances patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -3325,6 +5181,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations sfdc instances sfdc channels get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaSfdcChannel result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_get(
+        &self,
+        args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaSfdcChannel, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_sfdc_instances_sfdc_channels_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_sfdc_instances_sfdc_channels_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations sfdc instances sfdc channels list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_sfdc_instances_sfdc_channels_list(
+        &self,
+        args: &IntegrationsProjectsLocationsSfdcInstancesSfdcChannelsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_sfdc_instances_sfdc_channels_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_sfdc_instances_sfdc_channels_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations sfdc instances sfdc channels patch.
@@ -3457,6 +5393,83 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Integrations projects locations templates download.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaDownloadTemplateResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_templates_download(
+        &self,
+        args: &IntegrationsProjectsLocationsTemplatesDownloadArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaDownloadTemplateResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_templates_download_builder(
+            &self.http_client,
+            &args.name,
+            &args.fileFormat,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_templates_download_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations templates get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaTemplate result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_templates_get(
+        &self,
+        args: &IntegrationsProjectsLocationsTemplatesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaTemplate, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_templates_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_templates_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Integrations projects locations templates import.
     ///
     /// Automatically stores the result in the state store on success.
@@ -3498,6 +5511,49 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations templates list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaListTemplatesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_templates_list(
+        &self,
+        args: &IntegrationsProjectsLocationsTemplatesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaListTemplatesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_templates_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_templates_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations templates patch.
@@ -3542,6 +5598,51 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Integrations projects locations templates search.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudIntegrationsV1alphaSearchTemplatesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn integrations_projects_locations_templates_search(
+        &self,
+        args: &IntegrationsProjectsLocationsTemplatesSearchArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudIntegrationsV1alphaSearchTemplatesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = integrations_projects_locations_templates_search_builder(
+            &self.http_client,
+            &args.parent,
+            &args.enableNaturalLanguageQueryUnderstanding,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.query,
+            &args.readMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = integrations_projects_locations_templates_search_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Integrations projects locations templates share.

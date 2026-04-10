@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET games/v1management/achievements/{achievementId}/reset
+/// POST games/v1management/achievements/{achievementId}/reset
 /// Resets the achievement with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -38,13 +38,13 @@ pub fn games_management_achievements_reset_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/achievements/{achievementId}/reset
+/// POST games/v1management/achievements/{achievementId}/reset
 /// Resets the achievement with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +118,7 @@ pub fn games_management_achievements_reset_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/achievements/{achievementId}/reset
+/// POST games/v1management/achievements/{achievementId}/reset
 /// Resets the achievement with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -157,7 +157,7 @@ pub struct GamesManagementAchievementsResetArgs {
     pub achievementId: String,
 }
 
-/// GET games/v1management/achievements/{achievementId}/reset
+/// POST games/v1management/achievements/{achievementId}/reset
 /// Resets the achievement with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -181,7 +181,7 @@ pub fn games_management_achievements_reset(
     games_management_achievements_reset_execute(builder)
 }
 
-/// GET games/v1management/achievements/reset
+/// POST games/v1management/achievements/reset
 /// Resets all achievements for the currently authenticated player for your application. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -196,13 +196,13 @@ pub fn games_management_achievements_reset_all_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/achievements/reset
+/// POST games/v1management/achievements/reset
 /// Resets all achievements for the currently authenticated player for your application. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -276,7 +276,7 @@ pub fn games_management_achievements_reset_all_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/achievements/reset
+/// POST games/v1management/achievements/reset
 /// Resets all achievements for the currently authenticated player for your application. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -310,7 +310,7 @@ pub fn games_management_achievements_reset_all_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// GET games/v1management/achievements/reset
+/// POST games/v1management/achievements/reset
 /// Resets all achievements for the currently authenticated player for your application. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -335,7 +335,7 @@ pub fn games_management_achievements_reset_all(
     games_management_achievements_reset_all_execute(builder)
 }
 
-/// GET games/v1management/achievements/resetAllForAllPlayers
+/// POST games/v1management/achievements/resetAllForAllPlayers
 /// Resets all draft achievements for all players. This method is only available to user accounts for your developer console.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -351,13 +351,13 @@ pub fn games_management_achievements_reset_all_for_all_players_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/achievements/resetAllForAllPlayers
+/// POST games/v1management/achievements/resetAllForAllPlayers
 /// Resets all draft achievements for all players. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -428,7 +428,7 @@ pub fn games_management_achievements_reset_all_for_all_players_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/achievements/resetAllForAllPlayers
+/// POST games/v1management/achievements/resetAllForAllPlayers
 /// Resets all draft achievements for all players. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -458,7 +458,7 @@ pub fn games_management_achievements_reset_all_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// GET games/v1management/achievements/resetAllForAllPlayers
+/// POST games/v1management/achievements/resetAllForAllPlayers
 /// Resets all draft achievements for all players. This method is only available to user accounts for your developer console.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -479,7 +479,7 @@ pub fn games_management_achievements_reset_all_for_all_players(
     games_management_achievements_reset_all_for_all_players_execute(builder)
 }
 
-/// GET games/v1management/achievements/{achievementId}/resetForAllPlayers
+/// POST games/v1management/achievements/{achievementId}/resetForAllPlayers
 /// Resets the achievement with the given ID for all players. This method is only available to user accounts for your developer console. Only draft achievements can be reset.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -497,13 +497,13 @@ pub fn games_management_achievements_reset_for_all_players_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/achievements/{achievementId}/resetForAllPlayers
+/// POST games/v1management/achievements/{achievementId}/resetForAllPlayers
 /// Resets the achievement with the given ID for all players. This method is only available to user accounts for your developer console. Only draft achievements can be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -574,7 +574,7 @@ pub fn games_management_achievements_reset_for_all_players_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/achievements/{achievementId}/resetForAllPlayers
+/// POST games/v1management/achievements/{achievementId}/resetForAllPlayers
 /// Resets the achievement with the given ID for all players. This method is only available to user accounts for your developer console. Only draft achievements can be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -611,7 +611,7 @@ pub struct GamesManagementAchievementsResetForAllPlayersArgs {
     pub achievementId: String,
 }
 
-/// GET games/v1management/achievements/{achievementId}/resetForAllPlayers
+/// POST games/v1management/achievements/{achievementId}/resetForAllPlayers
 /// Resets the achievement with the given ID for all players. This method is only available to user accounts for your developer console. Only draft achievements can be reset.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -634,7 +634,7 @@ pub fn games_management_achievements_reset_for_all_players(
     games_management_achievements_reset_for_all_players_execute(builder)
 }
 
-/// GET games/v1management/achievements/resetMultipleForAllPlayers
+/// POST games/v1management/achievements/resetMultipleForAllPlayers
 /// Resets achievements with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft achievements may be reset.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -642,7 +642,6 @@ pub fn games_management_achievements_reset_for_all_players(
 
 pub fn games_management_achievements_reset_multiple_for_all_players_builder(
     client: &SimpleHttpClient,
-    body: &AchievementResetMultipleForAllRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -651,15 +650,13 @@ pub fn games_management_achievements_reset_multiple_for_all_players_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET games/v1management/achievements/resetMultipleForAllPlayers
+/// POST games/v1management/achievements/resetMultipleForAllPlayers
 /// Resets achievements with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft achievements may be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -730,7 +727,7 @@ pub fn games_management_achievements_reset_multiple_for_all_players_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/achievements/resetMultipleForAllPlayers
+/// POST games/v1management/achievements/resetMultipleForAllPlayers
 /// Resets achievements with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft achievements may be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -760,14 +757,7 @@ pub fn games_management_achievements_reset_multiple_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`games_management_achievements_reset_multiple_for_all_players`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesManagementAchievementsResetMultipleForAllPlayersArgs {
-    /// Request body.
-    pub body: AchievementResetMultipleForAllRequest,
-}
-
-/// GET games/v1management/achievements/resetMultipleForAllPlayers
+/// POST games/v1management/achievements/resetMultipleForAllPlayers
 /// Resets achievements with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft achievements may be reset.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -780,13 +770,11 @@ pub struct GamesManagementAchievementsResetMultipleForAllPlayersArgs {
 
 pub fn games_management_achievements_reset_multiple_for_all_players(
     client: &SimpleHttpClient,
-    args: &GamesManagementAchievementsResetMultipleForAllPlayersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        games_management_achievements_reset_multiple_for_all_players_builder(client, &args.body)?;
+    let builder = games_management_achievements_reset_multiple_for_all_players_builder(client)?;
     games_management_achievements_reset_multiple_for_all_players_execute(builder)
 }
 
@@ -799,8 +787,8 @@ pub fn games_management_achievements_reset_multiple_for_all_players(
 pub fn games_management_applications_list_hidden_builder(
     client: &SimpleHttpClient,
     applicationId: &String,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -942,9 +930,9 @@ pub struct GamesManagementApplicationsListHiddenArgs {
     /// Path parameter: applicationId
     pub applicationId: String,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET games/v1management/applications/{applicationId}/players/hidden
@@ -976,7 +964,7 @@ pub fn games_management_applications_list_hidden(
     games_management_applications_list_hidden_execute(builder)
 }
 
-/// GET games/v1management/events/{eventId}/reset
+/// POST games/v1management/events/{eventId}/reset
 /// Resets all player progress on the event with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -994,13 +982,13 @@ pub fn games_management_events_reset_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/events/{eventId}/reset
+/// POST games/v1management/events/{eventId}/reset
 /// Resets all player progress on the event with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1071,7 +1059,7 @@ pub fn games_management_events_reset_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/events/{eventId}/reset
+/// POST games/v1management/events/{eventId}/reset
 /// Resets all player progress on the event with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1108,7 +1096,7 @@ pub struct GamesManagementEventsResetArgs {
     pub eventId: String,
 }
 
-/// GET games/v1management/events/{eventId}/reset
+/// POST games/v1management/events/{eventId}/reset
 /// Resets all player progress on the event with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1130,7 +1118,7 @@ pub fn games_management_events_reset(
     games_management_events_reset_execute(builder)
 }
 
-/// GET games/v1management/events/reset
+/// POST games/v1management/events/reset
 /// Resets all player progress on all events for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1145,13 +1133,13 @@ pub fn games_management_events_reset_all_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/events/reset
+/// POST games/v1management/events/reset
 /// Resets all player progress on all events for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1222,7 +1210,7 @@ pub fn games_management_events_reset_all_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/events/reset
+/// POST games/v1management/events/reset
 /// Resets all player progress on all events for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1252,7 +1240,7 @@ pub fn games_management_events_reset_all_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// GET games/v1management/events/reset
+/// POST games/v1management/events/reset
 /// Resets all player progress on all events for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1273,7 +1261,7 @@ pub fn games_management_events_reset_all(
     games_management_events_reset_all_execute(builder)
 }
 
-/// GET games/v1management/events/resetAllForAllPlayers
+/// POST games/v1management/events/resetAllForAllPlayers
 /// Resets all draft events for all players. This method is only available to user accounts for your developer console.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1289,13 +1277,13 @@ pub fn games_management_events_reset_all_for_all_players_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/events/resetAllForAllPlayers
+/// POST games/v1management/events/resetAllForAllPlayers
 /// Resets all draft events for all players. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1366,7 +1354,7 @@ pub fn games_management_events_reset_all_for_all_players_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/events/resetAllForAllPlayers
+/// POST games/v1management/events/resetAllForAllPlayers
 /// Resets all draft events for all players. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1396,7 +1384,7 @@ pub fn games_management_events_reset_all_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// GET games/v1management/events/resetAllForAllPlayers
+/// POST games/v1management/events/resetAllForAllPlayers
 /// Resets all draft events for all players. This method is only available to user accounts for your developer console.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1417,7 +1405,7 @@ pub fn games_management_events_reset_all_for_all_players(
     games_management_events_reset_all_for_all_players_execute(builder)
 }
 
-/// GET games/v1management/events/{eventId}/resetForAllPlayers
+/// POST games/v1management/events/{eventId}/resetForAllPlayers
 /// Resets the event with the given ID for all players. This method is only available to user accounts for your developer console. Only draft events can be reset.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1435,13 +1423,13 @@ pub fn games_management_events_reset_for_all_players_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/events/{eventId}/resetForAllPlayers
+/// POST games/v1management/events/{eventId}/resetForAllPlayers
 /// Resets the event with the given ID for all players. This method is only available to user accounts for your developer console. Only draft events can be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1512,7 +1500,7 @@ pub fn games_management_events_reset_for_all_players_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/events/{eventId}/resetForAllPlayers
+/// POST games/v1management/events/{eventId}/resetForAllPlayers
 /// Resets the event with the given ID for all players. This method is only available to user accounts for your developer console. Only draft events can be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1549,7 +1537,7 @@ pub struct GamesManagementEventsResetForAllPlayersArgs {
     pub eventId: String,
 }
 
-/// GET games/v1management/events/{eventId}/resetForAllPlayers
+/// POST games/v1management/events/{eventId}/resetForAllPlayers
 /// Resets the event with the given ID for all players. This method is only available to user accounts for your developer console. Only draft events can be reset.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1571,7 +1559,7 @@ pub fn games_management_events_reset_for_all_players(
     games_management_events_reset_for_all_players_execute(builder)
 }
 
-/// GET games/v1management/events/resetMultipleForAllPlayers
+/// POST games/v1management/events/resetMultipleForAllPlayers
 /// Resets events with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft events may be reset.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1579,7 +1567,6 @@ pub fn games_management_events_reset_for_all_players(
 
 pub fn games_management_events_reset_multiple_for_all_players_builder(
     client: &SimpleHttpClient,
-    body: &EventsResetMultipleForAllRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1588,15 +1575,13 @@ pub fn games_management_events_reset_multiple_for_all_players_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET games/v1management/events/resetMultipleForAllPlayers
+/// POST games/v1management/events/resetMultipleForAllPlayers
 /// Resets events with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft events may be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1667,7 +1652,7 @@ pub fn games_management_events_reset_multiple_for_all_players_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/events/resetMultipleForAllPlayers
+/// POST games/v1management/events/resetMultipleForAllPlayers
 /// Resets events with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft events may be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1697,14 +1682,7 @@ pub fn games_management_events_reset_multiple_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`games_management_events_reset_multiple_for_all_players`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesManagementEventsResetMultipleForAllPlayersArgs {
-    /// Request body.
-    pub body: EventsResetMultipleForAllRequest,
-}
-
-/// GET games/v1management/events/resetMultipleForAllPlayers
+/// POST games/v1management/events/resetMultipleForAllPlayers
 /// Resets events with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft events may be reset.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1717,17 +1695,15 @@ pub struct GamesManagementEventsResetMultipleForAllPlayersArgs {
 
 pub fn games_management_events_reset_multiple_for_all_players(
     client: &SimpleHttpClient,
-    args: &GamesManagementEventsResetMultipleForAllPlayersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        games_management_events_reset_multiple_for_all_players_builder(client, &args.body)?;
+    let builder = games_management_events_reset_multiple_for_all_players_builder(client)?;
     games_management_events_reset_multiple_for_all_players_execute(builder)
 }
 
-/// GET games/v1management/applications/{applicationId}/players/hidden/{playerId}
+/// POST games/v1management/applications/{applicationId}/players/hidden/{playerId}
 /// Hide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1747,13 +1723,13 @@ pub fn games_management_players_hide_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/applications/{applicationId}/players/hidden/{playerId}
+/// POST games/v1management/applications/{applicationId}/players/hidden/{playerId}
 /// Hide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1824,7 +1800,7 @@ pub fn games_management_players_hide_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/applications/{applicationId}/players/hidden/{playerId}
+/// POST games/v1management/applications/{applicationId}/players/hidden/{playerId}
 /// Hide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1863,7 +1839,7 @@ pub struct GamesManagementPlayersHideArgs {
     pub playerId: String,
 }
 
-/// GET games/v1management/applications/{applicationId}/players/hidden/{playerId}
+/// POST games/v1management/applications/{applicationId}/players/hidden/{playerId}
 /// Hide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1886,7 +1862,166 @@ pub fn games_management_players_hide(
     games_management_players_hide_execute(builder)
 }
 
-/// GET games/v1management/leaderboards/{leaderboardId}/scores/reset
+/// DELETE games/v1management/applications/{applicationId}/players/hidden/{playerId}
+/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `games_management_players_unhide_execute()` to send, or `games_management_players_unhide` for simplest API.
+
+pub fn games_management_players_unhide_builder(
+    client: &SimpleHttpClient,
+    applicationId: &String,
+    playerId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://gamesmanagement.googleapis.com/games/v1management/applications/{}/players/hidden/{}",
+        applicationId,
+        playerId,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE games/v1management/applications/{applicationId}/players/hidden/{playerId}
+/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `games_management_players_unhide_execute()` or `games_management_players_unhide`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_management_players_unhide_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_management_players_unhide_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE games/v1management/applications/{applicationId}/players/hidden/{playerId}
+/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `games_management_players_unhide_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `games_management_players_unhide_task()`.
+/// For the simplest API, use `games_management_players_unhide()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `games_management_players_unhide_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn games_management_players_unhide_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = games_management_players_unhide_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`games_management_players_unhide`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementPlayersUnhideArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Path parameter: playerId
+    pub playerId: String,
+}
+
+/// DELETE games/v1management/applications/{applicationId}/players/hidden/{playerId}
+/// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `games_management_players_unhide_builder()` + `games_management_players_unhide_execute()`.
+/// For task-level control, use `games_management_players_unhide_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn games_management_players_unhide(
+    client: &SimpleHttpClient,
+    args: &GamesManagementPlayersUnhideArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        games_management_players_unhide_builder(client, &args.applicationId, &args.playerId)?;
+    games_management_players_unhide_execute(builder)
+}
+
+/// POST games/v1management/leaderboards/{leaderboardId}/scores/reset
 /// Resets scores for the leaderboard with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1904,13 +2039,13 @@ pub fn games_management_scores_reset_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/leaderboards/{leaderboardId}/scores/reset
+/// POST games/v1management/leaderboards/{leaderboardId}/scores/reset
 /// Resets scores for the leaderboard with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1984,7 +2119,7 @@ pub fn games_management_scores_reset_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/leaderboards/{leaderboardId}/scores/reset
+/// POST games/v1management/leaderboards/{leaderboardId}/scores/reset
 /// Resets scores for the leaderboard with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2023,7 +2158,7 @@ pub struct GamesManagementScoresResetArgs {
     pub leaderboardId: String,
 }
 
-/// GET games/v1management/leaderboards/{leaderboardId}/scores/reset
+/// POST games/v1management/leaderboards/{leaderboardId}/scores/reset
 /// Resets scores for the leaderboard with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2047,7 +2182,7 @@ pub fn games_management_scores_reset(
     games_management_scores_reset_execute(builder)
 }
 
-/// GET games/v1management/scores/reset
+/// POST games/v1management/scores/reset
 /// Resets all scores for all leaderboards for the currently authenticated players. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2062,13 +2197,13 @@ pub fn games_management_scores_reset_all_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/scores/reset
+/// POST games/v1management/scores/reset
 /// Resets all scores for all leaderboards for the currently authenticated players. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2142,7 +2277,7 @@ pub fn games_management_scores_reset_all_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/scores/reset
+/// POST games/v1management/scores/reset
 /// Resets all scores for all leaderboards for the currently authenticated players. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2176,7 +2311,7 @@ pub fn games_management_scores_reset_all_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// GET games/v1management/scores/reset
+/// POST games/v1management/scores/reset
 /// Resets all scores for all leaderboards for the currently authenticated players. This method is only accessible to whitelisted tester accounts for your application.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2201,7 +2336,7 @@ pub fn games_management_scores_reset_all(
     games_management_scores_reset_all_execute(builder)
 }
 
-/// GET games/v1management/scores/resetAllForAllPlayers
+/// POST games/v1management/scores/resetAllForAllPlayers
 /// Resets scores for all draft leaderboards for all players. This method is only available to user accounts for your developer console.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2217,13 +2352,13 @@ pub fn games_management_scores_reset_all_for_all_players_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/scores/resetAllForAllPlayers
+/// POST games/v1management/scores/resetAllForAllPlayers
 /// Resets scores for all draft leaderboards for all players. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2294,7 +2429,7 @@ pub fn games_management_scores_reset_all_for_all_players_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/scores/resetAllForAllPlayers
+/// POST games/v1management/scores/resetAllForAllPlayers
 /// Resets scores for all draft leaderboards for all players. This method is only available to user accounts for your developer console.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2324,7 +2459,7 @@ pub fn games_management_scores_reset_all_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// GET games/v1management/scores/resetAllForAllPlayers
+/// POST games/v1management/scores/resetAllForAllPlayers
 /// Resets scores for all draft leaderboards for all players. This method is only available to user accounts for your developer console.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2345,7 +2480,7 @@ pub fn games_management_scores_reset_all_for_all_players(
     games_management_scores_reset_all_for_all_players_execute(builder)
 }
 
-/// GET games/v1management/leaderboards/{leaderboardId}/scores/resetForAllPlayers
+/// POST games/v1management/leaderboards/{leaderboardId}/scores/resetForAllPlayers
 /// Resets scores for the leaderboard with the given ID for all players. This method is only available to user accounts for your developer console. Only draft leaderboards can be reset.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2363,13 +2498,13 @@ pub fn games_management_scores_reset_for_all_players_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET games/v1management/leaderboards/{leaderboardId}/scores/resetForAllPlayers
+/// POST games/v1management/leaderboards/{leaderboardId}/scores/resetForAllPlayers
 /// Resets scores for the leaderboard with the given ID for all players. This method is only available to user accounts for your developer console. Only draft leaderboards can be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2440,7 +2575,7 @@ pub fn games_management_scores_reset_for_all_players_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/leaderboards/{leaderboardId}/scores/resetForAllPlayers
+/// POST games/v1management/leaderboards/{leaderboardId}/scores/resetForAllPlayers
 /// Resets scores for the leaderboard with the given ID for all players. This method is only available to user accounts for your developer console. Only draft leaderboards can be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2477,7 +2612,7 @@ pub struct GamesManagementScoresResetForAllPlayersArgs {
     pub leaderboardId: String,
 }
 
-/// GET games/v1management/leaderboards/{leaderboardId}/scores/resetForAllPlayers
+/// POST games/v1management/leaderboards/{leaderboardId}/scores/resetForAllPlayers
 /// Resets scores for the leaderboard with the given ID for all players. This method is only available to user accounts for your developer console. Only draft leaderboards can be reset.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2500,7 +2635,7 @@ pub fn games_management_scores_reset_for_all_players(
     games_management_scores_reset_for_all_players_execute(builder)
 }
 
-/// GET games/v1management/scores/resetMultipleForAllPlayers
+/// POST games/v1management/scores/resetMultipleForAllPlayers
 /// Resets scores for the leaderboards with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft leaderboards may be reset.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2508,7 +2643,6 @@ pub fn games_management_scores_reset_for_all_players(
 
 pub fn games_management_scores_reset_multiple_for_all_players_builder(
     client: &SimpleHttpClient,
-    body: &ScoresResetMultipleForAllRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2517,15 +2651,13 @@ pub fn games_management_scores_reset_multiple_for_all_players_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET games/v1management/scores/resetMultipleForAllPlayers
+/// POST games/v1management/scores/resetMultipleForAllPlayers
 /// Resets scores for the leaderboards with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft leaderboards may be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2596,7 +2728,7 @@ pub fn games_management_scores_reset_multiple_for_all_players_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET games/v1management/scores/resetMultipleForAllPlayers
+/// POST games/v1management/scores/resetMultipleForAllPlayers
 /// Resets scores for the leaderboards with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft leaderboards may be reset.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2626,14 +2758,7 @@ pub fn games_management_scores_reset_multiple_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`games_management_scores_reset_multiple_for_all_players`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct GamesManagementScoresResetMultipleForAllPlayersArgs {
-    /// Request body.
-    pub body: ScoresResetMultipleForAllRequest,
-}
-
-/// GET games/v1management/scores/resetMultipleForAllPlayers
+/// POST games/v1management/scores/resetMultipleForAllPlayers
 /// Resets scores for the leaderboards with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft leaderboards may be reset.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2646,12 +2771,134 @@ pub struct GamesManagementScoresResetMultipleForAllPlayersArgs {
 
 pub fn games_management_scores_reset_multiple_for_all_players(
     client: &SimpleHttpClient,
-    args: &GamesManagementScoresResetMultipleForAllPlayersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        games_management_scores_reset_multiple_for_all_players_builder(client, &args.body)?;
+    let builder = games_management_scores_reset_multiple_for_all_players_builder(client)?;
     games_management_scores_reset_multiple_for_all_players_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementResetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementResetResponse with GamesManagementAchievementsResetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesManagementAchievementsResetArgs> for AchievementResetResponse {
+    fn generate_resource_id(&self, input: &GamesManagementAchievementsResetArgs) -> String {
+        format!(
+            "gcp::gamesManagement::AchievementResetResponse/{}",
+            input.achievementId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesManagement::AchievementResetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AchievementResetAllResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AchievementResetAllResponse with GamesManagementAchievementsResetAllArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesManagementAchievementsResetAllArgs> for AchievementResetAllResponse {
+    fn generate_resource_id(&self, input: &GamesManagementAchievementsResetAllArgs) -> String {
+        "gcp::gamesManagement::AchievementResetAllResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesManagement::AchievementResetAllResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HiddenPlayerList
+// =============================================================================
+
+/// ResourceIdentifier implementation for HiddenPlayerList with GamesManagementApplicationsListHiddenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesManagementApplicationsListHiddenArgs> for HiddenPlayerList {
+    fn generate_resource_id(&self, input: &GamesManagementApplicationsListHiddenArgs) -> String {
+        format!(
+            "gcp::gamesManagement::HiddenPlayerList/{}",
+            input.applicationId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesManagement::HiddenPlayerList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlayerScoreResetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlayerScoreResetResponse with GamesManagementScoresResetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesManagementScoresResetArgs> for PlayerScoreResetResponse {
+    fn generate_resource_id(&self, input: &GamesManagementScoresResetArgs) -> String {
+        format!(
+            "gcp::gamesManagement::PlayerScoreResetResponse/{}",
+            input.leaderboardId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesManagement::PlayerScoreResetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlayerScoreResetAllResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlayerScoreResetAllResponse with GamesManagementScoresResetAllArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesManagementScoresResetAllArgs> for PlayerScoreResetAllResponse {
+    fn generate_resource_id(&self, input: &GamesManagementScoresResetAllArgs) -> String {
+        "gcp::gamesManagement::PlayerScoreResetAllResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::gamesManagement::PlayerScoreResetAllResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

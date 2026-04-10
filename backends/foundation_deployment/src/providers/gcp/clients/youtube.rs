@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,581 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// POST youtube/v3/abuseReports
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_abuse_reports_insert_execute()` to send, or `youtube_abuse_reports_insert` for simplest API.
+
+pub fn youtube_abuse_reports_insert_builder(
+    client: &SimpleHttpClient,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/abuseReports",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/abuseReports
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_abuse_reports_insert_execute()` or `youtube_abuse_reports_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_abuse_reports_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_abuse_reports_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AbuseReport>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AbuseReport = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/abuseReports
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_abuse_reports_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_abuse_reports_insert_task()`.
+/// For the simplest API, use `youtube_abuse_reports_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_abuse_reports_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_abuse_reports_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AbuseReport>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_abuse_reports_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_abuse_reports_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAbuseReportsInsertArgs {
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/abuseReports
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_abuse_reports_insert_builder()` + `youtube_abuse_reports_insert_execute()`.
+/// For task-level control, use `youtube_abuse_reports_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_abuse_reports_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeAbuseReportsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AbuseReport>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_abuse_reports_insert_builder(client, &args.part)?;
+    youtube_abuse_reports_insert_execute(builder)
+}
+
+/// GET youtube/v3/activities
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_activities_list_execute()` to send, or `youtube_activities_list` for simplest API.
+
+pub fn youtube_activities_list_builder(
+    client: &SimpleHttpClient,
+    channelId: &Option<Option<String>>,
+    home: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    mine: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    publishedAfter: &Option<Option<String>>,
+    publishedBefore: &Option<Option<String>>,
+    regionCode: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/activities",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = channelId.as_ref() {
+        query_parts.push(format!("channelId={}", val));
+    }
+    if let Some(val) = home.as_ref() {
+        query_parts.push(format!("home={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = mine.as_ref() {
+        query_parts.push(format!("mine={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = publishedAfter.as_ref() {
+        query_parts.push(format!("publishedAfter={}", val));
+    }
+    if let Some(val) = publishedBefore.as_ref() {
+        query_parts.push(format!("publishedBefore={}", val));
+    }
+    if let Some(val) = regionCode.as_ref() {
+        query_parts.push(format!("regionCode={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/activities
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_activities_list_execute()` or `youtube_activities_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_activities_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_activities_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ActivityListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ActivityListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/activities
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_activities_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_activities_list_task()`.
+/// For the simplest API, use `youtube_activities_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_activities_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_activities_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ActivityListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_activities_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_activities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeActivitiesListArgs {
+    /// Query parameter: channelId
+    pub channelId: Option<Option<String>>,
+    /// Query parameter: home
+    pub home: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: mine
+    pub mine: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: publishedAfter
+    pub publishedAfter: Option<Option<String>>,
+    /// Query parameter: publishedBefore
+    pub publishedBefore: Option<Option<String>>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<Option<String>>,
+}
+
+/// GET youtube/v3/activities
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_activities_list_builder()` + `youtube_activities_list_execute()`.
+/// For task-level control, use `youtube_activities_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_activities_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeActivitiesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ActivityListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_activities_list_builder(
+        client,
+        &args.channelId,
+        &args.home,
+        &args.maxResults,
+        &args.mine,
+        &args.pageToken,
+        &args.part,
+        &args.publishedAfter,
+        &args.publishedBefore,
+        &args.regionCode,
+    )?;
+    youtube_activities_list_execute(builder)
+}
+
+/// DELETE youtube/v3/captions
+/// Deletes a resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_captions_delete_execute()` to send, or `youtube_captions_delete` for simplest API.
+
+pub fn youtube_captions_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    onBehalfOf: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOf.as_ref() {
+        query_parts.push(format!("onBehalfOf={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/captions
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_captions_delete_execute()` or `youtube_captions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_captions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_captions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/captions
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_captions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_captions_delete_task()`.
+/// For the simplest API, use `youtube_captions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_captions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_captions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_captions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_captions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCaptionsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOf
+    pub onBehalfOf: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/captions
+/// Deletes a resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_captions_delete_builder()` + `youtube_captions_delete_execute()`.
+/// For task-level control, use `youtube_captions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_captions_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeCaptionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_captions_delete_builder(
+        client,
+        &args.id,
+        &args.onBehalfOf,
+        &args.onBehalfOfContentOwner,
+    )?;
+    youtube_captions_delete_execute(builder)
+}
 
 /// GET youtube/v3/captions/{id}
 /// Downloads a caption track.
@@ -29,10 +601,10 @@ use serde::Serialize;
 pub fn youtube_captions_download_builder(
     client: &SimpleHttpClient,
     id: &String,
-    onBehalfOf: &Option<String>,
-    onBehalfOfContentOwner: &Option<String>,
-    tfmt: &Option<String>,
-    tlang: &Option<String>,
+    onBehalfOf: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    tfmt: &Option<Option<String>>,
+    tlang: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions/{}", id,);
@@ -172,13 +744,13 @@ pub struct YoutubeCaptionsDownloadArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: onBehalfOf
-    pub onBehalfOf: Option<String>,
+    pub onBehalfOf: Option<Option<String>>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
     /// Query parameter: tfmt
-    pub tfmt: Option<String>,
+    pub tfmt: Option<Option<String>>,
     /// Query parameter: tlang
-    pub tlang: Option<String>,
+    pub tlang: Option<Option<String>>,
 }
 
 /// GET youtube/v3/captions/{id}
@@ -210,7 +782,585 @@ pub fn youtube_captions_download(
     youtube_captions_download_execute(builder)
 }
 
-/// GET youtube/v3/channelBanners/insert
+/// POST youtube/v3/captions
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_captions_insert_execute()` to send, or `youtube_captions_insert` for simplest API.
+
+pub fn youtube_captions_insert_builder(
+    client: &SimpleHttpClient,
+    onBehalfOf: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    sync: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOf.as_ref() {
+        query_parts.push(format!("onBehalfOf={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = sync.as_ref() {
+        query_parts.push(format!("sync={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/captions
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_captions_insert_execute()` or `youtube_captions_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_captions_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_captions_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Caption>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Caption = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/captions
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_captions_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_captions_insert_task()`.
+/// For the simplest API, use `youtube_captions_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_captions_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_captions_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Caption>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_captions_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_captions_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCaptionsInsertArgs {
+    /// Query parameter: onBehalfOf
+    pub onBehalfOf: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: sync
+    pub sync: Option<Option<String>>,
+}
+
+/// POST youtube/v3/captions
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_captions_insert_builder()` + `youtube_captions_insert_execute()`.
+/// For task-level control, use `youtube_captions_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_captions_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeCaptionsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Caption>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_captions_insert_builder(
+        client,
+        &args.onBehalfOf,
+        &args.onBehalfOfContentOwner,
+        &args.part,
+        &args.sync,
+    )?;
+    youtube_captions_insert_execute(builder)
+}
+
+/// GET youtube/v3/captions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_captions_list_execute()` to send, or `youtube_captions_list` for simplest API.
+
+pub fn youtube_captions_list_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    onBehalfOf: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    videoId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOf.as_ref() {
+        query_parts.push(format!("onBehalfOf={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = videoId.as_ref() {
+        query_parts.push(format!("videoId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/captions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_captions_list_execute()` or `youtube_captions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_captions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_captions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CaptionListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CaptionListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/captions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_captions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_captions_list_task()`.
+/// For the simplest API, use `youtube_captions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_captions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_captions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CaptionListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_captions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_captions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCaptionsListArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOf
+    pub onBehalfOf: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: videoId
+    pub videoId: Option<Option<String>>,
+}
+
+/// GET youtube/v3/captions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_captions_list_builder()` + `youtube_captions_list_execute()`.
+/// For task-level control, use `youtube_captions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_captions_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeCaptionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CaptionListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_captions_list_builder(
+        client,
+        &args.id,
+        &args.onBehalfOf,
+        &args.onBehalfOfContentOwner,
+        &args.part,
+        &args.videoId,
+    )?;
+    youtube_captions_list_execute(builder)
+}
+
+/// PUT youtube/v3/captions
+/// Updates an existing resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_captions_update_execute()` to send, or `youtube_captions_update` for simplest API.
+
+pub fn youtube_captions_update_builder(
+    client: &SimpleHttpClient,
+    onBehalfOf: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    sync: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/captions",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOf.as_ref() {
+        query_parts.push(format!("onBehalfOf={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = sync.as_ref() {
+        query_parts.push(format!("sync={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/captions
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_captions_update_execute()` or `youtube_captions_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_captions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_captions_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Caption>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Caption = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/captions
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_captions_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_captions_update_task()`.
+/// For the simplest API, use `youtube_captions_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_captions_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_captions_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Caption>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_captions_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_captions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCaptionsUpdateArgs {
+    /// Query parameter: onBehalfOf
+    pub onBehalfOf: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: sync
+    pub sync: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/captions
+/// Updates an existing resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_captions_update_builder()` + `youtube_captions_update_execute()`.
+/// For task-level control, use `youtube_captions_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_captions_update(
+    client: &SimpleHttpClient,
+    args: &YoutubeCaptionsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Caption>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_captions_update_builder(
+        client,
+        &args.onBehalfOf,
+        &args.onBehalfOfContentOwner,
+        &args.part,
+        &args.sync,
+    )?;
+    youtube_captions_update_execute(builder)
+}
+
+/// POST youtube/v3/channelBanners/insert
 /// Inserts a new resource into this collection.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -218,10 +1368,9 @@ pub fn youtube_captions_download(
 
 pub fn youtube_channel_banners_insert_builder(
     client: &SimpleHttpClient,
-    channelId: &Option<String>,
-    onBehalfOfContentOwner: &Option<String>,
-    onBehalfOfContentOwnerChannel: &Option<String>,
-    body: &ChannelBannerResource,
+    channelId: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channelBanners/insert",);
@@ -245,15 +1394,13 @@ pub fn youtube_channel_banners_insert_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET youtube/v3/channelBanners/insert
+/// POST youtube/v3/channelBanners/insert
 /// Inserts a new resource into this collection.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -327,7 +1474,7 @@ pub fn youtube_channel_banners_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET youtube/v3/channelBanners/insert
+/// POST youtube/v3/channelBanners/insert
 /// Inserts a new resource into this collection.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -363,16 +1510,14 @@ pub fn youtube_channel_banners_insert_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeChannelBannersInsertArgs {
     /// Query parameter: channelId
-    pub channelId: Option<String>,
+    pub channelId: Option<Option<String>>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<String>,
-    /// Request body.
-    pub body: ChannelBannerResource,
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
 }
 
-/// GET youtube/v3/channelBanners/insert
+/// POST youtube/v3/channelBanners/insert
 /// Inserts a new resource into this collection.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -397,12 +1542,3548 @@ pub fn youtube_channel_banners_insert(
         &args.channelId,
         &args.onBehalfOfContentOwner,
         &args.onBehalfOfContentOwnerChannel,
-        &args.body,
     )?;
     youtube_channel_banners_insert_execute(builder)
 }
 
-/// GET youtube/v3/liveBroadcasts/cuepoint
+/// DELETE youtube/v3/channelSections
+/// Deletes a resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_channel_sections_delete_execute()` to send, or `youtube_channel_sections_delete` for simplest API.
+
+pub fn youtube_channel_sections_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channelSections",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/channelSections
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_channel_sections_delete_execute()` or `youtube_channel_sections_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channel_sections_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channel_sections_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/channelSections
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_channel_sections_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_channel_sections_delete_task()`.
+/// For the simplest API, use `youtube_channel_sections_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channel_sections_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_channel_sections_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_channel_sections_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_channel_sections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelSectionsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/channelSections
+/// Deletes a resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_channel_sections_delete_builder()` + `youtube_channel_sections_delete_execute()`.
+/// For task-level control, use `youtube_channel_sections_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channel_sections_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeChannelSectionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_channel_sections_delete_builder(client, &args.id, &args.onBehalfOfContentOwner)?;
+    youtube_channel_sections_delete_execute(builder)
+}
+
+/// POST youtube/v3/channelSections
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_channel_sections_insert_execute()` to send, or `youtube_channel_sections_insert` for simplest API.
+
+pub fn youtube_channel_sections_insert_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channelSections",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/channelSections
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_channel_sections_insert_execute()` or `youtube_channel_sections_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channel_sections_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channel_sections_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ChannelSection>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ChannelSection = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/channelSections
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_channel_sections_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_channel_sections_insert_task()`.
+/// For the simplest API, use `youtube_channel_sections_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channel_sections_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_channel_sections_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ChannelSection>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_channel_sections_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_channel_sections_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelSectionsInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/channelSections
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_channel_sections_insert_builder()` + `youtube_channel_sections_insert_execute()`.
+/// For task-level control, use `youtube_channel_sections_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channel_sections_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeChannelSectionsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ChannelSection>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_channel_sections_insert_builder(
+        client,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+    )?;
+    youtube_channel_sections_insert_execute(builder)
+}
+
+/// GET youtube/v3/channelSections
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_channel_sections_list_execute()` to send, or `youtube_channel_sections_list` for simplest API.
+
+pub fn youtube_channel_sections_list_builder(
+    client: &SimpleHttpClient,
+    channelId: &Option<Option<String>>,
+    hl: &Option<Option<String>>,
+    id: &Option<Option<String>>,
+    mine: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channelSections",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = channelId.as_ref() {
+        query_parts.push(format!("channelId={}", val));
+    }
+    if let Some(val) = hl.as_ref() {
+        query_parts.push(format!("hl={}", val));
+    }
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = mine.as_ref() {
+        query_parts.push(format!("mine={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/channelSections
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_channel_sections_list_execute()` or `youtube_channel_sections_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channel_sections_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channel_sections_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ChannelSectionListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ChannelSectionListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/channelSections
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_channel_sections_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_channel_sections_list_task()`.
+/// For the simplest API, use `youtube_channel_sections_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channel_sections_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_channel_sections_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ChannelSectionListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_channel_sections_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_channel_sections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelSectionsListArgs {
+    /// Query parameter: channelId
+    pub channelId: Option<Option<String>>,
+    /// Query parameter: hl
+    pub hl: Option<Option<String>>,
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: mine
+    pub mine: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/channelSections
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_channel_sections_list_builder()` + `youtube_channel_sections_list_execute()`.
+/// For task-level control, use `youtube_channel_sections_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channel_sections_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeChannelSectionsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ChannelSectionListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_channel_sections_list_builder(
+        client,
+        &args.channelId,
+        &args.hl,
+        &args.id,
+        &args.mine,
+        &args.onBehalfOfContentOwner,
+        &args.part,
+    )?;
+    youtube_channel_sections_list_execute(builder)
+}
+
+/// PUT youtube/v3/channelSections
+/// Updates an existing resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_channel_sections_update_execute()` to send, or `youtube_channel_sections_update` for simplest API.
+
+pub fn youtube_channel_sections_update_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channelSections",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/channelSections
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_channel_sections_update_execute()` or `youtube_channel_sections_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channel_sections_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channel_sections_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ChannelSection>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ChannelSection = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/channelSections
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_channel_sections_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_channel_sections_update_task()`.
+/// For the simplest API, use `youtube_channel_sections_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channel_sections_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_channel_sections_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ChannelSection>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_channel_sections_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_channel_sections_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelSectionsUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/channelSections
+/// Updates an existing resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_channel_sections_update_builder()` + `youtube_channel_sections_update_execute()`.
+/// For task-level control, use `youtube_channel_sections_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channel_sections_update(
+    client: &SimpleHttpClient,
+    args: &YoutubeChannelSectionsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ChannelSection>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_channel_sections_update_builder(client, &args.onBehalfOfContentOwner, &args.part)?;
+    youtube_channel_sections_update_execute(builder)
+}
+
+/// GET youtube/v3/channels
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_channels_list_execute()` to send, or `youtube_channels_list` for simplest API.
+
+pub fn youtube_channels_list_builder(
+    client: &SimpleHttpClient,
+    categoryId: &Option<Option<String>>,
+    forHandle: &Option<Option<String>>,
+    forUsername: &Option<Option<String>>,
+    hl: &Option<Option<String>>,
+    id: &Option<Option<String>>,
+    managedByMe: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    mine: &Option<Option<String>>,
+    mySubscribers: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channels",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = categoryId.as_ref() {
+        query_parts.push(format!("categoryId={}", val));
+    }
+    if let Some(val) = forHandle.as_ref() {
+        query_parts.push(format!("forHandle={}", val));
+    }
+    if let Some(val) = forUsername.as_ref() {
+        query_parts.push(format!("forUsername={}", val));
+    }
+    if let Some(val) = hl.as_ref() {
+        query_parts.push(format!("hl={}", val));
+    }
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = managedByMe.as_ref() {
+        query_parts.push(format!("managedByMe={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = mine.as_ref() {
+        query_parts.push(format!("mine={}", val));
+    }
+    if let Some(val) = mySubscribers.as_ref() {
+        query_parts.push(format!("mySubscribers={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/channels
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_channels_list_execute()` or `youtube_channels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ChannelListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ChannelListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/channels
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_channels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_channels_list_task()`.
+/// For the simplest API, use `youtube_channels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_channels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ChannelListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_channels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelsListArgs {
+    /// Query parameter: categoryId
+    pub categoryId: Option<Option<String>>,
+    /// Query parameter: forHandle
+    pub forHandle: Option<Option<String>>,
+    /// Query parameter: forUsername
+    pub forUsername: Option<Option<String>>,
+    /// Query parameter: hl
+    pub hl: Option<Option<String>>,
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: managedByMe
+    pub managedByMe: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: mine
+    pub mine: Option<Option<String>>,
+    /// Query parameter: mySubscribers
+    pub mySubscribers: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/channels
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_channels_list_builder()` + `youtube_channels_list_execute()`.
+/// For task-level control, use `youtube_channels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channels_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeChannelsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ChannelListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_channels_list_builder(
+        client,
+        &args.categoryId,
+        &args.forHandle,
+        &args.forUsername,
+        &args.hl,
+        &args.id,
+        &args.managedByMe,
+        &args.maxResults,
+        &args.mine,
+        &args.mySubscribers,
+        &args.onBehalfOfContentOwner,
+        &args.pageToken,
+        &args.part,
+    )?;
+    youtube_channels_list_execute(builder)
+}
+
+/// PUT youtube/v3/channels
+/// Updates an existing resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_channels_update_execute()` to send, or `youtube_channels_update` for simplest API.
+
+pub fn youtube_channels_update_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/channels",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/channels
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_channels_update_execute()` or `youtube_channels_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channels_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channels_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Channel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Channel = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/channels
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_channels_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_channels_update_task()`.
+/// For the simplest API, use `youtube_channels_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_channels_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_channels_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_channels_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_channels_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelsUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/channels
+/// Updates an existing resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_channels_update_builder()` + `youtube_channels_update_execute()`.
+/// For task-level control, use `youtube_channels_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_channels_update(
+    client: &SimpleHttpClient,
+    args: &YoutubeChannelsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_channels_update_builder(client, &args.onBehalfOfContentOwner, &args.part)?;
+    youtube_channels_update_execute(builder)
+}
+
+/// POST youtube/v3/commentThreads
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_comment_threads_insert_execute()` to send, or `youtube_comment_threads_insert` for simplest API.
+
+pub fn youtube_comment_threads_insert_builder(
+    client: &SimpleHttpClient,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/commentThreads",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/commentThreads
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_comment_threads_insert_execute()` or `youtube_comment_threads_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comment_threads_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comment_threads_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CommentThread>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CommentThread = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/commentThreads
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_comment_threads_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_comment_threads_insert_task()`.
+/// For the simplest API, use `youtube_comment_threads_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comment_threads_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_comment_threads_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CommentThread>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_comment_threads_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_comment_threads_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentThreadsInsertArgs {
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/commentThreads
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_comment_threads_insert_builder()` + `youtube_comment_threads_insert_execute()`.
+/// For task-level control, use `youtube_comment_threads_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comment_threads_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeCommentThreadsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CommentThread>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_comment_threads_insert_builder(client, &args.part)?;
+    youtube_comment_threads_insert_execute(builder)
+}
+
+/// GET youtube/v3/commentThreads
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_comment_threads_list_execute()` to send, or `youtube_comment_threads_list` for simplest API.
+
+pub fn youtube_comment_threads_list_builder(
+    client: &SimpleHttpClient,
+    allThreadsRelatedToChannelId: &Option<Option<String>>,
+    channelId: &Option<Option<String>>,
+    id: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    moderationStatus: &Option<Option<String>>,
+    order: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    postId: &Option<Option<String>>,
+    searchTerms: &Option<Option<String>>,
+    textFormat: &Option<Option<String>>,
+    videoId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/commentThreads",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = allThreadsRelatedToChannelId.as_ref() {
+        query_parts.push(format!("allThreadsRelatedToChannelId={}", val));
+    }
+    if let Some(val) = channelId.as_ref() {
+        query_parts.push(format!("channelId={}", val));
+    }
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = moderationStatus.as_ref() {
+        query_parts.push(format!("moderationStatus={}", val));
+    }
+    if let Some(val) = order.as_ref() {
+        query_parts.push(format!("order={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = postId.as_ref() {
+        query_parts.push(format!("postId={}", val));
+    }
+    if let Some(val) = searchTerms.as_ref() {
+        query_parts.push(format!("searchTerms={}", val));
+    }
+    if let Some(val) = textFormat.as_ref() {
+        query_parts.push(format!("textFormat={}", val));
+    }
+    if let Some(val) = videoId.as_ref() {
+        query_parts.push(format!("videoId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/commentThreads
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_comment_threads_list_execute()` or `youtube_comment_threads_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comment_threads_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comment_threads_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CommentThreadListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CommentThreadListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/commentThreads
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_comment_threads_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_comment_threads_list_task()`.
+/// For the simplest API, use `youtube_comment_threads_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comment_threads_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_comment_threads_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CommentThreadListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_comment_threads_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_comment_threads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentThreadsListArgs {
+    /// Query parameter: allThreadsRelatedToChannelId
+    pub allThreadsRelatedToChannelId: Option<Option<String>>,
+    /// Query parameter: channelId
+    pub channelId: Option<Option<String>>,
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: moderationStatus
+    pub moderationStatus: Option<Option<String>>,
+    /// Query parameter: order
+    pub order: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: postId
+    pub postId: Option<Option<String>>,
+    /// Query parameter: searchTerms
+    pub searchTerms: Option<Option<String>>,
+    /// Query parameter: textFormat
+    pub textFormat: Option<Option<String>>,
+    /// Query parameter: videoId
+    pub videoId: Option<Option<String>>,
+}
+
+/// GET youtube/v3/commentThreads
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_comment_threads_list_builder()` + `youtube_comment_threads_list_execute()`.
+/// For task-level control, use `youtube_comment_threads_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comment_threads_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeCommentThreadsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CommentThreadListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_comment_threads_list_builder(
+        client,
+        &args.allThreadsRelatedToChannelId,
+        &args.channelId,
+        &args.id,
+        &args.maxResults,
+        &args.moderationStatus,
+        &args.order,
+        &args.pageToken,
+        &args.part,
+        &args.postId,
+        &args.searchTerms,
+        &args.textFormat,
+        &args.videoId,
+    )?;
+    youtube_comment_threads_list_execute(builder)
+}
+
+/// DELETE youtube/v3/comments
+/// Deletes a resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_comments_delete_execute()` to send, or `youtube_comments_delete` for simplest API.
+
+pub fn youtube_comments_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/comments",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/comments
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_comments_delete_execute()` or `youtube_comments_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/comments
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_comments_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_comments_delete_task()`.
+/// For the simplest API, use `youtube_comments_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_comments_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_comments_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_comments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/comments
+/// Deletes a resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_comments_delete_builder()` + `youtube_comments_delete_execute()`.
+/// For task-level control, use `youtube_comments_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeCommentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_comments_delete_builder(client, &args.id)?;
+    youtube_comments_delete_execute(builder)
+}
+
+/// POST youtube/v3/comments
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_comments_insert_execute()` to send, or `youtube_comments_insert` for simplest API.
+
+pub fn youtube_comments_insert_builder(
+    client: &SimpleHttpClient,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/comments",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/comments
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_comments_insert_execute()` or `youtube_comments_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Comment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Comment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/comments
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_comments_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_comments_insert_task()`.
+/// For the simplest API, use `youtube_comments_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_comments_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_comments_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_comments_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsInsertArgs {
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/comments
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_comments_insert_builder()` + `youtube_comments_insert_execute()`.
+/// For task-level control, use `youtube_comments_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeCommentsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_comments_insert_builder(client, &args.part)?;
+    youtube_comments_insert_execute(builder)
+}
+
+/// GET youtube/v3/comments
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_comments_list_execute()` to send, or `youtube_comments_list` for simplest API.
+
+pub fn youtube_comments_list_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parentId: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    textFormat: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/comments",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parentId.as_ref() {
+        query_parts.push(format!("parentId={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = textFormat.as_ref() {
+        query_parts.push(format!("textFormat={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/comments
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_comments_list_execute()` or `youtube_comments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CommentListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CommentListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/comments
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_comments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_comments_list_task()`.
+/// For the simplest API, use `youtube_comments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_comments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CommentListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_comments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_comments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsListArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parentId
+    pub parentId: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: textFormat
+    pub textFormat: Option<Option<String>>,
+}
+
+/// GET youtube/v3/comments
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_comments_list_builder()` + `youtube_comments_list_execute()`.
+/// For task-level control, use `youtube_comments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeCommentsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CommentListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_comments_list_builder(
+        client,
+        &args.id,
+        &args.maxResults,
+        &args.pageToken,
+        &args.parentId,
+        &args.part,
+        &args.textFormat,
+    )?;
+    youtube_comments_list_execute(builder)
+}
+
+/// POST youtube/v3/comments/markAsSpam
+/// Expresses the caller's opinion that one or more comments should be flagged as spam.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_comments_mark_as_spam_execute()` to send, or `youtube_comments_mark_as_spam` for simplest API.
+
+pub fn youtube_comments_mark_as_spam_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/comments/markAsSpam",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/comments/markAsSpam
+/// Expresses the caller's opinion that one or more comments should be flagged as spam.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_comments_mark_as_spam_execute()` or `youtube_comments_mark_as_spam`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_mark_as_spam_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_mark_as_spam_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/comments/markAsSpam
+/// Expresses the caller's opinion that one or more comments should be flagged as spam.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_comments_mark_as_spam_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_comments_mark_as_spam_task()`.
+/// For the simplest API, use `youtube_comments_mark_as_spam()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_mark_as_spam_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_comments_mark_as_spam_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_comments_mark_as_spam_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_comments_mark_as_spam`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsMarkAsSpamArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+}
+
+/// POST youtube/v3/comments/markAsSpam
+/// Expresses the caller's opinion that one or more comments should be flagged as spam.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_comments_mark_as_spam_builder()` + `youtube_comments_mark_as_spam_execute()`.
+/// For task-level control, use `youtube_comments_mark_as_spam_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_mark_as_spam(
+    client: &SimpleHttpClient,
+    args: &YoutubeCommentsMarkAsSpamArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_comments_mark_as_spam_builder(client, &args.id)?;
+    youtube_comments_mark_as_spam_execute(builder)
+}
+
+/// POST youtube/v3/comments/setModerationStatus
+/// Sets the moderation status of one or more comments.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_comments_set_moderation_status_execute()` to send, or `youtube_comments_set_moderation_status` for simplest API.
+
+pub fn youtube_comments_set_moderation_status_builder(
+    client: &SimpleHttpClient,
+    banAuthor: &Option<Option<String>>,
+    id: &Option<Option<String>>,
+    moderationStatus: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://youtube.googleapis.com/youtube/v3/comments/setModerationStatus",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = banAuthor.as_ref() {
+        query_parts.push(format!("banAuthor={}", val));
+    }
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = moderationStatus.as_ref() {
+        query_parts.push(format!("moderationStatus={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/comments/setModerationStatus
+/// Sets the moderation status of one or more comments.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_comments_set_moderation_status_execute()` or `youtube_comments_set_moderation_status`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_set_moderation_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_set_moderation_status_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/comments/setModerationStatus
+/// Sets the moderation status of one or more comments.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_comments_set_moderation_status_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_comments_set_moderation_status_task()`.
+/// For the simplest API, use `youtube_comments_set_moderation_status()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_set_moderation_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_comments_set_moderation_status_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_comments_set_moderation_status_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_comments_set_moderation_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsSetModerationStatusArgs {
+    /// Query parameter: banAuthor
+    pub banAuthor: Option<Option<String>>,
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: moderationStatus
+    pub moderationStatus: Option<Option<String>>,
+}
+
+/// POST youtube/v3/comments/setModerationStatus
+/// Sets the moderation status of one or more comments.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_comments_set_moderation_status_builder()` + `youtube_comments_set_moderation_status_execute()`.
+/// For task-level control, use `youtube_comments_set_moderation_status_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_set_moderation_status(
+    client: &SimpleHttpClient,
+    args: &YoutubeCommentsSetModerationStatusArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_comments_set_moderation_status_builder(
+        client,
+        &args.banAuthor,
+        &args.id,
+        &args.moderationStatus,
+    )?;
+    youtube_comments_set_moderation_status_execute(builder)
+}
+
+/// PUT youtube/v3/comments
+/// Updates an existing resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_comments_update_execute()` to send, or `youtube_comments_update` for simplest API.
+
+pub fn youtube_comments_update_builder(
+    client: &SimpleHttpClient,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/comments",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/comments
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_comments_update_execute()` or `youtube_comments_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Comment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Comment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/comments
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_comments_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_comments_update_task()`.
+/// For the simplest API, use `youtube_comments_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_comments_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_comments_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_comments_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_comments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsUpdateArgs {
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/comments
+/// Updates an existing resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_comments_update_builder()` + `youtube_comments_update_execute()`.
+/// For task-level control, use `youtube_comments_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_comments_update(
+    client: &SimpleHttpClient,
+    args: &YoutubeCommentsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_comments_update_builder(client, &args.part)?;
+    youtube_comments_update_execute(builder)
+}
+
+/// GET youtube/v3/i18nLanguages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_i18n_languages_list_execute()` to send, or `youtube_i18n_languages_list` for simplest API.
+
+pub fn youtube_i18n_languages_list_builder(
+    client: &SimpleHttpClient,
+    hl: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/i18nLanguages",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = hl.as_ref() {
+        query_parts.push(format!("hl={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/i18nLanguages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_i18n_languages_list_execute()` or `youtube_i18n_languages_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_i18n_languages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_i18n_languages_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<I18nLanguageListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: I18nLanguageListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/i18nLanguages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_i18n_languages_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_i18n_languages_list_task()`.
+/// For the simplest API, use `youtube_i18n_languages_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_i18n_languages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_i18n_languages_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<I18nLanguageListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_i18n_languages_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_i18n_languages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeI18nLanguagesListArgs {
+    /// Query parameter: hl
+    pub hl: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/i18nLanguages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_i18n_languages_list_builder()` + `youtube_i18n_languages_list_execute()`.
+/// For task-level control, use `youtube_i18n_languages_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_i18n_languages_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeI18nLanguagesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<I18nLanguageListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_i18n_languages_list_builder(client, &args.hl, &args.part)?;
+    youtube_i18n_languages_list_execute(builder)
+}
+
+/// GET youtube/v3/i18nRegions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_i18n_regions_list_execute()` to send, or `youtube_i18n_regions_list` for simplest API.
+
+pub fn youtube_i18n_regions_list_builder(
+    client: &SimpleHttpClient,
+    hl: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/i18nRegions",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = hl.as_ref() {
+        query_parts.push(format!("hl={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/i18nRegions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_i18n_regions_list_execute()` or `youtube_i18n_regions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_i18n_regions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_i18n_regions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<I18nRegionListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: I18nRegionListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/i18nRegions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_i18n_regions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_i18n_regions_list_task()`.
+/// For the simplest API, use `youtube_i18n_regions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_i18n_regions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_i18n_regions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<I18nRegionListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_i18n_regions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_i18n_regions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeI18nRegionsListArgs {
+    /// Query parameter: hl
+    pub hl: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/i18nRegions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_i18n_regions_list_builder()` + `youtube_i18n_regions_list_execute()`.
+/// For task-level control, use `youtube_i18n_regions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_i18n_regions_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeI18nRegionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<I18nRegionListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_i18n_regions_list_builder(client, &args.hl, &args.part)?;
+    youtube_i18n_regions_list_execute(builder)
+}
+
+/// POST youtube/v3/liveBroadcasts/bind
+/// Bind a broadcast to a stream.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_broadcasts_bind_execute()` to send, or `youtube_live_broadcasts_bind` for simplest API.
+
+pub fn youtube_live_broadcasts_bind_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    streamId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts/bind",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = streamId.as_ref() {
+        query_parts.push(format!("streamId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/liveBroadcasts/bind
+/// Bind a broadcast to a stream.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_broadcasts_bind_execute()` or `youtube_live_broadcasts_bind`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_bind_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_bind_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveBroadcast>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveBroadcast = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/liveBroadcasts/bind
+/// Bind a broadcast to a stream.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_broadcasts_bind_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_broadcasts_bind_task()`.
+/// For the simplest API, use `youtube_live_broadcasts_bind()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_bind_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_broadcasts_bind_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_live_broadcasts_bind_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_broadcasts_bind`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsBindArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: streamId
+    pub streamId: Option<Option<String>>,
+}
+
+/// POST youtube/v3/liveBroadcasts/bind
+/// Bind a broadcast to a stream.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_broadcasts_bind_builder()` + `youtube_live_broadcasts_bind_execute()`.
+/// For task-level control, use `youtube_live_broadcasts_bind_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_bind(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveBroadcastsBindArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_broadcasts_bind_builder(
+        client,
+        &args.id,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+        &args.streamId,
+    )?;
+    youtube_live_broadcasts_bind_execute(builder)
+}
+
+/// DELETE youtube/v3/liveBroadcasts
+/// Delete a given broadcast.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_broadcasts_delete_execute()` to send, or `youtube_live_broadcasts_delete` for simplest API.
+
+pub fn youtube_live_broadcasts_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/liveBroadcasts
+/// Delete a given broadcast.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_broadcasts_delete_execute()` or `youtube_live_broadcasts_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/liveBroadcasts
+/// Delete a given broadcast.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_broadcasts_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_broadcasts_delete_task()`.
+/// For the simplest API, use `youtube_live_broadcasts_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_broadcasts_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_live_broadcasts_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_broadcasts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/liveBroadcasts
+/// Delete a given broadcast.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_broadcasts_delete_builder()` + `youtube_live_broadcasts_delete_execute()`.
+/// For task-level control, use `youtube_live_broadcasts_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveBroadcastsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_broadcasts_delete_builder(
+        client,
+        &args.id,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+    )?;
+    youtube_live_broadcasts_delete_execute(builder)
+}
+
+/// POST youtube/v3/liveBroadcasts
+/// Inserts a new stream for the authenticated user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_broadcasts_insert_execute()` to send, or `youtube_live_broadcasts_insert` for simplest API.
+
+pub fn youtube_live_broadcasts_insert_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/liveBroadcasts
+/// Inserts a new stream for the authenticated user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_broadcasts_insert_execute()` or `youtube_live_broadcasts_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveBroadcast>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveBroadcast = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/liveBroadcasts
+/// Inserts a new stream for the authenticated user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_broadcasts_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_broadcasts_insert_task()`.
+/// For the simplest API, use `youtube_live_broadcasts_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_broadcasts_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_live_broadcasts_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_broadcasts_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/liveBroadcasts
+/// Inserts a new stream for the authenticated user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_broadcasts_insert_builder()` + `youtube_live_broadcasts_insert_execute()`.
+/// For task-level control, use `youtube_live_broadcasts_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveBroadcastsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_broadcasts_insert_builder(
+        client,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+    )?;
+    youtube_live_broadcasts_insert_execute(builder)
+}
+
+/// POST youtube/v3/liveBroadcasts/cuepoint
 /// Insert cuepoints in a broadcast
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -410,11 +5091,10 @@ pub fn youtube_channel_banners_insert(
 
 pub fn youtube_live_broadcasts_insert_cuepoint_builder(
     client: &SimpleHttpClient,
-    id: &Option<String>,
-    onBehalfOfContentOwner: &Option<String>,
-    onBehalfOfContentOwnerChannel: &Option<String>,
-    part: &Option<String>,
-    body: &Cuepoint,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -442,15 +5122,13 @@ pub fn youtube_live_broadcasts_insert_cuepoint_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET youtube/v3/liveBroadcasts/cuepoint
+/// POST youtube/v3/liveBroadcasts/cuepoint
 /// Insert cuepoints in a broadcast
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -524,7 +5202,7 @@ pub fn youtube_live_broadcasts_insert_cuepoint_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET youtube/v3/liveBroadcasts/cuepoint
+/// POST youtube/v3/liveBroadcasts/cuepoint
 /// Insert cuepoints in a broadcast
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -558,18 +5236,16 @@ pub fn youtube_live_broadcasts_insert_cuepoint_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveBroadcastsInsertCuepointArgs {
     /// Query parameter: id
-    pub id: Option<String>,
+    pub id: Option<Option<String>>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
     /// Query parameter: onBehalfOfContentOwnerChannel
-    pub onBehalfOfContentOwnerChannel: Option<String>,
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
     /// Query parameter: part
-    pub part: Option<String>,
-    /// Request body.
-    pub body: Cuepoint,
+    pub part: Option<Option<String>>,
 }
 
-/// GET youtube/v3/liveBroadcasts/cuepoint
+/// POST youtube/v3/liveBroadcasts/cuepoint
 /// Insert cuepoints in a broadcast
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -593,12 +5269,1495 @@ pub fn youtube_live_broadcasts_insert_cuepoint(
         &args.onBehalfOfContentOwner,
         &args.onBehalfOfContentOwnerChannel,
         &args.part,
-        &args.body,
     )?;
     youtube_live_broadcasts_insert_cuepoint_execute(builder)
 }
 
-/// GET youtube/v3/liveChat/messages/transition
+/// GET youtube/v3/liveBroadcasts
+/// Retrieve the list of broadcasts associated with the given channel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_broadcasts_list_execute()` to send, or `youtube_live_broadcasts_list` for simplest API.
+
+pub fn youtube_live_broadcasts_list_builder(
+    client: &SimpleHttpClient,
+    broadcastStatus: &Option<Option<String>>,
+    broadcastType: &Option<Option<String>>,
+    id: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    mine: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = broadcastStatus.as_ref() {
+        query_parts.push(format!("broadcastStatus={}", val));
+    }
+    if let Some(val) = broadcastType.as_ref() {
+        query_parts.push(format!("broadcastType={}", val));
+    }
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = mine.as_ref() {
+        query_parts.push(format!("mine={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/liveBroadcasts
+/// Retrieve the list of broadcasts associated with the given channel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_broadcasts_list_execute()` or `youtube_live_broadcasts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveBroadcastListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveBroadcastListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/liveBroadcasts
+/// Retrieve the list of broadcasts associated with the given channel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_broadcasts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_broadcasts_list_task()`.
+/// For the simplest API, use `youtube_live_broadcasts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_broadcasts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveBroadcastListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_live_broadcasts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_broadcasts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsListArgs {
+    /// Query parameter: broadcastStatus
+    pub broadcastStatus: Option<Option<String>>,
+    /// Query parameter: broadcastType
+    pub broadcastType: Option<Option<String>>,
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: mine
+    pub mine: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/liveBroadcasts
+/// Retrieve the list of broadcasts associated with the given channel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_broadcasts_list_builder()` + `youtube_live_broadcasts_list_execute()`.
+/// For task-level control, use `youtube_live_broadcasts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveBroadcastsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveBroadcastListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_broadcasts_list_builder(
+        client,
+        &args.broadcastStatus,
+        &args.broadcastType,
+        &args.id,
+        &args.maxResults,
+        &args.mine,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.pageToken,
+        &args.part,
+    )?;
+    youtube_live_broadcasts_list_execute(builder)
+}
+
+/// POST youtube/v3/liveBroadcasts/transition
+/// Transition a broadcast to a given status.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_broadcasts_transition_execute()` to send, or `youtube_live_broadcasts_transition` for simplest API.
+
+pub fn youtube_live_broadcasts_transition_builder(
+    client: &SimpleHttpClient,
+    broadcastStatus: &Option<Option<String>>,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts/transition",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = broadcastStatus.as_ref() {
+        query_parts.push(format!("broadcastStatus={}", val));
+    }
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/liveBroadcasts/transition
+/// Transition a broadcast to a given status.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_broadcasts_transition_execute()` or `youtube_live_broadcasts_transition`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_transition_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_transition_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveBroadcast>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveBroadcast = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/liveBroadcasts/transition
+/// Transition a broadcast to a given status.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_broadcasts_transition_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_broadcasts_transition_task()`.
+/// For the simplest API, use `youtube_live_broadcasts_transition()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_transition_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_broadcasts_transition_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_live_broadcasts_transition_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_broadcasts_transition`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsTransitionArgs {
+    /// Query parameter: broadcastStatus
+    pub broadcastStatus: Option<Option<String>>,
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/liveBroadcasts/transition
+/// Transition a broadcast to a given status.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_broadcasts_transition_builder()` + `youtube_live_broadcasts_transition_execute()`.
+/// For task-level control, use `youtube_live_broadcasts_transition_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_transition(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveBroadcastsTransitionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_broadcasts_transition_builder(
+        client,
+        &args.broadcastStatus,
+        &args.id,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+    )?;
+    youtube_live_broadcasts_transition_execute(builder)
+}
+
+/// PUT youtube/v3/liveBroadcasts
+/// Updates an existing broadcast for the authenticated user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_broadcasts_update_execute()` to send, or `youtube_live_broadcasts_update` for simplest API.
+
+pub fn youtube_live_broadcasts_update_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveBroadcasts",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/liveBroadcasts
+/// Updates an existing broadcast for the authenticated user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_broadcasts_update_execute()` or `youtube_live_broadcasts_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveBroadcast>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveBroadcast = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/liveBroadcasts
+/// Updates an existing broadcast for the authenticated user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_broadcasts_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_broadcasts_update_task()`.
+/// For the simplest API, use `youtube_live_broadcasts_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_broadcasts_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_broadcasts_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_live_broadcasts_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_broadcasts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/liveBroadcasts
+/// Updates an existing broadcast for the authenticated user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_broadcasts_update_builder()` + `youtube_live_broadcasts_update_execute()`.
+/// For task-level control, use `youtube_live_broadcasts_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_broadcasts_update(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveBroadcastsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_broadcasts_update_builder(
+        client,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+    )?;
+    youtube_live_broadcasts_update_execute(builder)
+}
+
+/// DELETE youtube/v3/liveChat/bans
+/// Deletes a chat ban.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_chat_bans_delete_execute()` to send, or `youtube_live_chat_bans_delete` for simplest API.
+
+pub fn youtube_live_chat_bans_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/bans",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/liveChat/bans
+/// Deletes a chat ban.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_chat_bans_delete_execute()` or `youtube_live_chat_bans_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_bans_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_bans_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/liveChat/bans
+/// Deletes a chat ban.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_chat_bans_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_chat_bans_delete_task()`.
+/// For the simplest API, use `youtube_live_chat_bans_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_bans_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_chat_bans_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_live_chat_bans_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_chat_bans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatBansDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/liveChat/bans
+/// Deletes a chat ban.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_chat_bans_delete_builder()` + `youtube_live_chat_bans_delete_execute()`.
+/// For task-level control, use `youtube_live_chat_bans_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_bans_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveChatBansDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_chat_bans_delete_builder(client, &args.id)?;
+    youtube_live_chat_bans_delete_execute(builder)
+}
+
+/// POST youtube/v3/liveChat/bans
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_chat_bans_insert_execute()` to send, or `youtube_live_chat_bans_insert` for simplest API.
+
+pub fn youtube_live_chat_bans_insert_builder(
+    client: &SimpleHttpClient,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/bans",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/liveChat/bans
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_chat_bans_insert_execute()` or `youtube_live_chat_bans_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_bans_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_bans_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveChatBan>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveChatBan = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/liveChat/bans
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_chat_bans_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_chat_bans_insert_task()`.
+/// For the simplest API, use `youtube_live_chat_bans_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_bans_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_chat_bans_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveChatBan>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_live_chat_bans_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_chat_bans_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatBansInsertArgs {
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/liveChat/bans
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_chat_bans_insert_builder()` + `youtube_live_chat_bans_insert_execute()`.
+/// For task-level control, use `youtube_live_chat_bans_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_bans_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveChatBansInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveChatBan>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_chat_bans_insert_builder(client, &args.part)?;
+    youtube_live_chat_bans_insert_execute(builder)
+}
+
+/// DELETE youtube/v3/liveChat/messages
+/// Deletes a chat message.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_chat_messages_delete_execute()` to send, or `youtube_live_chat_messages_delete` for simplest API.
+
+pub fn youtube_live_chat_messages_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/messages",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/liveChat/messages
+/// Deletes a chat message.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_chat_messages_delete_execute()` or `youtube_live_chat_messages_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_messages_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_messages_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/liveChat/messages
+/// Deletes a chat message.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_chat_messages_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_chat_messages_delete_task()`.
+/// For the simplest API, use `youtube_live_chat_messages_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_messages_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_chat_messages_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_live_chat_messages_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_chat_messages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatMessagesDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/liveChat/messages
+/// Deletes a chat message.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_chat_messages_delete_builder()` + `youtube_live_chat_messages_delete_execute()`.
+/// For task-level control, use `youtube_live_chat_messages_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_messages_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveChatMessagesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_chat_messages_delete_builder(client, &args.id)?;
+    youtube_live_chat_messages_delete_execute(builder)
+}
+
+/// POST youtube/v3/liveChat/messages
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_chat_messages_insert_execute()` to send, or `youtube_live_chat_messages_insert` for simplest API.
+
+pub fn youtube_live_chat_messages_insert_builder(
+    client: &SimpleHttpClient,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/messages",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/liveChat/messages
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_chat_messages_insert_execute()` or `youtube_live_chat_messages_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_messages_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_messages_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveChatMessage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveChatMessage = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/liveChat/messages
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_chat_messages_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_chat_messages_insert_task()`.
+/// For the simplest API, use `youtube_live_chat_messages_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_messages_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_chat_messages_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveChatMessage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_live_chat_messages_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_chat_messages_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatMessagesInsertArgs {
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/liveChat/messages
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_chat_messages_insert_builder()` + `youtube_live_chat_messages_insert_execute()`.
+/// For task-level control, use `youtube_live_chat_messages_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_messages_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveChatMessagesInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveChatMessage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_chat_messages_insert_builder(client, &args.part)?;
+    youtube_live_chat_messages_insert_execute(builder)
+}
+
+/// GET youtube/v3/liveChat/messages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_chat_messages_list_execute()` to send, or `youtube_live_chat_messages_list` for simplest API.
+
+pub fn youtube_live_chat_messages_list_builder(
+    client: &SimpleHttpClient,
+    hl: &Option<Option<String>>,
+    liveChatId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    profileImageSize: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/messages",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = hl.as_ref() {
+        query_parts.push(format!("hl={}", val));
+    }
+    if let Some(val) = liveChatId.as_ref() {
+        query_parts.push(format!("liveChatId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = profileImageSize.as_ref() {
+        query_parts.push(format!("profileImageSize={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/liveChat/messages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_chat_messages_list_execute()` or `youtube_live_chat_messages_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_messages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_messages_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveChatMessageListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveChatMessageListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/liveChat/messages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_chat_messages_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_chat_messages_list_task()`.
+/// For the simplest API, use `youtube_live_chat_messages_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_messages_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_chat_messages_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LiveChatMessageListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_live_chat_messages_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_chat_messages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatMessagesListArgs {
+    /// Query parameter: hl
+    pub hl: Option<Option<String>>,
+    /// Query parameter: liveChatId
+    pub liveChatId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: profileImageSize
+    pub profileImageSize: Option<Option<String>>,
+}
+
+/// GET youtube/v3/liveChat/messages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_chat_messages_list_builder()` + `youtube_live_chat_messages_list_execute()`.
+/// For task-level control, use `youtube_live_chat_messages_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_messages_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveChatMessagesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LiveChatMessageListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_chat_messages_list_builder(
+        client,
+        &args.hl,
+        &args.liveChatId,
+        &args.maxResults,
+        &args.pageToken,
+        &args.part,
+        &args.profileImageSize,
+    )?;
+    youtube_live_chat_messages_list_execute(builder)
+}
+
+/// POST youtube/v3/liveChat/messages/transition
 /// Transition a durable chat event.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -606,8 +6765,8 @@ pub fn youtube_live_broadcasts_insert_cuepoint(
 
 pub fn youtube_live_chat_messages_transition_builder(
     client: &SimpleHttpClient,
-    id: &Option<String>,
-    status: &Option<String>,
+    id: &Option<Option<String>>,
+    status: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -629,13 +6788,13 @@ pub fn youtube_live_chat_messages_transition_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET youtube/v3/liveChat/messages/transition
+/// POST youtube/v3/liveChat/messages/transition
 /// Transition a durable chat event.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -709,7 +6868,7 @@ pub fn youtube_live_chat_messages_transition_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET youtube/v3/liveChat/messages/transition
+/// POST youtube/v3/liveChat/messages/transition
 /// Transition a durable chat event.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -745,12 +6904,12 @@ pub fn youtube_live_chat_messages_transition_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeLiveChatMessagesTransitionArgs {
     /// Query parameter: id
-    pub id: Option<String>,
+    pub id: Option<Option<String>>,
     /// Query parameter: status
-    pub status: Option<String>,
+    pub status: Option<Option<String>>,
 }
 
-/// GET youtube/v3/liveChat/messages/transition
+/// POST youtube/v3/liveChat/messages/transition
 /// Transition a durable chat event.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -774,7 +6933,1672 @@ pub fn youtube_live_chat_messages_transition(
     youtube_live_chat_messages_transition_execute(builder)
 }
 
-/// GET youtube/v3/playlistImages
+/// DELETE youtube/v3/liveChat/moderators
+/// Deletes a chat moderator.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_chat_moderators_delete_execute()` to send, or `youtube_live_chat_moderators_delete` for simplest API.
+
+pub fn youtube_live_chat_moderators_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/moderators",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/liveChat/moderators
+/// Deletes a chat moderator.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_chat_moderators_delete_execute()` or `youtube_live_chat_moderators_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_moderators_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_moderators_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/liveChat/moderators
+/// Deletes a chat moderator.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_chat_moderators_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_chat_moderators_delete_task()`.
+/// For the simplest API, use `youtube_live_chat_moderators_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_moderators_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_chat_moderators_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_live_chat_moderators_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_chat_moderators_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatModeratorsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/liveChat/moderators
+/// Deletes a chat moderator.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_chat_moderators_delete_builder()` + `youtube_live_chat_moderators_delete_execute()`.
+/// For task-level control, use `youtube_live_chat_moderators_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_moderators_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveChatModeratorsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_chat_moderators_delete_builder(client, &args.id)?;
+    youtube_live_chat_moderators_delete_execute(builder)
+}
+
+/// POST youtube/v3/liveChat/moderators
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_chat_moderators_insert_execute()` to send, or `youtube_live_chat_moderators_insert` for simplest API.
+
+pub fn youtube_live_chat_moderators_insert_builder(
+    client: &SimpleHttpClient,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/moderators",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/liveChat/moderators
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_chat_moderators_insert_execute()` or `youtube_live_chat_moderators_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_moderators_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_moderators_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveChatModerator>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveChatModerator = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/liveChat/moderators
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_chat_moderators_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_chat_moderators_insert_task()`.
+/// For the simplest API, use `youtube_live_chat_moderators_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_moderators_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_chat_moderators_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveChatModerator>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_live_chat_moderators_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_chat_moderators_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatModeratorsInsertArgs {
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/liveChat/moderators
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_chat_moderators_insert_builder()` + `youtube_live_chat_moderators_insert_execute()`.
+/// For task-level control, use `youtube_live_chat_moderators_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_moderators_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveChatModeratorsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveChatModerator>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_chat_moderators_insert_builder(client, &args.part)?;
+    youtube_live_chat_moderators_insert_execute(builder)
+}
+
+/// GET youtube/v3/liveChat/moderators
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_chat_moderators_list_execute()` to send, or `youtube_live_chat_moderators_list` for simplest API.
+
+pub fn youtube_live_chat_moderators_list_builder(
+    client: &SimpleHttpClient,
+    liveChatId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveChat/moderators",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = liveChatId.as_ref() {
+        query_parts.push(format!("liveChatId={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/liveChat/moderators
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_chat_moderators_list_execute()` or `youtube_live_chat_moderators_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_moderators_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_moderators_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveChatModeratorListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveChatModeratorListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/liveChat/moderators
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_chat_moderators_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_chat_moderators_list_task()`.
+/// For the simplest API, use `youtube_live_chat_moderators_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_chat_moderators_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_chat_moderators_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LiveChatModeratorListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_live_chat_moderators_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_chat_moderators_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatModeratorsListArgs {
+    /// Query parameter: liveChatId
+    pub liveChatId: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/liveChat/moderators
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_chat_moderators_list_builder()` + `youtube_live_chat_moderators_list_execute()`.
+/// For task-level control, use `youtube_live_chat_moderators_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_chat_moderators_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveChatModeratorsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<LiveChatModeratorListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_chat_moderators_list_builder(
+        client,
+        &args.liveChatId,
+        &args.maxResults,
+        &args.pageToken,
+        &args.part,
+    )?;
+    youtube_live_chat_moderators_list_execute(builder)
+}
+
+/// DELETE youtube/v3/liveStreams
+/// Deletes an existing stream for the authenticated user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_streams_delete_execute()` to send, or `youtube_live_streams_delete` for simplest API.
+
+pub fn youtube_live_streams_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveStreams",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/liveStreams
+/// Deletes an existing stream for the authenticated user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_streams_delete_execute()` or `youtube_live_streams_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_streams_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_streams_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/liveStreams
+/// Deletes an existing stream for the authenticated user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_streams_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_streams_delete_task()`.
+/// For the simplest API, use `youtube_live_streams_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_streams_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_streams_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_live_streams_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_streams_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveStreamsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/liveStreams
+/// Deletes an existing stream for the authenticated user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_streams_delete_builder()` + `youtube_live_streams_delete_execute()`.
+/// For task-level control, use `youtube_live_streams_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_streams_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveStreamsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_streams_delete_builder(
+        client,
+        &args.id,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+    )?;
+    youtube_live_streams_delete_execute(builder)
+}
+
+/// POST youtube/v3/liveStreams
+/// Inserts a new stream for the authenticated user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_streams_insert_execute()` to send, or `youtube_live_streams_insert` for simplest API.
+
+pub fn youtube_live_streams_insert_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveStreams",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/liveStreams
+/// Inserts a new stream for the authenticated user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_streams_insert_execute()` or `youtube_live_streams_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_streams_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_streams_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveStream>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveStream = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/liveStreams
+/// Inserts a new stream for the authenticated user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_streams_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_streams_insert_task()`.
+/// For the simplest API, use `youtube_live_streams_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_streams_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_streams_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveStream>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_live_streams_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_streams_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveStreamsInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/liveStreams
+/// Inserts a new stream for the authenticated user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_streams_insert_builder()` + `youtube_live_streams_insert_execute()`.
+/// For task-level control, use `youtube_live_streams_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_streams_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveStreamsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveStream>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_streams_insert_builder(
+        client,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+    )?;
+    youtube_live_streams_insert_execute(builder)
+}
+
+/// GET youtube/v3/liveStreams
+/// Retrieve the list of streams associated with the given channel. --
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_streams_list_execute()` to send, or `youtube_live_streams_list` for simplest API.
+
+pub fn youtube_live_streams_list_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    mine: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveStreams",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = mine.as_ref() {
+        query_parts.push(format!("mine={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/liveStreams
+/// Retrieve the list of streams associated with the given channel. --
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_streams_list_execute()` or `youtube_live_streams_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_streams_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_streams_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveStreamListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveStreamListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/liveStreams
+/// Retrieve the list of streams associated with the given channel. --
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_streams_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_streams_list_task()`.
+/// For the simplest API, use `youtube_live_streams_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_streams_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_streams_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveStreamListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_live_streams_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_streams_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveStreamsListArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: mine
+    pub mine: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/liveStreams
+/// Retrieve the list of streams associated with the given channel. --
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_streams_list_builder()` + `youtube_live_streams_list_execute()`.
+/// For task-level control, use `youtube_live_streams_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_streams_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveStreamsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveStreamListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_streams_list_builder(
+        client,
+        &args.id,
+        &args.maxResults,
+        &args.mine,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.pageToken,
+        &args.part,
+    )?;
+    youtube_live_streams_list_execute(builder)
+}
+
+/// PUT youtube/v3/liveStreams
+/// Updates an existing stream for the authenticated user.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_live_streams_update_execute()` to send, or `youtube_live_streams_update` for simplest API.
+
+pub fn youtube_live_streams_update_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/liveStreams",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/liveStreams
+/// Updates an existing stream for the authenticated user.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_live_streams_update_execute()` or `youtube_live_streams_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_streams_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_streams_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LiveStream>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: LiveStream = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/liveStreams
+/// Updates an existing stream for the authenticated user.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_live_streams_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_live_streams_update_task()`.
+/// For the simplest API, use `youtube_live_streams_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_live_streams_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_live_streams_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveStream>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_live_streams_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_live_streams_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveStreamsUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/liveStreams
+/// Updates an existing stream for the authenticated user.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_live_streams_update_builder()` + `youtube_live_streams_update_execute()`.
+/// For task-level control, use `youtube_live_streams_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_live_streams_update(
+    client: &SimpleHttpClient,
+    args: &YoutubeLiveStreamsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<LiveStream>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_live_streams_update_builder(
+        client,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+    )?;
+    youtube_live_streams_update_execute(builder)
+}
+
+/// GET youtube/v3/members
+/// Retrieves a list of members that match the request criteria for a channel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_members_list_execute()` to send, or `youtube_members_list` for simplest API.
+
+pub fn youtube_members_list_builder(
+    client: &SimpleHttpClient,
+    filterByMemberChannelId: &Option<Option<String>>,
+    hasAccessToLevel: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    mode: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/members",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filterByMemberChannelId.as_ref() {
+        query_parts.push(format!("filterByMemberChannelId={}", val));
+    }
+    if let Some(val) = hasAccessToLevel.as_ref() {
+        query_parts.push(format!("hasAccessToLevel={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = mode.as_ref() {
+        query_parts.push(format!("mode={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/members
+/// Retrieves a list of members that match the request criteria for a channel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_members_list_execute()` or `youtube_members_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_members_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_members_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MemberListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: MemberListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/members
+/// Retrieves a list of members that match the request criteria for a channel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_members_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_members_list_task()`.
+/// For the simplest API, use `youtube_members_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_members_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_members_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MemberListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_members_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_members_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeMembersListArgs {
+    /// Query parameter: filterByMemberChannelId
+    pub filterByMemberChannelId: Option<Option<String>>,
+    /// Query parameter: hasAccessToLevel
+    pub hasAccessToLevel: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: mode
+    pub mode: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/members
+/// Retrieves a list of members that match the request criteria for a channel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_members_list_builder()` + `youtube_members_list_execute()`.
+/// For task-level control, use `youtube_members_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_members_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeMembersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MemberListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_members_list_builder(
+        client,
+        &args.filterByMemberChannelId,
+        &args.hasAccessToLevel,
+        &args.maxResults,
+        &args.mode,
+        &args.pageToken,
+        &args.part,
+    )?;
+    youtube_members_list_execute(builder)
+}
+
+/// GET youtube/v3/membershipsLevels
+/// Retrieves a list of all pricing levels offered by a creator to the fans.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_memberships_levels_list_execute()` to send, or `youtube_memberships_levels_list` for simplest API.
+
+pub fn youtube_memberships_levels_list_builder(
+    client: &SimpleHttpClient,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/membershipsLevels",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/membershipsLevels
+/// Retrieves a list of all pricing levels offered by a creator to the fans.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_memberships_levels_list_execute()` or `youtube_memberships_levels_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_memberships_levels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_memberships_levels_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MembershipsLevelListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: MembershipsLevelListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/membershipsLevels
+/// Retrieves a list of all pricing levels offered by a creator to the fans.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_memberships_levels_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_memberships_levels_list_task()`.
+/// For the simplest API, use `youtube_memberships_levels_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_memberships_levels_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_memberships_levels_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<MembershipsLevelListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_memberships_levels_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_memberships_levels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeMembershipsLevelsListArgs {
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/membershipsLevels
+/// Retrieves a list of all pricing levels offered by a creator to the fans.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_memberships_levels_list_builder()` + `youtube_memberships_levels_list_execute()`.
+/// For task-level control, use `youtube_memberships_levels_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_memberships_levels_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeMembershipsLevelsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<MembershipsLevelListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_memberships_levels_list_builder(client, &args.part)?;
+    youtube_memberships_levels_list_execute(builder)
+}
+
+/// DELETE youtube/v3/playlistImages
 /// Deletes a resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -782,8 +8606,8 @@ pub fn youtube_live_chat_messages_transition(
 
 pub fn youtube_playlist_images_delete_builder(
     client: &SimpleHttpClient,
-    id: &Option<String>,
-    onBehalfOfContentOwner: &Option<String>,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistImages",);
@@ -804,13 +8628,13 @@ pub fn youtube_playlist_images_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET youtube/v3/playlistImages
+/// DELETE youtube/v3/playlistImages
 /// Deletes a resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -881,7 +8705,7 @@ pub fn youtube_playlist_images_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET youtube/v3/playlistImages
+/// DELETE youtube/v3/playlistImages
 /// Deletes a resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -915,12 +8739,12 @@ pub fn youtube_playlist_images_delete_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubePlaylistImagesDeleteArgs {
     /// Query parameter: id
-    pub id: Option<String>,
+    pub id: Option<Option<String>>,
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
 }
 
-/// GET youtube/v3/playlistImages
+/// DELETE youtube/v3/playlistImages
 /// Deletes a resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -943,6 +8767,4685 @@ pub fn youtube_playlist_images_delete(
     youtube_playlist_images_delete_execute(builder)
 }
 
+/// POST youtube/v3/playlistImages
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlist_images_insert_execute()` to send, or `youtube_playlist_images_insert` for simplest API.
+
+pub fn youtube_playlist_images_insert_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistImages",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/playlistImages
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlist_images_insert_execute()` or `youtube_playlist_images_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_images_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_images_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlaylistImage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlaylistImage = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/playlistImages
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlist_images_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlist_images_insert_task()`.
+/// For the simplest API, use `youtube_playlist_images_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_images_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlist_images_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistImage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_playlist_images_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlist_images_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistImagesInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/playlistImages
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlist_images_insert_builder()` + `youtube_playlist_images_insert_execute()`.
+/// For task-level control, use `youtube_playlist_images_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_images_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistImagesInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistImage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_playlist_images_insert_builder(
+        client,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+    )?;
+    youtube_playlist_images_insert_execute(builder)
+}
+
+/// GET youtube/v3/playlistImages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlist_images_list_execute()` to send, or `youtube_playlist_images_list` for simplest API.
+
+pub fn youtube_playlist_images_list_builder(
+    client: &SimpleHttpClient,
+    maxResults: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistImages",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = parent.as_ref() {
+        query_parts.push(format!("parent={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/playlistImages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlist_images_list_execute()` or `youtube_playlist_images_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_images_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_images_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlaylistImageListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlaylistImageListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/playlistImages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlist_images_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlist_images_list_task()`.
+/// For the simplest API, use `youtube_playlist_images_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_images_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlist_images_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistImageListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_playlist_images_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlist_images_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistImagesListArgs {
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: parent
+    pub parent: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/playlistImages
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlist_images_list_builder()` + `youtube_playlist_images_list_execute()`.
+/// For task-level control, use `youtube_playlist_images_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_images_list(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistImagesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistImageListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_playlist_images_list_builder(
+        client,
+        &args.maxResults,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.pageToken,
+        &args.parent,
+        &args.part,
+    )?;
+    youtube_playlist_images_list_execute(builder)
+}
+
+/// PUT youtube/v3/playlistImages
+/// Updates an existing resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlist_images_update_execute()` to send, or `youtube_playlist_images_update` for simplest API.
+
+pub fn youtube_playlist_images_update_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistImages",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/playlistImages
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlist_images_update_execute()` or `youtube_playlist_images_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_images_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_images_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlaylistImage>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlaylistImage = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/playlistImages
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlist_images_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlist_images_update_task()`.
+/// For the simplest API, use `youtube_playlist_images_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_images_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlist_images_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistImage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_playlist_images_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlist_images_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistImagesUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/playlistImages
+/// Updates an existing resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlist_images_update_builder()` + `youtube_playlist_images_update_execute()`.
+/// For task-level control, use `youtube_playlist_images_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_images_update(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistImagesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistImage>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_playlist_images_update_builder(client, &args.onBehalfOfContentOwner, &args.part)?;
+    youtube_playlist_images_update_execute(builder)
+}
+
+/// DELETE youtube/v3/playlistItems
+/// Deletes a resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlist_items_delete_execute()` to send, or `youtube_playlist_items_delete` for simplest API.
+
+pub fn youtube_playlist_items_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistItems",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/playlistItems
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlist_items_delete_execute()` or `youtube_playlist_items_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_items_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_items_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/playlistItems
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlist_items_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlist_items_delete_task()`.
+/// For the simplest API, use `youtube_playlist_items_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_items_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlist_items_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_playlist_items_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlist_items_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistItemsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/playlistItems
+/// Deletes a resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlist_items_delete_builder()` + `youtube_playlist_items_delete_execute()`.
+/// For task-level control, use `youtube_playlist_items_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_items_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistItemsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_playlist_items_delete_builder(client, &args.id, &args.onBehalfOfContentOwner)?;
+    youtube_playlist_items_delete_execute(builder)
+}
+
+/// POST youtube/v3/playlistItems
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlist_items_insert_execute()` to send, or `youtube_playlist_items_insert` for simplest API.
+
+pub fn youtube_playlist_items_insert_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistItems",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/playlistItems
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlist_items_insert_execute()` or `youtube_playlist_items_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_items_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_items_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlaylistItem>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlaylistItem = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/playlistItems
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlist_items_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlist_items_insert_task()`.
+/// For the simplest API, use `youtube_playlist_items_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_items_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlist_items_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistItem>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_playlist_items_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlist_items_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistItemsInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/playlistItems
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlist_items_insert_builder()` + `youtube_playlist_items_insert_execute()`.
+/// For task-level control, use `youtube_playlist_items_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_items_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistItemsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistItem>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_playlist_items_insert_builder(client, &args.onBehalfOfContentOwner, &args.part)?;
+    youtube_playlist_items_insert_execute(builder)
+}
+
+/// GET youtube/v3/playlistItems
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlist_items_list_execute()` to send, or `youtube_playlist_items_list` for simplest API.
+
+pub fn youtube_playlist_items_list_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    playlistId: &Option<Option<String>>,
+    videoId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistItems",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = playlistId.as_ref() {
+        query_parts.push(format!("playlistId={}", val));
+    }
+    if let Some(val) = videoId.as_ref() {
+        query_parts.push(format!("videoId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/playlistItems
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlist_items_list_execute()` or `youtube_playlist_items_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_items_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_items_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlaylistItemListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlaylistItemListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/playlistItems
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlist_items_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlist_items_list_task()`.
+/// For the simplest API, use `youtube_playlist_items_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_items_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlist_items_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistItemListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_playlist_items_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlist_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistItemsListArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: playlistId
+    pub playlistId: Option<Option<String>>,
+    /// Query parameter: videoId
+    pub videoId: Option<Option<String>>,
+}
+
+/// GET youtube/v3/playlistItems
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlist_items_list_builder()` + `youtube_playlist_items_list_execute()`.
+/// For task-level control, use `youtube_playlist_items_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_items_list(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistItemsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistItemListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_playlist_items_list_builder(
+        client,
+        &args.id,
+        &args.maxResults,
+        &args.onBehalfOfContentOwner,
+        &args.pageToken,
+        &args.part,
+        &args.playlistId,
+        &args.videoId,
+    )?;
+    youtube_playlist_items_list_execute(builder)
+}
+
+/// PUT youtube/v3/playlistItems
+/// Updates an existing resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlist_items_update_execute()` to send, or `youtube_playlist_items_update` for simplest API.
+
+pub fn youtube_playlist_items_update_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlistItems",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/playlistItems
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlist_items_update_execute()` or `youtube_playlist_items_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_items_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_items_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlaylistItem>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlaylistItem = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/playlistItems
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlist_items_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlist_items_update_task()`.
+/// For the simplest API, use `youtube_playlist_items_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlist_items_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlist_items_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistItem>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_playlist_items_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlist_items_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistItemsUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/playlistItems
+/// Updates an existing resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlist_items_update_builder()` + `youtube_playlist_items_update_execute()`.
+/// For task-level control, use `youtube_playlist_items_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlist_items_update(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistItemsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistItem>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_playlist_items_update_builder(client, &args.onBehalfOfContentOwner, &args.part)?;
+    youtube_playlist_items_update_execute(builder)
+}
+
+/// DELETE youtube/v3/playlists
+/// Deletes a resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlists_delete_execute()` to send, or `youtube_playlists_delete` for simplest API.
+
+pub fn youtube_playlists_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlists",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/playlists
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlists_delete_execute()` or `youtube_playlists_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlists_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlists_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/playlists
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlists_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlists_delete_task()`.
+/// For the simplest API, use `youtube_playlists_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlists_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlists_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_playlists_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlists_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/playlists
+/// Deletes a resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlists_delete_builder()` + `youtube_playlists_delete_execute()`.
+/// For task-level control, use `youtube_playlists_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlists_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_playlists_delete_builder(client, &args.id, &args.onBehalfOfContentOwner)?;
+    youtube_playlists_delete_execute(builder)
+}
+
+/// POST youtube/v3/playlists
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlists_insert_execute()` to send, or `youtube_playlists_insert` for simplest API.
+
+pub fn youtube_playlists_insert_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlists",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/playlists
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlists_insert_execute()` or `youtube_playlists_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlists_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlists_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Playlist>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Playlist = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/playlists
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlists_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlists_insert_task()`.
+/// For the simplest API, use `youtube_playlists_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlists_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlists_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Playlist>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_playlists_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlists_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistsInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/playlists
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlists_insert_builder()` + `youtube_playlists_insert_execute()`.
+/// For task-level control, use `youtube_playlists_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlists_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Playlist>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_playlists_insert_builder(
+        client,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+    )?;
+    youtube_playlists_insert_execute(builder)
+}
+
+/// GET youtube/v3/playlists
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlists_list_execute()` to send, or `youtube_playlists_list` for simplest API.
+
+pub fn youtube_playlists_list_builder(
+    client: &SimpleHttpClient,
+    channelId: &Option<Option<String>>,
+    hl: &Option<Option<String>>,
+    id: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    mine: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlists",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = channelId.as_ref() {
+        query_parts.push(format!("channelId={}", val));
+    }
+    if let Some(val) = hl.as_ref() {
+        query_parts.push(format!("hl={}", val));
+    }
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = mine.as_ref() {
+        query_parts.push(format!("mine={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/playlists
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlists_list_execute()` or `youtube_playlists_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlists_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlists_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PlaylistListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PlaylistListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/playlists
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlists_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlists_list_task()`.
+/// For the simplest API, use `youtube_playlists_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlists_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlists_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_playlists_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistsListArgs {
+    /// Query parameter: channelId
+    pub channelId: Option<Option<String>>,
+    /// Query parameter: hl
+    pub hl: Option<Option<String>>,
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: mine
+    pub mine: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/playlists
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlists_list_builder()` + `youtube_playlists_list_execute()`.
+/// For task-level control, use `youtube_playlists_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlists_list(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PlaylistListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_playlists_list_builder(
+        client,
+        &args.channelId,
+        &args.hl,
+        &args.id,
+        &args.maxResults,
+        &args.mine,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.pageToken,
+        &args.part,
+    )?;
+    youtube_playlists_list_execute(builder)
+}
+
+/// PUT youtube/v3/playlists
+/// Updates an existing resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_playlists_update_execute()` to send, or `youtube_playlists_update` for simplest API.
+
+pub fn youtube_playlists_update_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/playlists",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/playlists
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_playlists_update_execute()` or `youtube_playlists_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlists_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlists_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Playlist>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Playlist = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/playlists
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_playlists_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_playlists_update_task()`.
+/// For the simplest API, use `youtube_playlists_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_playlists_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_playlists_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Playlist>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_playlists_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_playlists_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistsUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/playlists
+/// Updates an existing resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_playlists_update_builder()` + `youtube_playlists_update_execute()`.
+/// For task-level control, use `youtube_playlists_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_playlists_update(
+    client: &SimpleHttpClient,
+    args: &YoutubePlaylistsUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Playlist>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_playlists_update_builder(client, &args.onBehalfOfContentOwner, &args.part)?;
+    youtube_playlists_update_execute(builder)
+}
+
+/// GET youtube/v3/search
+/// Retrieves a list of search resources
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_search_list_execute()` to send, or `youtube_search_list` for simplest API.
+
+pub fn youtube_search_list_builder(
+    client: &SimpleHttpClient,
+    channelId: &Option<Option<String>>,
+    channelType: &Option<Option<String>>,
+    eventType: &Option<Option<String>>,
+    forContentOwner: &Option<Option<String>>,
+    forDeveloper: &Option<Option<String>>,
+    forMine: &Option<Option<String>>,
+    location: &Option<Option<String>>,
+    locationRadius: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    order: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    publishedAfter: &Option<Option<String>>,
+    publishedBefore: &Option<Option<String>>,
+    q: &Option<Option<String>>,
+    regionCode: &Option<Option<String>>,
+    relevanceLanguage: &Option<Option<String>>,
+    safeSearch: &Option<Option<String>>,
+    topicId: &Option<Option<String>>,
+    type_rs: &Option<Option<String>>,
+    videoCaption: &Option<Option<String>>,
+    videoCategoryId: &Option<Option<String>>,
+    videoDefinition: &Option<Option<String>>,
+    videoDimension: &Option<Option<String>>,
+    videoDuration: &Option<Option<String>>,
+    videoEmbeddable: &Option<Option<String>>,
+    videoLicense: &Option<Option<String>>,
+    videoPaidProductPlacement: &Option<Option<String>>,
+    videoSyndicated: &Option<Option<String>>,
+    videoType: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/search",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = channelId.as_ref() {
+        query_parts.push(format!("channelId={}", val));
+    }
+    if let Some(val) = channelType.as_ref() {
+        query_parts.push(format!("channelType={}", val));
+    }
+    if let Some(val) = eventType.as_ref() {
+        query_parts.push(format!("eventType={}", val));
+    }
+    if let Some(val) = forContentOwner.as_ref() {
+        query_parts.push(format!("forContentOwner={}", val));
+    }
+    if let Some(val) = forDeveloper.as_ref() {
+        query_parts.push(format!("forDeveloper={}", val));
+    }
+    if let Some(val) = forMine.as_ref() {
+        query_parts.push(format!("forMine={}", val));
+    }
+    if let Some(val) = location.as_ref() {
+        query_parts.push(format!("location={}", val));
+    }
+    if let Some(val) = locationRadius.as_ref() {
+        query_parts.push(format!("locationRadius={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = order.as_ref() {
+        query_parts.push(format!("order={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = publishedAfter.as_ref() {
+        query_parts.push(format!("publishedAfter={}", val));
+    }
+    if let Some(val) = publishedBefore.as_ref() {
+        query_parts.push(format!("publishedBefore={}", val));
+    }
+    if let Some(val) = q.as_ref() {
+        query_parts.push(format!("q={}", val));
+    }
+    if let Some(val) = regionCode.as_ref() {
+        query_parts.push(format!("regionCode={}", val));
+    }
+    if let Some(val) = relevanceLanguage.as_ref() {
+        query_parts.push(format!("relevanceLanguage={}", val));
+    }
+    if let Some(val) = safeSearch.as_ref() {
+        query_parts.push(format!("safeSearch={}", val));
+    }
+    if let Some(val) = topicId.as_ref() {
+        query_parts.push(format!("topicId={}", val));
+    }
+    if let Some(val) = type_rs.as_ref() {
+        query_parts.push(format!("type={}", val));
+    }
+    if let Some(val) = videoCaption.as_ref() {
+        query_parts.push(format!("videoCaption={}", val));
+    }
+    if let Some(val) = videoCategoryId.as_ref() {
+        query_parts.push(format!("videoCategoryId={}", val));
+    }
+    if let Some(val) = videoDefinition.as_ref() {
+        query_parts.push(format!("videoDefinition={}", val));
+    }
+    if let Some(val) = videoDimension.as_ref() {
+        query_parts.push(format!("videoDimension={}", val));
+    }
+    if let Some(val) = videoDuration.as_ref() {
+        query_parts.push(format!("videoDuration={}", val));
+    }
+    if let Some(val) = videoEmbeddable.as_ref() {
+        query_parts.push(format!("videoEmbeddable={}", val));
+    }
+    if let Some(val) = videoLicense.as_ref() {
+        query_parts.push(format!("videoLicense={}", val));
+    }
+    if let Some(val) = videoPaidProductPlacement.as_ref() {
+        query_parts.push(format!("videoPaidProductPlacement={}", val));
+    }
+    if let Some(val) = videoSyndicated.as_ref() {
+        query_parts.push(format!("videoSyndicated={}", val));
+    }
+    if let Some(val) = videoType.as_ref() {
+        query_parts.push(format!("videoType={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/search
+/// Retrieves a list of search resources
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_search_list_execute()` or `youtube_search_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_search_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_search_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SearchListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/search
+/// Retrieves a list of search resources
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_search_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_search_list_task()`.
+/// For the simplest API, use `youtube_search_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_search_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_search_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SearchListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_search_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_search_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeSearchListArgs {
+    /// Query parameter: channelId
+    pub channelId: Option<Option<String>>,
+    /// Query parameter: channelType
+    pub channelType: Option<Option<String>>,
+    /// Query parameter: eventType
+    pub eventType: Option<Option<String>>,
+    /// Query parameter: forContentOwner
+    pub forContentOwner: Option<Option<String>>,
+    /// Query parameter: forDeveloper
+    pub forDeveloper: Option<Option<String>>,
+    /// Query parameter: forMine
+    pub forMine: Option<Option<String>>,
+    /// Query parameter: location
+    pub location: Option<Option<String>>,
+    /// Query parameter: locationRadius
+    pub locationRadius: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: order
+    pub order: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: publishedAfter
+    pub publishedAfter: Option<Option<String>>,
+    /// Query parameter: publishedBefore
+    pub publishedBefore: Option<Option<String>>,
+    /// Query parameter: q
+    pub q: Option<Option<String>>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<Option<String>>,
+    /// Query parameter: relevanceLanguage
+    pub relevanceLanguage: Option<Option<String>>,
+    /// Query parameter: safeSearch
+    pub safeSearch: Option<Option<String>>,
+    /// Query parameter: topicId
+    pub topicId: Option<Option<String>>,
+    /// Query parameter: type
+    pub type_rs: Option<Option<String>>,
+    /// Query parameter: videoCaption
+    pub videoCaption: Option<Option<String>>,
+    /// Query parameter: videoCategoryId
+    pub videoCategoryId: Option<Option<String>>,
+    /// Query parameter: videoDefinition
+    pub videoDefinition: Option<Option<String>>,
+    /// Query parameter: videoDimension
+    pub videoDimension: Option<Option<String>>,
+    /// Query parameter: videoDuration
+    pub videoDuration: Option<Option<String>>,
+    /// Query parameter: videoEmbeddable
+    pub videoEmbeddable: Option<Option<String>>,
+    /// Query parameter: videoLicense
+    pub videoLicense: Option<Option<String>>,
+    /// Query parameter: videoPaidProductPlacement
+    pub videoPaidProductPlacement: Option<Option<String>>,
+    /// Query parameter: videoSyndicated
+    pub videoSyndicated: Option<Option<String>>,
+    /// Query parameter: videoType
+    pub videoType: Option<Option<String>>,
+}
+
+/// GET youtube/v3/search
+/// Retrieves a list of search resources
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_search_list_builder()` + `youtube_search_list_execute()`.
+/// For task-level control, use `youtube_search_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_search_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeSearchListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SearchListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_search_list_builder(
+        client,
+        &args.channelId,
+        &args.channelType,
+        &args.eventType,
+        &args.forContentOwner,
+        &args.forDeveloper,
+        &args.forMine,
+        &args.location,
+        &args.locationRadius,
+        &args.maxResults,
+        &args.onBehalfOfContentOwner,
+        &args.order,
+        &args.pageToken,
+        &args.part,
+        &args.publishedAfter,
+        &args.publishedBefore,
+        &args.q,
+        &args.regionCode,
+        &args.relevanceLanguage,
+        &args.safeSearch,
+        &args.topicId,
+        &args.type_rs,
+        &args.videoCaption,
+        &args.videoCategoryId,
+        &args.videoDefinition,
+        &args.videoDimension,
+        &args.videoDuration,
+        &args.videoEmbeddable,
+        &args.videoLicense,
+        &args.videoPaidProductPlacement,
+        &args.videoSyndicated,
+        &args.videoType,
+    )?;
+    youtube_search_list_execute(builder)
+}
+
+/// DELETE youtube/v3/subscriptions
+/// Deletes a resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_subscriptions_delete_execute()` to send, or `youtube_subscriptions_delete` for simplest API.
+
+pub fn youtube_subscriptions_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/subscriptions",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/subscriptions
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_subscriptions_delete_execute()` or `youtube_subscriptions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_subscriptions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_subscriptions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/subscriptions
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_subscriptions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_subscriptions_delete_task()`.
+/// For the simplest API, use `youtube_subscriptions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_subscriptions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_subscriptions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_subscriptions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_subscriptions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeSubscriptionsDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/subscriptions
+/// Deletes a resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_subscriptions_delete_builder()` + `youtube_subscriptions_delete_execute()`.
+/// For task-level control, use `youtube_subscriptions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_subscriptions_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeSubscriptionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_subscriptions_delete_builder(client, &args.id)?;
+    youtube_subscriptions_delete_execute(builder)
+}
+
+/// POST youtube/v3/subscriptions
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_subscriptions_insert_execute()` to send, or `youtube_subscriptions_insert` for simplest API.
+
+pub fn youtube_subscriptions_insert_builder(
+    client: &SimpleHttpClient,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/subscriptions",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/subscriptions
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_subscriptions_insert_execute()` or `youtube_subscriptions_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_subscriptions_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_subscriptions_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Subscription = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/subscriptions
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_subscriptions_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_subscriptions_insert_task()`.
+/// For the simplest API, use `youtube_subscriptions_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_subscriptions_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_subscriptions_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_subscriptions_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_subscriptions_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeSubscriptionsInsertArgs {
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/subscriptions
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_subscriptions_insert_builder()` + `youtube_subscriptions_insert_execute()`.
+/// For task-level control, use `youtube_subscriptions_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_subscriptions_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeSubscriptionsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_subscriptions_insert_builder(client, &args.part)?;
+    youtube_subscriptions_insert_execute(builder)
+}
+
+/// GET youtube/v3/subscriptions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_subscriptions_list_execute()` to send, or `youtube_subscriptions_list` for simplest API.
+
+pub fn youtube_subscriptions_list_builder(
+    client: &SimpleHttpClient,
+    channelId: &Option<Option<String>>,
+    forChannelId: &Option<Option<String>>,
+    id: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    mine: &Option<Option<String>>,
+    myRecentSubscribers: &Option<Option<String>>,
+    mySubscribers: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    order: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/subscriptions",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = channelId.as_ref() {
+        query_parts.push(format!("channelId={}", val));
+    }
+    if let Some(val) = forChannelId.as_ref() {
+        query_parts.push(format!("forChannelId={}", val));
+    }
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = mine.as_ref() {
+        query_parts.push(format!("mine={}", val));
+    }
+    if let Some(val) = myRecentSubscribers.as_ref() {
+        query_parts.push(format!("myRecentSubscribers={}", val));
+    }
+    if let Some(val) = mySubscribers.as_ref() {
+        query_parts.push(format!("mySubscribers={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = order.as_ref() {
+        query_parts.push(format!("order={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/subscriptions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_subscriptions_list_execute()` or `youtube_subscriptions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_subscriptions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_subscriptions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SubscriptionListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/subscriptions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_subscriptions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_subscriptions_list_task()`.
+/// For the simplest API, use `youtube_subscriptions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_subscriptions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_subscriptions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SubscriptionListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_subscriptions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeSubscriptionsListArgs {
+    /// Query parameter: channelId
+    pub channelId: Option<Option<String>>,
+    /// Query parameter: forChannelId
+    pub forChannelId: Option<Option<String>>,
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: mine
+    pub mine: Option<Option<String>>,
+    /// Query parameter: myRecentSubscribers
+    pub myRecentSubscribers: Option<Option<String>>,
+    /// Query parameter: mySubscribers
+    pub mySubscribers: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: order
+    pub order: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/subscriptions
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_subscriptions_list_builder()` + `youtube_subscriptions_list_execute()`.
+/// For task-level control, use `youtube_subscriptions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_subscriptions_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeSubscriptionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SubscriptionListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_subscriptions_list_builder(
+        client,
+        &args.channelId,
+        &args.forChannelId,
+        &args.id,
+        &args.maxResults,
+        &args.mine,
+        &args.myRecentSubscribers,
+        &args.mySubscribers,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.order,
+        &args.pageToken,
+        &args.part,
+    )?;
+    youtube_subscriptions_list_execute(builder)
+}
+
+/// GET youtube/v3/superChatEvents
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_super_chat_events_list_execute()` to send, or `youtube_super_chat_events_list` for simplest API.
+
+pub fn youtube_super_chat_events_list_builder(
+    client: &SimpleHttpClient,
+    hl: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/superChatEvents",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = hl.as_ref() {
+        query_parts.push(format!("hl={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/superChatEvents
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_super_chat_events_list_execute()` or `youtube_super_chat_events_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_super_chat_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_super_chat_events_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SuperChatEventListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SuperChatEventListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/superChatEvents
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_super_chat_events_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_super_chat_events_list_task()`.
+/// For the simplest API, use `youtube_super_chat_events_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_super_chat_events_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_super_chat_events_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SuperChatEventListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_super_chat_events_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_super_chat_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeSuperChatEventsListArgs {
+    /// Query parameter: hl
+    pub hl: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/superChatEvents
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_super_chat_events_list_builder()` + `youtube_super_chat_events_list_execute()`.
+/// For task-level control, use `youtube_super_chat_events_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_super_chat_events_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeSuperChatEventsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SuperChatEventListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_super_chat_events_list_builder(
+        client,
+        &args.hl,
+        &args.maxResults,
+        &args.pageToken,
+        &args.part,
+    )?;
+    youtube_super_chat_events_list_execute(builder)
+}
+
+/// POST youtube/v3/tests
+/// POST method.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_tests_insert_execute()` to send, or `youtube_tests_insert` for simplest API.
+
+pub fn youtube_tests_insert_builder(
+    client: &SimpleHttpClient,
+    externalChannelId: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/tests",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = externalChannelId.as_ref() {
+        query_parts.push(format!("externalChannelId={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/tests
+/// POST method.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_tests_insert_execute()` or `youtube_tests_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_tests_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_tests_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestItem>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestItem = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/tests
+/// POST method.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_tests_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_tests_insert_task()`.
+/// For the simplest API, use `youtube_tests_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_tests_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_tests_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TestItem>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_tests_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_tests_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeTestsInsertArgs {
+    /// Query parameter: externalChannelId
+    pub externalChannelId: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/tests
+/// POST method.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_tests_insert_builder()` + `youtube_tests_insert_execute()`.
+/// For task-level control, use `youtube_tests_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_tests_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeTestsInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<TestItem>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_tests_insert_builder(
+        client,
+        &args.externalChannelId,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+    )?;
+    youtube_tests_insert_execute(builder)
+}
+
+/// DELETE youtube/v3/thirdPartyLinks
+/// Deletes a resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_third_party_links_delete_execute()` to send, or `youtube_third_party_links_delete` for simplest API.
+
+pub fn youtube_third_party_links_delete_builder(
+    client: &SimpleHttpClient,
+    externalChannelId: &Option<Option<String>>,
+    linkingToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    type_rs: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/thirdPartyLinks",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = externalChannelId.as_ref() {
+        query_parts.push(format!("externalChannelId={}", val));
+    }
+    if let Some(val) = linkingToken.as_ref() {
+        query_parts.push(format!("linkingToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = type_rs.as_ref() {
+        query_parts.push(format!("type={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/thirdPartyLinks
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_third_party_links_delete_execute()` or `youtube_third_party_links_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_third_party_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_third_party_links_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/thirdPartyLinks
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_third_party_links_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_third_party_links_delete_task()`.
+/// For the simplest API, use `youtube_third_party_links_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_third_party_links_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_third_party_links_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_third_party_links_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_third_party_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeThirdPartyLinksDeleteArgs {
+    /// Query parameter: externalChannelId
+    pub externalChannelId: Option<Option<String>>,
+    /// Query parameter: linkingToken
+    pub linkingToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: type
+    pub type_rs: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/thirdPartyLinks
+/// Deletes a resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_third_party_links_delete_builder()` + `youtube_third_party_links_delete_execute()`.
+/// For task-level control, use `youtube_third_party_links_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_third_party_links_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeThirdPartyLinksDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_third_party_links_delete_builder(
+        client,
+        &args.externalChannelId,
+        &args.linkingToken,
+        &args.part,
+        &args.type_rs,
+    )?;
+    youtube_third_party_links_delete_execute(builder)
+}
+
+/// POST youtube/v3/thirdPartyLinks
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_third_party_links_insert_execute()` to send, or `youtube_third_party_links_insert` for simplest API.
+
+pub fn youtube_third_party_links_insert_builder(
+    client: &SimpleHttpClient,
+    externalChannelId: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/thirdPartyLinks",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = externalChannelId.as_ref() {
+        query_parts.push(format!("externalChannelId={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/thirdPartyLinks
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_third_party_links_insert_execute()` or `youtube_third_party_links_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_third_party_links_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_third_party_links_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ThirdPartyLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ThirdPartyLink = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/thirdPartyLinks
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_third_party_links_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_third_party_links_insert_task()`.
+/// For the simplest API, use `youtube_third_party_links_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_third_party_links_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_third_party_links_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ThirdPartyLink>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_third_party_links_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_third_party_links_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeThirdPartyLinksInsertArgs {
+    /// Query parameter: externalChannelId
+    pub externalChannelId: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// POST youtube/v3/thirdPartyLinks
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_third_party_links_insert_builder()` + `youtube_third_party_links_insert_execute()`.
+/// For task-level control, use `youtube_third_party_links_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_third_party_links_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeThirdPartyLinksInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ThirdPartyLink>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_third_party_links_insert_builder(client, &args.externalChannelId, &args.part)?;
+    youtube_third_party_links_insert_execute(builder)
+}
+
+/// GET youtube/v3/thirdPartyLinks
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_third_party_links_list_execute()` to send, or `youtube_third_party_links_list` for simplest API.
+
+pub fn youtube_third_party_links_list_builder(
+    client: &SimpleHttpClient,
+    externalChannelId: &Option<Option<String>>,
+    linkingToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    type_rs: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/thirdPartyLinks",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = externalChannelId.as_ref() {
+        query_parts.push(format!("externalChannelId={}", val));
+    }
+    if let Some(val) = linkingToken.as_ref() {
+        query_parts.push(format!("linkingToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = type_rs.as_ref() {
+        query_parts.push(format!("type={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/thirdPartyLinks
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_third_party_links_list_execute()` or `youtube_third_party_links_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_third_party_links_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_third_party_links_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ThirdPartyLinkListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ThirdPartyLinkListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/thirdPartyLinks
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_third_party_links_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_third_party_links_list_task()`.
+/// For the simplest API, use `youtube_third_party_links_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_third_party_links_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_third_party_links_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ThirdPartyLinkListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_third_party_links_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_third_party_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeThirdPartyLinksListArgs {
+    /// Query parameter: externalChannelId
+    pub externalChannelId: Option<Option<String>>,
+    /// Query parameter: linkingToken
+    pub linkingToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: type
+    pub type_rs: Option<Option<String>>,
+}
+
+/// GET youtube/v3/thirdPartyLinks
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_third_party_links_list_builder()` + `youtube_third_party_links_list_execute()`.
+/// For task-level control, use `youtube_third_party_links_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_third_party_links_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeThirdPartyLinksListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ThirdPartyLinkListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_third_party_links_list_builder(
+        client,
+        &args.externalChannelId,
+        &args.linkingToken,
+        &args.part,
+        &args.type_rs,
+    )?;
+    youtube_third_party_links_list_execute(builder)
+}
+
+/// PUT youtube/v3/thirdPartyLinks
+/// Updates an existing resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_third_party_links_update_execute()` to send, or `youtube_third_party_links_update` for simplest API.
+
+pub fn youtube_third_party_links_update_builder(
+    client: &SimpleHttpClient,
+    externalChannelId: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/thirdPartyLinks",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = externalChannelId.as_ref() {
+        query_parts.push(format!("externalChannelId={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/thirdPartyLinks
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_third_party_links_update_execute()` or `youtube_third_party_links_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_third_party_links_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_third_party_links_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ThirdPartyLink>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ThirdPartyLink = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/thirdPartyLinks
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_third_party_links_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_third_party_links_update_task()`.
+/// For the simplest API, use `youtube_third_party_links_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_third_party_links_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_third_party_links_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ThirdPartyLink>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_third_party_links_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_third_party_links_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeThirdPartyLinksUpdateArgs {
+    /// Query parameter: externalChannelId
+    pub externalChannelId: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/thirdPartyLinks
+/// Updates an existing resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_third_party_links_update_builder()` + `youtube_third_party_links_update_execute()`.
+/// For task-level control, use `youtube_third_party_links_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_third_party_links_update(
+    client: &SimpleHttpClient,
+    args: &YoutubeThirdPartyLinksUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ThirdPartyLink>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_third_party_links_update_builder(client, &args.externalChannelId, &args.part)?;
+    youtube_third_party_links_update_execute(builder)
+}
+
+/// POST youtube/v3/thumbnails/set
+/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn't result in creation of a single resource), I use a custom verb here.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_thumbnails_set_execute()` to send, or `youtube_thumbnails_set` for simplest API.
+
+pub fn youtube_thumbnails_set_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    videoId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/thumbnails/set",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = videoId.as_ref() {
+        query_parts.push(format!("videoId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/thumbnails/set
+/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn't result in creation of a single resource), I use a custom verb here.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_thumbnails_set_execute()` or `youtube_thumbnails_set`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_thumbnails_set_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_thumbnails_set_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ThumbnailSetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ThumbnailSetResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/thumbnails/set
+/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn't result in creation of a single resource), I use a custom verb here.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_thumbnails_set_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_thumbnails_set_task()`.
+/// For the simplest API, use `youtube_thumbnails_set()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_thumbnails_set_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_thumbnails_set_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ThumbnailSetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_thumbnails_set_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_thumbnails_set`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeThumbnailsSetArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: videoId
+    pub videoId: Option<Option<String>>,
+}
+
+/// POST youtube/v3/thumbnails/set
+/// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn't result in creation of a single resource), I use a custom verb here.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_thumbnails_set_builder()` + `youtube_thumbnails_set_execute()`.
+/// For task-level control, use `youtube_thumbnails_set_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_thumbnails_set(
+    client: &SimpleHttpClient,
+    args: &YoutubeThumbnailsSetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ThumbnailSetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_thumbnails_set_builder(client, &args.onBehalfOfContentOwner, &args.videoId)?;
+    youtube_thumbnails_set_execute(builder)
+}
+
+/// GET youtube/v3/videoAbuseReportReasons
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_video_abuse_report_reasons_list_execute()` to send, or `youtube_video_abuse_report_reasons_list` for simplest API.
+
+pub fn youtube_video_abuse_report_reasons_list_builder(
+    client: &SimpleHttpClient,
+    hl: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url =
+        format!("https://youtube.googleapis.com/youtube/v3/videoAbuseReportReasons",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = hl.as_ref() {
+        query_parts.push(format!("hl={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/videoAbuseReportReasons
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_video_abuse_report_reasons_list_execute()` or `youtube_video_abuse_report_reasons_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_video_abuse_report_reasons_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_video_abuse_report_reasons_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VideoAbuseReportReasonListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VideoAbuseReportReasonListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/videoAbuseReportReasons
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_video_abuse_report_reasons_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_video_abuse_report_reasons_list_task()`.
+/// For the simplest API, use `youtube_video_abuse_report_reasons_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_video_abuse_report_reasons_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_video_abuse_report_reasons_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<VideoAbuseReportReasonListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_video_abuse_report_reasons_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_video_abuse_report_reasons_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideoAbuseReportReasonsListArgs {
+    /// Query parameter: hl
+    pub hl: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// GET youtube/v3/videoAbuseReportReasons
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_video_abuse_report_reasons_list_builder()` + `youtube_video_abuse_report_reasons_list_execute()`.
+/// For task-level control, use `youtube_video_abuse_report_reasons_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_video_abuse_report_reasons_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeVideoAbuseReportReasonsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<VideoAbuseReportReasonListResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_video_abuse_report_reasons_list_builder(client, &args.hl, &args.part)?;
+    youtube_video_abuse_report_reasons_list_execute(builder)
+}
+
+/// GET youtube/v3/videoCategories
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_video_categories_list_execute()` to send, or `youtube_video_categories_list` for simplest API.
+
+pub fn youtube_video_categories_list_builder(
+    client: &SimpleHttpClient,
+    hl: &Option<Option<String>>,
+    id: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    regionCode: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videoCategories",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = hl.as_ref() {
+        query_parts.push(format!("hl={}", val));
+    }
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = regionCode.as_ref() {
+        query_parts.push(format!("regionCode={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/videoCategories
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_video_categories_list_execute()` or `youtube_video_categories_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_video_categories_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_video_categories_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VideoCategoryListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VideoCategoryListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/videoCategories
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_video_categories_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_video_categories_list_task()`.
+/// For the simplest API, use `youtube_video_categories_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_video_categories_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_video_categories_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VideoCategoryListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_video_categories_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_video_categories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideoCategoriesListArgs {
+    /// Query parameter: hl
+    pub hl: Option<Option<String>>,
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<Option<String>>,
+}
+
+/// GET youtube/v3/videoCategories
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_video_categories_list_builder()` + `youtube_video_categories_list_execute()`.
+/// For task-level control, use `youtube_video_categories_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_video_categories_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeVideoCategoriesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VideoCategoryListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_video_categories_list_builder(
+        client,
+        &args.hl,
+        &args.id,
+        &args.part,
+        &args.regionCode,
+    )?;
+    youtube_video_categories_list_execute(builder)
+}
+
 /// GET youtube/v3/videoTrainability
 /// Returns the trainability status of a video.
 ///
@@ -951,7 +13454,7 @@ pub fn youtube_playlist_images_delete(
 
 pub fn youtube_video_trainability_get_builder(
     client: &SimpleHttpClient,
-    id: &Option<String>,
+    id: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videoTrainability",);
@@ -1085,7 +13588,7 @@ pub fn youtube_video_trainability_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideoTrainabilityGetArgs {
     /// Query parameter: id
-    pub id: Option<String>,
+    pub id: Option<Option<String>>,
 }
 
 /// GET youtube/v3/videoTrainability
@@ -1112,7 +13615,978 @@ pub fn youtube_video_trainability_get(
     youtube_video_trainability_get_execute(builder)
 }
 
-/// GET youtube/v3/videos/reportAbuse
+/// DELETE youtube/v3/videos
+/// Deletes a resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_videos_delete_execute()` to send, or `youtube_videos_delete` for simplest API.
+
+pub fn youtube_videos_delete_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE youtube/v3/videos
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_videos_delete_execute()` or `youtube_videos_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE youtube/v3/videos
+/// Deletes a resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_videos_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_videos_delete_task()`.
+/// For the simplest API, use `youtube_videos_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_videos_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_videos_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_videos_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// DELETE youtube/v3/videos
+/// Deletes a resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_videos_delete_builder()` + `youtube_videos_delete_execute()`.
+/// For task-level control, use `youtube_videos_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_delete(
+    client: &SimpleHttpClient,
+    args: &YoutubeVideosDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_videos_delete_builder(client, &args.id, &args.onBehalfOfContentOwner)?;
+    youtube_videos_delete_execute(builder)
+}
+
+/// GET youtube/v3/videos/getRating
+/// Retrieves the ratings that the authorized user gave to a list of specified videos.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_videos_get_rating_execute()` to send, or `youtube_videos_get_rating` for simplest API.
+
+pub fn youtube_videos_get_rating_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos/getRating",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/videos/getRating
+/// Retrieves the ratings that the authorized user gave to a list of specified videos.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_videos_get_rating_execute()` or `youtube_videos_get_rating`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_get_rating_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_get_rating_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VideoGetRatingResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VideoGetRatingResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/videos/getRating
+/// Retrieves the ratings that the authorized user gave to a list of specified videos.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_videos_get_rating_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_videos_get_rating_task()`.
+/// For the simplest API, use `youtube_videos_get_rating()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_get_rating_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_videos_get_rating_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VideoGetRatingResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_videos_get_rating_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_videos_get_rating`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosGetRatingArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// GET youtube/v3/videos/getRating
+/// Retrieves the ratings that the authorized user gave to a list of specified videos.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_videos_get_rating_builder()` + `youtube_videos_get_rating_execute()`.
+/// For task-level control, use `youtube_videos_get_rating_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_get_rating(
+    client: &SimpleHttpClient,
+    args: &YoutubeVideosGetRatingArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VideoGetRatingResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_videos_get_rating_builder(client, &args.id, &args.onBehalfOfContentOwner)?;
+    youtube_videos_get_rating_execute(builder)
+}
+
+/// POST youtube/v3/videos
+/// Inserts a new resource into this collection.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_videos_insert_execute()` to send, or `youtube_videos_insert` for simplest API.
+
+pub fn youtube_videos_insert_builder(
+    client: &SimpleHttpClient,
+    autoLevels: &Option<Option<String>>,
+    notifySubscribers: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    onBehalfOfContentOwnerChannel: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    stabilize: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = autoLevels.as_ref() {
+        query_parts.push(format!("autoLevels={}", val));
+    }
+    if let Some(val) = notifySubscribers.as_ref() {
+        query_parts.push(format!("notifySubscribers={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwnerChannel.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwnerChannel={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = stabilize.as_ref() {
+        query_parts.push(format!("stabilize={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/videos
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_videos_insert_execute()` or `youtube_videos_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Video>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Video = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/videos
+/// Inserts a new resource into this collection.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_videos_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_videos_insert_task()`.
+/// For the simplest API, use `youtube_videos_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_videos_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Video>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_videos_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_videos_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosInsertArgs {
+    /// Query parameter: autoLevels
+    pub autoLevels: Option<Option<String>>,
+    /// Query parameter: notifySubscribers
+    pub notifySubscribers: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: stabilize
+    pub stabilize: Option<Option<String>>,
+}
+
+/// POST youtube/v3/videos
+/// Inserts a new resource into this collection.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_videos_insert_builder()` + `youtube_videos_insert_execute()`.
+/// For task-level control, use `youtube_videos_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_insert(
+    client: &SimpleHttpClient,
+    args: &YoutubeVideosInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Video>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_videos_insert_builder(
+        client,
+        &args.autoLevels,
+        &args.notifySubscribers,
+        &args.onBehalfOfContentOwner,
+        &args.onBehalfOfContentOwnerChannel,
+        &args.part,
+        &args.stabilize,
+    )?;
+    youtube_videos_insert_execute(builder)
+}
+
+/// GET youtube/v3/videos
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_videos_list_execute()` to send, or `youtube_videos_list` for simplest API.
+
+pub fn youtube_videos_list_builder(
+    client: &SimpleHttpClient,
+    chart: &Option<Option<String>>,
+    hl: &Option<Option<String>>,
+    id: &Option<Option<String>>,
+    locale: &Option<Option<String>>,
+    maxHeight: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    maxWidth: &Option<Option<String>>,
+    myRating: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    regionCode: &Option<Option<String>>,
+    videoCategoryId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = chart.as_ref() {
+        query_parts.push(format!("chart={}", val));
+    }
+    if let Some(val) = hl.as_ref() {
+        query_parts.push(format!("hl={}", val));
+    }
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = locale.as_ref() {
+        query_parts.push(format!("locale={}", val));
+    }
+    if let Some(val) = maxHeight.as_ref() {
+        query_parts.push(format!("maxHeight={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = maxWidth.as_ref() {
+        query_parts.push(format!("maxWidth={}", val));
+    }
+    if let Some(val) = myRating.as_ref() {
+        query_parts.push(format!("myRating={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+    if let Some(val) = regionCode.as_ref() {
+        query_parts.push(format!("regionCode={}", val));
+    }
+    if let Some(val) = videoCategoryId.as_ref() {
+        query_parts.push(format!("videoCategoryId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET youtube/v3/videos
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_videos_list_execute()` or `youtube_videos_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VideoListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: VideoListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET youtube/v3/videos
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_videos_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_videos_list_task()`.
+/// For the simplest API, use `youtube_videos_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_videos_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VideoListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = youtube_videos_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_videos_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosListArgs {
+    /// Query parameter: chart
+    pub chart: Option<Option<String>>,
+    /// Query parameter: hl
+    pub hl: Option<Option<String>>,
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: locale
+    pub locale: Option<Option<String>>,
+    /// Query parameter: maxHeight
+    pub maxHeight: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: maxWidth
+    pub maxWidth: Option<Option<String>>,
+    /// Query parameter: myRating
+    pub myRating: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<Option<String>>,
+    /// Query parameter: videoCategoryId
+    pub videoCategoryId: Option<Option<String>>,
+}
+
+/// GET youtube/v3/videos
+/// Retrieves a list of resources, possibly filtered.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_videos_list_builder()` + `youtube_videos_list_execute()`.
+/// For task-level control, use `youtube_videos_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_list(
+    client: &SimpleHttpClient,
+    args: &YoutubeVideosListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VideoListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = youtube_videos_list_builder(
+        client,
+        &args.chart,
+        &args.hl,
+        &args.id,
+        &args.locale,
+        &args.maxHeight,
+        &args.maxResults,
+        &args.maxWidth,
+        &args.myRating,
+        &args.onBehalfOfContentOwner,
+        &args.pageToken,
+        &args.part,
+        &args.regionCode,
+        &args.videoCategoryId,
+    )?;
+    youtube_videos_list_execute(builder)
+}
+
+/// POST youtube/v3/videos/rate
+/// Adds a like or dislike rating to a video or removes a rating from a video.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_videos_rate_execute()` to send, or `youtube_videos_rate` for simplest API.
+
+pub fn youtube_videos_rate_builder(
+    client: &SimpleHttpClient,
+    id: &Option<Option<String>>,
+    rating: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos/rate",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = id.as_ref() {
+        query_parts.push(format!("id={}", val));
+    }
+    if let Some(val) = rating.as_ref() {
+        query_parts.push(format!("rating={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/videos/rate
+/// Adds a like or dislike rating to a video or removes a rating from a video.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_videos_rate_execute()` or `youtube_videos_rate`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_rate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_rate_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/videos/rate
+/// Adds a like or dislike rating to a video or removes a rating from a video.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_videos_rate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_videos_rate_task()`.
+/// For the simplest API, use `youtube_videos_rate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_rate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_videos_rate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_videos_rate_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_videos_rate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosRateArgs {
+    /// Query parameter: id
+    pub id: Option<Option<String>>,
+    /// Query parameter: rating
+    pub rating: Option<Option<String>>,
+}
+
+/// POST youtube/v3/videos/rate
+/// Adds a like or dislike rating to a video or removes a rating from a video.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_videos_rate_builder()` + `youtube_videos_rate_execute()`.
+/// For task-level control, use `youtube_videos_rate_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_rate(
+    client: &SimpleHttpClient,
+    args: &YoutubeVideosRateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_videos_rate_builder(client, &args.id, &args.rating)?;
+    youtube_videos_rate_execute(builder)
+}
+
+/// POST youtube/v3/videos/reportAbuse
 /// Report abuse for a video.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1120,8 +14594,7 @@ pub fn youtube_video_trainability_get(
 
 pub fn youtube_videos_report_abuse_builder(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: &Option<String>,
-    body: &VideoAbuseReport,
+    onBehalfOfContentOwner: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos/reportAbuse",);
@@ -1139,15 +14612,13 @@ pub fn youtube_videos_report_abuse_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET youtube/v3/videos/reportAbuse
+/// POST youtube/v3/videos/reportAbuse
 /// Report abuse for a video.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1218,7 +14689,7 @@ pub fn youtube_videos_report_abuse_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET youtube/v3/videos/reportAbuse
+/// POST youtube/v3/videos/reportAbuse
 /// Report abuse for a video.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1252,12 +14723,10 @@ pub fn youtube_videos_report_abuse_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeVideosReportAbuseArgs {
     /// Query parameter: onBehalfOfContentOwner
-    pub onBehalfOfContentOwner: Option<String>,
-    /// Request body.
-    pub body: VideoAbuseReport,
+    pub onBehalfOfContentOwner: Option<Option<String>>,
 }
 
-/// GET youtube/v3/videos/reportAbuse
+/// POST youtube/v3/videos/reportAbuse
 /// Report abuse for a video.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1275,12 +14744,520 @@ pub fn youtube_videos_report_abuse(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_videos_report_abuse_builder(client, &args.onBehalfOfContentOwner, &args.body)?;
+    let builder = youtube_videos_report_abuse_builder(client, &args.onBehalfOfContentOwner)?;
     youtube_videos_report_abuse_execute(builder)
 }
 
-/// GET youtube/v3/commentThreads
+/// PUT youtube/v3/videos
+/// Updates an existing resource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_videos_update_execute()` to send, or `youtube_videos_update` for simplest API.
+
+pub fn youtube_videos_update_builder(
+    client: &SimpleHttpClient,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/videos",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+    if let Some(val) = part.as_ref() {
+        query_parts.push(format!("part={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT youtube/v3/videos
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_videos_update_execute()` or `youtube_videos_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Video>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Video = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT youtube/v3/videos
+/// Updates an existing resource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_videos_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_videos_update_task()`.
+/// For the simplest API, use `youtube_videos_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_videos_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_videos_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Video>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_videos_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_videos_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+    /// Query parameter: part
+    pub part: Option<Option<String>>,
+}
+
+/// PUT youtube/v3/videos
+/// Updates an existing resource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_videos_update_builder()` + `youtube_videos_update_execute()`.
+/// For task-level control, use `youtube_videos_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_videos_update(
+    client: &SimpleHttpClient,
+    args: &YoutubeVideosUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Video>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = youtube_videos_update_builder(client, &args.onBehalfOfContentOwner, &args.part)?;
+    youtube_videos_update_execute(builder)
+}
+
+/// POST youtube/v3/watermarks/set
+/// Allows upload of watermark image and setting it for a channel.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_watermarks_set_execute()` to send, or `youtube_watermarks_set` for simplest API.
+
+pub fn youtube_watermarks_set_builder(
+    client: &SimpleHttpClient,
+    channelId: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/watermarks/set",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = channelId.as_ref() {
+        query_parts.push(format!("channelId={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/watermarks/set
+/// Allows upload of watermark image and setting it for a channel.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_watermarks_set_execute()` or `youtube_watermarks_set`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_watermarks_set_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_watermarks_set_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/watermarks/set
+/// Allows upload of watermark image and setting it for a channel.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_watermarks_set_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_watermarks_set_task()`.
+/// For the simplest API, use `youtube_watermarks_set()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_watermarks_set_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_watermarks_set_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_watermarks_set_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_watermarks_set`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeWatermarksSetArgs {
+    /// Query parameter: channelId
+    pub channelId: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// POST youtube/v3/watermarks/set
+/// Allows upload of watermark image and setting it for a channel.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_watermarks_set_builder()` + `youtube_watermarks_set_execute()`.
+/// For task-level control, use `youtube_watermarks_set_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_watermarks_set(
+    client: &SimpleHttpClient,
+    args: &YoutubeWatermarksSetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_watermarks_set_builder(client, &args.channelId, &args.onBehalfOfContentOwner)?;
+    youtube_watermarks_set_execute(builder)
+}
+
+/// POST youtube/v3/watermarks/unset
+/// Allows removal of channel watermark.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `youtube_watermarks_unset_execute()` to send, or `youtube_watermarks_unset` for simplest API.
+
+pub fn youtube_watermarks_unset_builder(
+    client: &SimpleHttpClient,
+    channelId: &Option<Option<String>>,
+    onBehalfOfContentOwner: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/watermarks/unset",);
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = channelId.as_ref() {
+        query_parts.push(format!("channelId={}", val));
+    }
+    if let Some(val) = onBehalfOfContentOwner.as_ref() {
+        query_parts.push(format!("onBehalfOfContentOwner={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST youtube/v3/watermarks/unset
+/// Allows removal of channel watermark.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `youtube_watermarks_unset_execute()` or `youtube_watermarks_unset`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_watermarks_unset_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_watermarks_unset_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: (),
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST youtube/v3/watermarks/unset
+/// Allows removal of channel watermark.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `youtube_watermarks_unset_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `youtube_watermarks_unset_task()`.
+/// For the simplest API, use `youtube_watermarks_unset()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `youtube_watermarks_unset_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn youtube_watermarks_unset_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = youtube_watermarks_unset_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`youtube_watermarks_unset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeWatermarksUnsetArgs {
+    /// Query parameter: channelId
+    pub channelId: Option<Option<String>>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<Option<String>>,
+}
+
+/// POST youtube/v3/watermarks/unset
+/// Allows removal of channel watermark.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `youtube_watermarks_unset_builder()` + `youtube_watermarks_unset_execute()`.
+/// For task-level control, use `youtube_watermarks_unset_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn youtube_watermarks_unset(
+    client: &SimpleHttpClient,
+    args: &YoutubeWatermarksUnsetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        youtube_watermarks_unset_builder(client, &args.channelId, &args.onBehalfOfContentOwner)?;
+    youtube_watermarks_unset_execute(builder)
+}
+
+/// PUT youtube/v3/commentThreads
 /// Updates an existing resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1288,8 +15265,7 @@ pub fn youtube_videos_report_abuse(
 
 pub fn youtube_youtube_v3_update_comment_threads_builder(
     client: &SimpleHttpClient,
-    part: &Option<String>,
-    body: &CommentThread,
+    part: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://youtube.googleapis.com/youtube/v3/commentThreads",);
@@ -1307,15 +15283,13 @@ pub fn youtube_youtube_v3_update_comment_threads_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .put(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET youtube/v3/commentThreads
+/// PUT youtube/v3/commentThreads
 /// Updates an existing resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1389,7 +15363,7 @@ pub fn youtube_youtube_v3_update_comment_threads_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET youtube/v3/commentThreads
+/// PUT youtube/v3/commentThreads
 /// Updates an existing resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1425,12 +15399,10 @@ pub fn youtube_youtube_v3_update_comment_threads_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeYoutubeV3UpdateCommentThreadsArgs {
     /// Query parameter: part
-    pub part: Option<String>,
-    /// Request body.
-    pub body: CommentThread,
+    pub part: Option<Option<String>>,
 }
 
-/// GET youtube/v3/commentThreads
+/// PUT youtube/v3/commentThreads
 /// Updates an existing resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1450,8 +15422,7 @@ pub fn youtube_youtube_v3_update_comment_threads(
         + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_youtube_v3_update_comment_threads_builder(client, &args.part, &args.body)?;
+    let builder = youtube_youtube_v3_update_comment_threads_builder(client, &args.part)?;
     youtube_youtube_v3_update_comment_threads_execute(builder)
 }
 
@@ -1463,12 +15434,12 @@ pub fn youtube_youtube_v3_update_comment_threads(
 
 pub fn youtube_youtube_v3_live_chat_messages_stream_builder(
     client: &SimpleHttpClient,
-    hl: &Option<String>,
-    liveChatId: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
-    part: &Option<String>,
-    profileImageSize: &Option<i32>,
+    hl: &Option<Option<String>>,
+    liveChatId: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    part: &Option<Option<String>>,
+    profileImageSize: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1620,17 +15591,17 @@ pub fn youtube_youtube_v3_live_chat_messages_stream_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct YoutubeYoutubeV3LiveChatMessagesStreamArgs {
     /// Query parameter: hl
-    pub hl: Option<String>,
+    pub hl: Option<Option<String>>,
     /// Query parameter: liveChatId
-    pub liveChatId: Option<String>,
+    pub liveChatId: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: part
-    pub part: Option<String>,
+    pub part: Option<Option<String>>,
     /// Query parameter: profileImageSize
-    pub profileImageSize: Option<i32>,
+    pub profileImageSize: Option<Option<String>>,
 }
 
 /// GET youtube/v3/liveChat/messages/stream
@@ -1665,4 +15636,1434 @@ pub fn youtube_youtube_v3_live_chat_messages_stream(
         &args.profileImageSize,
     )?;
     youtube_youtube_v3_live_chat_messages_stream_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AbuseReport
+// =============================================================================
+
+/// ResourceIdentifier implementation for AbuseReport with YoutubeAbuseReportsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeAbuseReportsInsertArgs> for AbuseReport {
+    fn generate_resource_id(&self, input: &YoutubeAbuseReportsInsertArgs) -> String {
+        "gcp::youtube::AbuseReport".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::AbuseReport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ActivityListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ActivityListResponse with YoutubeActivitiesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeActivitiesListArgs> for ActivityListResponse {
+    fn generate_resource_id(&self, input: &YoutubeActivitiesListArgs) -> String {
+        "gcp::youtube::ActivityListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::ActivityListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Caption
+// =============================================================================
+
+/// ResourceIdentifier implementation for Caption with YoutubeCaptionsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeCaptionsInsertArgs> for Caption {
+    fn generate_resource_id(&self, input: &YoutubeCaptionsInsertArgs) -> String {
+        "gcp::youtube::Caption".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Caption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CaptionListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CaptionListResponse with YoutubeCaptionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeCaptionsListArgs> for CaptionListResponse {
+    fn generate_resource_id(&self, input: &YoutubeCaptionsListArgs) -> String {
+        "gcp::youtube::CaptionListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::CaptionListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Caption
+// =============================================================================
+
+/// ResourceIdentifier implementation for Caption with YoutubeCaptionsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeCaptionsUpdateArgs> for Caption {
+    fn generate_resource_id(&self, input: &YoutubeCaptionsUpdateArgs) -> String {
+        "gcp::youtube::Caption".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Caption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ChannelBannerResource
+// =============================================================================
+
+/// ResourceIdentifier implementation for ChannelBannerResource with YoutubeChannelBannersInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeChannelBannersInsertArgs> for ChannelBannerResource {
+    fn generate_resource_id(&self, input: &YoutubeChannelBannersInsertArgs) -> String {
+        "gcp::youtube::ChannelBannerResource".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::ChannelBannerResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ChannelSection
+// =============================================================================
+
+/// ResourceIdentifier implementation for ChannelSection with YoutubeChannelSectionsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeChannelSectionsInsertArgs> for ChannelSection {
+    fn generate_resource_id(&self, input: &YoutubeChannelSectionsInsertArgs) -> String {
+        "gcp::youtube::ChannelSection".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::ChannelSection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ChannelSectionListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ChannelSectionListResponse with YoutubeChannelSectionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeChannelSectionsListArgs> for ChannelSectionListResponse {
+    fn generate_resource_id(&self, input: &YoutubeChannelSectionsListArgs) -> String {
+        "gcp::youtube::ChannelSectionListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::ChannelSectionListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ChannelSection
+// =============================================================================
+
+/// ResourceIdentifier implementation for ChannelSection with YoutubeChannelSectionsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeChannelSectionsUpdateArgs> for ChannelSection {
+    fn generate_resource_id(&self, input: &YoutubeChannelSectionsUpdateArgs) -> String {
+        "gcp::youtube::ChannelSection".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::ChannelSection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ChannelListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ChannelListResponse with YoutubeChannelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeChannelsListArgs> for ChannelListResponse {
+    fn generate_resource_id(&self, input: &YoutubeChannelsListArgs) -> String {
+        "gcp::youtube::ChannelListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::ChannelListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Channel
+// =============================================================================
+
+/// ResourceIdentifier implementation for Channel with YoutubeChannelsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeChannelsUpdateArgs> for Channel {
+    fn generate_resource_id(&self, input: &YoutubeChannelsUpdateArgs) -> String {
+        "gcp::youtube::Channel".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CommentThread
+// =============================================================================
+
+/// ResourceIdentifier implementation for CommentThread with YoutubeCommentThreadsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeCommentThreadsInsertArgs> for CommentThread {
+    fn generate_resource_id(&self, input: &YoutubeCommentThreadsInsertArgs) -> String {
+        "gcp::youtube::CommentThread".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::CommentThread"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CommentThreadListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CommentThreadListResponse with YoutubeCommentThreadsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeCommentThreadsListArgs> for CommentThreadListResponse {
+    fn generate_resource_id(&self, input: &YoutubeCommentThreadsListArgs) -> String {
+        "gcp::youtube::CommentThreadListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::CommentThreadListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Comment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Comment with YoutubeCommentsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeCommentsInsertArgs> for Comment {
+    fn generate_resource_id(&self, input: &YoutubeCommentsInsertArgs) -> String {
+        "gcp::youtube::Comment".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Comment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CommentListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CommentListResponse with YoutubeCommentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeCommentsListArgs> for CommentListResponse {
+    fn generate_resource_id(&self, input: &YoutubeCommentsListArgs) -> String {
+        "gcp::youtube::CommentListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::CommentListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Comment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Comment with YoutubeCommentsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeCommentsUpdateArgs> for Comment {
+    fn generate_resource_id(&self, input: &YoutubeCommentsUpdateArgs) -> String {
+        "gcp::youtube::Comment".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Comment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for I18nLanguageListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for I18nLanguageListResponse with YoutubeI18nLanguagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeI18nLanguagesListArgs> for I18nLanguageListResponse {
+    fn generate_resource_id(&self, input: &YoutubeI18nLanguagesListArgs) -> String {
+        "gcp::youtube::I18nLanguageListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::I18nLanguageListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for I18nRegionListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for I18nRegionListResponse with YoutubeI18nRegionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeI18nRegionsListArgs> for I18nRegionListResponse {
+    fn generate_resource_id(&self, input: &YoutubeI18nRegionsListArgs) -> String {
+        "gcp::youtube::I18nRegionListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::I18nRegionListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveBroadcast
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveBroadcast with YoutubeLiveBroadcastsBindArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveBroadcastsBindArgs> for LiveBroadcast {
+    fn generate_resource_id(&self, input: &YoutubeLiveBroadcastsBindArgs) -> String {
+        "gcp::youtube::LiveBroadcast".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveBroadcast"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveBroadcast
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveBroadcast with YoutubeLiveBroadcastsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveBroadcastsInsertArgs> for LiveBroadcast {
+    fn generate_resource_id(&self, input: &YoutubeLiveBroadcastsInsertArgs) -> String {
+        "gcp::youtube::LiveBroadcast".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveBroadcast"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Cuepoint
+// =============================================================================
+
+/// ResourceIdentifier implementation for Cuepoint with YoutubeLiveBroadcastsInsertCuepointArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveBroadcastsInsertCuepointArgs> for Cuepoint {
+    fn generate_resource_id(&self, input: &YoutubeLiveBroadcastsInsertCuepointArgs) -> String {
+        "gcp::youtube::Cuepoint".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Cuepoint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveBroadcastListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveBroadcastListResponse with YoutubeLiveBroadcastsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveBroadcastsListArgs> for LiveBroadcastListResponse {
+    fn generate_resource_id(&self, input: &YoutubeLiveBroadcastsListArgs) -> String {
+        "gcp::youtube::LiveBroadcastListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveBroadcastListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveBroadcast
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveBroadcast with YoutubeLiveBroadcastsTransitionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveBroadcastsTransitionArgs> for LiveBroadcast {
+    fn generate_resource_id(&self, input: &YoutubeLiveBroadcastsTransitionArgs) -> String {
+        "gcp::youtube::LiveBroadcast".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveBroadcast"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveBroadcast
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveBroadcast with YoutubeLiveBroadcastsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveBroadcastsUpdateArgs> for LiveBroadcast {
+    fn generate_resource_id(&self, input: &YoutubeLiveBroadcastsUpdateArgs) -> String {
+        "gcp::youtube::LiveBroadcast".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveBroadcast"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveChatBan
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveChatBan with YoutubeLiveChatBansInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveChatBansInsertArgs> for LiveChatBan {
+    fn generate_resource_id(&self, input: &YoutubeLiveChatBansInsertArgs) -> String {
+        "gcp::youtube::LiveChatBan".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveChatBan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveChatMessage
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveChatMessage with YoutubeLiveChatMessagesInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveChatMessagesInsertArgs> for LiveChatMessage {
+    fn generate_resource_id(&self, input: &YoutubeLiveChatMessagesInsertArgs) -> String {
+        "gcp::youtube::LiveChatMessage".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveChatMessage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveChatMessageListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveChatMessageListResponse with YoutubeLiveChatMessagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveChatMessagesListArgs> for LiveChatMessageListResponse {
+    fn generate_resource_id(&self, input: &YoutubeLiveChatMessagesListArgs) -> String {
+        "gcp::youtube::LiveChatMessageListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveChatMessageListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveChatMessage
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveChatMessage with YoutubeLiveChatMessagesTransitionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveChatMessagesTransitionArgs> for LiveChatMessage {
+    fn generate_resource_id(&self, input: &YoutubeLiveChatMessagesTransitionArgs) -> String {
+        "gcp::youtube::LiveChatMessage".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveChatMessage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveChatModerator
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveChatModerator with YoutubeLiveChatModeratorsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveChatModeratorsInsertArgs> for LiveChatModerator {
+    fn generate_resource_id(&self, input: &YoutubeLiveChatModeratorsInsertArgs) -> String {
+        "gcp::youtube::LiveChatModerator".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveChatModerator"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveChatModeratorListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveChatModeratorListResponse with YoutubeLiveChatModeratorsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveChatModeratorsListArgs> for LiveChatModeratorListResponse {
+    fn generate_resource_id(&self, input: &YoutubeLiveChatModeratorsListArgs) -> String {
+        "gcp::youtube::LiveChatModeratorListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveChatModeratorListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveStream
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveStream with YoutubeLiveStreamsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveStreamsInsertArgs> for LiveStream {
+    fn generate_resource_id(&self, input: &YoutubeLiveStreamsInsertArgs) -> String {
+        "gcp::youtube::LiveStream".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveStream"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveStreamListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveStreamListResponse with YoutubeLiveStreamsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveStreamsListArgs> for LiveStreamListResponse {
+    fn generate_resource_id(&self, input: &YoutubeLiveStreamsListArgs) -> String {
+        "gcp::youtube::LiveStreamListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveStreamListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveStream
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveStream with YoutubeLiveStreamsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeLiveStreamsUpdateArgs> for LiveStream {
+    fn generate_resource_id(&self, input: &YoutubeLiveStreamsUpdateArgs) -> String {
+        "gcp::youtube::LiveStream".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveStream"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MemberListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MemberListResponse with YoutubeMembersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeMembersListArgs> for MemberListResponse {
+    fn generate_resource_id(&self, input: &YoutubeMembersListArgs) -> String {
+        "gcp::youtube::MemberListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::MemberListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for MembershipsLevelListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for MembershipsLevelListResponse with YoutubeMembershipsLevelsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeMembershipsLevelsListArgs> for MembershipsLevelListResponse {
+    fn generate_resource_id(&self, input: &YoutubeMembershipsLevelsListArgs) -> String {
+        "gcp::youtube::MembershipsLevelListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::MembershipsLevelListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlaylistImage
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaylistImage with YoutubePlaylistImagesInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubePlaylistImagesInsertArgs> for PlaylistImage {
+    fn generate_resource_id(&self, input: &YoutubePlaylistImagesInsertArgs) -> String {
+        "gcp::youtube::PlaylistImage".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::PlaylistImage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlaylistImageListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaylistImageListResponse with YoutubePlaylistImagesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubePlaylistImagesListArgs> for PlaylistImageListResponse {
+    fn generate_resource_id(&self, input: &YoutubePlaylistImagesListArgs) -> String {
+        "gcp::youtube::PlaylistImageListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::PlaylistImageListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlaylistImage
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaylistImage with YoutubePlaylistImagesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubePlaylistImagesUpdateArgs> for PlaylistImage {
+    fn generate_resource_id(&self, input: &YoutubePlaylistImagesUpdateArgs) -> String {
+        "gcp::youtube::PlaylistImage".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::PlaylistImage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlaylistItem
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaylistItem with YoutubePlaylistItemsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubePlaylistItemsInsertArgs> for PlaylistItem {
+    fn generate_resource_id(&self, input: &YoutubePlaylistItemsInsertArgs) -> String {
+        "gcp::youtube::PlaylistItem".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::PlaylistItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlaylistItemListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaylistItemListResponse with YoutubePlaylistItemsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubePlaylistItemsListArgs> for PlaylistItemListResponse {
+    fn generate_resource_id(&self, input: &YoutubePlaylistItemsListArgs) -> String {
+        "gcp::youtube::PlaylistItemListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::PlaylistItemListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlaylistItem
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaylistItem with YoutubePlaylistItemsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubePlaylistItemsUpdateArgs> for PlaylistItem {
+    fn generate_resource_id(&self, input: &YoutubePlaylistItemsUpdateArgs) -> String {
+        "gcp::youtube::PlaylistItem".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::PlaylistItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Playlist
+// =============================================================================
+
+/// ResourceIdentifier implementation for Playlist with YoutubePlaylistsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubePlaylistsInsertArgs> for Playlist {
+    fn generate_resource_id(&self, input: &YoutubePlaylistsInsertArgs) -> String {
+        "gcp::youtube::Playlist".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Playlist"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PlaylistListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PlaylistListResponse with YoutubePlaylistsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubePlaylistsListArgs> for PlaylistListResponse {
+    fn generate_resource_id(&self, input: &YoutubePlaylistsListArgs) -> String {
+        "gcp::youtube::PlaylistListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::PlaylistListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Playlist
+// =============================================================================
+
+/// ResourceIdentifier implementation for Playlist with YoutubePlaylistsUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubePlaylistsUpdateArgs> for Playlist {
+    fn generate_resource_id(&self, input: &YoutubePlaylistsUpdateArgs) -> String {
+        "gcp::youtube::Playlist".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Playlist"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchListResponse with YoutubeSearchListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeSearchListArgs> for SearchListResponse {
+    fn generate_resource_id(&self, input: &YoutubeSearchListArgs) -> String {
+        "gcp::youtube::SearchListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::SearchListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Subscription
+// =============================================================================
+
+/// ResourceIdentifier implementation for Subscription with YoutubeSubscriptionsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeSubscriptionsInsertArgs> for Subscription {
+    fn generate_resource_id(&self, input: &YoutubeSubscriptionsInsertArgs) -> String {
+        "gcp::youtube::Subscription".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SubscriptionListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SubscriptionListResponse with YoutubeSubscriptionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeSubscriptionsListArgs> for SubscriptionListResponse {
+    fn generate_resource_id(&self, input: &YoutubeSubscriptionsListArgs) -> String {
+        "gcp::youtube::SubscriptionListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::SubscriptionListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SuperChatEventListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SuperChatEventListResponse with YoutubeSuperChatEventsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeSuperChatEventsListArgs> for SuperChatEventListResponse {
+    fn generate_resource_id(&self, input: &YoutubeSuperChatEventsListArgs) -> String {
+        "gcp::youtube::SuperChatEventListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::SuperChatEventListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestItem
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestItem with YoutubeTestsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeTestsInsertArgs> for TestItem {
+    fn generate_resource_id(&self, input: &YoutubeTestsInsertArgs) -> String {
+        "gcp::youtube::TestItem".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::TestItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ThirdPartyLink
+// =============================================================================
+
+/// ResourceIdentifier implementation for ThirdPartyLink with YoutubeThirdPartyLinksInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeThirdPartyLinksInsertArgs> for ThirdPartyLink {
+    fn generate_resource_id(&self, input: &YoutubeThirdPartyLinksInsertArgs) -> String {
+        "gcp::youtube::ThirdPartyLink".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::ThirdPartyLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ThirdPartyLinkListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ThirdPartyLinkListResponse with YoutubeThirdPartyLinksListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeThirdPartyLinksListArgs> for ThirdPartyLinkListResponse {
+    fn generate_resource_id(&self, input: &YoutubeThirdPartyLinksListArgs) -> String {
+        "gcp::youtube::ThirdPartyLinkListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::ThirdPartyLinkListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ThirdPartyLink
+// =============================================================================
+
+/// ResourceIdentifier implementation for ThirdPartyLink with YoutubeThirdPartyLinksUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeThirdPartyLinksUpdateArgs> for ThirdPartyLink {
+    fn generate_resource_id(&self, input: &YoutubeThirdPartyLinksUpdateArgs) -> String {
+        "gcp::youtube::ThirdPartyLink".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::ThirdPartyLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ThumbnailSetResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ThumbnailSetResponse with YoutubeThumbnailsSetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeThumbnailsSetArgs> for ThumbnailSetResponse {
+    fn generate_resource_id(&self, input: &YoutubeThumbnailsSetArgs) -> String {
+        "gcp::youtube::ThumbnailSetResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::ThumbnailSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VideoAbuseReportReasonListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VideoAbuseReportReasonListResponse with YoutubeVideoAbuseReportReasonsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeVideoAbuseReportReasonsListArgs>
+    for VideoAbuseReportReasonListResponse
+{
+    fn generate_resource_id(&self, input: &YoutubeVideoAbuseReportReasonsListArgs) -> String {
+        "gcp::youtube::VideoAbuseReportReasonListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::VideoAbuseReportReasonListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VideoCategoryListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VideoCategoryListResponse with YoutubeVideoCategoriesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeVideoCategoriesListArgs> for VideoCategoryListResponse {
+    fn generate_resource_id(&self, input: &YoutubeVideoCategoriesListArgs) -> String {
+        "gcp::youtube::VideoCategoryListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::VideoCategoryListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VideoTrainability
+// =============================================================================
+
+/// ResourceIdentifier implementation for VideoTrainability with YoutubeVideoTrainabilityGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeVideoTrainabilityGetArgs> for VideoTrainability {
+    fn generate_resource_id(&self, input: &YoutubeVideoTrainabilityGetArgs) -> String {
+        "gcp::youtube::VideoTrainability".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::VideoTrainability"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VideoGetRatingResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VideoGetRatingResponse with YoutubeVideosGetRatingArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeVideosGetRatingArgs> for VideoGetRatingResponse {
+    fn generate_resource_id(&self, input: &YoutubeVideosGetRatingArgs) -> String {
+        "gcp::youtube::VideoGetRatingResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::VideoGetRatingResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Video
+// =============================================================================
+
+/// ResourceIdentifier implementation for Video with YoutubeVideosInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeVideosInsertArgs> for Video {
+    fn generate_resource_id(&self, input: &YoutubeVideosInsertArgs) -> String {
+        "gcp::youtube::Video".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Video"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for VideoListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for VideoListResponse with YoutubeVideosListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeVideosListArgs> for VideoListResponse {
+    fn generate_resource_id(&self, input: &YoutubeVideosListArgs) -> String {
+        "gcp::youtube::VideoListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::VideoListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Video
+// =============================================================================
+
+/// ResourceIdentifier implementation for Video with YoutubeVideosUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeVideosUpdateArgs> for Video {
+    fn generate_resource_id(&self, input: &YoutubeVideosUpdateArgs) -> String {
+        "gcp::youtube::Video".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::Video"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CommentThread
+// =============================================================================
+
+/// ResourceIdentifier implementation for CommentThread with YoutubeYoutubeV3UpdateCommentThreadsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeYoutubeV3UpdateCommentThreadsArgs> for CommentThread {
+    fn generate_resource_id(&self, input: &YoutubeYoutubeV3UpdateCommentThreadsArgs) -> String {
+        "gcp::youtube::CommentThread".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::CommentThread"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for LiveChatMessageListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for LiveChatMessageListResponse with YoutubeYoutubeV3LiveChatMessagesStreamArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<YoutubeYoutubeV3LiveChatMessagesStreamArgs>
+    for LiveChatMessageListResponse
+{
+    fn generate_resource_id(&self, input: &YoutubeYoutubeV3LiveChatMessagesStreamArgs) -> String {
+        "gcp::youtube::LiveChatMessageListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::youtube::LiveChatMessageListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

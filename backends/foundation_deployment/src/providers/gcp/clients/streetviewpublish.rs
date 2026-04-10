@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/photo
+/// POST v1/photo
 /// After the client finishes uploading the photo with the returned UploadRef, CreatePhoto publishes the uploaded Photo to Street View on Google Maps. Currently, the only way to set heading, pitch, and roll in CreatePhoto is through the [Photo Sphere XMP metadata](<https://developers.google.`com/streetview/spherical-metadata`>) in the photo bytes. CreatePhoto ignores the pose.heading, pose.pitch, pose.roll, pose.altitude, and pose.level fields in Pose. This method returns the following error codes: * google.rpc.Code.INVALID_ARGUMENT if the request is malformed or if the uploaded photo is not a 360 photo. * google.rpc.Code.NOT_FOUND if the upload reference does not exist. * google.rpc.Code.RESOURCE_EXHAUSTED if the account has reached the storage limit.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn streetviewpublish_photo_create_builder(
     client: &SimpleHttpClient,
-    body: &Photo,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photo",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/photo
+/// POST v1/photo
 /// After the client finishes uploading the photo with the returned UploadRef, CreatePhoto publishes the uploaded Photo to Street View on Google Maps. Currently, the only way to set heading, pitch, and roll in CreatePhoto is through the [Photo Sphere XMP metadata](<https://developers.google.`com/streetview/spherical-metadata`>) in the photo bytes. CreatePhoto ignores the pose.heading, pose.pitch, pose.roll, pose.altitude, and pose.level fields in Pose. This method returns the following error codes: * google.rpc.Code.INVALID_ARGUMENT if the request is malformed or if the uploaded photo is not a 360 photo. * google.rpc.Code.NOT_FOUND if the upload reference does not exist. * google.rpc.Code.RESOURCE_EXHAUSTED if the account has reached the storage limit.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn streetviewpublish_photo_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/photo
+/// POST v1/photo
 /// After the client finishes uploading the photo with the returned UploadRef, CreatePhoto publishes the uploaded Photo to Street View on Google Maps. Currently, the only way to set heading, pitch, and roll in CreatePhoto is through the [Photo Sphere XMP metadata](<https://developers.google.`com/streetview/spherical-metadata`>) in the photo bytes. CreatePhoto ignores the pose.heading, pose.pitch, pose.roll, pose.altitude, and pose.level fields in Pose. This method returns the following error codes: * google.rpc.Code.INVALID_ARGUMENT if the request is malformed or if the uploaded photo is not a 360 photo. * google.rpc.Code.NOT_FOUND if the upload reference does not exist. * google.rpc.Code.RESOURCE_EXHAUSTED if the account has reached the storage limit.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -147,14 +144,7 @@ pub fn streetviewpublish_photo_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`streetviewpublish_photo_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StreetviewpublishPhotoCreateArgs {
-    /// Request body.
-    pub body: Photo,
-}
-
-/// GET v1/photo
+/// POST v1/photo
 /// After the client finishes uploading the photo with the returned UploadRef, CreatePhoto publishes the uploaded Photo to Street View on Google Maps. Currently, the only way to set heading, pitch, and roll in CreatePhoto is through the [Photo Sphere XMP metadata](<https://developers.google.`com/streetview/spherical-metadata`>) in the photo bytes. CreatePhoto ignores the pose.heading, pose.pitch, pose.roll, pose.altitude, and pose.level fields in Pose. This method returns the following error codes: * google.rpc.Code.INVALID_ARGUMENT if the request is malformed or if the uploaded photo is not a 360 photo. * google.rpc.Code.NOT_FOUND if the upload reference does not exist. * google.rpc.Code.RESOURCE_EXHAUSTED if the account has reached the storage limit.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -167,16 +157,15 @@ pub struct StreetviewpublishPhotoCreateArgs {
 
 pub fn streetviewpublish_photo_create(
     client: &SimpleHttpClient,
-    args: &StreetviewpublishPhotoCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Photo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photo_create_builder(client, &args.body)?;
+    let builder = streetviewpublish_photo_create_builder(client)?;
     streetviewpublish_photo_create_execute(builder)
 }
 
-/// GET v1/photo/{photoId}
+/// DELETE v1/photo/{photoId}
 /// Deletes a Photo and its metadata. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo. * google.rpc.Code.NOT_FOUND if the photo ID does not exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -194,13 +183,13 @@ pub fn streetviewpublish_photo_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/photo/{photoId}
+/// DELETE v1/photo/{photoId}
 /// Deletes a Photo and its metadata. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo. * google.rpc.Code.NOT_FOUND if the photo ID does not exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -274,7 +263,7 @@ pub fn streetviewpublish_photo_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/photo/{photoId}
+/// DELETE v1/photo/{photoId}
 /// Deletes a Photo and its metadata. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo. * google.rpc.Code.NOT_FOUND if the photo ID does not exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -311,7 +300,7 @@ pub struct StreetviewpublishPhotoDeleteArgs {
     pub photoId: String,
 }
 
-/// GET v1/photo/{photoId}
+/// DELETE v1/photo/{photoId}
 /// Deletes a Photo and its metadata. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo. * google.rpc.Code.NOT_FOUND if the photo ID does not exist.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -333,7 +322,185 @@ pub fn streetviewpublish_photo_delete(
     streetviewpublish_photo_delete_execute(builder)
 }
 
-/// GET v1/photo:startUpload
+/// GET v1/photo/{photoId}
+/// Gets the metadata of the specified Photo. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested Photo. * google.rpc.Code.NOT_FOUND if the requested Photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `streetviewpublish_photo_get_execute()` to send, or `streetviewpublish_photo_get` for simplest API.
+
+pub fn streetviewpublish_photo_get_builder(
+    client: &SimpleHttpClient,
+    photoId: &String,
+    languageCode: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://streetviewpublish.googleapis.com/v1/photo/{}",
+        photoId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = languageCode.as_ref() {
+        query_parts.push(format!("languageCode={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/photo/{photoId}
+/// Gets the metadata of the specified Photo. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested Photo. * google.rpc.Code.NOT_FOUND if the requested Photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `streetviewpublish_photo_get_execute()` or `streetviewpublish_photo_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `streetviewpublish_photo_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn streetviewpublish_photo_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Photo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Photo = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/photo/{photoId}
+/// Gets the metadata of the specified Photo. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested Photo. * google.rpc.Code.NOT_FOUND if the requested Photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `streetviewpublish_photo_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `streetviewpublish_photo_get_task()`.
+/// For the simplest API, use `streetviewpublish_photo_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `streetviewpublish_photo_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn streetviewpublish_photo_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Photo>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = streetviewpublish_photo_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`streetviewpublish_photo_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StreetviewpublishPhotoGetArgs {
+    /// Path parameter: photoId
+    pub photoId: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/photo/{photoId}
+/// Gets the metadata of the specified Photo. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested Photo. * google.rpc.Code.NOT_FOUND if the requested Photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `streetviewpublish_photo_get_builder()` + `streetviewpublish_photo_get_execute()`.
+/// For task-level control, use `streetviewpublish_photo_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn streetviewpublish_photo_get(
+    client: &SimpleHttpClient,
+    args: &StreetviewpublishPhotoGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Photo>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        streetviewpublish_photo_get_builder(client, &args.photoId, &args.languageCode, &args.view)?;
+    streetviewpublish_photo_get_execute(builder)
+}
+
+/// POST v1/photo:startUpload
 /// Creates an upload session to start uploading photo bytes. The method uses the upload URL of the returned UploadRef to upload the bytes for the Photo. In addition to the photo requirements shown in <https://support.google.`com/maps/answer/7012050`?ref_topic=6275604,> the photo must meet the following requirements: * Photo Sphere XMP metadata must be included in the photo metadata. See <https://developers.google.`com/streetview/spherical-metadata`> for the required fields. * The pixel size of the photo must meet the size requirements listed in <https://support.google.`com/maps/answer/7012050`?ref_topic=6275604,> and the photo must be a full 360 horizontally. After the upload completes, the method uses UploadRef with CreatePhoto to create the Photo object entry.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -341,22 +508,19 @@ pub fn streetviewpublish_photo_delete(
 
 pub fn streetviewpublish_photo_start_upload_builder(
     client: &SimpleHttpClient,
-    body: &Empty,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photo:startUpload",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/photo:startUpload
+/// POST v1/photo:startUpload
 /// Creates an upload session to start uploading photo bytes. The method uses the upload URL of the returned UploadRef to upload the bytes for the Photo. In addition to the photo requirements shown in <https://support.google.`com/maps/answer/7012050`?ref_topic=6275604,> the photo must meet the following requirements: * Photo Sphere XMP metadata must be included in the photo metadata. See <https://developers.google.`com/streetview/spherical-metadata`> for the required fields. * The pixel size of the photo must meet the size requirements listed in <https://support.google.`com/maps/answer/7012050`?ref_topic=6275604,> and the photo must be a full 360 horizontally. After the upload completes, the method uses UploadRef with CreatePhoto to create the Photo object entry.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -430,7 +594,7 @@ pub fn streetviewpublish_photo_start_upload_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/photo:startUpload
+/// POST v1/photo:startUpload
 /// Creates an upload session to start uploading photo bytes. The method uses the upload URL of the returned UploadRef to upload the bytes for the Photo. In addition to the photo requirements shown in <https://support.google.`com/maps/answer/7012050`?ref_topic=6275604,> the photo must meet the following requirements: * Photo Sphere XMP metadata must be included in the photo metadata. See <https://developers.google.`com/streetview/spherical-metadata`> for the required fields. * The pixel size of the photo must meet the size requirements listed in <https://support.google.`com/maps/answer/7012050`?ref_topic=6275604,> and the photo must be a full 360 horizontally. After the upload completes, the method uses UploadRef with CreatePhoto to create the Photo object entry.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -460,14 +624,7 @@ pub fn streetviewpublish_photo_start_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`streetviewpublish_photo_start_upload`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StreetviewpublishPhotoStartUploadArgs {
-    /// Request body.
-    pub body: Empty,
-}
-
-/// GET v1/photo:startUpload
+/// POST v1/photo:startUpload
 /// Creates an upload session to start uploading photo bytes. The method uses the upload URL of the returned UploadRef to upload the bytes for the Photo. In addition to the photo requirements shown in <https://support.google.`com/maps/answer/7012050`?ref_topic=6275604,> the photo must meet the following requirements: * Photo Sphere XMP metadata must be included in the photo metadata. See <https://developers.google.`com/streetview/spherical-metadata`> for the required fields. * The pixel size of the photo must meet the size requirements listed in <https://support.google.`com/maps/answer/7012050`?ref_topic=6275604,> and the photo must be a full 360 horizontally. After the upload completes, the method uses UploadRef with CreatePhoto to create the Photo object entry.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -480,16 +637,15 @@ pub struct StreetviewpublishPhotoStartUploadArgs {
 
 pub fn streetviewpublish_photo_start_upload(
     client: &SimpleHttpClient,
-    args: &StreetviewpublishPhotoStartUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UploadRef>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photo_start_upload_builder(client, &args.body)?;
+    let builder = streetviewpublish_photo_start_upload_builder(client)?;
     streetviewpublish_photo_start_upload_execute(builder)
 }
 
-/// GET v1/photo/{id}
+/// PUT v1/photo/{id}
 /// Updates the metadata of a Photo, such as pose, place association, connections, etc. Changing the pixels of a photo is not supported. Only the fields specified in the `updateMask` field are used. If `updateMask` is not present, the update applies to all fields. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo. * google.rpc.Code.INVALID_ARGUMENT if the request is malformed. * google.rpc.Code.NOT_FOUND if the requested photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -498,8 +654,7 @@ pub fn streetviewpublish_photo_start_upload(
 pub fn streetviewpublish_photo_update_builder(
     client: &SimpleHttpClient,
     id: &String,
-    updateMask: &Option<String>,
-    body: &Photo,
+    updateMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photo/{}", id,);
@@ -517,15 +672,13 @@ pub fn streetviewpublish_photo_update_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .put(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/photo/{id}
+/// PUT v1/photo/{id}
 /// Updates the metadata of a Photo, such as pose, place association, connections, etc. Changing the pixels of a photo is not supported. Only the fields specified in the `updateMask` field are used. If `updateMask` is not present, the update applies to all fields. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo. * google.rpc.Code.INVALID_ARGUMENT if the request is malformed. * google.rpc.Code.NOT_FOUND if the requested photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -599,7 +752,7 @@ pub fn streetviewpublish_photo_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/photo/{id}
+/// PUT v1/photo/{id}
 /// Updates the metadata of a Photo, such as pose, place association, connections, etc. Changing the pixels of a photo is not supported. Only the fields specified in the `updateMask` field are used. If `updateMask` is not present, the update applies to all fields. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo. * google.rpc.Code.INVALID_ARGUMENT if the request is malformed. * google.rpc.Code.NOT_FOUND if the requested photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -635,12 +788,10 @@ pub struct StreetviewpublishPhotoUpdateArgs {
     /// Path parameter: id
     pub id: String,
     /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Photo,
+    pub updateMask: Option<Option<String>>,
 }
 
-/// GET v1/photo/{id}
+/// PUT v1/photo/{id}
 /// Updates the metadata of a Photo, such as pose, place association, connections, etc. Changing the pixels of a photo is not supported. Only the fields specified in the `updateMask` field are used. If `updateMask` is not present, the update applies to all fields. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo. * google.rpc.Code.INVALID_ARGUMENT if the request is malformed. * google.rpc.Code.NOT_FOUND if the requested photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -658,12 +809,11 @@ pub fn streetviewpublish_photo_update(
     impl StreamIterator<D = Result<ApiResponse<Photo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        streetviewpublish_photo_update_builder(client, &args.id, &args.updateMask, &args.body)?;
+    let builder = streetviewpublish_photo_update_builder(client, &args.id, &args.updateMask)?;
     streetviewpublish_photo_update_execute(builder)
 }
 
-/// GET v1/photoSequence
+/// POST v1/photoSequence
 /// After the client finishes uploading the PhotoSequence with the returned UploadRef, CreatePhotoSequence extracts a sequence of 360 photos from a video or Extensible Device Metadata (XDM, <http://www.xdm.org/>) to be published to Street View on Google Maps. CreatePhotoSequence returns an Operation, with the PhotoSequence Id set in the Operation.name field. This method returns the following error codes: * google.rpc.Code.INVALID_ARGUMENT if the request is malformed. * google.rpc.Code.NOT_FOUND if the upload reference does not exist.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -671,8 +821,7 @@ pub fn streetviewpublish_photo_update(
 
 pub fn streetviewpublish_photo_sequence_create_builder(
     client: &SimpleHttpClient,
-    inputType: &Option<String>,
-    body: &PhotoSequence,
+    inputType: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photoSequence",);
@@ -690,15 +839,13 @@ pub fn streetviewpublish_photo_sequence_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/photoSequence
+/// POST v1/photoSequence
 /// After the client finishes uploading the PhotoSequence with the returned UploadRef, CreatePhotoSequence extracts a sequence of 360 photos from a video or Extensible Device Metadata (XDM, <http://www.xdm.org/>) to be published to Street View on Google Maps. CreatePhotoSequence returns an Operation, with the PhotoSequence Id set in the Operation.name field. This method returns the following error codes: * google.rpc.Code.INVALID_ARGUMENT if the request is malformed. * google.rpc.Code.NOT_FOUND if the upload reference does not exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -772,7 +919,7 @@ pub fn streetviewpublish_photo_sequence_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/photoSequence
+/// POST v1/photoSequence
 /// After the client finishes uploading the PhotoSequence with the returned UploadRef, CreatePhotoSequence extracts a sequence of 360 photos from a video or Extensible Device Metadata (XDM, <http://www.xdm.org/>) to be published to Street View on Google Maps. CreatePhotoSequence returns an Operation, with the PhotoSequence Id set in the Operation.name field. This method returns the following error codes: * google.rpc.Code.INVALID_ARGUMENT if the request is malformed. * google.rpc.Code.NOT_FOUND if the upload reference does not exist.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -806,12 +953,10 @@ pub fn streetviewpublish_photo_sequence_create_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreetviewpublishPhotoSequenceCreateArgs {
     /// Query parameter: inputType
-    pub inputType: Option<String>,
-    /// Request body.
-    pub body: PhotoSequence,
+    pub inputType: Option<Option<String>>,
 }
 
-/// GET v1/photoSequence
+/// POST v1/photoSequence
 /// After the client finishes uploading the PhotoSequence with the returned UploadRef, CreatePhotoSequence extracts a sequence of 360 photos from a video or Extensible Device Metadata (XDM, <http://www.xdm.org/>) to be published to Street View on Google Maps. CreatePhotoSequence returns an Operation, with the PhotoSequence Id set in the Operation.name field. This method returns the following error codes: * google.rpc.Code.INVALID_ARGUMENT if the request is malformed. * google.rpc.Code.NOT_FOUND if the upload reference does not exist.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -829,12 +974,11 @@ pub fn streetviewpublish_photo_sequence_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        streetviewpublish_photo_sequence_create_builder(client, &args.inputType, &args.body)?;
+    let builder = streetviewpublish_photo_sequence_create_builder(client, &args.inputType)?;
     streetviewpublish_photo_sequence_create_execute(builder)
 }
 
-/// GET v1/photoSequence/{sequenceId}
+/// DELETE v1/photoSequence/{sequenceId}
 /// Deletes a PhotoSequence and its metadata. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo sequence. * google.rpc.Code.NOT_FOUND if the photo sequence ID does not exist. * google.rpc.Code.FAILED_PRECONDITION if the photo sequence ID is not yet finished processing.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -852,13 +996,13 @@ pub fn streetviewpublish_photo_sequence_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/photoSequence/{sequenceId}
+/// DELETE v1/photoSequence/{sequenceId}
 /// Deletes a PhotoSequence and its metadata. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo sequence. * google.rpc.Code.NOT_FOUND if the photo sequence ID does not exist. * google.rpc.Code.FAILED_PRECONDITION if the photo sequence ID is not yet finished processing.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -932,7 +1076,7 @@ pub fn streetviewpublish_photo_sequence_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/photoSequence/{sequenceId}
+/// DELETE v1/photoSequence/{sequenceId}
 /// Deletes a PhotoSequence and its metadata. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo sequence. * google.rpc.Code.NOT_FOUND if the photo sequence ID does not exist. * google.rpc.Code.FAILED_PRECONDITION if the photo sequence ID is not yet finished processing.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -969,7 +1113,7 @@ pub struct StreetviewpublishPhotoSequenceDeleteArgs {
     pub sequenceId: String,
 }
 
-/// GET v1/photoSequence/{sequenceId}
+/// DELETE v1/photoSequence/{sequenceId}
 /// Deletes a PhotoSequence and its metadata. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested photo sequence. * google.rpc.Code.NOT_FOUND if the photo sequence ID does not exist. * google.rpc.Code.FAILED_PRECONDITION if the photo sequence ID is not yet finished processing.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -991,7 +1135,189 @@ pub fn streetviewpublish_photo_sequence_delete(
     streetviewpublish_photo_sequence_delete_execute(builder)
 }
 
-/// GET v1/photoSequence:startUpload
+/// GET v1/photoSequence/{sequenceId}
+/// Gets the metadata of the specified PhotoSequence via the Operation interface. This method returns the following three types of responses: * Operation.done = `false`, if the processing of PhotoSequence is not finished yet. * Operation.done = `true` and Operation.error is populated, if there was an error in processing. * Operation.done = `true` and Operation.response is poulated, which contains a PhotoSequence message. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested PhotoSequence. * google.rpc.Code.NOT_FOUND if the requested PhotoSequence does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `streetviewpublish_photo_sequence_get_execute()` to send, or `streetviewpublish_photo_sequence_get` for simplest API.
+
+pub fn streetviewpublish_photo_sequence_get_builder(
+    client: &SimpleHttpClient,
+    sequenceId: &String,
+    filter: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://streetviewpublish.googleapis.com/v1/photoSequence/{}",
+        sequenceId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/photoSequence/{sequenceId}
+/// Gets the metadata of the specified PhotoSequence via the Operation interface. This method returns the following three types of responses: * Operation.done = `false`, if the processing of PhotoSequence is not finished yet. * Operation.done = `true` and Operation.error is populated, if there was an error in processing. * Operation.done = `true` and Operation.response is poulated, which contains a PhotoSequence message. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested PhotoSequence. * google.rpc.Code.NOT_FOUND if the requested PhotoSequence does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `streetviewpublish_photo_sequence_get_execute()` or `streetviewpublish_photo_sequence_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `streetviewpublish_photo_sequence_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn streetviewpublish_photo_sequence_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/photoSequence/{sequenceId}
+/// Gets the metadata of the specified PhotoSequence via the Operation interface. This method returns the following three types of responses: * Operation.done = `false`, if the processing of PhotoSequence is not finished yet. * Operation.done = `true` and Operation.error is populated, if there was an error in processing. * Operation.done = `true` and Operation.response is poulated, which contains a PhotoSequence message. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested PhotoSequence. * google.rpc.Code.NOT_FOUND if the requested PhotoSequence does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `streetviewpublish_photo_sequence_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `streetviewpublish_photo_sequence_get_task()`.
+/// For the simplest API, use `streetviewpublish_photo_sequence_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `streetviewpublish_photo_sequence_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn streetviewpublish_photo_sequence_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = streetviewpublish_photo_sequence_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`streetviewpublish_photo_sequence_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StreetviewpublishPhotoSequenceGetArgs {
+    /// Path parameter: sequenceId
+    pub sequenceId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/photoSequence/{sequenceId}
+/// Gets the metadata of the specified PhotoSequence via the Operation interface. This method returns the following three types of responses: * Operation.done = `false`, if the processing of PhotoSequence is not finished yet. * Operation.done = `true` and Operation.error is populated, if there was an error in processing. * Operation.done = `true` and Operation.response is poulated, which contains a PhotoSequence message. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested PhotoSequence. * google.rpc.Code.NOT_FOUND if the requested PhotoSequence does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `streetviewpublish_photo_sequence_get_builder()` + `streetviewpublish_photo_sequence_get_execute()`.
+/// For task-level control, use `streetviewpublish_photo_sequence_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn streetviewpublish_photo_sequence_get(
+    client: &SimpleHttpClient,
+    args: &StreetviewpublishPhotoSequenceGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = streetviewpublish_photo_sequence_get_builder(
+        client,
+        &args.sequenceId,
+        &args.filter,
+        &args.view,
+    )?;
+    streetviewpublish_photo_sequence_get_execute(builder)
+}
+
+/// POST v1/photoSequence:startUpload
 /// Creates an upload session to start uploading photo sequence data. The upload URL of the returned UploadRef is used to upload the data for the `photoSequence`. After the upload is complete, the UploadRef is used with CreatePhotoSequence to create the PhotoSequence object entry.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -999,7 +1325,6 @@ pub fn streetviewpublish_photo_sequence_delete(
 
 pub fn streetviewpublish_photo_sequence_start_upload_builder(
     client: &SimpleHttpClient,
-    body: &Empty,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1007,15 +1332,13 @@ pub fn streetviewpublish_photo_sequence_start_upload_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/photoSequence:startUpload
+/// POST v1/photoSequence:startUpload
 /// Creates an upload session to start uploading photo sequence data. The upload URL of the returned UploadRef is used to upload the data for the `photoSequence`. After the upload is complete, the UploadRef is used with CreatePhotoSequence to create the PhotoSequence object entry.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1089,7 +1412,7 @@ pub fn streetviewpublish_photo_sequence_start_upload_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/photoSequence:startUpload
+/// POST v1/photoSequence:startUpload
 /// Creates an upload session to start uploading photo sequence data. The upload URL of the returned UploadRef is used to upload the data for the `photoSequence`. After the upload is complete, the UploadRef is used with CreatePhotoSequence to create the PhotoSequence object entry.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1119,14 +1442,7 @@ pub fn streetviewpublish_photo_sequence_start_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`streetviewpublish_photo_sequence_start_upload`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StreetviewpublishPhotoSequenceStartUploadArgs {
-    /// Request body.
-    pub body: Empty,
-}
-
-/// GET v1/photoSequence:startUpload
+/// POST v1/photoSequence:startUpload
 /// Creates an upload session to start uploading photo sequence data. The upload URL of the returned UploadRef is used to upload the data for the `photoSequence`. After the upload is complete, the UploadRef is used with CreatePhotoSequence to create the PhotoSequence object entry.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1139,12 +1455,11 @@ pub struct StreetviewpublishPhotoSequenceStartUploadArgs {
 
 pub fn streetviewpublish_photo_sequence_start_upload(
     client: &SimpleHttpClient,
-    args: &StreetviewpublishPhotoSequenceStartUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UploadRef>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photo_sequence_start_upload_builder(client, &args.body)?;
+    let builder = streetviewpublish_photo_sequence_start_upload_builder(client)?;
     streetviewpublish_photo_sequence_start_upload_execute(builder)
 }
 
@@ -1156,9 +1471,9 @@ pub fn streetviewpublish_photo_sequence_start_upload(
 
 pub fn streetviewpublish_photo_sequences_list_builder(
     client: &SimpleHttpClient,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photoSequences",);
@@ -1300,11 +1615,11 @@ pub fn streetviewpublish_photo_sequences_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreetviewpublishPhotoSequencesListArgs {
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/photoSequences
@@ -1338,7 +1653,7 @@ pub fn streetviewpublish_photo_sequences_list(
     streetviewpublish_photo_sequences_list_execute(builder)
 }
 
-/// GET v1/photos:batchDelete
+/// POST v1/photos:batchDelete
 /// Deletes a list of Photos and their metadata. Note that if BatchDeletePhotos fails, either critical fields are missing or there is an authentication error. Even if BatchDeletePhotos succeeds, individual photos in the batch may have failures. These failures are specified in each PhotoResponse.status in BatchDeletePhotosResponse.results. See DeletePhoto for specific failures that can occur per photo.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1346,22 +1661,19 @@ pub fn streetviewpublish_photo_sequences_list(
 
 pub fn streetviewpublish_photos_batch_delete_builder(
     client: &SimpleHttpClient,
-    body: &BatchDeletePhotosRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchDelete",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/photos:batchDelete
+/// POST v1/photos:batchDelete
 /// Deletes a list of Photos and their metadata. Note that if BatchDeletePhotos fails, either critical fields are missing or there is an authentication error. Even if BatchDeletePhotos succeeds, individual photos in the batch may have failures. These failures are specified in each PhotoResponse.status in BatchDeletePhotosResponse.results. See DeletePhoto for specific failures that can occur per photo.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1435,7 +1747,7 @@ pub fn streetviewpublish_photos_batch_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/photos:batchDelete
+/// POST v1/photos:batchDelete
 /// Deletes a list of Photos and their metadata. Note that if BatchDeletePhotos fails, either critical fields are missing or there is an authentication error. Even if BatchDeletePhotos succeeds, individual photos in the batch may have failures. These failures are specified in each PhotoResponse.status in BatchDeletePhotosResponse.results. See DeletePhoto for specific failures that can occur per photo.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1467,14 +1779,7 @@ pub fn streetviewpublish_photos_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`streetviewpublish_photos_batch_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StreetviewpublishPhotosBatchDeleteArgs {
-    /// Request body.
-    pub body: BatchDeletePhotosRequest,
-}
-
-/// GET v1/photos:batchDelete
+/// POST v1/photos:batchDelete
 /// Deletes a list of Photos and their metadata. Note that if BatchDeletePhotos fails, either critical fields are missing or there is an authentication error. Even if BatchDeletePhotos succeeds, individual photos in the batch may have failures. These failures are specified in each PhotoResponse.status in BatchDeletePhotosResponse.results. See DeletePhoto for specific failures that can occur per photo.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1487,14 +1792,13 @@ pub struct StreetviewpublishPhotosBatchDeleteArgs {
 
 pub fn streetviewpublish_photos_batch_delete(
     client: &SimpleHttpClient,
-    args: &StreetviewpublishPhotosBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchDeletePhotosResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photos_batch_delete_builder(client, &args.body)?;
+    let builder = streetviewpublish_photos_batch_delete_builder(client)?;
     streetviewpublish_photos_batch_delete_execute(builder)
 }
 
@@ -1506,9 +1810,9 @@ pub fn streetviewpublish_photos_batch_delete(
 
 pub fn streetviewpublish_photos_batch_get_builder(
     client: &SimpleHttpClient,
-    languageCode: &Option<String>,
-    photoIds: &Option<String>,
-    view: &Option<String>,
+    languageCode: &Option<Option<String>>,
+    photoIds: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchGet",);
@@ -1648,11 +1952,11 @@ pub fn streetviewpublish_photos_batch_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreetviewpublishPhotosBatchGetArgs {
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: photoIds
-    pub photoIds: Option<String>,
+    pub photoIds: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1/photos:batchGet
@@ -1684,7 +1988,7 @@ pub fn streetviewpublish_photos_batch_get(
     streetviewpublish_photos_batch_get_execute(builder)
 }
 
-/// GET v1/photos:batchUpdate
+/// POST v1/photos:batchUpdate
 /// Updates the metadata of Photos, such as pose, place association, connections, etc. Changing the pixels of photos is not supported. Note that if BatchUpdatePhotos fails, either critical fields are missing or there is an authentication error. Even if BatchUpdatePhotos succeeds, individual photos in the batch may have failures. These failures are specified in each PhotoResponse.status in BatchUpdatePhotosResponse.results. See UpdatePhoto for specific failures that can occur per photo. Only the fields specified in `updateMask` field are used. If `updateMask` is not present, the update applies to all fields. The number of UpdatePhotoRequest messages in a BatchUpdatePhotosRequest must not exceed 20. &gt; Note: To update Pose.altitude, Pose.`latLngPair` has to be filled as well. Otherwise, the request will fail.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1692,22 +1996,19 @@ pub fn streetviewpublish_photos_batch_get(
 
 pub fn streetviewpublish_photos_batch_update_builder(
     client: &SimpleHttpClient,
-    body: &BatchUpdatePhotosRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchUpdate",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/photos:batchUpdate
+/// POST v1/photos:batchUpdate
 /// Updates the metadata of Photos, such as pose, place association, connections, etc. Changing the pixels of photos is not supported. Note that if BatchUpdatePhotos fails, either critical fields are missing or there is an authentication error. Even if BatchUpdatePhotos succeeds, individual photos in the batch may have failures. These failures are specified in each PhotoResponse.status in BatchUpdatePhotosResponse.results. See UpdatePhoto for specific failures that can occur per photo. Only the fields specified in `updateMask` field are used. If `updateMask` is not present, the update applies to all fields. The number of UpdatePhotoRequest messages in a BatchUpdatePhotosRequest must not exceed 20. &gt; Note: To update Pose.altitude, Pose.`latLngPair` has to be filled as well. Otherwise, the request will fail.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1781,7 +2082,7 @@ pub fn streetviewpublish_photos_batch_update_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/photos:batchUpdate
+/// POST v1/photos:batchUpdate
 /// Updates the metadata of Photos, such as pose, place association, connections, etc. Changing the pixels of photos is not supported. Note that if BatchUpdatePhotos fails, either critical fields are missing or there is an authentication error. Even if BatchUpdatePhotos succeeds, individual photos in the batch may have failures. These failures are specified in each PhotoResponse.status in BatchUpdatePhotosResponse.results. See UpdatePhoto for specific failures that can occur per photo. Only the fields specified in `updateMask` field are used. If `updateMask` is not present, the update applies to all fields. The number of UpdatePhotoRequest messages in a BatchUpdatePhotosRequest must not exceed 20. &gt; Note: To update Pose.altitude, Pose.`latLngPair` has to be filled as well. Otherwise, the request will fail.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1813,14 +2114,7 @@ pub fn streetviewpublish_photos_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`streetviewpublish_photos_batch_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StreetviewpublishPhotosBatchUpdateArgs {
-    /// Request body.
-    pub body: BatchUpdatePhotosRequest,
-}
-
-/// GET v1/photos:batchUpdate
+/// POST v1/photos:batchUpdate
 /// Updates the metadata of Photos, such as pose, place association, connections, etc. Changing the pixels of photos is not supported. Note that if BatchUpdatePhotos fails, either critical fields are missing or there is an authentication error. Even if BatchUpdatePhotos succeeds, individual photos in the batch may have failures. These failures are specified in each PhotoResponse.status in BatchUpdatePhotosResponse.results. See UpdatePhoto for specific failures that can occur per photo. Only the fields specified in `updateMask` field are used. If `updateMask` is not present, the update applies to all fields. The number of UpdatePhotoRequest messages in a BatchUpdatePhotosRequest must not exceed 20. &gt; Note: To update Pose.altitude, Pose.`latLngPair` has to be filled as well. Otherwise, the request will fail.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1833,14 +2127,13 @@ pub struct StreetviewpublishPhotosBatchUpdateArgs {
 
 pub fn streetviewpublish_photos_batch_update(
     client: &SimpleHttpClient,
-    args: &StreetviewpublishPhotosBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchUpdatePhotosResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photos_batch_update_builder(client, &args.body)?;
+    let builder = streetviewpublish_photos_batch_update_builder(client)?;
     streetviewpublish_photos_batch_update_execute(builder)
 }
 
@@ -1852,11 +2145,11 @@ pub fn streetviewpublish_photos_batch_update(
 
 pub fn streetviewpublish_photos_list_builder(
     client: &SimpleHttpClient,
-    filter: &Option<String>,
-    languageCode: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    view: &Option<String>,
+    filter: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos",);
@@ -2002,15 +2295,15 @@ pub fn streetviewpublish_photos_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct StreetviewpublishPhotosListArgs {
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1/photos
@@ -2042,4 +2335,329 @@ pub fn streetviewpublish_photos_list(
         &args.view,
     )?;
     streetviewpublish_photos_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Photo
+// =============================================================================
+
+/// ResourceIdentifier implementation for Photo with StreetviewpublishPhotoCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotoCreateArgs> for Photo {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotoCreateArgs) -> String {
+        "gcp::streetviewpublish::Photo".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::Photo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with StreetviewpublishPhotoDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotoDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotoDeleteArgs) -> String {
+        format!("gcp::streetviewpublish::Empty/{}", input.photoId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Photo
+// =============================================================================
+
+/// ResourceIdentifier implementation for Photo with StreetviewpublishPhotoGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotoGetArgs> for Photo {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotoGetArgs) -> String {
+        format!("gcp::streetviewpublish::Photo/{}", input.photoId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::Photo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadRef
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadRef with StreetviewpublishPhotoStartUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotoStartUploadArgs> for UploadRef {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotoStartUploadArgs) -> String {
+        "gcp::streetviewpublish::UploadRef".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::UploadRef"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Photo
+// =============================================================================
+
+/// ResourceIdentifier implementation for Photo with StreetviewpublishPhotoUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotoUpdateArgs> for Photo {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotoUpdateArgs) -> String {
+        format!("gcp::streetviewpublish::Photo/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::Photo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with StreetviewpublishPhotoSequenceCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotoSequenceCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotoSequenceCreateArgs) -> String {
+        "gcp::streetviewpublish::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with StreetviewpublishPhotoSequenceDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotoSequenceDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotoSequenceDeleteArgs) -> String {
+        format!("gcp::streetviewpublish::Empty/{}", input.sequenceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with StreetviewpublishPhotoSequenceGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotoSequenceGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotoSequenceGetArgs) -> String {
+        format!("gcp::streetviewpublish::Operation/{}", input.sequenceId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UploadRef
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadRef with StreetviewpublishPhotoSequenceStartUploadArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotoSequenceStartUploadArgs> for UploadRef {
+    fn generate_resource_id(
+        &self,
+        input: &StreetviewpublishPhotoSequenceStartUploadArgs,
+    ) -> String {
+        "gcp::streetviewpublish::UploadRef".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::UploadRef"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPhotoSequencesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPhotoSequencesResponse with StreetviewpublishPhotoSequencesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotoSequencesListArgs> for ListPhotoSequencesResponse {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotoSequencesListArgs) -> String {
+        "gcp::streetviewpublish::ListPhotoSequencesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::ListPhotoSequencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchDeletePhotosResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchDeletePhotosResponse with StreetviewpublishPhotosBatchDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotosBatchDeleteArgs> for BatchDeletePhotosResponse {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotosBatchDeleteArgs) -> String {
+        "gcp::streetviewpublish::BatchDeletePhotosResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::BatchDeletePhotosResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetPhotosResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetPhotosResponse with StreetviewpublishPhotosBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotosBatchGetArgs> for BatchGetPhotosResponse {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotosBatchGetArgs) -> String {
+        "gcp::streetviewpublish::BatchGetPhotosResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::BatchGetPhotosResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchUpdatePhotosResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdatePhotosResponse with StreetviewpublishPhotosBatchUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotosBatchUpdateArgs> for BatchUpdatePhotosResponse {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotosBatchUpdateArgs) -> String {
+        "gcp::streetviewpublish::BatchUpdatePhotosResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::BatchUpdatePhotosResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPhotosResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPhotosResponse with StreetviewpublishPhotosListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreetviewpublishPhotosListArgs> for ListPhotosResponse {
+    fn generate_resource_id(&self, input: &StreetviewpublishPhotosListArgs) -> String {
+        "gcp::streetviewpublish::ListPhotosResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::streetviewpublish::ListPhotosResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

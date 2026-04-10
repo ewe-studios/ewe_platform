@@ -13,12 +13,16 @@
 
 use crate::providers::gcp::clients::tasks::{
     tasks_tasklists_delete_builder, tasks_tasklists_delete_task,
+    tasks_tasklists_get_builder, tasks_tasklists_get_task,
     tasks_tasklists_insert_builder, tasks_tasklists_insert_task,
+    tasks_tasklists_list_builder, tasks_tasklists_list_task,
     tasks_tasklists_patch_builder, tasks_tasklists_patch_task,
     tasks_tasklists_update_builder, tasks_tasklists_update_task,
     tasks_tasks_clear_builder, tasks_tasks_clear_task,
     tasks_tasks_delete_builder, tasks_tasks_delete_task,
+    tasks_tasks_get_builder, tasks_tasks_get_task,
     tasks_tasks_insert_builder, tasks_tasks_insert_task,
+    tasks_tasks_list_builder, tasks_tasks_list_task,
     tasks_tasks_move_builder, tasks_tasks_move_task,
     tasks_tasks_patch_builder, tasks_tasks_patch_task,
     tasks_tasks_update_builder, tasks_tasks_update_task,
@@ -26,13 +30,19 @@ use crate::providers::gcp::clients::tasks::{
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::tasks::Task;
 use crate::providers::gcp::clients::tasks::TaskList;
+use crate::providers::gcp::clients::tasks::TaskLists;
+use crate::providers::gcp::clients::tasks::Tasks;
 use crate::providers::gcp::clients::tasks::TasksTasklistsDeleteArgs;
+use crate::providers::gcp::clients::tasks::TasksTasklistsGetArgs;
 use crate::providers::gcp::clients::tasks::TasksTasklistsInsertArgs;
+use crate::providers::gcp::clients::tasks::TasksTasklistsListArgs;
 use crate::providers::gcp::clients::tasks::TasksTasklistsPatchArgs;
 use crate::providers::gcp::clients::tasks::TasksTasklistsUpdateArgs;
 use crate::providers::gcp::clients::tasks::TasksTasksClearArgs;
 use crate::providers::gcp::clients::tasks::TasksTasksDeleteArgs;
+use crate::providers::gcp::clients::tasks::TasksTasksGetArgs;
 use crate::providers::gcp::clients::tasks::TasksTasksInsertArgs;
+use crate::providers::gcp::clients::tasks::TasksTasksListArgs;
 use crate::providers::gcp::clients::tasks::TasksTasksMoveArgs;
 use crate::providers::gcp::clients::tasks::TasksTasksPatchArgs;
 use crate::providers::gcp::clients::tasks::TasksTasksUpdateArgs;
@@ -79,7 +89,7 @@ where
 
     /// Tasks tasklists delete.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -91,7 +101,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn tasks_tasklists_delete(
         &self,
         args: &TasksTasklistsDeleteArgs,
@@ -112,12 +122,45 @@ where
         let task = tasks_tasklists_delete_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Tasks tasklists get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TaskList result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn tasks_tasklists_get(
+        &self,
+        args: &TasksTasklistsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TaskList, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = tasks_tasklists_get_builder(
+            &self.http_client,
+            &args.tasklist,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = tasks_tasklists_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Tasks tasklists insert.
@@ -162,9 +205,48 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Tasks tasklists list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TaskLists result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn tasks_tasklists_list(
+        &self,
+        args: &TasksTasklistsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TaskLists, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = tasks_tasklists_list_builder(
+            &self.http_client,
+            &args.maxResults,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = tasks_tasklists_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Tasks tasklists patch.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -176,7 +258,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn tasks_tasklists_patch(
         &self,
         args: &TasksTasklistsPatchArgs,
@@ -197,17 +279,12 @@ where
         let task = tasks_tasklists_patch_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Tasks tasklists update.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -219,7 +296,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn tasks_tasklists_update(
         &self,
         args: &TasksTasklistsUpdateArgs,
@@ -240,12 +317,7 @@ where
         let task = tasks_tasklists_update_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Tasks tasks clear.
@@ -335,6 +407,45 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Tasks tasks get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Task result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn tasks_tasks_get(
+        &self,
+        args: &TasksTasksGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Task, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = tasks_tasks_get_builder(
+            &self.http_client,
+            &args.tasklist,
+            &args.task,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = tasks_tasks_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Tasks tasks insert.
     ///
     /// Automatically stores the result in the state store on success.
@@ -378,6 +489,55 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Tasks tasks list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Tasks result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn tasks_tasks_list(
+        &self,
+        args: &TasksTasksListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Tasks, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = tasks_tasks_list_builder(
+            &self.http_client,
+            &args.tasklist,
+            &args.completedMax,
+            &args.completedMin,
+            &args.dueMax,
+            &args.dueMin,
+            &args.maxResults,
+            &args.pageToken,
+            &args.showAssigned,
+            &args.showCompleted,
+            &args.showDeleted,
+            &args.showHidden,
+            &args.updatedMin,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = tasks_tasks_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Tasks tasks move.

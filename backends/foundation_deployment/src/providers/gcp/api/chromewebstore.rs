@@ -14,16 +14,19 @@
 use crate::providers::gcp::clients::chromewebstore::{
     chromewebstore_media_upload_builder, chromewebstore_media_upload_task,
     chromewebstore_publishers_items_cancel_submission_builder, chromewebstore_publishers_items_cancel_submission_task,
+    chromewebstore_publishers_items_fetch_status_builder, chromewebstore_publishers_items_fetch_status_task,
     chromewebstore_publishers_items_publish_builder, chromewebstore_publishers_items_publish_task,
     chromewebstore_publishers_items_set_published_deploy_percentage_builder, chromewebstore_publishers_items_set_published_deploy_percentage_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::chromewebstore::CancelSubmissionResponse;
+use crate::providers::gcp::clients::chromewebstore::FetchItemStatusResponse;
 use crate::providers::gcp::clients::chromewebstore::PublishItemResponse;
 use crate::providers::gcp::clients::chromewebstore::SetPublishedDeployPercentageResponse;
 use crate::providers::gcp::clients::chromewebstore::UploadItemPackageResponse;
 use crate::providers::gcp::clients::chromewebstore::ChromewebstoreMediaUploadArgs;
 use crate::providers::gcp::clients::chromewebstore::ChromewebstorePublishersItemsCancelSubmissionArgs;
+use crate::providers::gcp::clients::chromewebstore::ChromewebstorePublishersItemsFetchStatusArgs;
 use crate::providers::gcp::clients::chromewebstore::ChromewebstorePublishersItemsPublishArgs;
 use crate::providers::gcp::clients::chromewebstore::ChromewebstorePublishersItemsSetPublishedDeployPercentageArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
@@ -151,6 +154,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Chromewebstore publishers items fetch status.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the FetchItemStatusResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn chromewebstore_publishers_items_fetch_status(
+        &self,
+        args: &ChromewebstorePublishersItemsFetchStatusArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<FetchItemStatusResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = chromewebstore_publishers_items_fetch_status_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = chromewebstore_publishers_items_fetch_status_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Chromewebstore publishers items publish.

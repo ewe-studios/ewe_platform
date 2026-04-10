@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/projects/{projectsId}/backups
+/// POST v1/projects/{projectsId}/backups
 /// Creates a backup for a Cloud SQL instance. This API can be used only to create on-demand backups.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +29,22 @@ use serde::Serialize;
 pub fn sql__backups__create_backup_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &Backup,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://sqladmin.googleapis.com/v1/projects/{}/backups",);
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/backups",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}/backups
+/// POST v1/projects/{projectsId}/backups
 /// Creates a backup for a Cloud SQL instance. This API can be used only to create on-demand backups.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +118,7 @@ pub fn sql__backups__create_backup_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}/backups
+/// POST v1/projects/{projectsId}/backups
 /// Creates a backup for a Cloud SQL instance. This API can be used only to create on-demand backups.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -153,11 +153,9 @@ pub fn sql__backups__create_backup_execute(
 pub struct SqlBackupsCreateBackupArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: Backup,
 }
 
-/// GET v1/projects/{projectsId}/backups
+/// POST v1/projects/{projectsId}/backups
 /// Creates a backup for a Cloud SQL instance. This API can be used only to create on-demand backups.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -175,11 +173,689 @@ pub fn sql__backups__create_backup(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql__backups__create_backup_builder(client, &args.parent, &args.body)?;
+    let builder = sql__backups__create_backup_builder(client, &args.parent)?;
     sql__backups__create_backup_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/backupRuns/{id}
+/// DELETE v1/projects/{projectsId}/backups/{backupsId}
+/// Deletes the backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql__backups__delete_backup_execute()` to send, or `sql__backups__delete_backup` for simplest API.
+
+pub fn sql__backups__delete_backup_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/backups/{backupsId}
+/// Deletes the backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql__backups__delete_backup_execute()` or `sql__backups__delete_backup`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__delete_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql__backups__delete_backup_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/backups/{backupsId}
+/// Deletes the backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql__backups__delete_backup_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql__backups__delete_backup_task()`.
+/// For the simplest API, use `sql__backups__delete_backup()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__delete_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql__backups__delete_backup_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql__backups__delete_backup_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql__backups__delete_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupsDeleteBackupArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/backups/{backupsId}
+/// Deletes the backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql__backups__delete_backup_builder()` + `sql__backups__delete_backup_execute()`.
+/// For task-level control, use `sql__backups__delete_backup_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql__backups__delete_backup(
+    client: &SimpleHttpClient,
+    args: &SqlBackupsDeleteBackupArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = sql__backups__delete_backup_builder(client, &args.name)?;
+    sql__backups__delete_backup_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/backups/{backupsId}
+/// Retrieves a resource containing information about a backup.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql__backups__get_backup_execute()` to send, or `sql__backups__get_backup` for simplest API.
+
+pub fn sql__backups__get_backup_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/backups/{backupsId}
+/// Retrieves a resource containing information about a backup.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql__backups__get_backup_execute()` or `sql__backups__get_backup`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__get_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql__backups__get_backup_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Backup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Backup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/backups/{backupsId}
+/// Retrieves a resource containing information about a backup.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql__backups__get_backup_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql__backups__get_backup_task()`.
+/// For the simplest API, use `sql__backups__get_backup()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__get_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql__backups__get_backup_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql__backups__get_backup_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql__backups__get_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupsGetBackupArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/backups/{backupsId}
+/// Retrieves a resource containing information about a backup.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql__backups__get_backup_builder()` + `sql__backups__get_backup_execute()`.
+/// For task-level control, use `sql__backups__get_backup_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql__backups__get_backup(
+    client: &SimpleHttpClient,
+    args: &SqlBackupsGetBackupArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = sql__backups__get_backup_builder(client, &args.name)?;
+    sql__backups__get_backup_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/backups
+/// Lists all backups associated with the project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql__backups__list_backups_execute()` to send, or `sql__backups__list_backups` for simplest API.
+
+pub fn sql__backups__list_backups_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/backups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/backups
+/// Lists all backups associated with the project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql__backups__list_backups_execute()` or `sql__backups__list_backups`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__list_backups_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql__backups__list_backups_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListBackupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListBackupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/backups
+/// Lists all backups associated with the project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql__backups__list_backups_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql__backups__list_backups_task()`.
+/// For the simplest API, use `sql__backups__list_backups()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__list_backups_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql__backups__list_backups_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sql__backups__list_backups_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql__backups__list_backups`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupsListBackupsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/backups
+/// Lists all backups associated with the project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql__backups__list_backups_builder()` + `sql__backups__list_backups_execute()`.
+/// For task-level control, use `sql__backups__list_backups_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql__backups__list_backups(
+    client: &SimpleHttpClient,
+    args: &SqlBackupsListBackupsArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sql__backups__list_backups_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sql__backups__list_backups_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/backups/{backupsId}
+/// Updates the retention period and description of the backup. You can use this API to update final backups only.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql__backups__update_backup_execute()` to send, or `sql__backups__update_backup` for simplest API.
+
+pub fn sql__backups__update_backup_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/backups/{backupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/backups/{backupsId}
+/// Updates the retention period and description of the backup. You can use this API to update final backups only.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql__backups__update_backup_execute()` or `sql__backups__update_backup`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__update_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql__backups__update_backup_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/backups/{backupsId}
+/// Updates the retention period and description of the backup. You can use this API to update final backups only.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql__backups__update_backup_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql__backups__update_backup_task()`.
+/// For the simplest API, use `sql__backups__update_backup()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql__backups__update_backup_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql__backups__update_backup_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql__backups__update_backup_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql__backups__update_backup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupsUpdateBackupArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/backups/{backupsId}
+/// Updates the retention period and description of the backup. You can use this API to update final backups only.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql__backups__update_backup_builder()` + `sql__backups__update_backup_execute()`.
+/// For task-level control, use `sql__backups__update_backup_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql__backups__update_backup(
+    client: &SimpleHttpClient,
+    args: &SqlBackupsUpdateBackupArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = sql__backups__update_backup_builder(client, &args.name, &args.updateMask)?;
+    sql__backups__update_backup_execute(builder)
+}
+
+/// DELETE v1/projects/{project}/instances/{instance}/backupRuns/{id}
 /// Deletes the backup taken by a backup run.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -199,13 +875,13 @@ pub fn sql_backup_runs_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/backupRuns/{id}
+/// DELETE v1/projects/{project}/instances/{instance}/backupRuns/{id}
 /// Deletes the backup taken by a backup run.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -279,7 +955,7 @@ pub fn sql_backup_runs_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/backupRuns/{id}
+/// DELETE v1/projects/{project}/instances/{instance}/backupRuns/{id}
 /// Deletes the backup taken by a backup run.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -320,7 +996,7 @@ pub struct SqlBackupRunsDeleteArgs {
     pub id: String,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/backupRuns/{id}
+/// DELETE v1/projects/{project}/instances/{instance}/backupRuns/{id}
 /// Deletes the backup taken by a backup run.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -342,7 +1018,170 @@ pub fn sql_backup_runs_delete(
     sql_backup_runs_delete_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/backupRuns
+/// GET v1/projects/{project}/instances/{instance}/backupRuns/{id}
+/// Retrieves a resource containing information about a backup run.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_backup_runs_get_execute()` to send, or `sql_backup_runs_get` for simplest API.
+
+pub fn sql_backup_runs_get_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+    id: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/backupRuns/{}",
+        project, instance, id,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}/backupRuns/{id}
+/// Retrieves a resource containing information about a backup run.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_backup_runs_get_execute()` or `sql_backup_runs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backup_runs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_backup_runs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupRun>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupRun = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{project}/instances/{instance}/backupRuns/{id}
+/// Retrieves a resource containing information about a backup run.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_backup_runs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_backup_runs_get_task()`.
+/// For the simplest API, use `sql_backup_runs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backup_runs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_backup_runs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql_backup_runs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_backup_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupRunsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
+/// GET v1/projects/{project}/instances/{instance}/backupRuns/{id}
+/// Retrieves a resource containing information about a backup run.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_backup_runs_get_builder()` + `sql_backup_runs_get_execute()`.
+/// For task-level control, use `sql_backup_runs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_backup_runs_get(
+    client: &SimpleHttpClient,
+    args: &SqlBackupRunsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupRun>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = sql_backup_runs_get_builder(client, &args.project, &args.instance, &args.id)?;
+    sql_backup_runs_get_execute(builder)
+}
+
+/// POST v1/projects/{project}/instances/{instance}/backupRuns
 /// Creates a new backup run on demand.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -352,7 +1191,6 @@ pub fn sql_backup_runs_insert_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &BackupRun,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -362,15 +1200,13 @@ pub fn sql_backup_runs_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/backupRuns
+/// POST v1/projects/{project}/instances/{instance}/backupRuns
 /// Creates a new backup run on demand.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -444,7 +1280,7 @@ pub fn sql_backup_runs_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/backupRuns
+/// POST v1/projects/{project}/instances/{instance}/backupRuns
 /// Creates a new backup run on demand.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -481,11 +1317,9 @@ pub struct SqlBackupRunsInsertArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: BackupRun,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/backupRuns
+/// POST v1/projects/{project}/instances/{instance}/backupRuns
 /// Creates a new backup run on demand.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -503,12 +1337,201 @@ pub fn sql_backup_runs_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_backup_runs_insert_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_backup_runs_insert_builder(client, &args.project, &args.instance)?;
     sql_backup_runs_insert_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}:generateEphemeralCert
+/// GET v1/projects/{project}/instances/{instance}/backupRuns
+/// Lists all backup runs associated with the project or a given instance and configuration in the reverse chronological order of the backup initiation time.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_backup_runs_list_execute()` to send, or `sql_backup_runs_list` for simplest API.
+
+pub fn sql_backup_runs_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/backupRuns",
+        project, instance,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}/backupRuns
+/// Lists all backup runs associated with the project or a given instance and configuration in the reverse chronological order of the backup initiation time.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_backup_runs_list_execute()` or `sql_backup_runs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backup_runs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_backup_runs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BackupRunsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: BackupRunsListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{project}/instances/{instance}/backupRuns
+/// Lists all backup runs associated with the project or a given instance and configuration in the reverse chronological order of the backup initiation time.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_backup_runs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_backup_runs_list_task()`.
+/// For the simplest API, use `sql_backup_runs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_backup_runs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_backup_runs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupRunsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sql_backup_runs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_backup_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlBackupRunsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{project}/instances/{instance}/backupRuns
+/// Lists all backup runs associated with the project or a given instance and configuration in the reverse chronological order of the backup initiation time.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_backup_runs_list_builder()` + `sql_backup_runs_list_execute()`.
+/// For task-level control, use `sql_backup_runs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_backup_runs_list(
+    client: &SimpleHttpClient,
+    args: &SqlBackupRunsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<BackupRunsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sql_backup_runs_list_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.maxResults,
+        &args.pageToken,
+    )?;
+    sql_backup_runs_list_execute(builder)
+}
+
+/// POST v1/projects/{project}/instances/{instance}:generateEphemeralCert
 /// Generates a short-lived X509 certificate containing the provided public key and signed by a private key specific to the target instance. Users may use the certificate to authenticate as themselves when connecting to the database.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -518,7 +1541,6 @@ pub fn sql_connect_generate_ephemeral_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &GenerateEphemeralCertRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -528,15 +1550,13 @@ pub fn sql_connect_generate_ephemeral_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}:generateEphemeralCert
+/// POST v1/projects/{project}/instances/{instance}:generateEphemeralCert
 /// Generates a short-lived X509 certificate containing the provided public key and signed by a private key specific to the target instance. Users may use the certificate to authenticate as themselves when connecting to the database.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -610,7 +1630,7 @@ pub fn sql_connect_generate_ephemeral_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}:generateEphemeralCert
+/// POST v1/projects/{project}/instances/{instance}:generateEphemeralCert
 /// Generates a short-lived X509 certificate containing the provided public key and signed by a private key specific to the target instance. Users may use the certificate to authenticate as themselves when connecting to the database.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -651,11 +1671,9 @@ pub struct SqlConnectGenerateEphemeralArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: GenerateEphemeralCertRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}:generateEphemeralCert
+/// POST v1/projects/{project}/instances/{instance}:generateEphemeralCert
 /// Generates a short-lived X509 certificate containing the provided public key and signed by a private key specific to the target instance. Users may use the certificate to authenticate as themselves when connecting to the database.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -677,8 +1695,7 @@ pub fn sql_connect_generate_ephemeral(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sql_connect_generate_ephemeral_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_connect_generate_ephemeral_builder(client, &args.project, &args.instance)?;
     sql_connect_generate_ephemeral_execute(builder)
 }
 
@@ -692,7 +1709,7 @@ pub fn sql_connect_get_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    readTime: &Option<String>,
+    readTime: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -833,7 +1850,7 @@ pub struct SqlConnectGetArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: readTime
-    pub readTime: Option<String>,
+    pub readTime: Option<Option<String>>,
 }
 
 /// GET v1/projects/{project}/instances/{instance}/connectSettings
@@ -860,7 +1877,7 @@ pub fn sql_connect_get(
     sql_connect_get_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/databases/{database}
+/// DELETE v1/projects/{project}/instances/{instance}/databases/{database}
 /// Deletes a database from a Cloud SQL instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -880,13 +1897,13 @@ pub fn sql_databases_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/databases/{database}
+/// DELETE v1/projects/{project}/instances/{instance}/databases/{database}
 /// Deletes a database from a Cloud SQL instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -960,7 +1977,7 @@ pub fn sql_databases_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/databases/{database}
+/// DELETE v1/projects/{project}/instances/{instance}/databases/{database}
 /// Deletes a database from a Cloud SQL instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1001,7 +2018,7 @@ pub struct SqlDatabasesDeleteArgs {
     pub database: String,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/databases/{database}
+/// DELETE v1/projects/{project}/instances/{instance}/databases/{database}
 /// Deletes a database from a Cloud SQL instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1024,7 +2041,170 @@ pub fn sql_databases_delete(
     sql_databases_delete_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/databases
+/// GET v1/projects/{project}/instances/{instance}/databases/{database}
+/// Retrieves a resource containing information about a database inside a Cloud SQL instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_databases_get_execute()` to send, or `sql_databases_get` for simplest API.
+
+pub fn sql_databases_get_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+    database: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases/{}",
+        project, instance, database,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}/databases/{database}
+/// Retrieves a resource containing information about a database inside a Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_databases_get_execute()` or `sql_databases_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_databases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_databases_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Database>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Database = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{project}/instances/{instance}/databases/{database}
+/// Retrieves a resource containing information about a database inside a Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_databases_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_databases_get_task()`.
+/// For the simplest API, use `sql_databases_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_databases_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_databases_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql_databases_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlDatabasesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: database
+    pub database: String,
+}
+
+/// GET v1/projects/{project}/instances/{instance}/databases/{database}
+/// Retrieves a resource containing information about a database inside a Cloud SQL instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_databases_get_builder()` + `sql_databases_get_execute()`.
+/// For task-level control, use `sql_databases_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_databases_get(
+    client: &SimpleHttpClient,
+    args: &SqlDatabasesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = sql_databases_get_builder(client, &args.project, &args.instance, &args.database)?;
+    sql_databases_get_execute(builder)
+}
+
+/// POST v1/projects/{project}/instances/{instance}/databases
 /// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can't modify the default character set and collation.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1034,7 +2214,6 @@ pub fn sql_databases_insert_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &Database,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1044,15 +2223,13 @@ pub fn sql_databases_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/databases
+/// POST v1/projects/{project}/instances/{instance}/databases
 /// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can't modify the default character set and collation.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1126,7 +2303,7 @@ pub fn sql_databases_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/databases
+/// POST v1/projects/{project}/instances/{instance}/databases
 /// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can't modify the default character set and collation.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1163,11 +2340,9 @@ pub struct SqlDatabasesInsertArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: Database,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/databases
+/// POST v1/projects/{project}/instances/{instance}/databases
 /// Inserts a resource containing information about a database inside a Cloud SQL instance. **Note:** You can't modify the default character set and collation.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1185,8 +2360,500 @@ pub fn sql_databases_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_databases_insert_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_databases_insert_builder(client, &args.project, &args.instance)?;
     sql_databases_insert_execute(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}/databases
+/// Lists databases in the specified Cloud SQL instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_databases_list_execute()` to send, or `sql_databases_list` for simplest API.
+
+pub fn sql_databases_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases",
+        project, instance,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}/databases
+/// Lists databases in the specified Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_databases_list_execute()` or `sql_databases_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_databases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_databases_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabasesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DatabasesListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{project}/instances/{instance}/databases
+/// Lists databases in the specified Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_databases_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_databases_list_task()`.
+/// For the simplest API, use `sql_databases_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_databases_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_databases_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabasesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sql_databases_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlDatabasesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
+/// GET v1/projects/{project}/instances/{instance}/databases
+/// Lists databases in the specified Cloud SQL instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_databases_list_builder()` + `sql_databases_list_execute()`.
+/// For task-level control, use `sql_databases_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_databases_list(
+    client: &SimpleHttpClient,
+    args: &SqlDatabasesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabasesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sql_databases_list_builder(client, &args.project, &args.instance)?;
+    sql_databases_list_execute(builder)
+}
+
+/// PATCH v1/projects/{project}/instances/{instance}/databases/{database}
+/// Partially updates a resource containing information about a database inside a Cloud SQL instance. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_databases_patch_execute()` to send, or `sql_databases_patch` for simplest API.
+
+pub fn sql_databases_patch_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+    database: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases/{}",
+        project, instance, database,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{project}/instances/{instance}/databases/{database}
+/// Partially updates a resource containing information about a database inside a Cloud SQL instance. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_databases_patch_execute()` or `sql_databases_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_databases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_databases_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{project}/instances/{instance}/databases/{database}
+/// Partially updates a resource containing information about a database inside a Cloud SQL instance. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_databases_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_databases_patch_task()`.
+/// For the simplest API, use `sql_databases_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_databases_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_databases_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql_databases_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_databases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlDatabasesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: database
+    pub database: String,
+}
+
+/// PATCH v1/projects/{project}/instances/{instance}/databases/{database}
+/// Partially updates a resource containing information about a database inside a Cloud SQL instance. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_databases_patch_builder()` + `sql_databases_patch_execute()`.
+/// For task-level control, use `sql_databases_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_databases_patch(
+    client: &SimpleHttpClient,
+    args: &SqlDatabasesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        sql_databases_patch_builder(client, &args.project, &args.instance, &args.database)?;
+    sql_databases_patch_execute(builder)
+}
+
+/// PUT v1/projects/{project}/instances/{instance}/databases/{database}
+/// Updates a resource containing information about a database inside a Cloud SQL instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_databases_update_execute()` to send, or `sql_databases_update` for simplest API.
+
+pub fn sql_databases_update_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+    database: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/databases/{}",
+        project, instance, database,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{project}/instances/{instance}/databases/{database}
+/// Updates a resource containing information about a database inside a Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_databases_update_execute()` or `sql_databases_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_databases_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_databases_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{project}/instances/{instance}/databases/{database}
+/// Updates a resource containing information about a database inside a Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_databases_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_databases_update_task()`.
+/// For the simplest API, use `sql_databases_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_databases_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_databases_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql_databases_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_databases_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlDatabasesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: database
+    pub database: String,
+}
+
+/// PUT v1/projects/{project}/instances/{instance}/databases/{database}
+/// Updates a resource containing information about a database inside a Cloud SQL instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_databases_update_builder()` + `sql_databases_update_execute()`.
+/// For task-level control, use `sql_databases_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_databases_update(
+    client: &SimpleHttpClient,
+    args: &SqlDatabasesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        sql_databases_update_builder(client, &args.project, &args.instance, &args.database)?;
+    sql_databases_update_execute(builder)
 }
 
 /// GET v1/flags
@@ -1197,8 +2864,8 @@ pub fn sql_databases_insert(
 
 pub fn sql_flags_list_builder(
     client: &SimpleHttpClient,
-    databaseVersion: &Option<String>,
-    flagScope: &Option<String>,
+    databaseVersion: &Option<Option<String>>,
+    flagScope: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sqladmin.googleapis.com/v1/flags",);
@@ -1335,9 +3002,9 @@ pub fn sql_flags_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SqlFlagsListArgs {
     /// Query parameter: databaseVersion
-    pub databaseVersion: Option<String>,
+    pub databaseVersion: Option<Option<String>>,
     /// Query parameter: flagScope
-    pub flagScope: Option<String>,
+    pub flagScope: Option<Option<String>>,
 }
 
 /// GET v1/flags
@@ -1703,7 +3370,7 @@ pub fn sql_instances__list_server_certificates(
     sql_instances__list_server_certificates_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateEntraIdCertificate
+/// POST v1/projects/{project}/instances/{instance}/rotateEntraIdCertificate
 /// Rotates the server certificate version to one previously added with the `addEntraIdCertificate` method.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1713,7 +3380,6 @@ pub fn sql_instances__rotate_entra_id_certificate_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesRotateEntraIdCertificateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1723,15 +3389,13 @@ pub fn sql_instances__rotate_entra_id_certificate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateEntraIdCertificate
+/// POST v1/projects/{project}/instances/{instance}/rotateEntraIdCertificate
 /// Rotates the server certificate version to one previously added with the `addEntraIdCertificate` method.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1805,7 +3469,7 @@ pub fn sql_instances__rotate_entra_id_certificate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateEntraIdCertificate
+/// POST v1/projects/{project}/instances/{instance}/rotateEntraIdCertificate
 /// Rotates the server certificate version to one previously added with the `addEntraIdCertificate` method.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1842,11 +3506,9 @@ pub struct SqlInstancesRotateEntraIdCertificateArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesRotateEntraIdCertificateRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateEntraIdCertificate
+/// POST v1/projects/{project}/instances/{instance}/rotateEntraIdCertificate
 /// Rotates the server certificate version to one previously added with the `addEntraIdCertificate` method.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1864,16 +3526,12 @@ pub fn sql_instances__rotate_entra_id_certificate(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances__rotate_entra_id_certificate_builder(
-        client,
-        &args.project,
-        &args.instance,
-        &args.body,
-    )?;
+    let builder =
+        sql_instances__rotate_entra_id_certificate_builder(client, &args.project, &args.instance)?;
     sql_instances__rotate_entra_id_certificate_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateServerCertificate
+/// POST v1/projects/{project}/instances/{instance}/rotateServerCertificate
 /// Rotates the server certificate version to one previously added with the `addServerCertificate` method. For instances not using Certificate Authority Service (CAS) server CA, use RotateServerCa instead.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1883,7 +3541,6 @@ pub fn sql_instances__rotate_server_certificate_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesRotateServerCertificateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1893,15 +3550,13 @@ pub fn sql_instances__rotate_server_certificate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateServerCertificate
+/// POST v1/projects/{project}/instances/{instance}/rotateServerCertificate
 /// Rotates the server certificate version to one previously added with the `addServerCertificate` method. For instances not using Certificate Authority Service (CAS) server CA, use RotateServerCa instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1975,7 +3630,7 @@ pub fn sql_instances__rotate_server_certificate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateServerCertificate
+/// POST v1/projects/{project}/instances/{instance}/rotateServerCertificate
 /// Rotates the server certificate version to one previously added with the `addServerCertificate` method. For instances not using Certificate Authority Service (CAS) server CA, use RotateServerCa instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2012,11 +3667,9 @@ pub struct SqlInstancesRotateServerCertificateArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesRotateServerCertificateRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateServerCertificate
+/// POST v1/projects/{project}/instances/{instance}/rotateServerCertificate
 /// Rotates the server certificate version to one previously added with the `addServerCertificate` method. For instances not using Certificate Authority Service (CAS) server CA, use RotateServerCa instead.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2034,16 +3687,12 @@ pub fn sql_instances__rotate_server_certificate(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances__rotate_server_certificate_builder(
-        client,
-        &args.project,
-        &args.instance,
-        &args.body,
-    )?;
+    let builder =
+        sql_instances__rotate_server_certificate_builder(client, &args.project, &args.instance)?;
     sql_instances__rotate_server_certificate_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/acquireSsrsLease
+/// POST v1/projects/{project}/instances/{instance}/acquireSsrsLease
 /// Acquire a lease for the setup of SQL Server Reporting Services (SSRS).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2053,7 +3702,6 @@ pub fn sql_instances_acquire_ssrs_lease_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesAcquireSsrsLeaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2063,15 +3711,13 @@ pub fn sql_instances_acquire_ssrs_lease_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/acquireSsrsLease
+/// POST v1/projects/{project}/instances/{instance}/acquireSsrsLease
 /// Acquire a lease for the setup of SQL Server Reporting Services (SSRS).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2145,7 +3791,7 @@ pub fn sql_instances_acquire_ssrs_lease_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/acquireSsrsLease
+/// POST v1/projects/{project}/instances/{instance}/acquireSsrsLease
 /// Acquire a lease for the setup of SQL Server Reporting Services (SSRS).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2186,11 +3832,9 @@ pub struct SqlInstancesAcquireSsrsLeaseArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesAcquireSsrsLeaseRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/acquireSsrsLease
+/// POST v1/projects/{project}/instances/{instance}/acquireSsrsLease
 /// Acquire a lease for the setup of SQL Server Reporting Services (SSRS).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2212,16 +3856,11 @@ pub fn sql_instances_acquire_ssrs_lease(
         + 'static,
     ApiError,
 > {
-    let builder = sql_instances_acquire_ssrs_lease_builder(
-        client,
-        &args.project,
-        &args.instance,
-        &args.body,
-    )?;
+    let builder = sql_instances_acquire_ssrs_lease_builder(client, &args.project, &args.instance)?;
     sql_instances_acquire_ssrs_lease_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addEntraIdCertificate
+/// POST v1/projects/{project}/instances/{instance}/addEntraIdCertificate
 /// Adds a new Entra ID certificate for the specified instance. If an Entra ID certificate was previously added but never used in a certificate rotation, this operation replaces that version.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2240,13 +3879,13 @@ pub fn sql_instances_add_entra_id_certificate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addEntraIdCertificate
+/// POST v1/projects/{project}/instances/{instance}/addEntraIdCertificate
 /// Adds a new Entra ID certificate for the specified instance. If an Entra ID certificate was previously added but never used in a certificate rotation, this operation replaces that version.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2320,7 +3959,7 @@ pub fn sql_instances_add_entra_id_certificate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addEntraIdCertificate
+/// POST v1/projects/{project}/instances/{instance}/addEntraIdCertificate
 /// Adds a new Entra ID certificate for the specified instance. If an Entra ID certificate was previously added but never used in a certificate rotation, this operation replaces that version.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2359,7 +3998,7 @@ pub struct SqlInstancesAddEntraIdCertificateArgs {
     pub instance: String,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addEntraIdCertificate
+/// POST v1/projects/{project}/instances/{instance}/addEntraIdCertificate
 /// Adds a new Entra ID certificate for the specified instance. If an Entra ID certificate was previously added but never used in a certificate rotation, this operation replaces that version.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2382,7 +4021,7 @@ pub fn sql_instances_add_entra_id_certificate(
     sql_instances_add_entra_id_certificate_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addServerCa
+/// POST v1/projects/{project}/instances/{instance}/addServerCa
 /// Adds a new trusted Certificate Authority (CA) version for the specified instance. Required to prepare for a certificate rotation. If a CA version was previously added but never used in a certificate rotation, this operation replaces that version. There cannot be more than one CA version waiting to be rotated in. For instances that have enabled Certificate Authority Service (CAS) based server CA, use AddServerCertificate to add a new server certificate.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2401,13 +4040,13 @@ pub fn sql_instances_add_server_ca_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addServerCa
+/// POST v1/projects/{project}/instances/{instance}/addServerCa
 /// Adds a new trusted Certificate Authority (CA) version for the specified instance. Required to prepare for a certificate rotation. If a CA version was previously added but never used in a certificate rotation, this operation replaces that version. There cannot be more than one CA version waiting to be rotated in. For instances that have enabled Certificate Authority Service (CAS) based server CA, use AddServerCertificate to add a new server certificate.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2481,7 +4120,7 @@ pub fn sql_instances_add_server_ca_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addServerCa
+/// POST v1/projects/{project}/instances/{instance}/addServerCa
 /// Adds a new trusted Certificate Authority (CA) version for the specified instance. Required to prepare for a certificate rotation. If a CA version was previously added but never used in a certificate rotation, this operation replaces that version. There cannot be more than one CA version waiting to be rotated in. For instances that have enabled Certificate Authority Service (CAS) based server CA, use AddServerCertificate to add a new server certificate.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2520,7 +4159,7 @@ pub struct SqlInstancesAddServerCaArgs {
     pub instance: String,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addServerCa
+/// POST v1/projects/{project}/instances/{instance}/addServerCa
 /// Adds a new trusted Certificate Authority (CA) version for the specified instance. Required to prepare for a certificate rotation. If a CA version was previously added but never used in a certificate rotation, this operation replaces that version. There cannot be more than one CA version waiting to be rotated in. For instances that have enabled Certificate Authority Service (CAS) based server CA, use AddServerCertificate to add a new server certificate.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2542,7 +4181,7 @@ pub fn sql_instances_add_server_ca(
     sql_instances_add_server_ca_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addServerCertificate
+/// POST v1/projects/{project}/instances/{instance}/addServerCertificate
 /// Add a new trusted server certificate version for the specified instance using Certificate Authority Service (CAS) server CA. Required to prepare for a certificate rotation. If a server certificate version was previously added but never used in a certificate rotation, this operation replaces that version. There cannot be more than one certificate version waiting to be rotated in. For instances not using CAS server CA, use AddServerCa instead.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2561,13 +4200,13 @@ pub fn sql_instances_add_server_certificate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addServerCertificate
+/// POST v1/projects/{project}/instances/{instance}/addServerCertificate
 /// Add a new trusted server certificate version for the specified instance using Certificate Authority Service (CAS) server CA. Required to prepare for a certificate rotation. If a server certificate version was previously added but never used in a certificate rotation, this operation replaces that version. There cannot be more than one certificate version waiting to be rotated in. For instances not using CAS server CA, use AddServerCa instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2641,7 +4280,7 @@ pub fn sql_instances_add_server_certificate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addServerCertificate
+/// POST v1/projects/{project}/instances/{instance}/addServerCertificate
 /// Add a new trusted server certificate version for the specified instance using Certificate Authority Service (CAS) server CA. Required to prepare for a certificate rotation. If a server certificate version was previously added but never used in a certificate rotation, this operation replaces that version. There cannot be more than one certificate version waiting to be rotated in. For instances not using CAS server CA, use AddServerCa instead.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2680,7 +4319,7 @@ pub struct SqlInstancesAddServerCertificateArgs {
     pub instance: String,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/addServerCertificate
+/// POST v1/projects/{project}/instances/{instance}/addServerCertificate
 /// Add a new trusted server certificate version for the specified instance using Certificate Authority Service (CAS) server CA. Required to prepare for a certificate rotation. If a server certificate version was previously added but never used in a certificate rotation, this operation replaces that version. There cannot be more than one certificate version waiting to be rotated in. For instances not using CAS server CA, use AddServerCa instead.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2703,7 +4342,7 @@ pub fn sql_instances_add_server_certificate(
     sql_instances_add_server_certificate_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/clone
+/// POST v1/projects/{project}/instances/{instance}/clone
 /// Creates a Cloud SQL instance as a clone of the source instance. Using this operation might cause your instance to restart.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2713,7 +4352,6 @@ pub fn sql_instances_clone_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesCloneRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2723,15 +4361,13 @@ pub fn sql_instances_clone_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/clone
+/// POST v1/projects/{project}/instances/{instance}/clone
 /// Creates a Cloud SQL instance as a clone of the source instance. Using this operation might cause your instance to restart.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2805,7 +4441,7 @@ pub fn sql_instances_clone_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/clone
+/// POST v1/projects/{project}/instances/{instance}/clone
 /// Creates a Cloud SQL instance as a clone of the source instance. Using this operation might cause your instance to restart.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2842,11 +4478,9 @@ pub struct SqlInstancesCloneArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesCloneRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/clone
+/// POST v1/projects/{project}/instances/{instance}/clone
 /// Creates a Cloud SQL instance as a clone of the source instance. Using this operation might cause your instance to restart.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2864,11 +4498,11 @@ pub fn sql_instances_clone(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_clone_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_clone_builder(client, &args.project, &args.instance)?;
     sql_instances_clone_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}
+/// DELETE v1/projects/{project}/instances/{instance}
 /// Deletes a Cloud SQL instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2878,10 +4512,10 @@ pub fn sql_instances_delete_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    enableFinalBackup: &Option<bool>,
-    finalBackupDescription: &Option<String>,
-    finalBackupExpiryTime: &Option<String>,
-    finalBackupTtlDays: &Option<String>,
+    enableFinalBackup: &Option<Option<String>>,
+    finalBackupDescription: &Option<Option<String>>,
+    finalBackupExpiryTime: &Option<Option<String>>,
+    finalBackupTtlDays: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2911,13 +4545,13 @@ pub fn sql_instances_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}
+/// DELETE v1/projects/{project}/instances/{instance}
 /// Deletes a Cloud SQL instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2991,7 +4625,7 @@ pub fn sql_instances_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}
+/// DELETE v1/projects/{project}/instances/{instance}
 /// Deletes a Cloud SQL instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3029,16 +4663,16 @@ pub struct SqlInstancesDeleteArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: enableFinalBackup
-    pub enableFinalBackup: Option<bool>,
+    pub enableFinalBackup: Option<Option<String>>,
     /// Query parameter: finalBackupDescription
-    pub finalBackupDescription: Option<String>,
+    pub finalBackupDescription: Option<Option<String>>,
     /// Query parameter: finalBackupExpiryTime
-    pub finalBackupExpiryTime: Option<String>,
+    pub finalBackupExpiryTime: Option<Option<String>>,
     /// Query parameter: finalBackupTtlDays
-    pub finalBackupTtlDays: Option<String>,
+    pub finalBackupTtlDays: Option<Option<String>>,
 }
 
-/// GET v1/projects/{project}/instances/{instance}
+/// DELETE v1/projects/{project}/instances/{instance}
 /// Deletes a Cloud SQL instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3068,7 +4702,7 @@ pub fn sql_instances_delete(
     sql_instances_delete_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/demote
+/// POST v1/projects/{project}/instances/{instance}/demote
 /// Demotes an existing standalone instance to be a Cloud SQL read replica for an external database server.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3078,7 +4712,6 @@ pub fn sql_instances_demote_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesDemoteRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3088,15 +4721,13 @@ pub fn sql_instances_demote_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/demote
+/// POST v1/projects/{project}/instances/{instance}/demote
 /// Demotes an existing standalone instance to be a Cloud SQL read replica for an external database server.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3170,7 +4801,7 @@ pub fn sql_instances_demote_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/demote
+/// POST v1/projects/{project}/instances/{instance}/demote
 /// Demotes an existing standalone instance to be a Cloud SQL read replica for an external database server.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3207,11 +4838,9 @@ pub struct SqlInstancesDemoteArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesDemoteRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/demote
+/// POST v1/projects/{project}/instances/{instance}/demote
 /// Demotes an existing standalone instance to be a Cloud SQL read replica for an external database server.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3229,11 +4858,11 @@ pub fn sql_instances_demote(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_demote_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_demote_builder(client, &args.project, &args.instance)?;
     sql_instances_demote_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/demoteMaster
+/// POST v1/projects/{project}/instances/{instance}/demoteMaster
 /// Demotes the stand-alone instance to be a Cloud SQL read replica for an external database server.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3243,7 +4872,6 @@ pub fn sql_instances_demote_master_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesDemoteMasterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3253,15 +4881,13 @@ pub fn sql_instances_demote_master_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/demoteMaster
+/// POST v1/projects/{project}/instances/{instance}/demoteMaster
 /// Demotes the stand-alone instance to be a Cloud SQL read replica for an external database server.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3335,7 +4961,7 @@ pub fn sql_instances_demote_master_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/demoteMaster
+/// POST v1/projects/{project}/instances/{instance}/demoteMaster
 /// Demotes the stand-alone instance to be a Cloud SQL read replica for an external database server.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3372,11 +4998,9 @@ pub struct SqlInstancesDemoteMasterArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesDemoteMasterRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/demoteMaster
+/// POST v1/projects/{project}/instances/{instance}/demoteMaster
 /// Demotes the stand-alone instance to be a Cloud SQL read replica for an external database server.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3394,12 +5018,11 @@ pub fn sql_instances_demote_master(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_demote_master_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_demote_master_builder(client, &args.project, &args.instance)?;
     sql_instances_demote_master_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/executeSql
+/// POST v1/projects/{project}/instances/{instance}/executeSql
 /// Execute SQL statements.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3409,7 +5032,6 @@ pub fn sql_instances_execute_sql_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &ExecuteSqlPayload,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3419,15 +5041,13 @@ pub fn sql_instances_execute_sql_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/executeSql
+/// POST v1/projects/{project}/instances/{instance}/executeSql
 /// Execute SQL statements.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3501,7 +5121,7 @@ pub fn sql_instances_execute_sql_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/executeSql
+/// POST v1/projects/{project}/instances/{instance}/executeSql
 /// Execute SQL statements.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3542,11 +5162,9 @@ pub struct SqlInstancesExecuteSqlArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: ExecuteSqlPayload,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/executeSql
+/// POST v1/projects/{project}/instances/{instance}/executeSql
 /// Execute SQL statements.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3568,12 +5186,11 @@ pub fn sql_instances_execute_sql(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_execute_sql_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_execute_sql_builder(client, &args.project, &args.instance)?;
     sql_instances_execute_sql_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/export
+/// POST v1/projects/{project}/instances/{instance}/export
 /// Exports data from a Cloud SQL instance to a Cloud Storage bucket as a SQL dump or CSV file.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3583,7 +5200,6 @@ pub fn sql_instances_export_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesExportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3593,15 +5209,13 @@ pub fn sql_instances_export_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/export
+/// POST v1/projects/{project}/instances/{instance}/export
 /// Exports data from a Cloud SQL instance to a Cloud Storage bucket as a SQL dump or CSV file.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3675,7 +5289,7 @@ pub fn sql_instances_export_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/export
+/// POST v1/projects/{project}/instances/{instance}/export
 /// Exports data from a Cloud SQL instance to a Cloud Storage bucket as a SQL dump or CSV file.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3712,11 +5326,9 @@ pub struct SqlInstancesExportArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesExportRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/export
+/// POST v1/projects/{project}/instances/{instance}/export
 /// Exports data from a Cloud SQL instance to a Cloud Storage bucket as a SQL dump or CSV file.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3734,11 +5346,11 @@ pub fn sql_instances_export(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_export_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_export_builder(client, &args.project, &args.instance)?;
     sql_instances_export_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/failover
+/// POST v1/projects/{project}/instances/{instance}/failover
 /// Initiates a manual failover of a high availability (HA) primary instance to a standby instance, which becomes the primary instance. Users are then rerouted to the new primary. For more information, see the [Overview of high availability](<https://cloud.google.`com/sql/docs/mysql/high-availability`>) page in the Cloud SQL documentation. If using Legacy HA (MySQL only), this causes the instance to failover to its failover replica instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3748,7 +5360,6 @@ pub fn sql_instances_failover_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesFailoverRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3758,15 +5369,13 @@ pub fn sql_instances_failover_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/failover
+/// POST v1/projects/{project}/instances/{instance}/failover
 /// Initiates a manual failover of a high availability (HA) primary instance to a standby instance, which becomes the primary instance. Users are then rerouted to the new primary. For more information, see the [Overview of high availability](<https://cloud.google.`com/sql/docs/mysql/high-availability`>) page in the Cloud SQL documentation. If using Legacy HA (MySQL only), this causes the instance to failover to its failover replica instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3840,7 +5449,7 @@ pub fn sql_instances_failover_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/failover
+/// POST v1/projects/{project}/instances/{instance}/failover
 /// Initiates a manual failover of a high availability (HA) primary instance to a standby instance, which becomes the primary instance. Users are then rerouted to the new primary. For more information, see the [Overview of high availability](<https://cloud.google.`com/sql/docs/mysql/high-availability`>) page in the Cloud SQL documentation. If using Legacy HA (MySQL only), this causes the instance to failover to its failover replica instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3877,11 +5486,9 @@ pub struct SqlInstancesFailoverArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesFailoverRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/failover
+/// POST v1/projects/{project}/instances/{instance}/failover
 /// Initiates a manual failover of a high availability (HA) primary instance to a standby instance, which becomes the primary instance. Users are then rerouted to the new primary. For more information, see the [Overview of high availability](<https://cloud.google.`com/sql/docs/mysql/high-availability`>) page in the Cloud SQL documentation. If using Legacy HA (MySQL only), this causes the instance to failover to its failover replica instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3899,12 +5506,175 @@ pub fn sql_instances_failover(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_failover_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_failover_builder(client, &args.project, &args.instance)?;
     sql_instances_failover_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/import
+/// GET v1/projects/{project}/instances/{instance}
+/// Retrieves a resource containing information about a Cloud SQL instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_instances_get_execute()` to send, or `sql_instances_get` for simplest API.
+
+pub fn sql_instances_get_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}",
+        project, instance,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}
+/// Retrieves a resource containing information about a Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_instances_get_execute()` or `sql_instances_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_instances_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabaseInstance>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: DatabaseInstance = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{project}/instances/{instance}
+/// Retrieves a resource containing information about a Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_instances_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_instances_get_task()`.
+/// For the simplest API, use `sql_instances_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_instances_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabaseInstance>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sql_instances_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
+/// GET v1/projects/{project}/instances/{instance}
+/// Retrieves a resource containing information about a Cloud SQL instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_instances_get_builder()` + `sql_instances_get_execute()`.
+/// For task-level control, use `sql_instances_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_instances_get(
+    client: &SimpleHttpClient,
+    args: &SqlInstancesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabaseInstance>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sql_instances_get_builder(client, &args.project, &args.instance)?;
+    sql_instances_get_execute(builder)
+}
+
+/// POST v1/projects/{project}/instances/{instance}/import
 /// Imports data into a Cloud SQL instance from a SQL dump or CSV file in Cloud Storage.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3914,7 +5684,6 @@ pub fn sql_instances_import_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesImportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3924,15 +5693,13 @@ pub fn sql_instances_import_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/import
+/// POST v1/projects/{project}/instances/{instance}/import
 /// Imports data into a Cloud SQL instance from a SQL dump or CSV file in Cloud Storage.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4006,7 +5773,7 @@ pub fn sql_instances_import_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/import
+/// POST v1/projects/{project}/instances/{instance}/import
 /// Imports data into a Cloud SQL instance from a SQL dump or CSV file in Cloud Storage.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4043,11 +5810,9 @@ pub struct SqlInstancesImportArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesImportRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/import
+/// POST v1/projects/{project}/instances/{instance}/import
 /// Imports data into a Cloud SQL instance from a SQL dump or CSV file in Cloud Storage.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4065,11 +5830,11 @@ pub fn sql_instances_import(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_import_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_import_builder(client, &args.project, &args.instance)?;
     sql_instances_import_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances
+/// POST v1/projects/{project}/instances
 /// Creates a new Cloud SQL instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4078,7 +5843,6 @@ pub fn sql_instances_import(
 pub fn sql_instances_insert_builder(
     client: &SimpleHttpClient,
     project: &String,
-    body: &DatabaseInstance,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4088,15 +5852,13 @@ pub fn sql_instances_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances
+/// POST v1/projects/{project}/instances
 /// Creates a new Cloud SQL instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4170,7 +5932,7 @@ pub fn sql_instances_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances
+/// POST v1/projects/{project}/instances
 /// Creates a new Cloud SQL instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4205,11 +5967,9 @@ pub fn sql_instances_insert_execute(
 pub struct SqlInstancesInsertArgs {
     /// Path parameter: project
     pub project: String,
-    /// Request body.
-    pub body: DatabaseInstance,
 }
 
-/// GET v1/projects/{project}/instances
+/// POST v1/projects/{project}/instances
 /// Creates a new Cloud SQL instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4227,8 +5987,201 @@ pub fn sql_instances_insert(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_insert_builder(client, &args.project, &args.body)?;
+    let builder = sql_instances_insert_builder(client, &args.project)?;
     sql_instances_insert_execute(builder)
+}
+
+/// GET v1/projects/{project}/instances
+/// Lists instances under a given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_instances_list_execute()` to send, or `sql_instances_list` for simplest API.
+
+pub fn sql_instances_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    filter: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances",
+        project,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = maxResults.as_ref() {
+        query_parts.push(format!("maxResults={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{project}/instances
+/// Lists instances under a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_instances_list_execute()` or `sql_instances_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_instances_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InstancesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: InstancesListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{project}/instances
+/// Lists instances under a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_instances_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_instances_list_task()`.
+/// For the simplest API, use `sql_instances_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_instances_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InstancesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sql_instances_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{project}/instances
+/// Lists instances under a given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_instances_list_builder()` + `sql_instances_list_execute()`.
+/// For task-level control, use `sql_instances_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_instances_list(
+    client: &SimpleHttpClient,
+    args: &SqlInstancesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<InstancesListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sql_instances_list_builder(
+        client,
+        &args.project,
+        &args.filter,
+        &args.maxResults,
+        &args.pageToken,
+    )?;
+    sql_instances_list_execute(builder)
 }
 
 /// GET v1/projects/{project}/instances/{instance}/listServerCas
@@ -4399,7 +6352,167 @@ pub fn sql_instances_list_server_cas(
     sql_instances_list_server_cas_execute(builder)
 }
 
-/// GET v1/projects/{projectsId}:pointInTimeRestore
+/// PATCH v1/projects/{project}/instances/{instance}
+/// Partially updates settings of a Cloud SQL instance by merging the request with the current configuration. This method supports patch semantics.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_instances_patch_execute()` to send, or `sql_instances_patch` for simplest API.
+
+pub fn sql_instances_patch_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}",
+        project, instance,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{project}/instances/{instance}
+/// Partially updates settings of a Cloud SQL instance by merging the request with the current configuration. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_instances_patch_execute()` or `sql_instances_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_instances_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{project}/instances/{instance}
+/// Partially updates settings of a Cloud SQL instance by merging the request with the current configuration. This method supports patch semantics.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_instances_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_instances_patch_task()`.
+/// For the simplest API, use `sql_instances_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_instances_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql_instances_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
+/// PATCH v1/projects/{project}/instances/{instance}
+/// Partially updates settings of a Cloud SQL instance by merging the request with the current configuration. This method supports patch semantics.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_instances_patch_builder()` + `sql_instances_patch_execute()`.
+/// For task-level control, use `sql_instances_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_instances_patch(
+    client: &SimpleHttpClient,
+    args: &SqlInstancesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = sql_instances_patch_builder(client, &args.project, &args.instance)?;
+    sql_instances_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}:pointInTimeRestore
 /// Point in time restore for an instance managed by Google Cloud Backup and Disaster Recovery.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4408,23 +6521,22 @@ pub fn sql_instances_list_server_cas(
 pub fn sql_instances_point_in_time_restore_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &PointInTimeRestoreContext,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://sqladmin.googleapis.com/v1/projects/{}:pointInTimeRestore",);
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}:pointInTimeRestore",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{projectsId}:pointInTimeRestore
+/// POST v1/projects/{projectsId}:pointInTimeRestore
 /// Point in time restore for an instance managed by Google Cloud Backup and Disaster Recovery.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4498,7 +6610,7 @@ pub fn sql_instances_point_in_time_restore_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{projectsId}:pointInTimeRestore
+/// POST v1/projects/{projectsId}:pointInTimeRestore
 /// Point in time restore for an instance managed by Google Cloud Backup and Disaster Recovery.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4533,11 +6645,9 @@ pub fn sql_instances_point_in_time_restore_execute(
 pub struct SqlInstancesPointInTimeRestoreArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: PointInTimeRestoreContext,
 }
 
-/// GET v1/projects/{projectsId}:pointInTimeRestore
+/// POST v1/projects/{projectsId}:pointInTimeRestore
 /// Point in time restore for an instance managed by Google Cloud Backup and Disaster Recovery.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4555,11 +6665,11 @@ pub fn sql_instances_point_in_time_restore(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_instances_point_in_time_restore_builder(client, &args.parent, &args.body)?;
+    let builder = sql_instances_point_in_time_restore_builder(client, &args.parent)?;
     sql_instances_point_in_time_restore_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/preCheckMajorVersionUpgrade
+/// POST v1/projects/{project}/instances/{instance}/preCheckMajorVersionUpgrade
 /// Execute MVU Pre-checks
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4569,7 +6679,6 @@ pub fn sql_instances_pre_check_major_version_upgrade_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesPreCheckMajorVersionUpgradeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4579,15 +6688,13 @@ pub fn sql_instances_pre_check_major_version_upgrade_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/preCheckMajorVersionUpgrade
+/// POST v1/projects/{project}/instances/{instance}/preCheckMajorVersionUpgrade
 /// Execute MVU Pre-checks
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4661,7 +6768,7 @@ pub fn sql_instances_pre_check_major_version_upgrade_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/preCheckMajorVersionUpgrade
+/// POST v1/projects/{project}/instances/{instance}/preCheckMajorVersionUpgrade
 /// Execute MVU Pre-checks
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4698,11 +6805,9 @@ pub struct SqlInstancesPreCheckMajorVersionUpgradeArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesPreCheckMajorVersionUpgradeRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/preCheckMajorVersionUpgrade
+/// POST v1/projects/{project}/instances/{instance}/preCheckMajorVersionUpgrade
 /// Execute MVU Pre-checks
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4724,12 +6829,11 @@ pub fn sql_instances_pre_check_major_version_upgrade(
         client,
         &args.project,
         &args.instance,
-        &args.body,
     )?;
     sql_instances_pre_check_major_version_upgrade_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/promoteReplica
+/// POST v1/projects/{project}/instances/{instance}/promoteReplica
 /// Promotes the read replica instance to be an independent Cloud SQL primary instance. Using this operation might cause your instance to restart.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4739,7 +6843,7 @@ pub fn sql_instances_promote_replica_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    failover: &Option<bool>,
+    failover: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4760,13 +6864,13 @@ pub fn sql_instances_promote_replica_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/promoteReplica
+/// POST v1/projects/{project}/instances/{instance}/promoteReplica
 /// Promotes the read replica instance to be an independent Cloud SQL primary instance. Using this operation might cause your instance to restart.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -4840,7 +6944,7 @@ pub fn sql_instances_promote_replica_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/promoteReplica
+/// POST v1/projects/{project}/instances/{instance}/promoteReplica
 /// Promotes the read replica instance to be an independent Cloud SQL primary instance. Using this operation might cause your instance to restart.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -4878,10 +6982,10 @@ pub struct SqlInstancesPromoteReplicaArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: failover
-    pub failover: Option<bool>,
+    pub failover: Option<Option<String>>,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/promoteReplica
+/// POST v1/projects/{project}/instances/{instance}/promoteReplica
 /// Promotes the read replica instance to be an independent Cloud SQL primary instance. Using this operation might cause your instance to restart.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -4908,7 +7012,7 @@ pub fn sql_instances_promote_replica(
     sql_instances_promote_replica_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/reencrypt
+/// POST v1/projects/{project}/instances/{instance}/reencrypt
 /// Reencrypt CMEK instance with latest key version.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -4918,7 +7022,6 @@ pub fn sql_instances_reencrypt_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesReencryptRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -4928,15 +7031,13 @@ pub fn sql_instances_reencrypt_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/reencrypt
+/// POST v1/projects/{project}/instances/{instance}/reencrypt
 /// Reencrypt CMEK instance with latest key version.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5010,7 +7111,7 @@ pub fn sql_instances_reencrypt_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/reencrypt
+/// POST v1/projects/{project}/instances/{instance}/reencrypt
 /// Reencrypt CMEK instance with latest key version.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5047,11 +7148,9 @@ pub struct SqlInstancesReencryptArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesReencryptRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/reencrypt
+/// POST v1/projects/{project}/instances/{instance}/reencrypt
 /// Reencrypt CMEK instance with latest key version.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5069,12 +7168,11 @@ pub fn sql_instances_reencrypt(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_reencrypt_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_reencrypt_builder(client, &args.project, &args.instance)?;
     sql_instances_reencrypt_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/releaseSsrsLease
+/// POST v1/projects/{project}/instances/{instance}/releaseSsrsLease
 /// Release a lease for the setup of SQL Server Reporting Services (SSRS).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5093,13 +7191,13 @@ pub fn sql_instances_release_ssrs_lease_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/releaseSsrsLease
+/// POST v1/projects/{project}/instances/{instance}/releaseSsrsLease
 /// Release a lease for the setup of SQL Server Reporting Services (SSRS).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5173,7 +7271,7 @@ pub fn sql_instances_release_ssrs_lease_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/releaseSsrsLease
+/// POST v1/projects/{project}/instances/{instance}/releaseSsrsLease
 /// Release a lease for the setup of SQL Server Reporting Services (SSRS).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5216,7 +7314,7 @@ pub struct SqlInstancesReleaseSsrsLeaseArgs {
     pub instance: String,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/releaseSsrsLease
+/// POST v1/projects/{project}/instances/{instance}/releaseSsrsLease
 /// Release a lease for the setup of SQL Server Reporting Services (SSRS).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5242,7 +7340,7 @@ pub fn sql_instances_release_ssrs_lease(
     sql_instances_release_ssrs_lease_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/resetSslConfig
+/// POST v1/projects/{project}/instances/{instance}/resetSslConfig
 /// Deletes all client certificates and generates a new server SSL certificate for the instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5252,7 +7350,7 @@ pub fn sql_instances_reset_ssl_config_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    mode: &Option<String>,
+    mode: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5273,13 +7371,13 @@ pub fn sql_instances_reset_ssl_config_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/resetSslConfig
+/// POST v1/projects/{project}/instances/{instance}/resetSslConfig
 /// Deletes all client certificates and generates a new server SSL certificate for the instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5353,7 +7451,7 @@ pub fn sql_instances_reset_ssl_config_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/resetSslConfig
+/// POST v1/projects/{project}/instances/{instance}/resetSslConfig
 /// Deletes all client certificates and generates a new server SSL certificate for the instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5391,10 +7489,10 @@ pub struct SqlInstancesResetSslConfigArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: mode
-    pub mode: Option<String>,
+    pub mode: Option<Option<String>>,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/resetSslConfig
+/// POST v1/projects/{project}/instances/{instance}/resetSslConfig
 /// Deletes all client certificates and generates a new server SSL certificate for the instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5417,7 +7515,7 @@ pub fn sql_instances_reset_ssl_config(
     sql_instances_reset_ssl_config_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/restart
+/// POST v1/projects/{project}/instances/{instance}/restart
 /// Restarts a Cloud SQL instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5436,13 +7534,13 @@ pub fn sql_instances_restart_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/restart
+/// POST v1/projects/{project}/instances/{instance}/restart
 /// Restarts a Cloud SQL instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5516,7 +7614,7 @@ pub fn sql_instances_restart_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/restart
+/// POST v1/projects/{project}/instances/{instance}/restart
 /// Restarts a Cloud SQL instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5555,7 +7653,7 @@ pub struct SqlInstancesRestartArgs {
     pub instance: String,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/restart
+/// POST v1/projects/{project}/instances/{instance}/restart
 /// Restarts a Cloud SQL instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5577,7 +7675,7 @@ pub fn sql_instances_restart(
     sql_instances_restart_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/restoreBackup
+/// POST v1/projects/{project}/instances/{instance}/restoreBackup
 /// Restores a backup of a Cloud SQL instance. Using this operation might cause your instance to restart.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5587,7 +7685,6 @@ pub fn sql_instances_restore_backup_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesRestoreBackupRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5597,15 +7694,13 @@ pub fn sql_instances_restore_backup_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/restoreBackup
+/// POST v1/projects/{project}/instances/{instance}/restoreBackup
 /// Restores a backup of a Cloud SQL instance. Using this operation might cause your instance to restart.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5679,7 +7774,7 @@ pub fn sql_instances_restore_backup_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/restoreBackup
+/// POST v1/projects/{project}/instances/{instance}/restoreBackup
 /// Restores a backup of a Cloud SQL instance. Using this operation might cause your instance to restart.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5716,11 +7811,9 @@ pub struct SqlInstancesRestoreBackupArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesRestoreBackupRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/restoreBackup
+/// POST v1/projects/{project}/instances/{instance}/restoreBackup
 /// Restores a backup of a Cloud SQL instance. Using this operation might cause your instance to restart.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5738,12 +7831,11 @@ pub fn sql_instances_restore_backup(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_restore_backup_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_restore_backup_builder(client, &args.project, &args.instance)?;
     sql_instances_restore_backup_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateServerCa
+/// POST v1/projects/{project}/instances/{instance}/rotateServerCa
 /// Rotates the server certificate to one signed by the Certificate Authority (CA) version previously added with the `addServerCA` method. For instances that have enabled Certificate Authority Service (CAS) based server CA, use RotateServerCertificate to rotate the server certificate.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5753,7 +7845,6 @@ pub fn sql_instances_rotate_server_ca_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesRotateServerCaRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -5763,15 +7854,13 @@ pub fn sql_instances_rotate_server_ca_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateServerCa
+/// POST v1/projects/{project}/instances/{instance}/rotateServerCa
 /// Rotates the server certificate to one signed by the Certificate Authority (CA) version previously added with the `addServerCA` method. For instances that have enabled Certificate Authority Service (CAS) based server CA, use RotateServerCertificate to rotate the server certificate.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -5845,7 +7934,7 @@ pub fn sql_instances_rotate_server_ca_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateServerCa
+/// POST v1/projects/{project}/instances/{instance}/rotateServerCa
 /// Rotates the server certificate to one signed by the Certificate Authority (CA) version previously added with the `addServerCA` method. For instances that have enabled Certificate Authority Service (CAS) based server CA, use RotateServerCertificate to rotate the server certificate.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -5882,11 +7971,9 @@ pub struct SqlInstancesRotateServerCaArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesRotateServerCaRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rotateServerCa
+/// POST v1/projects/{project}/instances/{instance}/rotateServerCa
 /// Rotates the server certificate to one signed by the Certificate Authority (CA) version previously added with the `addServerCA` method. For instances that have enabled Certificate Authority Service (CAS) based server CA, use RotateServerCertificate to rotate the server certificate.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -5904,12 +7991,11 @@ pub fn sql_instances_rotate_server_ca(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_rotate_server_ca_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_rotate_server_ca_builder(client, &args.project, &args.instance)?;
     sql_instances_rotate_server_ca_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/startReplica
+/// POST v1/projects/{project}/instances/{instance}/startReplica
 /// Starts the replication in the read replica instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -5928,13 +8014,13 @@ pub fn sql_instances_start_replica_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/startReplica
+/// POST v1/projects/{project}/instances/{instance}/startReplica
 /// Starts the replication in the read replica instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6008,7 +8094,7 @@ pub fn sql_instances_start_replica_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/startReplica
+/// POST v1/projects/{project}/instances/{instance}/startReplica
 /// Starts the replication in the read replica instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6047,7 +8133,7 @@ pub struct SqlInstancesStartReplicaArgs {
     pub instance: String,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/startReplica
+/// POST v1/projects/{project}/instances/{instance}/startReplica
 /// Starts the replication in the read replica instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6069,7 +8155,7 @@ pub fn sql_instances_start_replica(
     sql_instances_start_replica_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/stopReplica
+/// POST v1/projects/{project}/instances/{instance}/stopReplica
 /// Stops the replication in the read replica instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6088,13 +8174,13 @@ pub fn sql_instances_stop_replica_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/stopReplica
+/// POST v1/projects/{project}/instances/{instance}/stopReplica
 /// Stops the replication in the read replica instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6168,7 +8254,7 @@ pub fn sql_instances_stop_replica_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/stopReplica
+/// POST v1/projects/{project}/instances/{instance}/stopReplica
 /// Stops the replication in the read replica instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6207,7 +8293,7 @@ pub struct SqlInstancesStopReplicaArgs {
     pub instance: String,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/stopReplica
+/// POST v1/projects/{project}/instances/{instance}/stopReplica
 /// Stops the replication in the read replica instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6229,7 +8315,7 @@ pub fn sql_instances_stop_replica(
     sql_instances_stop_replica_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/switchover
+/// POST v1/projects/{project}/instances/{instance}/switchover
 /// Switches over from the primary instance to the DR replica instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6239,7 +8325,7 @@ pub fn sql_instances_switchover_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    dbTimeout: &Option<String>,
+    dbTimeout: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6260,13 +8346,13 @@ pub fn sql_instances_switchover_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/switchover
+/// POST v1/projects/{project}/instances/{instance}/switchover
 /// Switches over from the primary instance to the DR replica instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6340,7 +8426,7 @@ pub fn sql_instances_switchover_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/switchover
+/// POST v1/projects/{project}/instances/{instance}/switchover
 /// Switches over from the primary instance to the DR replica instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6378,10 +8464,10 @@ pub struct SqlInstancesSwitchoverArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: dbTimeout
-    pub dbTimeout: Option<String>,
+    pub dbTimeout: Option<Option<String>>,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/switchover
+/// POST v1/projects/{project}/instances/{instance}/switchover
 /// Switches over from the primary instance to the DR replica instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6404,7 +8490,7 @@ pub fn sql_instances_switchover(
     sql_instances_switchover_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/truncateLog
+/// POST v1/projects/{project}/instances/{instance}/truncateLog
 /// Truncate MySQL general and slow query log tables MySQL only.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6414,7 +8500,6 @@ pub fn sql_instances_truncate_log_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &InstancesTruncateLogRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -6424,15 +8509,13 @@ pub fn sql_instances_truncate_log_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/truncateLog
+/// POST v1/projects/{project}/instances/{instance}/truncateLog
 /// Truncate MySQL general and slow query log tables MySQL only.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6506,7 +8589,7 @@ pub fn sql_instances_truncate_log_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/truncateLog
+/// POST v1/projects/{project}/instances/{instance}/truncateLog
 /// Truncate MySQL general and slow query log tables MySQL only.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6543,11 +8626,9 @@ pub struct SqlInstancesTruncateLogArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: InstancesTruncateLogRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/truncateLog
+/// POST v1/projects/{project}/instances/{instance}/truncateLog
 /// Truncate MySQL general and slow query log tables MySQL only.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6565,12 +8646,171 @@ pub fn sql_instances_truncate_log(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_instances_truncate_log_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_instances_truncate_log_builder(client, &args.project, &args.instance)?;
     sql_instances_truncate_log_execute(builder)
 }
 
-/// GET v1/projects/{project}/operations/{operation}/cancel
+/// PUT v1/projects/{project}/instances/{instance}
+/// Updates settings of a Cloud SQL instance. Using this operation might cause your instance to restart.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_instances_update_execute()` to send, or `sql_instances_update` for simplest API.
+
+pub fn sql_instances_update_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}",
+        project, instance,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{project}/instances/{instance}
+/// Updates settings of a Cloud SQL instance. Using this operation might cause your instance to restart.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_instances_update_execute()` or `sql_instances_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_instances_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{project}/instances/{instance}
+/// Updates settings of a Cloud SQL instance. Using this operation might cause your instance to restart.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_instances_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_instances_update_task()`.
+/// For the simplest API, use `sql_instances_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_instances_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_instances_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql_instances_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_instances_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlInstancesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
+/// PUT v1/projects/{project}/instances/{instance}
+/// Updates settings of a Cloud SQL instance. Using this operation might cause your instance to restart.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_instances_update_builder()` + `sql_instances_update_execute()`.
+/// For task-level control, use `sql_instances_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_instances_update(
+    client: &SimpleHttpClient,
+    args: &SqlInstancesUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = sql_instances_update_builder(client, &args.project, &args.instance)?;
+    sql_instances_update_execute(builder)
+}
+
+/// POST v1/projects/{project}/operations/{operation}/cancel
 /// Cancels an instance operation that has been performed on an instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -6589,13 +8829,13 @@ pub fn sql_operations_cancel_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/operations/{operation}/cancel
+/// POST v1/projects/{project}/operations/{operation}/cancel
 /// Cancels an instance operation that has been performed on an instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -6669,7 +8909,7 @@ pub fn sql_operations_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/operations/{operation}/cancel
+/// POST v1/projects/{project}/operations/{operation}/cancel
 /// Cancels an instance operation that has been performed on an instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -6708,7 +8948,7 @@ pub struct SqlOperationsCancelArgs {
     pub operation: String,
 }
 
-/// GET v1/projects/{project}/operations/{operation}/cancel
+/// POST v1/projects/{project}/operations/{operation}/cancel
 /// Cancels an instance operation that has been performed on an instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -6899,9 +9139,9 @@ pub fn sql_operations_get(
 pub fn sql_operations_list_builder(
     client: &SimpleHttpClient,
     project: &String,
-    instance: &Option<String>,
-    maxResults: &Option<i32>,
-    pageToken: &Option<String>,
+    instance: &Option<Option<String>>,
+    maxResults: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7046,11 +9286,11 @@ pub struct SqlOperationsListArgs {
     /// Path parameter: project
     pub project: String,
     /// Query parameter: instance
-    pub instance: Option<String>,
+    pub instance: Option<Option<String>>,
     /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
+    pub maxResults: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{project}/operations
@@ -7266,7 +9506,7 @@ pub fn sql_projects_instances_get_latest_recovery_time_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    sourceInstanceDeletionTime: &Option<String>,
+    sourceInstanceDeletionTime: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7409,7 +9649,7 @@ pub struct SqlProjectsInstancesGetLatestRecoveryTimeArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: sourceInstanceDeletionTime
-    pub sourceInstanceDeletionTime: Option<String>,
+    pub sourceInstanceDeletionTime: Option<Option<String>>,
 }
 
 /// GET v1/projects/{project}/instances/{instance}/getLatestRecoveryTime
@@ -7443,7 +9683,7 @@ pub fn sql_projects_instances_get_latest_recovery_time(
     sql_projects_instances_get_latest_recovery_time_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/performDiskShrink
+/// POST v1/projects/{project}/instances/{instance}/performDiskShrink
 /// Perform Disk Shrink on primary instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7453,7 +9693,6 @@ pub fn sql_projects_instances_perform_disk_shrink_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &PerformDiskShrinkContext,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7463,15 +9702,13 @@ pub fn sql_projects_instances_perform_disk_shrink_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/performDiskShrink
+/// POST v1/projects/{project}/instances/{instance}/performDiskShrink
 /// Perform Disk Shrink on primary instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7545,7 +9782,7 @@ pub fn sql_projects_instances_perform_disk_shrink_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/performDiskShrink
+/// POST v1/projects/{project}/instances/{instance}/performDiskShrink
 /// Perform Disk Shrink on primary instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7582,11 +9819,9 @@ pub struct SqlProjectsInstancesPerformDiskShrinkArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: PerformDiskShrinkContext,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/performDiskShrink
+/// POST v1/projects/{project}/instances/{instance}/performDiskShrink
 /// Perform Disk Shrink on primary instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7604,16 +9839,12 @@ pub fn sql_projects_instances_perform_disk_shrink(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_projects_instances_perform_disk_shrink_builder(
-        client,
-        &args.project,
-        &args.instance,
-        &args.body,
-    )?;
+    let builder =
+        sql_projects_instances_perform_disk_shrink_builder(client, &args.project, &args.instance)?;
     sql_projects_instances_perform_disk_shrink_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rescheduleMaintenance
+/// POST v1/projects/{project}/instances/{instance}/rescheduleMaintenance
 /// Reschedules the maintenance on the given instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7623,7 +9854,6 @@ pub fn sql_projects_instances_reschedule_maintenance_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &SqlInstancesRescheduleMaintenanceRequestBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7633,15 +9863,13 @@ pub fn sql_projects_instances_reschedule_maintenance_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rescheduleMaintenance
+/// POST v1/projects/{project}/instances/{instance}/rescheduleMaintenance
 /// Reschedules the maintenance on the given instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7715,7 +9943,7 @@ pub fn sql_projects_instances_reschedule_maintenance_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rescheduleMaintenance
+/// POST v1/projects/{project}/instances/{instance}/rescheduleMaintenance
 /// Reschedules the maintenance on the given instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7752,11 +9980,9 @@ pub struct SqlProjectsInstancesRescheduleMaintenanceArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: SqlInstancesRescheduleMaintenanceRequestBody,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/rescheduleMaintenance
+/// POST v1/projects/{project}/instances/{instance}/rescheduleMaintenance
 /// Reschedules the maintenance on the given instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7778,12 +10004,11 @@ pub fn sql_projects_instances_reschedule_maintenance(
         client,
         &args.project,
         &args.instance,
-        &args.body,
     )?;
     sql_projects_instances_reschedule_maintenance_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/resetReplicaSize
+/// POST v1/projects/{project}/instances/{instance}/resetReplicaSize
 /// Reset Replica Size to primary instance disk size.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7793,7 +10018,6 @@ pub fn sql_projects_instances_reset_replica_size_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &SqlInstancesResetReplicaSizeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7803,15 +10027,13 @@ pub fn sql_projects_instances_reset_replica_size_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/resetReplicaSize
+/// POST v1/projects/{project}/instances/{instance}/resetReplicaSize
 /// Reset Replica Size to primary instance disk size.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -7885,7 +10107,7 @@ pub fn sql_projects_instances_reset_replica_size_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/resetReplicaSize
+/// POST v1/projects/{project}/instances/{instance}/resetReplicaSize
 /// Reset Replica Size to primary instance disk size.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -7922,11 +10144,9 @@ pub struct SqlProjectsInstancesResetReplicaSizeArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: SqlInstancesResetReplicaSizeRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/resetReplicaSize
+/// POST v1/projects/{project}/instances/{instance}/resetReplicaSize
 /// Reset Replica Size to primary instance disk size.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -7944,16 +10164,12 @@ pub fn sql_projects_instances_reset_replica_size(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_projects_instances_reset_replica_size_builder(
-        client,
-        &args.project,
-        &args.instance,
-        &args.body,
-    )?;
+    let builder =
+        sql_projects_instances_reset_replica_size_builder(client, &args.project, &args.instance)?;
     sql_projects_instances_reset_replica_size_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/startExternalSync
+/// POST v1/projects/{project}/instances/{instance}/startExternalSync
 /// Start External primary instance migration.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -7963,7 +10179,6 @@ pub fn sql_projects_instances_start_external_sync_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &SqlInstancesStartExternalSyncRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -7973,15 +10188,13 @@ pub fn sql_projects_instances_start_external_sync_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/startExternalSync
+/// POST v1/projects/{project}/instances/{instance}/startExternalSync
 /// Start External primary instance migration.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8055,7 +10268,7 @@ pub fn sql_projects_instances_start_external_sync_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/startExternalSync
+/// POST v1/projects/{project}/instances/{instance}/startExternalSync
 /// Start External primary instance migration.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8092,11 +10305,9 @@ pub struct SqlProjectsInstancesStartExternalSyncArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: SqlInstancesStartExternalSyncRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/startExternalSync
+/// POST v1/projects/{project}/instances/{instance}/startExternalSync
 /// Start External primary instance migration.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8114,16 +10325,12 @@ pub fn sql_projects_instances_start_external_sync(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = sql_projects_instances_start_external_sync_builder(
-        client,
-        &args.project,
-        &args.instance,
-        &args.body,
-    )?;
+    let builder =
+        sql_projects_instances_start_external_sync_builder(client, &args.project, &args.instance)?;
     sql_projects_instances_start_external_sync_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/verifyExternalSyncSettings
+/// POST v1/projects/{project}/instances/{instance}/verifyExternalSyncSettings
 /// Verify External primary instance external sync settings.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8133,7 +10340,6 @@ pub fn sql_projects_instances_verify_external_sync_settings_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &SqlInstancesVerifyExternalSyncSettingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8143,15 +10349,13 @@ pub fn sql_projects_instances_verify_external_sync_settings_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/verifyExternalSyncSettings
+/// POST v1/projects/{project}/instances/{instance}/verifyExternalSyncSettings
 /// Verify External primary instance external sync settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8226,7 +10430,7 @@ pub fn sql_projects_instances_verify_external_sync_settings_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/verifyExternalSyncSettings
+/// POST v1/projects/{project}/instances/{instance}/verifyExternalSyncSettings
 /// Verify External primary instance external sync settings.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8267,11 +10471,9 @@ pub struct SqlProjectsInstancesVerifyExternalSyncSettingsArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: SqlInstancesVerifyExternalSyncSettingsRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/verifyExternalSyncSettings
+/// POST v1/projects/{project}/instances/{instance}/verifyExternalSyncSettings
 /// Verify External primary instance external sync settings.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8297,12 +10499,11 @@ pub fn sql_projects_instances_verify_external_sync_settings(
         client,
         &args.project,
         &args.instance,
-        &args.body,
     )?;
     sql_projects_instances_verify_external_sync_settings_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/createEphemeral
+/// POST v1/projects/{project}/instances/{instance}/createEphemeral
 /// Generates a short-lived X509 certificate containing the provided public key and signed by a private key specific to the target instance. Users may use the certificate to authenticate as themselves when connecting to the database.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8312,7 +10513,6 @@ pub fn sql_ssl_certs_create_ephemeral_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &SslCertsCreateEphemeralRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8322,15 +10522,13 @@ pub fn sql_ssl_certs_create_ephemeral_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/createEphemeral
+/// POST v1/projects/{project}/instances/{instance}/createEphemeral
 /// Generates a short-lived X509 certificate containing the provided public key and signed by a private key specific to the target instance. Users may use the certificate to authenticate as themselves when connecting to the database.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8404,7 +10602,7 @@ pub fn sql_ssl_certs_create_ephemeral_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/createEphemeral
+/// POST v1/projects/{project}/instances/{instance}/createEphemeral
 /// Generates a short-lived X509 certificate containing the provided public key and signed by a private key specific to the target instance. Users may use the certificate to authenticate as themselves when connecting to the database.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8441,11 +10639,9 @@ pub struct SqlSslCertsCreateEphemeralArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: SslCertsCreateEphemeralRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/createEphemeral
+/// POST v1/projects/{project}/instances/{instance}/createEphemeral
 /// Generates a short-lived X509 certificate containing the provided public key and signed by a private key specific to the target instance. Users may use the certificate to authenticate as themselves when connecting to the database.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8463,12 +10659,11 @@ pub fn sql_ssl_certs_create_ephemeral(
     impl StreamIterator<D = Result<ApiResponse<SslCert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sql_ssl_certs_create_ephemeral_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_ssl_certs_create_ephemeral_builder(client, &args.project, &args.instance)?;
     sql_ssl_certs_create_ephemeral_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
+/// DELETE v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
 /// Deletes the SSL certificate. For First Generation instances, the certificate remains valid until the instance is restarted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8488,13 +10683,13 @@ pub fn sql_ssl_certs_delete_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
+/// DELETE v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
 /// Deletes the SSL certificate. For First Generation instances, the certificate remains valid until the instance is restarted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8568,7 +10763,7 @@ pub fn sql_ssl_certs_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
+/// DELETE v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
 /// Deletes the SSL certificate. For First Generation instances, the certificate remains valid until the instance is restarted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8609,7 +10804,7 @@ pub struct SqlSslCertsDeleteArgs {
     pub sha1Fingerprint: String,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
+/// DELETE v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
 /// Deletes the SSL certificate. For First Generation instances, the certificate remains valid until the instance is restarted.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8632,7 +10827,171 @@ pub fn sql_ssl_certs_delete(
     sql_ssl_certs_delete_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/sslCerts
+/// GET v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
+/// Retrieves a particular SSL certificate. Does not include the private key (required for usage). The private key must be saved from the response to initial creation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_ssl_certs_get_execute()` to send, or `sql_ssl_certs_get` for simplest API.
+
+pub fn sql_ssl_certs_get_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+    sha1Fingerprint: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/sslCerts/{}",
+        project, instance, sha1Fingerprint,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
+/// Retrieves a particular SSL certificate. Does not include the private key (required for usage). The private key must be saved from the response to initial creation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_ssl_certs_get_execute()` or `sql_ssl_certs_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_ssl_certs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_ssl_certs_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SslCert>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SslCert = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
+/// Retrieves a particular SSL certificate. Does not include the private key (required for usage). The private key must be saved from the response to initial creation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_ssl_certs_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_ssl_certs_get_task()`.
+/// For the simplest API, use `sql_ssl_certs_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_ssl_certs_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_ssl_certs_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SslCert>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql_ssl_certs_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_ssl_certs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlSslCertsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Path parameter: sha1Fingerprint
+    pub sha1Fingerprint: String,
+}
+
+/// GET v1/projects/{project}/instances/{instance}/sslCerts/{sha1Fingerprint}
+/// Retrieves a particular SSL certificate. Does not include the private key (required for usage). The private key must be saved from the response to initial creation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_ssl_certs_get_builder()` + `sql_ssl_certs_get_execute()`.
+/// For task-level control, use `sql_ssl_certs_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_ssl_certs_get(
+    client: &SimpleHttpClient,
+    args: &SqlSslCertsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SslCert>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        sql_ssl_certs_get_builder(client, &args.project, &args.instance, &args.sha1Fingerprint)?;
+    sql_ssl_certs_get_execute(builder)
+}
+
+/// POST v1/projects/{project}/instances/{instance}/sslCerts
 /// Creates an SSL certificate and returns it along with the private key and server certificate authority. The new certificate will not be usable until the instance is restarted.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8642,7 +11001,6 @@ pub fn sql_ssl_certs_insert_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    body: &SslCertsInsertRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8652,15 +11010,13 @@ pub fn sql_ssl_certs_insert_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/sslCerts
+/// POST v1/projects/{project}/instances/{instance}/sslCerts
 /// Creates an SSL certificate and returns it along with the private key and server certificate authority. The new certificate will not be usable until the instance is restarted.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -8734,7 +11090,7 @@ pub fn sql_ssl_certs_insert_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/sslCerts
+/// POST v1/projects/{project}/instances/{instance}/sslCerts
 /// Creates an SSL certificate and returns it along with the private key and server certificate authority. The new certificate will not be usable until the instance is restarted.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -8773,11 +11129,9 @@ pub struct SqlSslCertsInsertArgs {
     pub project: String,
     /// Path parameter: instance
     pub instance: String,
-    /// Request body.
-    pub body: SslCertsInsertRequest,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/sslCerts
+/// POST v1/projects/{project}/instances/{instance}/sslCerts
 /// Creates an SSL certificate and returns it along with the private key and server certificate authority. The new certificate will not be usable until the instance is restarted.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -8797,8 +11151,172 @@ pub fn sql_ssl_certs_insert(
         + 'static,
     ApiError,
 > {
-    let builder = sql_ssl_certs_insert_builder(client, &args.project, &args.instance, &args.body)?;
+    let builder = sql_ssl_certs_insert_builder(client, &args.project, &args.instance)?;
     sql_ssl_certs_insert_execute(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}/sslCerts
+/// Lists all of the current SSL certificates for the instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_ssl_certs_list_execute()` to send, or `sql_ssl_certs_list` for simplest API.
+
+pub fn sql_ssl_certs_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/sslCerts",
+        project, instance,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}/sslCerts
+/// Lists all of the current SSL certificates for the instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_ssl_certs_list_execute()` or `sql_ssl_certs_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_ssl_certs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_ssl_certs_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SslCertsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SslCertsListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{project}/instances/{instance}/sslCerts
+/// Lists all of the current SSL certificates for the instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_ssl_certs_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_ssl_certs_list_task()`.
+/// For the simplest API, use `sql_ssl_certs_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_ssl_certs_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_ssl_certs_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SslCertsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sql_ssl_certs_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_ssl_certs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlSslCertsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
+/// GET v1/projects/{project}/instances/{instance}/sslCerts
+/// Lists all of the current SSL certificates for the instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_ssl_certs_list_builder()` + `sql_ssl_certs_list_execute()`.
+/// For task-level control, use `sql_ssl_certs_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_ssl_certs_list(
+    client: &SimpleHttpClient,
+    args: &SqlSslCertsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SslCertsListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sql_ssl_certs_list_builder(client, &args.project, &args.instance)?;
+    sql_ssl_certs_list_execute(builder)
 }
 
 /// GET v1/projects/{project}/tiers
@@ -8962,7 +11480,7 @@ pub fn sql_tiers_list(
     sql_tiers_list_execute(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/users
+/// DELETE v1/projects/{project}/instances/{instance}/users
 /// Deletes a user from a Cloud SQL instance.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -8972,8 +11490,8 @@ pub fn sql_users_delete_builder(
     client: &SimpleHttpClient,
     project: &String,
     instance: &String,
-    host: &Option<String>,
-    name: &Option<String>,
+    host: &Option<Option<String>>,
+    name: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -8997,13 +11515,13 @@ pub fn sql_users_delete_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .delete(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/projects/{project}/instances/{instance}/users
+/// DELETE v1/projects/{project}/instances/{instance}/users
 /// Deletes a user from a Cloud SQL instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -9077,7 +11595,7 @@ pub fn sql_users_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/projects/{project}/instances/{instance}/users
+/// DELETE v1/projects/{project}/instances/{instance}/users
 /// Deletes a user from a Cloud SQL instance.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -9115,12 +11633,12 @@ pub struct SqlUsersDeleteArgs {
     /// Path parameter: instance
     pub instance: String,
     /// Query parameter: host
-    pub host: Option<String>,
+    pub host: Option<Option<String>>,
     /// Query parameter: name
-    pub name: Option<String>,
+    pub name: Option<Option<String>>,
 }
 
-/// GET v1/projects/{project}/instances/{instance}/users
+/// DELETE v1/projects/{project}/instances/{instance}/users
 /// Deletes a user from a Cloud SQL instance.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -9159,7 +11677,7 @@ pub fn sql_users_get_builder(
     project: &String,
     instance: &String,
     name: &String,
-    host: &Option<String>,
+    host: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -9300,7 +11818,7 @@ pub struct SqlUsersGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: host
-    pub host: Option<String>,
+    pub host: Option<Option<String>>,
 }
 
 /// GET v1/projects/{project}/instances/{instance}/users/{name}
@@ -9329,4 +11847,2435 @@ pub fn sql_users_get(
         &args.host,
     )?;
     sql_users_get_execute(builder)
+}
+
+/// POST v1/projects/{project}/instances/{instance}/users
+/// Creates a new user in a Cloud SQL instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_users_insert_execute()` to send, or `sql_users_insert` for simplest API.
+
+pub fn sql_users_insert_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/users",
+        project, instance,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{project}/instances/{instance}/users
+/// Creates a new user in a Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_users_insert_execute()` or `sql_users_insert`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_users_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_users_insert_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{project}/instances/{instance}/users
+/// Creates a new user in a Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_users_insert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_users_insert_task()`.
+/// For the simplest API, use `sql_users_insert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_users_insert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_users_insert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql_users_insert_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_users_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlUsersInsertArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
+/// POST v1/projects/{project}/instances/{instance}/users
+/// Creates a new user in a Cloud SQL instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_users_insert_builder()` + `sql_users_insert_execute()`.
+/// For task-level control, use `sql_users_insert_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_users_insert(
+    client: &SimpleHttpClient,
+    args: &SqlUsersInsertArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = sql_users_insert_builder(client, &args.project, &args.instance)?;
+    sql_users_insert_execute(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}/users
+/// Lists users in the specified Cloud SQL instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_users_list_execute()` to send, or `sql_users_list` for simplest API.
+
+pub fn sql_users_list_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/users",
+        project, instance,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{project}/instances/{instance}/users
+/// Lists users in the specified Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_users_list_execute()` or `sql_users_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_users_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_users_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UsersListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: UsersListResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{project}/instances/{instance}/users
+/// Lists users in the specified Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_users_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_users_list_task()`.
+/// For the simplest API, use `sql_users_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_users_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_users_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UsersListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sql_users_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlUsersListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+}
+
+/// GET v1/projects/{project}/instances/{instance}/users
+/// Lists users in the specified Cloud SQL instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_users_list_builder()` + `sql_users_list_execute()`.
+/// For task-level control, use `sql_users_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_users_list(
+    client: &SimpleHttpClient,
+    args: &SqlUsersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<UsersListResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sql_users_list_builder(client, &args.project, &args.instance)?;
+    sql_users_list_execute(builder)
+}
+
+/// PUT v1/projects/{project}/instances/{instance}/users
+/// Updates an existing user in a Cloud SQL instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sql_users_update_execute()` to send, or `sql_users_update` for simplest API.
+
+pub fn sql_users_update_builder(
+    client: &SimpleHttpClient,
+    project: &String,
+    instance: &String,
+    databaseRoles: &Option<Option<String>>,
+    host: &Option<Option<String>>,
+    name: &Option<Option<String>>,
+    revokeExistingRoles: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sqladmin.googleapis.com/v1/projects/{}/instances/{}/users",
+        project, instance,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = databaseRoles.as_ref() {
+        query_parts.push(format!("databaseRoles={}", val));
+    }
+    if let Some(val) = host.as_ref() {
+        query_parts.push(format!("host={}", val));
+    }
+    if let Some(val) = name.as_ref() {
+        query_parts.push(format!("name={}", val));
+    }
+    if let Some(val) = revokeExistingRoles.as_ref() {
+        query_parts.push(format!("revokeExistingRoles={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .put(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{project}/instances/{instance}/users
+/// Updates an existing user in a Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sql_users_update_execute()` or `sql_users_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_users_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_users_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{project}/instances/{instance}/users
+/// Updates an existing user in a Cloud SQL instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sql_users_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sql_users_update_task()`.
+/// For the simplest API, use `sql_users_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sql_users_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sql_users_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = sql_users_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sql_users_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SqlUsersUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: instance
+    pub instance: String,
+    /// Query parameter: databaseRoles
+    pub databaseRoles: Option<Option<String>>,
+    /// Query parameter: host
+    pub host: Option<Option<String>>,
+    /// Query parameter: name
+    pub name: Option<Option<String>>,
+    /// Query parameter: revokeExistingRoles
+    pub revokeExistingRoles: Option<Option<String>>,
+}
+
+/// PUT v1/projects/{project}/instances/{instance}/users
+/// Updates an existing user in a Cloud SQL instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sql_users_update_builder()` + `sql_users_update_execute()`.
+/// For task-level control, use `sql_users_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sql_users_update(
+    client: &SimpleHttpClient,
+    args: &SqlUsersUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = sql_users_update_builder(
+        client,
+        &args.project,
+        &args.instance,
+        &args.databaseRoles,
+        &args.host,
+        &args.name,
+        &args.revokeExistingRoles,
+    )?;
+    sql_users_update_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlBackupsCreateBackupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlBackupsCreateBackupArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlBackupsCreateBackupArgs) -> String {
+        format!("gcp::sqladmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlBackupsDeleteBackupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlBackupsDeleteBackupArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlBackupsDeleteBackupArgs) -> String {
+        format!("gcp::sqladmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Backup
+// =============================================================================
+
+/// ResourceIdentifier implementation for Backup with SqlBackupsGetBackupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlBackupsGetBackupArgs> for Backup {
+    fn generate_resource_id(&self, input: &SqlBackupsGetBackupArgs) -> String {
+        format!("gcp::sqladmin::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListBackupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListBackupsResponse with SqlBackupsListBackupsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlBackupsListBackupsArgs> for ListBackupsResponse {
+    fn generate_resource_id(&self, input: &SqlBackupsListBackupsArgs) -> String {
+        format!("gcp::sqladmin::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlBackupsUpdateBackupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlBackupsUpdateBackupArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlBackupsUpdateBackupArgs) -> String {
+        format!("gcp::sqladmin::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlBackupRunsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlBackupRunsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlBackupRunsDeleteArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}/{}",
+            input.project, input.instance, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupRun
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupRun with SqlBackupRunsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlBackupRunsGetArgs> for BackupRun {
+    fn generate_resource_id(&self, input: &SqlBackupRunsGetArgs) -> String {
+        format!(
+            "gcp::sqladmin::BackupRun/{}/{}/{}",
+            input.project, input.instance, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::BackupRun"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlBackupRunsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlBackupRunsInsertArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlBackupRunsInsertArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BackupRunsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BackupRunsListResponse with SqlBackupRunsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlBackupRunsListArgs> for BackupRunsListResponse {
+    fn generate_resource_id(&self, input: &SqlBackupRunsListArgs) -> String {
+        format!(
+            "gcp::sqladmin::BackupRunsListResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::BackupRunsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateEphemeralCertResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateEphemeralCertResponse with SqlConnectGenerateEphemeralArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlConnectGenerateEphemeralArgs> for GenerateEphemeralCertResponse {
+    fn generate_resource_id(&self, input: &SqlConnectGenerateEphemeralArgs) -> String {
+        format!(
+            "gcp::sqladmin::GenerateEphemeralCertResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::GenerateEphemeralCertResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConnectSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConnectSettings with SqlConnectGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlConnectGetArgs> for ConnectSettings {
+    fn generate_resource_id(&self, input: &SqlConnectGetArgs) -> String {
+        format!(
+            "gcp::sqladmin::ConnectSettings/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::ConnectSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlDatabasesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlDatabasesDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlDatabasesDeleteArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}/{}",
+            input.project, input.instance, input.database
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Database
+// =============================================================================
+
+/// ResourceIdentifier implementation for Database with SqlDatabasesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlDatabasesGetArgs> for Database {
+    fn generate_resource_id(&self, input: &SqlDatabasesGetArgs) -> String {
+        format!(
+            "gcp::sqladmin::Database/{}/{}/{}",
+            input.project, input.instance, input.database
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Database"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlDatabasesInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlDatabasesInsertArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlDatabasesInsertArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabasesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabasesListResponse with SqlDatabasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlDatabasesListArgs> for DatabasesListResponse {
+    fn generate_resource_id(&self, input: &SqlDatabasesListArgs) -> String {
+        format!(
+            "gcp::sqladmin::DatabasesListResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::DatabasesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlDatabasesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlDatabasesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlDatabasesPatchArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}/{}",
+            input.project, input.instance, input.database
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlDatabasesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlDatabasesUpdateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlDatabasesUpdateArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}/{}",
+            input.project, input.instance, input.database
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for FlagsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for FlagsListResponse with SqlFlagsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlFlagsListArgs> for FlagsListResponse {
+    fn generate_resource_id(&self, input: &SqlFlagsListArgs) -> String {
+        "gcp::sqladmin::FlagsListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::FlagsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InstancesListEntraIdCertificatesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for InstancesListEntraIdCertificatesResponse with SqlInstancesListEntraIdCertificatesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesListEntraIdCertificatesArgs>
+    for InstancesListEntraIdCertificatesResponse
+{
+    fn generate_resource_id(&self, input: &SqlInstancesListEntraIdCertificatesArgs) -> String {
+        format!(
+            "gcp::sqladmin::InstancesListEntraIdCertificatesResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::InstancesListEntraIdCertificatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InstancesListServerCertificatesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for InstancesListServerCertificatesResponse with SqlInstancesListServerCertificatesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesListServerCertificatesArgs>
+    for InstancesListServerCertificatesResponse
+{
+    fn generate_resource_id(&self, input: &SqlInstancesListServerCertificatesArgs) -> String {
+        format!(
+            "gcp::sqladmin::InstancesListServerCertificatesResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::InstancesListServerCertificatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesRotateEntraIdCertificateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesRotateEntraIdCertificateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesRotateEntraIdCertificateArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesRotateServerCertificateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesRotateServerCertificateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesRotateServerCertificateArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SqlInstancesAcquireSsrsLeaseResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SqlInstancesAcquireSsrsLeaseResponse with SqlInstancesAcquireSsrsLeaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesAcquireSsrsLeaseArgs> for SqlInstancesAcquireSsrsLeaseResponse {
+    fn generate_resource_id(&self, input: &SqlInstancesAcquireSsrsLeaseArgs) -> String {
+        format!(
+            "gcp::sqladmin::SqlInstancesAcquireSsrsLeaseResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::SqlInstancesAcquireSsrsLeaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesAddEntraIdCertificateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesAddEntraIdCertificateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesAddEntraIdCertificateArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesAddServerCaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesAddServerCaArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesAddServerCaArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesAddServerCertificateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesAddServerCertificateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesAddServerCertificateArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesCloneArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesCloneArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesCloneArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesDeleteArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesDemoteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesDemoteArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesDemoteArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesDemoteMasterArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesDemoteMasterArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesDemoteMasterArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SqlInstancesExecuteSqlResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SqlInstancesExecuteSqlResponse with SqlInstancesExecuteSqlArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesExecuteSqlArgs> for SqlInstancesExecuteSqlResponse {
+    fn generate_resource_id(&self, input: &SqlInstancesExecuteSqlArgs) -> String {
+        format!(
+            "gcp::sqladmin::SqlInstancesExecuteSqlResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::SqlInstancesExecuteSqlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesExportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesExportArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesExportArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesFailoverArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesFailoverArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesFailoverArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DatabaseInstance
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabaseInstance with SqlInstancesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesGetArgs> for DatabaseInstance {
+    fn generate_resource_id(&self, input: &SqlInstancesGetArgs) -> String {
+        format!(
+            "gcp::sqladmin::DatabaseInstance/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::DatabaseInstance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesImportArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesImportArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesImportArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesInsertArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesInsertArgs) -> String {
+        format!("gcp::sqladmin::Operation/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InstancesListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for InstancesListResponse with SqlInstancesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesListArgs> for InstancesListResponse {
+    fn generate_resource_id(&self, input: &SqlInstancesListArgs) -> String {
+        format!("gcp::sqladmin::InstancesListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::InstancesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InstancesListServerCasResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for InstancesListServerCasResponse with SqlInstancesListServerCasArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesListServerCasArgs> for InstancesListServerCasResponse {
+    fn generate_resource_id(&self, input: &SqlInstancesListServerCasArgs) -> String {
+        format!(
+            "gcp::sqladmin::InstancesListServerCasResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::InstancesListServerCasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesPatchArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesPointInTimeRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesPointInTimeRestoreArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesPointInTimeRestoreArgs) -> String {
+        format!("gcp::sqladmin::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesPreCheckMajorVersionUpgradeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesPreCheckMajorVersionUpgradeArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesPreCheckMajorVersionUpgradeArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesPromoteReplicaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesPromoteReplicaArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesPromoteReplicaArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesReencryptArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesReencryptArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesReencryptArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SqlInstancesReleaseSsrsLeaseResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SqlInstancesReleaseSsrsLeaseResponse with SqlInstancesReleaseSsrsLeaseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesReleaseSsrsLeaseArgs> for SqlInstancesReleaseSsrsLeaseResponse {
+    fn generate_resource_id(&self, input: &SqlInstancesReleaseSsrsLeaseArgs) -> String {
+        format!(
+            "gcp::sqladmin::SqlInstancesReleaseSsrsLeaseResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::SqlInstancesReleaseSsrsLeaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesResetSslConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesResetSslConfigArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesResetSslConfigArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesRestartArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesRestartArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesRestartArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesRestoreBackupArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesRestoreBackupArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesRestoreBackupArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesRotateServerCaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesRotateServerCaArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesRotateServerCaArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesStartReplicaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesStartReplicaArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesStartReplicaArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesStopReplicaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesStopReplicaArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesStopReplicaArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesSwitchoverArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesSwitchoverArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesSwitchoverArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesTruncateLogArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesTruncateLogArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesTruncateLogArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlInstancesUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlInstancesUpdateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlInstancesUpdateArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with SqlOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &SqlOperationsCancelArgs) -> String {
+        format!("gcp::sqladmin::Empty/{}/{}", input.project, input.operation)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlOperationsGetArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.operation
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for OperationsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for OperationsListResponse with SqlOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlOperationsListArgs> for OperationsListResponse {
+    fn generate_resource_id(&self, input: &SqlOperationsListArgs) -> String {
+        format!("gcp::sqladmin::OperationsListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::OperationsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SqlInstancesGetDiskShrinkConfigResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SqlInstancesGetDiskShrinkConfigResponse with SqlProjectsInstancesGetDiskShrinkConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlProjectsInstancesGetDiskShrinkConfigArgs>
+    for SqlInstancesGetDiskShrinkConfigResponse
+{
+    fn generate_resource_id(&self, input: &SqlProjectsInstancesGetDiskShrinkConfigArgs) -> String {
+        format!(
+            "gcp::sqladmin::SqlInstancesGetDiskShrinkConfigResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::SqlInstancesGetDiskShrinkConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SqlInstancesGetLatestRecoveryTimeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SqlInstancesGetLatestRecoveryTimeResponse with SqlProjectsInstancesGetLatestRecoveryTimeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlProjectsInstancesGetLatestRecoveryTimeArgs>
+    for SqlInstancesGetLatestRecoveryTimeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SqlProjectsInstancesGetLatestRecoveryTimeArgs,
+    ) -> String {
+        format!(
+            "gcp::sqladmin::SqlInstancesGetLatestRecoveryTimeResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::SqlInstancesGetLatestRecoveryTimeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlProjectsInstancesPerformDiskShrinkArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlProjectsInstancesPerformDiskShrinkArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlProjectsInstancesPerformDiskShrinkArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlProjectsInstancesRescheduleMaintenanceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlProjectsInstancesRescheduleMaintenanceArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &SqlProjectsInstancesRescheduleMaintenanceArgs,
+    ) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlProjectsInstancesResetReplicaSizeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlProjectsInstancesResetReplicaSizeArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlProjectsInstancesResetReplicaSizeArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlProjectsInstancesStartExternalSyncArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlProjectsInstancesStartExternalSyncArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlProjectsInstancesStartExternalSyncArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SqlInstancesVerifyExternalSyncSettingsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SqlInstancesVerifyExternalSyncSettingsResponse with SqlProjectsInstancesVerifyExternalSyncSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlProjectsInstancesVerifyExternalSyncSettingsArgs>
+    for SqlInstancesVerifyExternalSyncSettingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SqlProjectsInstancesVerifyExternalSyncSettingsArgs,
+    ) -> String {
+        format!(
+            "gcp::sqladmin::SqlInstancesVerifyExternalSyncSettingsResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::SqlInstancesVerifyExternalSyncSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SslCert
+// =============================================================================
+
+/// ResourceIdentifier implementation for SslCert with SqlSslCertsCreateEphemeralArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlSslCertsCreateEphemeralArgs> for SslCert {
+    fn generate_resource_id(&self, input: &SqlSslCertsCreateEphemeralArgs) -> String {
+        format!(
+            "gcp::sqladmin::SslCert/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::SslCert"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlSslCertsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlSslCertsDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlSslCertsDeleteArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}/{}",
+            input.project, input.instance, input.sha1Fingerprint
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SslCert
+// =============================================================================
+
+/// ResourceIdentifier implementation for SslCert with SqlSslCertsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlSslCertsGetArgs> for SslCert {
+    fn generate_resource_id(&self, input: &SqlSslCertsGetArgs) -> String {
+        format!(
+            "gcp::sqladmin::SslCert/{}/{}/{}",
+            input.project, input.instance, input.sha1Fingerprint
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::SslCert"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SslCertsInsertResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SslCertsInsertResponse with SqlSslCertsInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlSslCertsInsertArgs> for SslCertsInsertResponse {
+    fn generate_resource_id(&self, input: &SqlSslCertsInsertArgs) -> String {
+        format!(
+            "gcp::sqladmin::SslCertsInsertResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::SslCertsInsertResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SslCertsListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SslCertsListResponse with SqlSslCertsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlSslCertsListArgs> for SslCertsListResponse {
+    fn generate_resource_id(&self, input: &SqlSslCertsListArgs) -> String {
+        format!(
+            "gcp::sqladmin::SslCertsListResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::SslCertsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TiersListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TiersListResponse with SqlTiersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlTiersListArgs> for TiersListResponse {
+    fn generate_resource_id(&self, input: &SqlTiersListArgs) -> String {
+        format!("gcp::sqladmin::TiersListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::TiersListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlUsersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlUsersDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlUsersDeleteArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for User
+// =============================================================================
+
+/// ResourceIdentifier implementation for User with SqlUsersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlUsersGetArgs> for User {
+    fn generate_resource_id(&self, input: &SqlUsersGetArgs) -> String {
+        format!(
+            "gcp::sqladmin::User/{}/{}/{}",
+            input.project, input.instance, input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlUsersInsertArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlUsersInsertArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlUsersInsertArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for UsersListResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for UsersListResponse with SqlUsersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlUsersListArgs> for UsersListResponse {
+    fn generate_resource_id(&self, input: &SqlUsersListArgs) -> String {
+        format!(
+            "gcp::sqladmin::UsersListResponse/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::UsersListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with SqlUsersUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SqlUsersUpdateArgs> for Operation {
+    fn generate_resource_id(&self, input: &SqlUsersUpdateArgs) -> String {
+        format!(
+            "gcp::sqladmin::Operation/{}/{}",
+            input.project, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sqladmin::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_get_execute()` to send, or `managedkafka_projects_locations_get` for simplest API.
+
+pub fn managedkafka_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_get_execute()` or `managedkafka_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_get_builder()` + `managedkafka_projects_locations_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_get_builder(client, &args.name)?;
+    managedkafka_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -29,13 +186,16 @@ use serde::Serialize;
 pub fn managedkafka_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://managedkafka.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +337,13 @@ pub struct ManagedkafkaProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +375,17370 @@ pub fn managedkafka_projects_locations_list(
         &args.pageToken,
     )?;
     managedkafka_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters
+/// Creates a new cluster in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_create_execute()` to send, or `managedkafka_projects_locations_clusters_create` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    clusterId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = clusterId.as_ref() {
+        query_parts.push(format!("clusterId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters
+/// Creates a new cluster in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_create_execute()` or `managedkafka_projects_locations_clusters_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters
+/// Creates a new cluster in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_create_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clusterId
+    pub clusterId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters
+/// Creates a new cluster in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_create_builder()` + `managedkafka_projects_locations_clusters_create_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_create(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_create_builder(
+        client,
+        &args.parent,
+        &args.clusterId,
+        &args.requestId,
+    )?;
+    managedkafka_projects_locations_clusters_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Deletes a single cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_delete_execute()` to send, or `managedkafka_projects_locations_clusters_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Deletes a single cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_delete_execute()` or `managedkafka_projects_locations_clusters_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Deletes a single cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Deletes a single cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_delete_builder()` + `managedkafka_projects_locations_clusters_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    managedkafka_projects_locations_clusters_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Returns the properties of a single cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_get_execute()` to send, or `managedkafka_projects_locations_clusters_get` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Returns the properties of a single cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_get_execute()` or `managedkafka_projects_locations_clusters_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Cluster>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Cluster = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Returns the properties of a single cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Returns the properties of a single cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_get_builder()` + `managedkafka_projects_locations_clusters_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_clusters_get_builder(client, &args.name, &args.view)?;
+    managedkafka_projects_locations_clusters_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
+/// Lists the clusters in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_list_execute()` to send, or `managedkafka_projects_locations_clusters_list` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
+/// Lists the clusters in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_list_execute()` or `managedkafka_projects_locations_clusters_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListClustersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListClustersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
+/// Lists the clusters in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
+/// Lists the clusters in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_list_builder()` + `managedkafka_projects_locations_clusters_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    managedkafka_projects_locations_clusters_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Updates the properties of a single cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_patch_execute()` to send, or `managedkafka_projects_locations_clusters_patch` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Updates the properties of a single cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_patch_execute()` or `managedkafka_projects_locations_clusters_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Updates the properties of a single cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_patch_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
+/// Updates the properties of a single cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_patch_builder()` + `managedkafka_projects_locations_clusters_patch_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_patch(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    managedkafka_projects_locations_clusters_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:addAclEntry
+/// Incremental update: Adds an acl entry to an acl. Creates the acl if it does not exist yet.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_acls_add_acl_entry_execute()` to send, or `managedkafka_projects_locations_clusters_acls_add_acl_entry` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry_builder(
+    client: &SimpleHttpClient,
+    acl: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:addAclEntry",
+        acl,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:addAclEntry
+/// Incremental update: Adds an acl entry to an acl. Creates the acl if it does not exist yet.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_acls_add_acl_entry_execute()` or `managedkafka_projects_locations_clusters_acls_add_acl_entry`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_add_acl_entry_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddAclEntryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: AddAclEntryResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:addAclEntry
+/// Incremental update: Adds an acl entry to an acl. Creates the acl if it does not exist yet.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_acls_add_acl_entry_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_add_acl_entry_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_acls_add_acl_entry()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_add_acl_entry_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AddAclEntryResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_acls_add_acl_entry_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_add_acl_entry`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsAddAclEntryArgs {
+    /// Path parameter: acl
+    pub acl: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:addAclEntry
+/// Incremental update: Adds an acl entry to an acl. Creates the acl if it does not exist yet.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_acls_add_acl_entry_builder()` + `managedkafka_projects_locations_clusters_acls_add_acl_entry_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_add_acl_entry_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersAclsAddAclEntryArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AddAclEntryResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_clusters_acls_add_acl_entry_builder(client, &args.acl)?;
+    managedkafka_projects_locations_clusters_acls_add_acl_entry_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
+/// Creates a new acl in the given project, location, and cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_acls_create_execute()` to send, or `managedkafka_projects_locations_clusters_acls_create` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_acls_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    aclId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = aclId.as_ref() {
+        query_parts.push(format!("aclId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
+/// Creates a new acl in the given project, location, and cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_acls_create_execute()` or `managedkafka_projects_locations_clusters_acls_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Acl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Acl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
+/// Creates a new acl in the given project, location, and cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_acls_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_create_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_acls_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_acls_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_acls_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: aclId
+    pub aclId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
+/// Creates a new acl in the given project, location, and cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_acls_create_builder()` + `managedkafka_projects_locations_clusters_acls_create_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_create(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersAclsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_acls_create_builder(
+        client,
+        &args.parent,
+        &args.aclId,
+    )?;
+    managedkafka_projects_locations_clusters_acls_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Deletes an acl.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_acls_delete_execute()` to send, or `managedkafka_projects_locations_clusters_acls_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_acls_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Deletes an acl.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_acls_delete_execute()` or `managedkafka_projects_locations_clusters_acls_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Deletes an acl.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_acls_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_acls_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_acls_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_acls_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Deletes an acl.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_acls_delete_builder()` + `managedkafka_projects_locations_clusters_acls_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersAclsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_acls_delete_builder(client, &args.name)?;
+    managedkafka_projects_locations_clusters_acls_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Returns the properties of a single acl.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_acls_get_execute()` to send, or `managedkafka_projects_locations_clusters_acls_get` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_acls_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Returns the properties of a single acl.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_acls_get_execute()` or `managedkafka_projects_locations_clusters_acls_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Acl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Acl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Returns the properties of a single acl.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_acls_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_acls_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_acls_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_acls_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Returns the properties of a single acl.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_acls_get_builder()` + `managedkafka_projects_locations_clusters_acls_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersAclsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_acls_get_builder(client, &args.name)?;
+    managedkafka_projects_locations_clusters_acls_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
+/// Lists the acls in a given cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_acls_list_execute()` to send, or `managedkafka_projects_locations_clusters_acls_list` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_acls_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
+/// Lists the acls in a given cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_acls_list_execute()` or `managedkafka_projects_locations_clusters_acls_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAclsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListAclsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
+/// Lists the acls in a given cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_acls_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_acls_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_acls_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAclsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_acls_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
+/// Lists the acls in a given cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_acls_list_builder()` + `managedkafka_projects_locations_clusters_acls_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersAclsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAclsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_acls_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    managedkafka_projects_locations_clusters_acls_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Updates the properties of a single acl.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_acls_patch_execute()` to send, or `managedkafka_projects_locations_clusters_acls_patch` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_acls_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Updates the properties of a single acl.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_acls_patch_execute()` or `managedkafka_projects_locations_clusters_acls_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Acl>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Acl = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Updates the properties of a single acl.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_acls_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_patch_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_acls_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_acls_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_acls_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
+/// Updates the properties of a single acl.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_acls_patch_builder()` + `managedkafka_projects_locations_clusters_acls_patch_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_patch(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersAclsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_acls_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    managedkafka_projects_locations_clusters_acls_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:removeAclEntry
+/// Incremental update: Removes an acl entry from an acl. Deletes the acl if its acl entries become empty (i.e. if the removed entry was the last one in the acl).
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_acls_remove_acl_entry_execute()` to send, or `managedkafka_projects_locations_clusters_acls_remove_acl_entry` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_acls_remove_acl_entry_builder(
+    client: &SimpleHttpClient,
+    acl: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:removeAclEntry",
+        acl,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:removeAclEntry
+/// Incremental update: Removes an acl entry from an acl. Deletes the acl if its acl entries become empty (i.e. if the removed entry was the last one in the acl).
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_acls_remove_acl_entry_execute()` or `managedkafka_projects_locations_clusters_acls_remove_acl_entry`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_remove_acl_entry_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_remove_acl_entry_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RemoveAclEntryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RemoveAclEntryResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:removeAclEntry
+/// Incremental update: Removes an acl entry from an acl. Deletes the acl if its acl entries become empty (i.e. if the removed entry was the last one in the acl).
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_acls_remove_acl_entry_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_remove_acl_entry_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_acls_remove_acl_entry()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_acls_remove_acl_entry_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_acls_remove_acl_entry_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RemoveAclEntryResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_acls_remove_acl_entry_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_remove_acl_entry`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsRemoveAclEntryArgs {
+    /// Path parameter: acl
+    pub acl: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:removeAclEntry
+/// Incremental update: Removes an acl entry from an acl. Deletes the acl if its acl entries become empty (i.e. if the removed entry was the last one in the acl).
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_acls_remove_acl_entry_builder()` + `managedkafka_projects_locations_clusters_acls_remove_acl_entry_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_acls_remove_acl_entry_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_acls_remove_acl_entry(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersAclsRemoveAclEntryArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RemoveAclEntryResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_clusters_acls_remove_acl_entry_builder(client, &args.acl)?;
+    managedkafka_projects_locations_clusters_acls_remove_acl_entry_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Deletes a single consumer group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_consumer_groups_delete_execute()` to send, or `managedkafka_projects_locations_clusters_consumer_groups_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Deletes a single consumer group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_consumer_groups_delete_execute()` or `managedkafka_projects_locations_clusters_consumer_groups_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_consumer_groups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Deletes a single consumer group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_consumer_groups_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_consumer_groups_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_consumer_groups_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_consumer_groups_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_consumer_groups_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_consumer_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersConsumerGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Deletes a single consumer group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_consumer_groups_delete_builder()` + `managedkafka_projects_locations_clusters_consumer_groups_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_consumer_groups_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersConsumerGroupsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_consumer_groups_delete_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_clusters_consumer_groups_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Returns the properties of a single consumer group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_consumer_groups_get_execute()` to send, or `managedkafka_projects_locations_clusters_consumer_groups_get` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Returns the properties of a single consumer group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_consumer_groups_get_execute()` or `managedkafka_projects_locations_clusters_consumer_groups_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_consumer_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConsumerGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ConsumerGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Returns the properties of a single consumer group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_consumer_groups_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_consumer_groups_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_consumer_groups_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_consumer_groups_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConsumerGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_consumer_groups_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_consumer_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersConsumerGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Returns the properties of a single consumer group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_consumer_groups_get_builder()` + `managedkafka_projects_locations_clusters_consumer_groups_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_consumer_groups_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersConsumerGroupsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConsumerGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_clusters_consumer_groups_get_builder(client, &args.name)?;
+    managedkafka_projects_locations_clusters_consumer_groups_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups
+/// Lists the consumer groups in a given cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_consumer_groups_list_execute()` to send, or `managedkafka_projects_locations_clusters_consumer_groups_list` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/consumerGroups",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups
+/// Lists the consumer groups in a given cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_consumer_groups_list_execute()` or `managedkafka_projects_locations_clusters_consumer_groups_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_consumer_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListConsumerGroupsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListConsumerGroupsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups
+/// Lists the consumer groups in a given cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_consumer_groups_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_consumer_groups_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_consumer_groups_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_consumer_groups_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListConsumerGroupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_consumer_groups_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_consumer_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersConsumerGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups
+/// Lists the consumer groups in a given cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_consumer_groups_list_builder()` + `managedkafka_projects_locations_clusters_consumer_groups_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_consumer_groups_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersConsumerGroupsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListConsumerGroupsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_consumer_groups_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.view,
+    )?;
+    managedkafka_projects_locations_clusters_consumer_groups_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Updates the properties of a single consumer group.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_consumer_groups_patch_execute()` to send, or `managedkafka_projects_locations_clusters_consumer_groups_patch` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Updates the properties of a single consumer group.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_consumer_groups_patch_execute()` or `managedkafka_projects_locations_clusters_consumer_groups_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_consumer_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConsumerGroup>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ConsumerGroup = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Updates the properties of a single consumer group.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_consumer_groups_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_consumer_groups_patch_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_consumer_groups_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_consumer_groups_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConsumerGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_consumer_groups_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_consumer_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersConsumerGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
+/// Updates the properties of a single consumer group.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_consumer_groups_patch_builder()` + `managedkafka_projects_locations_clusters_consumer_groups_patch_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_consumer_groups_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_consumer_groups_patch(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersConsumerGroupsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConsumerGroup>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_consumer_groups_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    managedkafka_projects_locations_clusters_consumer_groups_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
+/// Creates a new topic in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_topics_create_execute()` to send, or `managedkafka_projects_locations_clusters_topics_create` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_topics_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    topicId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/topics",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = topicId.as_ref() {
+        query_parts.push(format!("topicId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
+/// Creates a new topic in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_topics_create_execute()` or `managedkafka_projects_locations_clusters_topics_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_topics_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_topics_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Topic>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Topic = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
+/// Creates a new topic in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_topics_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_topics_create_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_topics_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_topics_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_topics_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_topics_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_topics_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersTopicsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: topicId
+    pub topicId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
+/// Creates a new topic in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_topics_create_builder()` + `managedkafka_projects_locations_clusters_topics_create_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_topics_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_topics_create(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersTopicsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_topics_create_builder(
+        client,
+        &args.parent,
+        &args.topicId,
+    )?;
+    managedkafka_projects_locations_clusters_topics_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Deletes a single topic.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_topics_delete_execute()` to send, or `managedkafka_projects_locations_clusters_topics_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_topics_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Deletes a single topic.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_topics_delete_execute()` or `managedkafka_projects_locations_clusters_topics_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_topics_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_topics_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Deletes a single topic.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_topics_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_topics_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_topics_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_topics_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_topics_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_topics_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_topics_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersTopicsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Deletes a single topic.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_topics_delete_builder()` + `managedkafka_projects_locations_clusters_topics_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_topics_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_topics_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersTopicsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_clusters_topics_delete_builder(client, &args.name)?;
+    managedkafka_projects_locations_clusters_topics_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Returns the properties of a single topic.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_topics_get_execute()` to send, or `managedkafka_projects_locations_clusters_topics_get` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_topics_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Returns the properties of a single topic.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_topics_get_execute()` or `managedkafka_projects_locations_clusters_topics_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_topics_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_topics_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Topic>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Topic = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Returns the properties of a single topic.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_topics_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_topics_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_topics_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_topics_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_topics_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_topics_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_topics_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersTopicsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Returns the properties of a single topic.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_topics_get_builder()` + `managedkafka_projects_locations_clusters_topics_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_topics_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_topics_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersTopicsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_topics_get_builder(client, &args.name)?;
+    managedkafka_projects_locations_clusters_topics_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
+/// Lists the topics in a given cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_topics_list_execute()` to send, or `managedkafka_projects_locations_clusters_topics_list` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_topics_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/topics",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
+/// Lists the topics in a given cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_topics_list_execute()` or `managedkafka_projects_locations_clusters_topics_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_topics_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_topics_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTopicsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListTopicsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
+/// Lists the topics in a given cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_topics_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_topics_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_topics_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_topics_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_topics_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTopicsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_topics_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_topics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersTopicsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
+/// Lists the topics in a given cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_topics_list_builder()` + `managedkafka_projects_locations_clusters_topics_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_topics_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_topics_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersTopicsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListTopicsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_topics_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    managedkafka_projects_locations_clusters_topics_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Updates the properties of a single topic.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_clusters_topics_patch_execute()` to send, or `managedkafka_projects_locations_clusters_topics_patch` for simplest API.
+
+pub fn managedkafka_projects_locations_clusters_topics_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Updates the properties of a single topic.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_clusters_topics_patch_execute()` or `managedkafka_projects_locations_clusters_topics_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_topics_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_topics_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Topic>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Topic = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Updates the properties of a single topic.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_clusters_topics_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_clusters_topics_patch_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_clusters_topics_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_clusters_topics_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_clusters_topics_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_clusters_topics_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_clusters_topics_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersTopicsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
+/// Updates the properties of a single topic.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_clusters_topics_patch_builder()` + `managedkafka_projects_locations_clusters_topics_patch_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_clusters_topics_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_clusters_topics_patch(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsClustersTopicsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_clusters_topics_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    managedkafka_projects_locations_clusters_topics_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters
+/// Creates a new Kafka Connect cluster in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_create_execute()` to send, or `managedkafka_projects_locations_connect_clusters_create` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    connectClusterId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = connectClusterId.as_ref() {
+        query_parts.push(format!("connectClusterId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters
+/// Creates a new Kafka Connect cluster in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_create_execute()` or `managedkafka_projects_locations_connect_clusters_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters
+/// Creates a new Kafka Connect cluster in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_create_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectClusterId
+    pub connectClusterId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters
+/// Creates a new Kafka Connect cluster in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_create_builder()` + `managedkafka_projects_locations_connect_clusters_create_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_create(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_create_builder(
+        client,
+        &args.parent,
+        &args.connectClusterId,
+        &args.requestId,
+    )?;
+    managedkafka_projects_locations_connect_clusters_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Deletes a single Connect cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_delete_execute()` to send, or `managedkafka_projects_locations_connect_clusters_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Deletes a single Connect cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_delete_execute()` or `managedkafka_projects_locations_connect_clusters_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Deletes a single Connect cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Deletes a single Connect cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_delete_builder()` + `managedkafka_projects_locations_connect_clusters_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    managedkafka_projects_locations_connect_clusters_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Returns the properties of a single Kafka Connect cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_get_execute()` to send, or `managedkafka_projects_locations_connect_clusters_get` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Returns the properties of a single Kafka Connect cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_get_execute()` or `managedkafka_projects_locations_connect_clusters_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConnectCluster>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ConnectCluster = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Returns the properties of a single Kafka Connect cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConnectCluster>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Returns the properties of a single Kafka Connect cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_get_builder()` + `managedkafka_projects_locations_connect_clusters_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConnectCluster>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_get_builder(client, &args.name)?;
+    managedkafka_projects_locations_connect_clusters_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters
+/// Lists the Kafka Connect clusters in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_list_execute()` to send, or `managedkafka_projects_locations_connect_clusters_list` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters
+/// Lists the Kafka Connect clusters in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_list_execute()` or `managedkafka_projects_locations_connect_clusters_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListConnectClustersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListConnectClustersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters
+/// Lists the Kafka Connect clusters in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListConnectClustersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters
+/// Lists the Kafka Connect clusters in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_list_builder()` + `managedkafka_projects_locations_connect_clusters_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListConnectClustersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    managedkafka_projects_locations_connect_clusters_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Updates the properties of a single Kafka Connect cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_patch_execute()` to send, or `managedkafka_projects_locations_connect_clusters_patch` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Updates the properties of a single Kafka Connect cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_patch_execute()` or `managedkafka_projects_locations_connect_clusters_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Updates the properties of a single Kafka Connect cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_patch_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
+/// Updates the properties of a single Kafka Connect cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_patch_builder()` + `managedkafka_projects_locations_connect_clusters_patch_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_patch(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    managedkafka_projects_locations_connect_clusters_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
+/// Creates a new connector in a given Connect cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_connectors_create_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_create` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    connectorId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = connectorId.as_ref() {
+        query_parts.push(format!("connectorId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
+/// Creates a new connector in a given Connect cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_connectors_create_execute()` or `managedkafka_projects_locations_connect_clusters_connectors_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Connector>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Connector = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
+/// Creates a new connector in a given Connect cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_connectors_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_create_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_connectors_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_connectors_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectorId
+    pub connectorId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
+/// Creates a new connector in a given Connect cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_connectors_create_builder()` + `managedkafka_projects_locations_connect_clusters_connectors_create_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_create(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_create_builder(
+        client,
+        &args.parent,
+        &args.connectorId,
+    )?;
+    managedkafka_projects_locations_connect_clusters_connectors_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Deletes a connector.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_connectors_delete_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Deletes a connector.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_connectors_delete_execute()` or `managedkafka_projects_locations_connect_clusters_connectors_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Deletes a connector.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_connectors_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_connectors_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_connectors_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Deletes a connector.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_connectors_delete_builder()` + `managedkafka_projects_locations_connect_clusters_connectors_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_delete_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_connect_clusters_connectors_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Returns the properties of a single connector.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_connectors_get_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_get` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Returns the properties of a single connector.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_connectors_get_execute()` or `managedkafka_projects_locations_connect_clusters_connectors_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Connector>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Connector = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Returns the properties of a single connector.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_connectors_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_connectors_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_connectors_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Returns the properties of a single connector.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_connectors_get_builder()` + `managedkafka_projects_locations_connect_clusters_connectors_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_get_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_connect_clusters_connectors_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
+/// Lists the connectors in a given Connect cluster.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_connectors_list_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_list` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
+/// Lists the connectors in a given Connect cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_connectors_list_execute()` or `managedkafka_projects_locations_connect_clusters_connectors_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListConnectorsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListConnectorsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
+/// Lists the connectors in a given Connect cluster.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_connectors_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_connectors_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListConnectorsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_connectors_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
+/// Lists the connectors in a given Connect cluster.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_connectors_list_builder()` + `managedkafka_projects_locations_connect_clusters_connectors_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListConnectorsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_list_builder(
+        client,
+        &args.parent,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    managedkafka_projects_locations_connect_clusters_connectors_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Updates the properties of a connector.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_connectors_patch_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_patch` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Updates the properties of a connector.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_connectors_patch_execute()` or `managedkafka_projects_locations_connect_clusters_connectors_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Connector>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Connector = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Updates the properties of a connector.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_connectors_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_patch_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_connectors_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_connectors_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
+/// Updates the properties of a connector.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_connectors_patch_builder()` + `managedkafka_projects_locations_connect_clusters_connectors_patch_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_patch(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+    )?;
+    managedkafka_projects_locations_connect_clusters_connectors_patch_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:pause
+/// Pauses the connector and its tasks.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_connectors_pause_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_pause` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_pause_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:pause",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:pause
+/// Pauses the connector and its tasks.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_connectors_pause_execute()` or `managedkafka_projects_locations_connect_clusters_connectors_pause`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_pause_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_pause_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PauseConnectorResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PauseConnectorResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:pause
+/// Pauses the connector and its tasks.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_connectors_pause_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_pause_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_connectors_pause()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_pause_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_pause_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PauseConnectorResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_connectors_pause_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsPauseArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:pause
+/// Pauses the connector and its tasks.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_connectors_pause_builder()` + `managedkafka_projects_locations_connect_clusters_connectors_pause_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_pause_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_pause(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsPauseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PauseConnectorResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_pause_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_connect_clusters_connectors_pause_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:restart
+/// Restarts the connector.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_connectors_restart_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_restart` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_restart_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:restart",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:restart
+/// Restarts the connector.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_connectors_restart_execute()` or `managedkafka_projects_locations_connect_clusters_connectors_restart`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_restart_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_restart_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RestartConnectorResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: RestartConnectorResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:restart
+/// Restarts the connector.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_connectors_restart_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_restart_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_connectors_restart()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_restart_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_restart_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RestartConnectorResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_connectors_restart_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_restart`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsRestartArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:restart
+/// Restarts the connector.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_connectors_restart_builder()` + `managedkafka_projects_locations_connect_clusters_connectors_restart_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_restart_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_restart(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsRestartArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RestartConnectorResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_restart_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_connect_clusters_connectors_restart_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:resume
+/// Resumes the connector and its tasks.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_connectors_resume_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_resume` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_resume_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:resume",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:resume
+/// Resumes the connector and its tasks.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_connectors_resume_execute()` or `managedkafka_projects_locations_connect_clusters_connectors_resume`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_resume_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_resume_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResumeConnectorResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ResumeConnectorResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:resume
+/// Resumes the connector and its tasks.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_connectors_resume_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_resume_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_connectors_resume()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_resume_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_resume_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResumeConnectorResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_connectors_resume_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:resume
+/// Resumes the connector and its tasks.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_connectors_resume_builder()` + `managedkafka_projects_locations_connect_clusters_connectors_resume_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_resume_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_resume(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsResumeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ResumeConnectorResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_resume_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_connect_clusters_connectors_resume_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:stop
+/// Stops the connector.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_connect_clusters_connectors_stop_execute()` to send, or `managedkafka_projects_locations_connect_clusters_connectors_stop` for simplest API.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_stop_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:stop",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:stop
+/// Stops the connector.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_connect_clusters_connectors_stop_execute()` or `managedkafka_projects_locations_connect_clusters_connectors_stop`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_stop_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StopConnectorResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: StopConnectorResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:stop
+/// Stops the connector.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_connect_clusters_connectors_stop_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_stop_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_connect_clusters_connectors_stop()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_connect_clusters_connectors_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_stop_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StopConnectorResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_connect_clusters_connectors_stop_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsStopArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:stop
+/// Stops the connector.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_connect_clusters_connectors_stop_builder()` + `managedkafka_projects_locations_connect_clusters_connectors_stop_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_connect_clusters_connectors_stop_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_connect_clusters_connectors_stop(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsStopArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<StopConnectorResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_stop_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_connect_clusters_connectors_stop_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_operations_cancel_execute()` to send, or `managedkafka_projects_locations_operations_cancel` for simplest API.
+
+pub fn managedkafka_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_operations_cancel_execute()` or `managedkafka_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_operations_cancel_builder()` + `managedkafka_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_operations_cancel_builder(client, &args.name)?;
+    managedkafka_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_operations_delete_execute()` to send, or `managedkafka_projects_locations_operations_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_operations_delete_execute()` or `managedkafka_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_operations_delete_builder()` + `managedkafka_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_operations_delete_builder(client, &args.name)?;
+    managedkafka_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_operations_get_execute()` to send, or `managedkafka_projects_locations_operations_get` for simplest API.
+
+pub fn managedkafka_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_operations_get_execute()` or `managedkafka_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_operations_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_operations_get_builder()` + `managedkafka_projects_locations_operations_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_operations_get_builder(client, &args.name)?;
+    managedkafka_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_operations_list_execute()` to send, or `managedkafka_projects_locations_operations_list` for simplest API.
+
+pub fn managedkafka_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_operations_list_execute()` or `managedkafka_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_operations_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_operations_list_builder()` + `managedkafka_projects_locations_operations_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    managedkafka_projects_locations_operations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
+/// Create a schema registry instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_create_execute()` to send, or `managedkafka_projects_locations_schema_registries_create` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
+/// Create a schema registry instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_create_execute()` or `managedkafka_projects_locations_schema_registries_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaRegistry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaRegistry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
+/// Create a schema registry instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_create_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaRegistry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
+/// Create a schema registry instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_create_builder()` + `managedkafka_projects_locations_schema_registries_create_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_create(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaRegistry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_create_builder(client, &args.parent)?;
+    managedkafka_projects_locations_schema_registries_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}
+/// Delete a schema registry instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}
+/// Delete a schema registry instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_delete_execute()` or `managedkafka_projects_locations_schema_registries_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}
+/// Delete a schema registry instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}
+/// Delete a schema registry instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_delete_builder()` + `managedkafka_projects_locations_schema_registries_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_delete_builder(client, &args.name)?;
+    managedkafka_projects_locations_schema_registries_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}
+/// Get the schema registry instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_get` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}
+/// Get the schema registry instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_get_execute()` or `managedkafka_projects_locations_schema_registries_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaRegistry>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaRegistry = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}
+/// Get the schema registry instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaRegistry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}
+/// Get the schema registry instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_get_builder()` + `managedkafka_projects_locations_schema_registries_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaRegistry>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_get_builder(client, &args.name)?;
+    managedkafka_projects_locations_schema_registries_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
+/// List schema registries.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    view: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = view.as_ref() {
+        query_parts.push(format!("view={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
+/// List schema registries.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_list_execute()` or `managedkafka_projects_locations_schema_registries_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSchemaRegistriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListSchemaRegistriesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
+/// List schema registries.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListSchemaRegistriesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: view
+    pub view: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
+/// List schema registries.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_list_builder()` + `managedkafka_projects_locations_schema_registries_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListSchemaRegistriesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_list_builder(
+        client,
+        &args.parent,
+        &args.view,
+    )?;
+    managedkafka_projects_locations_schema_registries_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/compatibility/{compatibilityId}
+/// Check compatibility of a schema with all versions or a specific version of a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_execute()` to send, or `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/compatibility/{compatibilityId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/compatibility/{compatibilityId}
+/// Check compatibility of a schema with all versions or a specific version of a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_execute()` or `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckCompatibilityResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CheckCompatibilityResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/compatibility/{compatibilityId}
+/// Check compatibility of a schema with all versions or a specific version of a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CheckCompatibilityResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_compatibility_check_compatibility`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesCompatibilityCheckCompatibilityArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/compatibility/{compatibilityId}
+/// Check compatibility of a schema with all versions or a specific version of a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_builder()` + `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_compatibility_check_compatibility(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesCompatibilityCheckCompatibilityArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CheckCompatibilityResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_builder(client, &args.name)?;
+    managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_execute(
+        builder,
+    )
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Delete schema config for a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_config_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_config_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_config_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Delete schema config for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_config_delete_execute()` or `managedkafka_projects_locations_schema_registries_config_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_config_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_config_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Delete schema config for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_config_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_config_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_config_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_config_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_config_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_config_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_config_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesConfigDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Delete schema config for a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_config_delete_builder()` + `managedkafka_projects_locations_schema_registries_config_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_config_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_config_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesConfigDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_config_delete_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_schema_registries_config_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Get schema config at global level or for a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_config_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_config_get` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_config_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    defaultToGlobal: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = defaultToGlobal.as_ref() {
+        query_parts.push(format!("defaultToGlobal={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Get schema config at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_config_get_execute()` or `managedkafka_projects_locations_schema_registries_config_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_config_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_config_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Get schema config at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_config_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_config_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_config_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_config_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_config_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_config_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: defaultToGlobal
+    pub defaultToGlobal: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Get schema config at global level or for a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_config_get_builder()` + `managedkafka_projects_locations_schema_registries_config_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_config_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_config_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesConfigGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_config_get_builder(
+        client,
+        &args.name,
+        &args.defaultToGlobal,
+    )?;
+    managedkafka_projects_locations_schema_registries_config_get_execute(builder)
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Update config at global level or for a subject. Creates a SchemaSubject-level SchemaConfig if it does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_config_update_execute()` to send, or `managedkafka_projects_locations_schema_registries_config_update` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_config_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Update config at global level or for a subject. Creates a SchemaSubject-level SchemaConfig if it does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_config_update_execute()` or `managedkafka_projects_locations_schema_registries_config_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_config_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_config_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Update config at global level or for a subject. Creates a SchemaSubject-level SchemaConfig if it does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_config_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_config_update_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_config_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_config_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_config_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_config_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_config_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesConfigUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
+/// Update config at global level or for a subject. Creates a SchemaSubject-level SchemaConfig if it does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_config_update_builder()` + `managedkafka_projects_locations_schema_registries_config_update_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_config_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_config_update(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesConfigUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_config_update_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_schema_registries_config_update_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}
+/// Get the context.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_get` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}
+/// Get the context.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_get_execute()` or `managedkafka_projects_locations_schema_registries_contexts_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Context>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Context = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}
+/// Get the context.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Context>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_contexts_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}
+/// Get the context.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_get_builder()` + `managedkafka_projects_locations_schema_registries_contexts_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Context>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_contexts_get_builder(client, &args.name)?;
+    managedkafka_projects_locations_schema_registries_contexts_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts
+/// List contexts for a schema registry.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts
+/// List contexts for a schema registry.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_list_execute()` or `managedkafka_projects_locations_schema_registries_contexts_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts
+/// List contexts for a schema registry.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_contexts_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts
+/// List contexts for a schema registry.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_list_builder()` + `managedkafka_projects_locations_schema_registries_contexts_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_list_builder(
+        client,
+        &args.parent,
+    )?;
+    managedkafka_projects_locations_schema_registries_contexts_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/compatibility/{compatibilityId}
+/// Check compatibility of a schema with all versions or a specific version of a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/compatibility/{compatibilityId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/compatibility/{compatibilityId}
+/// Check compatibility of a schema with all versions or a specific version of a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_execute()` or `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckCompatibilityResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CheckCompatibilityResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/compatibility/{compatibilityId}
+/// Check compatibility of a schema with all versions or a specific version of a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CheckCompatibilityResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsCompatibilityCheckCompatibilityArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/compatibility/{compatibilityId}
+/// Check compatibility of a schema with all versions or a specific version of a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_builder()` + `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsCompatibilityCheckCompatibilityArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CheckCompatibilityResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_builder(client, &args.name)?;
+    managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Delete schema config for a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_config_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_config_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Delete schema config for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_config_delete_execute()` or `managedkafka_projects_locations_schema_registries_contexts_config_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_config_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Delete schema config for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_config_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_config_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_config_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_config_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_config_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_config_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Delete schema config for a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_config_delete_builder()` + `managedkafka_projects_locations_schema_registries_contexts_config_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_config_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_config_delete_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_schema_registries_contexts_config_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Get schema config at global level or for a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_config_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_config_get` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    defaultToGlobal: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = defaultToGlobal.as_ref() {
+        query_parts.push(format!("defaultToGlobal={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Get schema config at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_config_get_execute()` or `managedkafka_projects_locations_schema_registries_contexts_config_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_config_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Get schema config at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_config_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_config_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_config_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_config_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_contexts_config_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: defaultToGlobal
+    pub defaultToGlobal: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Get schema config at global level or for a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_config_get_builder()` + `managedkafka_projects_locations_schema_registries_contexts_config_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_config_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_config_get_builder(
+        client,
+        &args.name,
+        &args.defaultToGlobal,
+    )?;
+    managedkafka_projects_locations_schema_registries_contexts_config_get_execute(builder)
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Update config at global level or for a subject. Creates a SchemaSubject-level SchemaConfig if it does not exist.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_config_update_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_config_update` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Update config at global level or for a subject. Creates a SchemaSubject-level SchemaConfig if it does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_config_update_execute()` or `managedkafka_projects_locations_schema_registries_contexts_config_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_config_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaConfig = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Update config at global level or for a subject. Creates a SchemaSubject-level SchemaConfig if it does not exist.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_config_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_config_update_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_config_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_config_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_config_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_config_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
+/// Update config at global level or for a subject. Creates a SchemaSubject-level SchemaConfig if it does not exist.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_config_update_builder()` + `managedkafka_projects_locations_schema_registries_contexts_config_update_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_config_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_config_update(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_config_update_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_schema_registries_contexts_config_update_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Delete schema mode for a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_mode_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_mode_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Delete schema mode for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_mode_delete_execute()` or `managedkafka_projects_locations_schema_registries_contexts_mode_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_mode_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaMode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaMode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Delete schema mode for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_mode_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_mode_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_mode_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_mode_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_mode_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_mode_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Delete schema mode for a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_mode_delete_builder()` + `managedkafka_projects_locations_schema_registries_contexts_mode_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_mode_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_mode_delete_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_schema_registries_contexts_mode_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Get mode at global level or for a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_mode_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_mode_get` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Get mode at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_mode_get_execute()` or `managedkafka_projects_locations_schema_registries_contexts_mode_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_mode_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaMode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaMode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Get mode at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_mode_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_mode_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_mode_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_mode_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_contexts_mode_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_mode_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Get mode at global level or for a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_mode_get_builder()` + `managedkafka_projects_locations_schema_registries_contexts_mode_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_mode_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_mode_get_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_schema_registries_contexts_mode_get_execute(builder)
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Update mode at global level or for a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_mode_update_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_mode_update` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Update mode at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_mode_update_execute()` or `managedkafka_projects_locations_schema_registries_contexts_mode_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_mode_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaMode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaMode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Update mode at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_mode_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_mode_update_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_mode_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_mode_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_mode_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_mode_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
+/// Update mode at global level or for a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_mode_update_builder()` + `managedkafka_projects_locations_schema_registries_contexts_mode_update_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_mode_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_mode_update_builder(
+        client, &args.name,
+    )?;
+    managedkafka_projects_locations_schema_registries_contexts_mode_update_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}
+/// Get the schema for the given schema id.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_schemas_get` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    subject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = subject.as_ref() {
+        query_parts.push(format!("subject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}
+/// Get the schema for the given schema id.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_execute()` or `managedkafka_projects_locations_schema_registries_contexts_schemas_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_schemas_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Schema>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Schema = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}
+/// Get the schema for the given schema id.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_schemas_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_schemas_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: subject
+    pub subject: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}
+/// Get the schema for the given schema id.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_builder()` + `managedkafka_projects_locations_schema_registries_contexts_schemas_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_schemas_get_builder(
+        client,
+        &args.name,
+        &args.subject,
+    )?;
+    managedkafka_projects_locations_schema_registries_contexts_schemas_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/schema
+/// Get the schema string for the given schema id. The response will be the schema string.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    subject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/schema",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = subject.as_ref() {
+        query_parts.push(format!("subject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/schema
+/// Get the schema string for the given schema id. The response will be the schema string.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_execute()` or `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/schema
+/// Get the schema string for the given schema id. The response will be the schema string.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_task(
+        builder,
+    )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetSchemaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: subject
+    pub subject: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/schema
+/// Get the schema string for the given schema id. The response will be the schema string.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_builder()` + `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetSchemaArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_builder(
+            client,
+            &args.name,
+            &args.subject,
+        )?;
+    managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/subjects
+/// List subjects which reference a particular schema id. The response will be an array of subject names.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deleted: &Option<Option<String>>,
+    subject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/subjects",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+    if let Some(val) = subject.as_ref() {
+        query_parts.push(format!("subject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/subjects
+/// List subjects which reference a particular schema id. The response will be an array of subject names.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_execute()` or `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/subjects
+/// List subjects which reference a particular schema id. The response will be an array of subject names.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasSubjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+    /// Query parameter: subject
+    pub subject: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/subjects
+/// List subjects which reference a particular schema id. The response will be an array of subject names.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_builder()` + `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasSubjectsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_builder(
+            client,
+            &args.parent,
+            &args.deleted,
+            &args.subject,
+        )?;
+    managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/types
+/// List the supported schema types. The response will be an array of schema types.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/types",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/types
+/// List the supported schema types. The response will be an array of schema types.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_execute()` or `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/types
+/// List the supported schema types. The response will be an array of schema types.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_task(
+        builder,
+    )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_schemas_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/types
+/// List the supported schema types. The response will be an array of schema types.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_builder()` + `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasTypesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_builder(
+            client,
+            &args.parent,
+        )?;
+    managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/versions
+/// List the schema versions for the given schema id. The response will be an array of subject-version pairs as: [{"subject":"subject1", "version":1}, {"subject":"subject2", "version":2}].
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deleted: &Option<Option<String>>,
+    subject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+    if let Some(val) = subject.as_ref() {
+        query_parts.push(format!("subject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/versions
+/// List the schema versions for the given schema id. The response will be an array of subject-version pairs as: [{"subject":"subject1", "version":1}, {"subject":"subject2", "version":2}].
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_execute()` or `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/versions
+/// List the schema versions for the given schema id. The response will be an array of subject-version pairs as: [{"subject":"subject1", "version":1}, {"subject":"subject2", "version":2}].
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+    /// Query parameter: subject
+    pub subject: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/versions
+/// List the schema versions for the given schema id. The response will be an array of subject-version pairs as: [{"subject":"subject1", "version":1}, {"subject":"subject2", "version":2}].
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_builder()` + `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasVersionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_builder(
+            client,
+            &args.parent,
+            &args.deleted,
+            &args.subject,
+        )?;
+    managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_execute(
+        builder,
+    )
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
+/// Delete a subject. The response will be an array of versions of the deleted subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    permanent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = permanent.as_ref() {
+        query_parts.push(format!("permanent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
+/// Delete a subject. The response will be an array of versions of the deleted subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_subjects_delete_execute()` or `managedkafka_projects_locations_schema_registries_contexts_subjects_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
+/// Delete a subject. The response will be an array of versions of the deleted subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_subjects_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: permanent
+    pub permanent: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
+/// Delete a subject. The response will be an array of versions of the deleted subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_delete_builder()` + `managedkafka_projects_locations_schema_registries_contexts_subjects_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_delete_builder(
+            client,
+            &args.name,
+            &args.permanent,
+        )?;
+    managedkafka_projects_locations_schema_registries_contexts_subjects_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects
+/// List subjects in the schema registry. The response will be an array of subject names.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deleted: &Option<Option<String>>,
+    subjectPrefix: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+    if let Some(val) = subjectPrefix.as_ref() {
+        query_parts.push(format!("subjectPrefix={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects
+/// List subjects in the schema registry. The response will be an array of subject names.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_subjects_list_execute()` or `managedkafka_projects_locations_schema_registries_contexts_subjects_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects
+/// List subjects in the schema registry. The response will be an array of subject names.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_subjects_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+    /// Query parameter: subjectPrefix
+    pub subjectPrefix: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects
+/// List subjects in the schema registry. The response will be an array of subject names.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_list_builder()` + `managedkafka_projects_locations_schema_registries_contexts_subjects_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_list_builder(
+        client,
+        &args.parent,
+        &args.deleted,
+        &args.subjectPrefix,
+    )?;
+    managedkafka_projects_locations_schema_registries_contexts_subjects_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
+/// Lookup a schema under the specified subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
+/// Lookup a schema under the specified subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_execute()` or `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
+/// Lookup a schema under the specified subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsLookupVersionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
+/// Lookup a schema under the specified subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_builder()` + `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsLookupVersionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_builder(
+            client,
+            &args.parent,
+        )?;
+    managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_execute(
+        builder,
+    )
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
+/// Register a new version under a given subject with the given schema.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
+/// Register a new version under a given subject with the given schema.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_execute()` or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreateVersionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CreateVersionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
+/// Register a new version under a given subject with the given schema.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CreateVersionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
+/// Register a new version under a given subject with the given schema.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_builder()` + `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CreateVersionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_builder(client, &args.parent)?;
+    managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_execute(
+        builder,
+    )
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
+/// Delete a version of a subject. The response will be the deleted version id.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    permanent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = permanent.as_ref() {
+        query_parts.push(format!("permanent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
+/// Delete a version of a subject. The response will be the deleted version id.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_execute()` or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
+/// Delete a version of a subject. The response will be the deleted version id.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: permanent
+    pub permanent: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
+/// Delete a version of a subject. The response will be the deleted version id.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_builder()` + `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_builder(client, &args.name, &args.permanent)?;
+    managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
+/// Get a versioned schema (schema with `subject/version`) of a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    deleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
+/// Get a versioned schema (schema with `subject/version`) of a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_execute()` or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
+/// Get a versioned schema (schema with `subject/version`) of a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
+/// Get a versioned schema (schema with `subject/version`) of a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_builder()` + `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_builder(
+            client,
+            &args.name,
+            &args.deleted,
+        )?;
+    managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/schema
+/// Get the schema string only for a version of a subject. The response will be the schema string.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    deleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/schema",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/schema
+/// Get the schema string only for a version of a subject. The response will be the schema string.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_execute()` or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/schema
+/// Get the schema string only for a version of a subject. The response will be the schema string.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetSchemaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/schema
+/// Get the schema string only for a version of a subject. The response will be the schema string.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_builder()` + `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetSchemaArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_builder(client, &args.name, &args.deleted)?;
+    managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
+/// Get all versions of a subject. The response will be an array of versions of the subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
+/// Get all versions of a subject. The response will be an array of versions of the subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_execute()` or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
+/// Get all versions of a subject. The response will be an array of versions of the subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
+/// Get all versions of a subject. The response will be an array of versions of the subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_builder()` + `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_builder(
+            client,
+            &args.parent,
+            &args.deleted,
+        )?;
+    managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_execute(
+        builder,
+    )
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/referencedby
+/// Get a list of IDs of schemas that reference the schema with the given subject and version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/referencedby",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/referencedby
+/// Get a list of IDs of schemas that reference the schema with the given subject and version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_execute()` or `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/referencedby
+/// Get a list of IDs of schemas that reference the schema with the given subject and version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsReferencedbyListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/referencedby
+/// Get a list of IDs of schemas that reference the schema with the given subject and version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_builder()` + `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsReferencedbyListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_builder(client, &args.parent)?;
+    managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Delete schema mode for a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_mode_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_mode_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Delete schema mode for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_mode_delete_execute()` or `managedkafka_projects_locations_schema_registries_mode_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_mode_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaMode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaMode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Delete schema mode for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_mode_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_mode_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_mode_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_mode_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_mode_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_mode_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesModeDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Delete schema mode for a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_mode_delete_builder()` + `managedkafka_projects_locations_schema_registries_mode_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_mode_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesModeDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_mode_delete_builder(client, &args.name)?;
+    managedkafka_projects_locations_schema_registries_mode_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Get mode at global level or for a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_mode_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_mode_get` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Get mode at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_mode_get_execute()` or `managedkafka_projects_locations_schema_registries_mode_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_mode_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaMode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaMode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Get mode at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_mode_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_mode_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_mode_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_mode_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_mode_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_mode_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesModeGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Get mode at global level or for a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_mode_get_builder()` + `managedkafka_projects_locations_schema_registries_mode_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_mode_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesModeGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_mode_get_builder(client, &args.name)?;
+    managedkafka_projects_locations_schema_registries_mode_get_execute(builder)
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Update mode at global level or for a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_mode_update_execute()` to send, or `managedkafka_projects_locations_schema_registries_mode_update` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_update_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .put(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Update mode at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_mode_update_execute()` or `managedkafka_projects_locations_schema_registries_mode_update`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_mode_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_update_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaMode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaMode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Update mode at global level or for a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_mode_update_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_mode_update_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_mode_update()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_mode_update_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_update_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_mode_update_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_mode_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesModeUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PUT v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
+/// Update mode at global level or for a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_mode_update_builder()` + `managedkafka_projects_locations_schema_registries_mode_update_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_mode_update_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_mode_update(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesModeUpdateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_mode_update_builder(client, &args.name)?;
+    managedkafka_projects_locations_schema_registries_mode_update_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}
+/// Get the schema for the given schema id.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_schemas_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_schemas_get` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    subject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = subject.as_ref() {
+        query_parts.push(format!("subject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}
+/// Get the schema for the given schema id.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_schemas_get_execute()` or `managedkafka_projects_locations_schema_registries_schemas_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_schemas_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Schema>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Schema = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}
+/// Get the schema for the given schema id.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_schemas_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_schemas_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_schemas_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_schemas_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_schemas_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: subject
+    pub subject: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}
+/// Get the schema for the given schema id.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_schemas_get_builder()` + `managedkafka_projects_locations_schema_registries_schemas_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_schemas_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_schemas_get_builder(
+        client,
+        &args.name,
+        &args.subject,
+    )?;
+    managedkafka_projects_locations_schema_registries_schemas_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/schema
+/// Get the schema string for the given schema id. The response will be the schema string.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_schemas_get_schema_execute()` to send, or `managedkafka_projects_locations_schema_registries_schemas_get_schema` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    subject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/schema",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = subject.as_ref() {
+        query_parts.push(format!("subject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/schema
+/// Get the schema string for the given schema id. The response will be the schema string.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_schemas_get_schema_execute()` or `managedkafka_projects_locations_schema_registries_schemas_get_schema`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_schemas_get_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/schema
+/// Get the schema string for the given schema id. The response will be the schema string.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_schemas_get_schema_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_schemas_get_schema_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_schemas_get_schema()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_schemas_get_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_schemas_get_schema_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_schemas_get_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetSchemaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: subject
+    pub subject: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/schema
+/// Get the schema string for the given schema id. The response will be the schema string.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_schemas_get_schema_builder()` + `managedkafka_projects_locations_schema_registries_schemas_get_schema_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_schemas_get_schema_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetSchemaArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_schemas_get_schema_builder(
+        client,
+        &args.name,
+        &args.subject,
+    )?;
+    managedkafka_projects_locations_schema_registries_schemas_get_schema_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/subjects
+/// List subjects which reference a particular schema id. The response will be an array of subject names.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_schemas_subjects_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_schemas_subjects_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deleted: &Option<Option<String>>,
+    subject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/subjects",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+    if let Some(val) = subject.as_ref() {
+        query_parts.push(format!("subject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/subjects
+/// List subjects which reference a particular schema id. The response will be an array of subject names.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_schemas_subjects_list_execute()` or `managedkafka_projects_locations_schema_registries_schemas_subjects_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_schemas_subjects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/subjects
+/// List subjects which reference a particular schema id. The response will be an array of subject names.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_schemas_subjects_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_schemas_subjects_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_schemas_subjects_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_schemas_subjects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_schemas_subjects_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_schemas_subjects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasSubjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+    /// Query parameter: subject
+    pub subject: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/subjects
+/// List subjects which reference a particular schema id. The response will be an array of subject names.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_schemas_subjects_list_builder()` + `managedkafka_projects_locations_schema_registries_schemas_subjects_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_schemas_subjects_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasSubjectsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_schemas_subjects_list_builder(
+        client,
+        &args.parent,
+        &args.deleted,
+        &args.subject,
+    )?;
+    managedkafka_projects_locations_schema_registries_schemas_subjects_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/types
+/// List the supported schema types. The response will be an array of schema types.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_schemas_types_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_schemas_types_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_types_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/types",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/types
+/// List the supported schema types. The response will be an array of schema types.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_schemas_types_list_execute()` or `managedkafka_projects_locations_schema_registries_schemas_types_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_schemas_types_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_types_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/types
+/// List the supported schema types. The response will be an array of schema types.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_schemas_types_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_schemas_types_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_schemas_types_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_schemas_types_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_types_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_schemas_types_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_schemas_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/types
+/// List the supported schema types. The response will be an array of schema types.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_schemas_types_list_builder()` + `managedkafka_projects_locations_schema_registries_schemas_types_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_schemas_types_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_types_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasTypesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_schemas_types_list_builder(
+        client,
+        &args.parent,
+    )?;
+    managedkafka_projects_locations_schema_registries_schemas_types_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/versions
+/// List the schema versions for the given schema id. The response will be an array of subject-version pairs as: [{"subject":"subject1", "version":1}, {"subject":"subject2", "version":2}].
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_schemas_versions_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_schemas_versions_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deleted: &Option<Option<String>>,
+    subject: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+    if let Some(val) = subject.as_ref() {
+        query_parts.push(format!("subject={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/versions
+/// List the schema versions for the given schema id. The response will be an array of subject-version pairs as: [{"subject":"subject1", "version":1}, {"subject":"subject2", "version":2}].
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_schemas_versions_list_execute()` or `managedkafka_projects_locations_schema_registries_schemas_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_schemas_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/versions
+/// List the schema versions for the given schema id. The response will be an array of subject-version pairs as: [{"subject":"subject1", "version":1}, {"subject":"subject2", "version":2}].
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_schemas_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_schemas_versions_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_schemas_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_schemas_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_schemas_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_schemas_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+    /// Query parameter: subject
+    pub subject: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/versions
+/// List the schema versions for the given schema id. The response will be an array of subject-version pairs as: [{"subject":"subject1", "version":1}, {"subject":"subject2", "version":2}].
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_schemas_versions_list_builder()` + `managedkafka_projects_locations_schema_registries_schemas_versions_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_schemas_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasVersionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_schemas_versions_list_builder(
+        client,
+        &args.parent,
+        &args.deleted,
+        &args.subject,
+    )?;
+    managedkafka_projects_locations_schema_registries_schemas_versions_list_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
+/// Delete a subject. The response will be an array of versions of the deleted subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_subjects_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    permanent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = permanent.as_ref() {
+        query_parts.push(format!("permanent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
+/// Delete a subject. The response will be an array of versions of the deleted subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_subjects_delete_execute()` or `managedkafka_projects_locations_schema_registries_subjects_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
+/// Delete a subject. The response will be an array of versions of the deleted subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_subjects_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_subjects_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_subjects_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: permanent
+    pub permanent: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
+/// Delete a subject. The response will be an array of versions of the deleted subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_subjects_delete_builder()` + `managedkafka_projects_locations_schema_registries_subjects_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_subjects_delete_builder(
+        client,
+        &args.name,
+        &args.permanent,
+    )?;
+    managedkafka_projects_locations_schema_registries_subjects_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects
+/// List subjects in the schema registry. The response will be an array of subject names.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_subjects_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deleted: &Option<Option<String>>,
+    subjectPrefix: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+    if let Some(val) = subjectPrefix.as_ref() {
+        query_parts.push(format!("subjectPrefix={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects
+/// List subjects in the schema registry. The response will be an array of subject names.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_subjects_list_execute()` or `managedkafka_projects_locations_schema_registries_subjects_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects
+/// List subjects in the schema registry. The response will be an array of subject names.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_subjects_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_subjects_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_subjects_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+    /// Query parameter: subjectPrefix
+    pub subjectPrefix: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects
+/// List subjects in the schema registry. The response will be an array of subject names.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_subjects_list_builder()` + `managedkafka_projects_locations_schema_registries_subjects_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_subjects_list_builder(
+        client,
+        &args.parent,
+        &args.deleted,
+        &args.subjectPrefix,
+    )?;
+    managedkafka_projects_locations_schema_registries_subjects_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
+/// Lookup a schema under the specified subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_subjects_lookup_version_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_lookup_version` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
+/// Lookup a schema under the specified subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_subjects_lookup_version_execute()` or `managedkafka_projects_locations_schema_registries_subjects_lookup_version`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_lookup_version_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
+/// Lookup a schema under the specified subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_subjects_lookup_version_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_lookup_version_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_subjects_lookup_version()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_lookup_version_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_subjects_lookup_version_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_lookup_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsLookupVersionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
+/// Lookup a schema under the specified subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_subjects_lookup_version_builder()` + `managedkafka_projects_locations_schema_registries_subjects_lookup_version_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_lookup_version_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsLookupVersionArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_subjects_lookup_version_builder(
+            client,
+            &args.parent,
+        )?;
+    managedkafka_projects_locations_schema_registries_subjects_lookup_version_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions
+/// Register a new version under a given subject with the given schema.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_subjects_versions_create_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_create` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions
+/// Register a new version under a given subject with the given schema.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_subjects_versions_create_execute()` or `managedkafka_projects_locations_schema_registries_subjects_versions_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreateVersionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CreateVersionResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions
+/// Register a new version under a given subject with the given schema.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_create_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_subjects_versions_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CreateVersionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_subjects_versions_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions
+/// Register a new version under a given subject with the given schema.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_create_builder()` + `managedkafka_projects_locations_schema_registries_subjects_versions_create_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_create(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CreateVersionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_subjects_versions_create_builder(
+            client,
+            &args.parent,
+        )?;
+    managedkafka_projects_locations_schema_registries_subjects_versions_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
+/// Delete a version of a subject. The response will be the deleted version id.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_subjects_versions_delete_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_delete` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    permanent: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = permanent.as_ref() {
+        query_parts.push(format!("permanent={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
+/// Delete a version of a subject. The response will be the deleted version id.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_subjects_versions_delete_execute()` or `managedkafka_projects_locations_schema_registries_subjects_versions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
+/// Delete a version of a subject. The response will be the deleted version id.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_delete_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_subjects_versions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_subjects_versions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: permanent
+    pub permanent: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
+/// Delete a version of a subject. The response will be the deleted version id.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_delete_builder()` + `managedkafka_projects_locations_schema_registries_subjects_versions_delete_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delete(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_subjects_versions_delete_builder(
+            client,
+            &args.name,
+            &args.permanent,
+        )?;
+    managedkafka_projects_locations_schema_registries_subjects_versions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
+/// Get a versioned schema (schema with `subject/version`) of a subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_subjects_versions_get_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_get` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    deleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
+/// Get a versioned schema (schema with `subject/version`) of a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_execute()` or `managedkafka_projects_locations_schema_registries_subjects_versions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SchemaVersion>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SchemaVersion = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
+/// Get a versioned schema (schema with `subject/version`) of a subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_subjects_versions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_subjects_versions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
+/// Get a versioned schema (schema with `subject/version`) of a subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_builder()` + `managedkafka_projects_locations_schema_registries_subjects_versions_get_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_subjects_versions_get_builder(
+        client,
+        &args.name,
+        &args.deleted,
+    )?;
+    managedkafka_projects_locations_schema_registries_subjects_versions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/schema
+/// Get the schema string only for a version of a subject. The response will be the schema string.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    deleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/schema",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/schema
+/// Get the schema string only for a version of a subject. The response will be the schema string.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_execute()` or `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/schema
+/// Get the schema string only for a version of a subject. The response will be the schema string.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_task(
+        builder,
+    )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_get_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetSchemaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/schema
+/// Get the schema string only for a version of a subject. The response will be the schema string.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_builder()` + `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_schema(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetSchemaArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_builder(
+            client,
+            &args.name,
+            &args.deleted,
+        )?;
+    managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions
+/// Get all versions of a subject. The response will be an array of versions of the subject.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_subjects_versions_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deleted: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deleted.as_ref() {
+        query_parts.push(format!("deleted={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions
+/// Get all versions of a subject. The response will be an array of versions of the subject.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_subjects_versions_list_execute()` or `managedkafka_projects_locations_schema_registries_subjects_versions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions
+/// Get all versions of a subject. The response will be an array of versions of the subject.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_subjects_versions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_subjects_versions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions
+/// Get all versions of a subject. The response will be an array of versions of the subject.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_list_builder()` + `managedkafka_projects_locations_schema_registries_subjects_versions_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_subjects_versions_list_builder(
+        client,
+        &args.parent,
+        &args.deleted,
+    )?;
+    managedkafka_projects_locations_schema_registries_subjects_versions_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/referencedby
+/// Get a list of IDs of schemas that reference the schema with the given subject and version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_execute()` to send, or `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list` for simplest API.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://managedkafka.googleapis.com/v1/projects/{}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/referencedby",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/referencedby
+/// Get a list of IDs of schemas that reference the schema with the given subject and version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_execute()` or `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: HttpBody = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/referencedby
+/// Get a list of IDs of schemas that reference the schema with the given subject and version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_task()`.
+/// For the simplest API, use `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsReferencedbyListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/referencedby
+/// Get a list of IDs of schemas that reference the schema with the given subject and version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_builder()` + `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_execute()`.
+/// For task-level control, use `managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list(
+    client: &SimpleHttpClient,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsReferencedbyListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_builder(client, &args.parent)?;
+    managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_execute(
+        builder,
+    )
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with ManagedkafkaProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &ManagedkafkaProjectsLocationsGetArgs) -> String {
+        format!("gcp::managedkafka::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with ManagedkafkaProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &ManagedkafkaProjectsLocationsListArgs) -> String {
+        format!("gcp::managedkafka::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ManagedkafkaProjectsLocationsClustersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersCreateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ManagedkafkaProjectsLocationsClustersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Cluster
+// =============================================================================
+
+/// ResourceIdentifier implementation for Cluster with ManagedkafkaProjectsLocationsClustersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersGetArgs> for Cluster {
+    fn generate_resource_id(&self, input: &ManagedkafkaProjectsLocationsClustersGetArgs) -> String {
+        format!("gcp::managedkafka::Cluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Cluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListClustersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListClustersResponse with ManagedkafkaProjectsLocationsClustersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersListArgs> for ListClustersResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::ListClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ListClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ManagedkafkaProjectsLocationsClustersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersPatchArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for AddAclEntryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for AddAclEntryResponse with ManagedkafkaProjectsLocationsClustersAclsAddAclEntryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsAddAclEntryArgs>
+    for AddAclEntryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsAddAclEntryArgs,
+    ) -> String {
+        format!("gcp::managedkafka::AddAclEntryResponse/{}", input.acl)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::AddAclEntryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Acl
+// =============================================================================
+
+/// ResourceIdentifier implementation for Acl with ManagedkafkaProjectsLocationsClustersAclsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsCreateArgs> for Acl {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsCreateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Acl/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Acl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ManagedkafkaProjectsLocationsClustersAclsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Acl
+// =============================================================================
+
+/// ResourceIdentifier implementation for Acl with ManagedkafkaProjectsLocationsClustersAclsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsGetArgs> for Acl {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Acl/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Acl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAclsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAclsResponse with ManagedkafkaProjectsLocationsClustersAclsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsListArgs> for ListAclsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::ListAclsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ListAclsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Acl
+// =============================================================================
+
+/// ResourceIdentifier implementation for Acl with ManagedkafkaProjectsLocationsClustersAclsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsPatchArgs> for Acl {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsPatchArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Acl/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Acl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RemoveAclEntryResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RemoveAclEntryResponse with ManagedkafkaProjectsLocationsClustersAclsRemoveAclEntryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsRemoveAclEntryArgs>
+    for RemoveAclEntryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsRemoveAclEntryArgs,
+    ) -> String {
+        format!("gcp::managedkafka::RemoveAclEntryResponse/{}", input.acl)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::RemoveAclEntryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ManagedkafkaProjectsLocationsClustersConsumerGroupsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersConsumerGroupsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersConsumerGroupsDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConsumerGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConsumerGroup with ManagedkafkaProjectsLocationsClustersConsumerGroupsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersConsumerGroupsGetArgs>
+    for ConsumerGroup
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersConsumerGroupsGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::ConsumerGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ConsumerGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListConsumerGroupsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListConsumerGroupsResponse with ManagedkafkaProjectsLocationsClustersConsumerGroupsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersConsumerGroupsListArgs>
+    for ListConsumerGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersConsumerGroupsListArgs,
+    ) -> String {
+        format!(
+            "gcp::managedkafka::ListConsumerGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ListConsumerGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConsumerGroup
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConsumerGroup with ManagedkafkaProjectsLocationsClustersConsumerGroupsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersConsumerGroupsPatchArgs>
+    for ConsumerGroup
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersConsumerGroupsPatchArgs,
+    ) -> String {
+        format!("gcp::managedkafka::ConsumerGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ConsumerGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Topic
+// =============================================================================
+
+/// ResourceIdentifier implementation for Topic with ManagedkafkaProjectsLocationsClustersTopicsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersTopicsCreateArgs> for Topic {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersTopicsCreateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Topic/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Topic"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ManagedkafkaProjectsLocationsClustersTopicsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersTopicsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersTopicsDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Topic
+// =============================================================================
+
+/// ResourceIdentifier implementation for Topic with ManagedkafkaProjectsLocationsClustersTopicsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersTopicsGetArgs> for Topic {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersTopicsGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Topic/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Topic"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTopicsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTopicsResponse with ManagedkafkaProjectsLocationsClustersTopicsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersTopicsListArgs>
+    for ListTopicsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersTopicsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::ListTopicsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ListTopicsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Topic
+// =============================================================================
+
+/// ResourceIdentifier implementation for Topic with ManagedkafkaProjectsLocationsClustersTopicsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersTopicsPatchArgs> for Topic {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersTopicsPatchArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Topic/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Topic"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ManagedkafkaProjectsLocationsConnectClustersCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersCreateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ManagedkafkaProjectsLocationsConnectClustersDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ConnectCluster
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConnectCluster with ManagedkafkaProjectsLocationsConnectClustersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersGetArgs> for ConnectCluster {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::ConnectCluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ConnectCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListConnectClustersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListConnectClustersResponse with ManagedkafkaProjectsLocationsConnectClustersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersListArgs>
+    for ListConnectClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersListArgs,
+    ) -> String {
+        format!(
+            "gcp::managedkafka::ListConnectClustersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ListConnectClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ManagedkafkaProjectsLocationsConnectClustersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersPatchArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Connector
+// =============================================================================
+
+/// ResourceIdentifier implementation for Connector with ManagedkafkaProjectsLocationsConnectClustersConnectorsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsCreateArgs>
+    for Connector
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsCreateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Connector/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Connector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ManagedkafkaProjectsLocationsConnectClustersConnectorsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Connector
+// =============================================================================
+
+/// ResourceIdentifier implementation for Connector with ManagedkafkaProjectsLocationsConnectClustersConnectorsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsGetArgs>
+    for Connector
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Connector/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Connector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListConnectorsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListConnectorsResponse with ManagedkafkaProjectsLocationsConnectClustersConnectorsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsListArgs>
+    for ListConnectorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::ListConnectorsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ListConnectorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Connector
+// =============================================================================
+
+/// ResourceIdentifier implementation for Connector with ManagedkafkaProjectsLocationsConnectClustersConnectorsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsPatchArgs>
+    for Connector
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsPatchArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Connector/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Connector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PauseConnectorResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for PauseConnectorResponse with ManagedkafkaProjectsLocationsConnectClustersConnectorsPauseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsPauseArgs>
+    for PauseConnectorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsPauseArgs,
+    ) -> String {
+        format!("gcp::managedkafka::PauseConnectorResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::PauseConnectorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RestartConnectorResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RestartConnectorResponse with ManagedkafkaProjectsLocationsConnectClustersConnectorsRestartArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsRestartArgs>
+    for RestartConnectorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsRestartArgs,
+    ) -> String {
+        format!("gcp::managedkafka::RestartConnectorResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::RestartConnectorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ResumeConnectorResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ResumeConnectorResponse with ManagedkafkaProjectsLocationsConnectClustersConnectorsResumeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsResumeArgs>
+    for ResumeConnectorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsResumeArgs,
+    ) -> String {
+        format!("gcp::managedkafka::ResumeConnectorResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ResumeConnectorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for StopConnectorResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for StopConnectorResponse with ManagedkafkaProjectsLocationsConnectClustersConnectorsStopArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsStopArgs>
+    for StopConnectorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsStopArgs,
+    ) -> String {
+        format!("gcp::managedkafka::StopConnectorResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::StopConnectorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ManagedkafkaProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ManagedkafkaProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with ManagedkafkaProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with ManagedkafkaProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaRegistry
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaRegistry with ManagedkafkaProjectsLocationsSchemaRegistriesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesCreateArgs>
+    for SchemaRegistry
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesCreateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaRegistry/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaRegistry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with ManagedkafkaProjectsLocationsSchemaRegistriesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaRegistry
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaRegistry with ManagedkafkaProjectsLocationsSchemaRegistriesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesGetArgs> for SchemaRegistry {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaRegistry/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaRegistry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListSchemaRegistriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListSchemaRegistriesResponse with ManagedkafkaProjectsLocationsSchemaRegistriesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesListArgs>
+    for ListSchemaRegistriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::managedkafka::ListSchemaRegistriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::ListSchemaRegistriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckCompatibilityResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckCompatibilityResponse with ManagedkafkaProjectsLocationsSchemaRegistriesCompatibilityCheckCompatibilityArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesCompatibilityCheckCompatibilityArgs,
+    > for CheckCompatibilityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesCompatibilityCheckCompatibilityArgs,
+    ) -> String {
+        format!(
+            "gcp::managedkafka::CheckCompatibilityResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::CheckCompatibilityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaConfig with ManagedkafkaProjectsLocationsSchemaRegistriesConfigDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesConfigDeleteArgs>
+    for SchemaConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesConfigDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaConfig with ManagedkafkaProjectsLocationsSchemaRegistriesConfigGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesConfigGetArgs>
+    for SchemaConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesConfigGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaConfig with ManagedkafkaProjectsLocationsSchemaRegistriesConfigUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesConfigUpdateArgs>
+    for SchemaConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesConfigUpdateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Context
+// =============================================================================
+
+/// ResourceIdentifier implementation for Context with ManagedkafkaProjectsLocationsSchemaRegistriesContextsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsGetArgs> for Context {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Context/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Context"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckCompatibilityResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckCompatibilityResponse with ManagedkafkaProjectsLocationsSchemaRegistriesContextsCompatibilityCheckCompatibilityArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesContextsCompatibilityCheckCompatibilityArgs,
+    > for CheckCompatibilityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsCompatibilityCheckCompatibilityArgs,
+    ) -> String {
+        format!(
+            "gcp::managedkafka::CheckCompatibilityResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::CheckCompatibilityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaConfig with ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigDeleteArgs>
+    for SchemaConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaConfig with ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigGetArgs>
+    for SchemaConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaConfig
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaConfig with ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigUpdateArgs>
+    for SchemaConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigUpdateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaMode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaMode with ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeDeleteArgs>
+    for SchemaMode
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaMode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaMode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaMode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaMode with ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeGetArgs>
+    for SchemaMode
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaMode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaMode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaMode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaMode with ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeUpdateArgs>
+    for SchemaMode
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeUpdateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaMode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaMode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Schema
+// =============================================================================
+
+/// ResourceIdentifier implementation for Schema with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetArgs>
+    for Schema
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Schema/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Schema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetSchemaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetSchemaArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetSchemaArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasSubjectsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasSubjectsListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasSubjectsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasTypesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasTypesListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasTypesListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasVersionsListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasVersionsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsDeleteArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaVersion with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsLookupVersionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsLookupVersionArgs,
+    > for SchemaVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsLookupVersionArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CreateVersionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateVersionResponse with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsCreateArgs,
+    > for CreateVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::CreateVersionResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::CreateVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsDeleteArgs,
+    > for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaVersion with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetArgs>
+    for SchemaVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetSchemaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetSchemaArgs,
+    > for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetSchemaArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsListArgs,
+    > for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsReferencedbyListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsReferencedbyListArgs,
+    > for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsReferencedbyListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaMode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaMode with ManagedkafkaProjectsLocationsSchemaRegistriesModeDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesModeDeleteArgs>
+    for SchemaMode
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesModeDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaMode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaMode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaMode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaMode with ManagedkafkaProjectsLocationsSchemaRegistriesModeGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesModeGetArgs> for SchemaMode {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesModeGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaMode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaMode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaMode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaMode with ManagedkafkaProjectsLocationsSchemaRegistriesModeUpdateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesModeUpdateArgs>
+    for SchemaMode
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesModeUpdateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaMode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaMode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Schema
+// =============================================================================
+
+/// ResourceIdentifier implementation for Schema with ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetArgs> for Schema {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::Schema/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::Schema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetSchemaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetSchemaArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetSchemaArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesSchemasSubjectsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSchemasSubjectsListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasSubjectsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesSchemasTypesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSchemasTypesListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasTypesListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesSchemasVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSchemasVersionsListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasVersionsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsDeleteArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaVersion with ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsLookupVersionArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsLookupVersionArgs>
+    for SchemaVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsLookupVersionArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CreateVersionResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateVersionResponse with ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsCreateArgs>
+    for CreateVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::managedkafka::CreateVersionResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::CreateVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsDeleteArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsDeleteArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SchemaVersion
+// =============================================================================
+
+/// ResourceIdentifier implementation for SchemaVersion with ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetArgs>
+    for SchemaVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetArgs,
+    ) -> String {
+        format!("gcp::managedkafka::SchemaVersion/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::SchemaVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetSchemaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetSchemaArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetSchemaArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for HttpBody
+// =============================================================================
+
+/// ResourceIdentifier implementation for HttpBody with ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsReferencedbyListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsReferencedbyListArgs,
+    > for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsReferencedbyListArgs,
+    ) -> String {
+        format!("gcp::managedkafka::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::managedkafka::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

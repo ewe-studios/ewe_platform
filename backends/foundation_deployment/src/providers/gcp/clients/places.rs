@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/places:autocomplete
+/// POST v1/places:autocomplete
 /// Returns predictions for the given input.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn places_places_autocomplete_builder(
     client: &SimpleHttpClient,
-    body: &GoogleMapsPlacesV1AutocompletePlacesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://places.googleapis.com/v1/places:autocomplete",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/places:autocomplete
+/// POST v1/places:autocomplete
 /// Returns predictions for the given input.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +115,7 @@ pub fn places_places_autocomplete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/places:autocomplete
+/// POST v1/places:autocomplete
 /// Returns predictions for the given input.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -152,14 +149,7 @@ pub fn places_places_autocomplete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`places_places_autocomplete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PlacesPlacesAutocompleteArgs {
-    /// Request body.
-    pub body: GoogleMapsPlacesV1AutocompletePlacesRequest,
-}
-
-/// GET v1/places:autocomplete
+/// POST v1/places:autocomplete
 /// Returns predictions for the given input.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -172,7 +162,6 @@ pub struct PlacesPlacesAutocompleteArgs {
 
 pub fn places_places_autocomplete(
     client: &SimpleHttpClient,
-    args: &PlacesPlacesAutocompleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleMapsPlacesV1AutocompletePlacesResponse>, ApiError>,
@@ -181,7 +170,7 @@ pub fn places_places_autocomplete(
         + 'static,
     ApiError,
 > {
-    let builder = places_places_autocomplete_builder(client, &args.body)?;
+    let builder = places_places_autocomplete_builder(client)?;
     places_places_autocomplete_execute(builder)
 }
 
@@ -194,12 +183,12 @@ pub fn places_places_autocomplete(
 pub fn places_places_get_builder(
     client: &SimpleHttpClient,
     name: &String,
-    languageCode: &Option<String>,
-    regionCode: &Option<String>,
-    sessionToken: &Option<String>,
+    languageCode: &Option<Option<String>>,
+    regionCode: &Option<Option<String>>,
+    sessionToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://places.googleapis.com/v1/places/{}",);
+    let endpoint_url = format!("https://places.googleapis.com/v1/places/{}", name,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -338,11 +327,11 @@ pub struct PlacesPlacesGetArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: regionCode
-    pub regionCode: Option<String>,
+    pub regionCode: Option<Option<String>>,
     /// Query parameter: sessionToken
-    pub sessionToken: Option<String>,
+    pub sessionToken: Option<Option<String>>,
 }
 
 /// GET v1/places/{placesId}
@@ -375,7 +364,7 @@ pub fn places_places_get(
     places_places_get_execute(builder)
 }
 
-/// GET v1/places:searchNearby
+/// POST v1/places:searchNearby
 /// Search for places near locations.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -383,22 +372,19 @@ pub fn places_places_get(
 
 pub fn places_places_search_nearby_builder(
     client: &SimpleHttpClient,
-    body: &GoogleMapsPlacesV1SearchNearbyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://places.googleapis.com/v1/places:searchNearby",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/places:searchNearby
+/// POST v1/places:searchNearby
 /// Search for places near locations.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -472,7 +458,7 @@ pub fn places_places_search_nearby_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/places:searchNearby
+/// POST v1/places:searchNearby
 /// Search for places near locations.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -506,14 +492,7 @@ pub fn places_places_search_nearby_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`places_places_search_nearby`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PlacesPlacesSearchNearbyArgs {
-    /// Request body.
-    pub body: GoogleMapsPlacesV1SearchNearbyRequest,
-}
-
-/// GET v1/places:searchNearby
+/// POST v1/places:searchNearby
 /// Search for places near locations.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -526,7 +505,6 @@ pub struct PlacesPlacesSearchNearbyArgs {
 
 pub fn places_places_search_nearby(
     client: &SimpleHttpClient,
-    args: &PlacesPlacesSearchNearbyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleMapsPlacesV1SearchNearbyResponse>, ApiError>,
@@ -535,11 +513,11 @@ pub fn places_places_search_nearby(
         + 'static,
     ApiError,
 > {
-    let builder = places_places_search_nearby_builder(client, &args.body)?;
+    let builder = places_places_search_nearby_builder(client)?;
     places_places_search_nearby_execute(builder)
 }
 
-/// GET v1/places:searchText
+/// POST v1/places:searchText
 /// Text query based place search.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -547,22 +525,19 @@ pub fn places_places_search_nearby(
 
 pub fn places_places_search_text_builder(
     client: &SimpleHttpClient,
-    body: &GoogleMapsPlacesV1SearchTextRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://places.googleapis.com/v1/places:searchText",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/places:searchText
+/// POST v1/places:searchText
 /// Text query based place search.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -636,7 +611,7 @@ pub fn places_places_search_text_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/places:searchText
+/// POST v1/places:searchText
 /// Text query based place search.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -670,14 +645,7 @@ pub fn places_places_search_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`places_places_search_text`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PlacesPlacesSearchTextArgs {
-    /// Request body.
-    pub body: GoogleMapsPlacesV1SearchTextRequest,
-}
-
-/// GET v1/places:searchText
+/// POST v1/places:searchText
 /// Text query based place search.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -690,7 +658,6 @@ pub struct PlacesPlacesSearchTextArgs {
 
 pub fn places_places_search_text(
     client: &SimpleHttpClient,
-    args: &PlacesPlacesSearchTextArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleMapsPlacesV1SearchTextResponse>, ApiError>,
@@ -699,6 +666,320 @@ pub fn places_places_search_text(
         + 'static,
     ApiError,
 > {
-    let builder = places_places_search_text_builder(client, &args.body)?;
+    let builder = places_places_search_text_builder(client)?;
     places_places_search_text_execute(builder)
+}
+
+/// GET v1/places/{placesId}/photos/{photosId}/media
+/// Get a photo media with a photo reference string.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `places_places_photos_get_media_execute()` to send, or `places_places_photos_get_media` for simplest API.
+
+pub fn places_places_photos_get_media_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    maxHeightPx: &Option<Option<String>>,
+    maxWidthPx: &Option<Option<String>>,
+    skipHttpRedirect: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://places.googleapis.com/v1/places/{}/photos/{photosId}/media",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = maxHeightPx.as_ref() {
+        query_parts.push(format!("maxHeightPx={}", val));
+    }
+    if let Some(val) = maxWidthPx.as_ref() {
+        query_parts.push(format!("maxWidthPx={}", val));
+    }
+    if let Some(val) = skipHttpRedirect.as_ref() {
+        query_parts.push(format!("skipHttpRedirect={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/places/{placesId}/photos/{photosId}/media
+/// Get a photo media with a photo reference string.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `places_places_photos_get_media_execute()` or `places_places_photos_get_media`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `places_places_photos_get_media_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn places_places_photos_get_media_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleMapsPlacesV1PhotoMedia>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GoogleMapsPlacesV1PhotoMedia = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/places/{placesId}/photos/{photosId}/media
+/// Get a photo media with a photo reference string.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `places_places_photos_get_media_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `places_places_photos_get_media_task()`.
+/// For the simplest API, use `places_places_photos_get_media()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `places_places_photos_get_media_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn places_places_photos_get_media_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleMapsPlacesV1PhotoMedia>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = places_places_photos_get_media_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`places_places_photos_get_media`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlacesPlacesPhotosGetMediaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: maxHeightPx
+    pub maxHeightPx: Option<Option<String>>,
+    /// Query parameter: maxWidthPx
+    pub maxWidthPx: Option<Option<String>>,
+    /// Query parameter: skipHttpRedirect
+    pub skipHttpRedirect: Option<Option<String>>,
+}
+
+/// GET v1/places/{placesId}/photos/{photosId}/media
+/// Get a photo media with a photo reference string.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `places_places_photos_get_media_builder()` + `places_places_photos_get_media_execute()`.
+/// For task-level control, use `places_places_photos_get_media_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn places_places_photos_get_media(
+    client: &SimpleHttpClient,
+    args: &PlacesPlacesPhotosGetMediaArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GoogleMapsPlacesV1PhotoMedia>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = places_places_photos_get_media_builder(
+        client,
+        &args.name,
+        &args.maxHeightPx,
+        &args.maxWidthPx,
+        &args.skipHttpRedirect,
+    )?;
+    places_places_photos_get_media_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleMapsPlacesV1AutocompletePlacesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleMapsPlacesV1AutocompletePlacesResponse with PlacesPlacesAutocompleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlacesPlacesAutocompleteArgs>
+    for GoogleMapsPlacesV1AutocompletePlacesResponse
+{
+    fn generate_resource_id(&self, input: &PlacesPlacesAutocompleteArgs) -> String {
+        "gcp::places::GoogleMapsPlacesV1AutocompletePlacesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::places::GoogleMapsPlacesV1AutocompletePlacesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleMapsPlacesV1Place
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleMapsPlacesV1Place with PlacesPlacesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlacesPlacesGetArgs> for GoogleMapsPlacesV1Place {
+    fn generate_resource_id(&self, input: &PlacesPlacesGetArgs) -> String {
+        format!("gcp::places::GoogleMapsPlacesV1Place/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::places::GoogleMapsPlacesV1Place"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleMapsPlacesV1SearchNearbyResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleMapsPlacesV1SearchNearbyResponse with PlacesPlacesSearchNearbyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlacesPlacesSearchNearbyArgs> for GoogleMapsPlacesV1SearchNearbyResponse {
+    fn generate_resource_id(&self, input: &PlacesPlacesSearchNearbyArgs) -> String {
+        "gcp::places::GoogleMapsPlacesV1SearchNearbyResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::places::GoogleMapsPlacesV1SearchNearbyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleMapsPlacesV1SearchTextResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleMapsPlacesV1SearchTextResponse with PlacesPlacesSearchTextArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlacesPlacesSearchTextArgs> for GoogleMapsPlacesV1SearchTextResponse {
+    fn generate_resource_id(&self, input: &PlacesPlacesSearchTextArgs) -> String {
+        "gcp::places::GoogleMapsPlacesV1SearchTextResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::places::GoogleMapsPlacesV1SearchTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleMapsPlacesV1PhotoMedia
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleMapsPlacesV1PhotoMedia with PlacesPlacesPhotosGetMediaArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlacesPlacesPhotosGetMediaArgs> for GoogleMapsPlacesV1PhotoMedia {
+    fn generate_resource_id(&self, input: &PlacesPlacesPhotosGetMediaArgs) -> String {
+        format!("gcp::places::GoogleMapsPlacesV1PhotoMedia/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::places::GoogleMapsPlacesV1PhotoMedia"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

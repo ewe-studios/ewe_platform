@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -28,39 +28,39 @@ use serde::Serialize;
 
 pub fn search_cse_list_builder(
     client: &SimpleHttpClient,
-    c2coff: &Option<String>,
-    cr: &Option<String>,
-    cx: &Option<String>,
-    dateRestrict: &Option<String>,
-    enableAlternateSearchHandler: &Option<bool>,
-    exactTerms: &Option<String>,
-    excludeTerms: &Option<String>,
-    fileType: &Option<String>,
-    filter: &Option<String>,
-    gl: &Option<String>,
-    googlehost: &Option<String>,
-    highRange: &Option<String>,
-    hl: &Option<String>,
-    hq: &Option<String>,
-    imgColorType: &Option<String>,
-    imgDominantColor: &Option<String>,
-    imgSize: &Option<String>,
-    imgType: &Option<String>,
-    linkSite: &Option<String>,
-    lowRange: &Option<String>,
-    lr: &Option<String>,
-    num: &Option<i32>,
-    orTerms: &Option<String>,
-    q: &Option<String>,
-    relatedSite: &Option<String>,
-    rights: &Option<String>,
-    safe: &Option<String>,
-    searchType: &Option<String>,
-    siteSearch: &Option<String>,
-    siteSearchFilter: &Option<String>,
-    snippetLength: &Option<i32>,
-    sort: &Option<String>,
-    start: &Option<i32>,
+    c2coff: &Option<Option<String>>,
+    cr: &Option<Option<String>>,
+    cx: &Option<Option<String>>,
+    dateRestrict: &Option<Option<String>>,
+    enableAlternateSearchHandler: &Option<Option<String>>,
+    exactTerms: &Option<Option<String>>,
+    excludeTerms: &Option<Option<String>>,
+    fileType: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    gl: &Option<Option<String>>,
+    googlehost: &Option<Option<String>>,
+    highRange: &Option<Option<String>>,
+    hl: &Option<Option<String>>,
+    hq: &Option<Option<String>>,
+    imgColorType: &Option<Option<String>>,
+    imgDominantColor: &Option<Option<String>>,
+    imgSize: &Option<Option<String>>,
+    imgType: &Option<Option<String>>,
+    linkSite: &Option<Option<String>>,
+    lowRange: &Option<Option<String>>,
+    lr: &Option<Option<String>>,
+    num: &Option<Option<String>>,
+    orTerms: &Option<Option<String>>,
+    q: &Option<Option<String>>,
+    relatedSite: &Option<Option<String>>,
+    rights: &Option<Option<String>>,
+    safe: &Option<Option<String>>,
+    searchType: &Option<Option<String>>,
+    siteSearch: &Option<Option<String>>,
+    siteSearchFilter: &Option<Option<String>>,
+    snippetLength: &Option<Option<String>>,
+    sort: &Option<Option<String>>,
+    start: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://customsearch.googleapis.com/customsearch/v1",);
@@ -288,71 +288,71 @@ pub fn search_cse_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SearchCseListArgs {
     /// Query parameter: c2coff
-    pub c2coff: Option<String>,
+    pub c2coff: Option<Option<String>>,
     /// Query parameter: cr
-    pub cr: Option<String>,
+    pub cr: Option<Option<String>>,
     /// Query parameter: cx
-    pub cx: Option<String>,
+    pub cx: Option<Option<String>>,
     /// Query parameter: dateRestrict
-    pub dateRestrict: Option<String>,
+    pub dateRestrict: Option<Option<String>>,
     /// Query parameter: enableAlternateSearchHandler
-    pub enableAlternateSearchHandler: Option<bool>,
+    pub enableAlternateSearchHandler: Option<Option<String>>,
     /// Query parameter: exactTerms
-    pub exactTerms: Option<String>,
+    pub exactTerms: Option<Option<String>>,
     /// Query parameter: excludeTerms
-    pub excludeTerms: Option<String>,
+    pub excludeTerms: Option<Option<String>>,
     /// Query parameter: fileType
-    pub fileType: Option<String>,
+    pub fileType: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: gl
-    pub gl: Option<String>,
+    pub gl: Option<Option<String>>,
     /// Query parameter: googlehost
-    pub googlehost: Option<String>,
+    pub googlehost: Option<Option<String>>,
     /// Query parameter: highRange
-    pub highRange: Option<String>,
+    pub highRange: Option<Option<String>>,
     /// Query parameter: hl
-    pub hl: Option<String>,
+    pub hl: Option<Option<String>>,
     /// Query parameter: hq
-    pub hq: Option<String>,
+    pub hq: Option<Option<String>>,
     /// Query parameter: imgColorType
-    pub imgColorType: Option<String>,
+    pub imgColorType: Option<Option<String>>,
     /// Query parameter: imgDominantColor
-    pub imgDominantColor: Option<String>,
+    pub imgDominantColor: Option<Option<String>>,
     /// Query parameter: imgSize
-    pub imgSize: Option<String>,
+    pub imgSize: Option<Option<String>>,
     /// Query parameter: imgType
-    pub imgType: Option<String>,
+    pub imgType: Option<Option<String>>,
     /// Query parameter: linkSite
-    pub linkSite: Option<String>,
+    pub linkSite: Option<Option<String>>,
     /// Query parameter: lowRange
-    pub lowRange: Option<String>,
+    pub lowRange: Option<Option<String>>,
     /// Query parameter: lr
-    pub lr: Option<String>,
+    pub lr: Option<Option<String>>,
     /// Query parameter: num
-    pub num: Option<i32>,
+    pub num: Option<Option<String>>,
     /// Query parameter: orTerms
-    pub orTerms: Option<String>,
+    pub orTerms: Option<Option<String>>,
     /// Query parameter: q
-    pub q: Option<String>,
+    pub q: Option<Option<String>>,
     /// Query parameter: relatedSite
-    pub relatedSite: Option<String>,
+    pub relatedSite: Option<Option<String>>,
     /// Query parameter: rights
-    pub rights: Option<String>,
+    pub rights: Option<Option<String>>,
     /// Query parameter: safe
-    pub safe: Option<String>,
+    pub safe: Option<Option<String>>,
     /// Query parameter: searchType
-    pub searchType: Option<String>,
+    pub searchType: Option<Option<String>>,
     /// Query parameter: siteSearch
-    pub siteSearch: Option<String>,
+    pub siteSearch: Option<Option<String>>,
     /// Query parameter: siteSearchFilter
-    pub siteSearchFilter: Option<String>,
+    pub siteSearchFilter: Option<Option<String>>,
     /// Query parameter: snippetLength
-    pub snippetLength: Option<i32>,
+    pub snippetLength: Option<Option<String>>,
     /// Query parameter: sort
-    pub sort: Option<String>,
+    pub sort: Option<Option<String>>,
     /// Query parameter: start
-    pub start: Option<i32>,
+    pub start: Option<Option<String>>,
 }
 
 /// GET customsearch/v1
@@ -420,39 +420,39 @@ pub fn search_cse_list(
 
 pub fn search_cse_siterestrict_list_builder(
     client: &SimpleHttpClient,
-    c2coff: &Option<String>,
-    cr: &Option<String>,
-    cx: &Option<String>,
-    dateRestrict: &Option<String>,
-    enableAlternateSearchHandler: &Option<bool>,
-    exactTerms: &Option<String>,
-    excludeTerms: &Option<String>,
-    fileType: &Option<String>,
-    filter: &Option<String>,
-    gl: &Option<String>,
-    googlehost: &Option<String>,
-    highRange: &Option<String>,
-    hl: &Option<String>,
-    hq: &Option<String>,
-    imgColorType: &Option<String>,
-    imgDominantColor: &Option<String>,
-    imgSize: &Option<String>,
-    imgType: &Option<String>,
-    linkSite: &Option<String>,
-    lowRange: &Option<String>,
-    lr: &Option<String>,
-    num: &Option<i32>,
-    orTerms: &Option<String>,
-    q: &Option<String>,
-    relatedSite: &Option<String>,
-    rights: &Option<String>,
-    safe: &Option<String>,
-    searchType: &Option<String>,
-    siteSearch: &Option<String>,
-    siteSearchFilter: &Option<String>,
-    snippetLength: &Option<i32>,
-    sort: &Option<String>,
-    start: &Option<i32>,
+    c2coff: &Option<Option<String>>,
+    cr: &Option<Option<String>>,
+    cx: &Option<Option<String>>,
+    dateRestrict: &Option<Option<String>>,
+    enableAlternateSearchHandler: &Option<Option<String>>,
+    exactTerms: &Option<Option<String>>,
+    excludeTerms: &Option<Option<String>>,
+    fileType: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    gl: &Option<Option<String>>,
+    googlehost: &Option<Option<String>>,
+    highRange: &Option<Option<String>>,
+    hl: &Option<Option<String>>,
+    hq: &Option<Option<String>>,
+    imgColorType: &Option<Option<String>>,
+    imgDominantColor: &Option<Option<String>>,
+    imgSize: &Option<Option<String>>,
+    imgType: &Option<Option<String>>,
+    linkSite: &Option<Option<String>>,
+    lowRange: &Option<Option<String>>,
+    lr: &Option<Option<String>>,
+    num: &Option<Option<String>>,
+    orTerms: &Option<Option<String>>,
+    q: &Option<Option<String>>,
+    relatedSite: &Option<Option<String>>,
+    rights: &Option<Option<String>>,
+    safe: &Option<Option<String>>,
+    searchType: &Option<Option<String>>,
+    siteSearch: &Option<Option<String>>,
+    siteSearchFilter: &Option<Option<String>>,
+    snippetLength: &Option<Option<String>>,
+    sort: &Option<Option<String>>,
+    start: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://customsearch.googleapis.com/customsearch/v1/siterestrict",);
@@ -680,71 +680,71 @@ pub fn search_cse_siterestrict_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SearchCseSiterestrictListArgs {
     /// Query parameter: c2coff
-    pub c2coff: Option<String>,
+    pub c2coff: Option<Option<String>>,
     /// Query parameter: cr
-    pub cr: Option<String>,
+    pub cr: Option<Option<String>>,
     /// Query parameter: cx
-    pub cx: Option<String>,
+    pub cx: Option<Option<String>>,
     /// Query parameter: dateRestrict
-    pub dateRestrict: Option<String>,
+    pub dateRestrict: Option<Option<String>>,
     /// Query parameter: enableAlternateSearchHandler
-    pub enableAlternateSearchHandler: Option<bool>,
+    pub enableAlternateSearchHandler: Option<Option<String>>,
     /// Query parameter: exactTerms
-    pub exactTerms: Option<String>,
+    pub exactTerms: Option<Option<String>>,
     /// Query parameter: excludeTerms
-    pub excludeTerms: Option<String>,
+    pub excludeTerms: Option<Option<String>>,
     /// Query parameter: fileType
-    pub fileType: Option<String>,
+    pub fileType: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: gl
-    pub gl: Option<String>,
+    pub gl: Option<Option<String>>,
     /// Query parameter: googlehost
-    pub googlehost: Option<String>,
+    pub googlehost: Option<Option<String>>,
     /// Query parameter: highRange
-    pub highRange: Option<String>,
+    pub highRange: Option<Option<String>>,
     /// Query parameter: hl
-    pub hl: Option<String>,
+    pub hl: Option<Option<String>>,
     /// Query parameter: hq
-    pub hq: Option<String>,
+    pub hq: Option<Option<String>>,
     /// Query parameter: imgColorType
-    pub imgColorType: Option<String>,
+    pub imgColorType: Option<Option<String>>,
     /// Query parameter: imgDominantColor
-    pub imgDominantColor: Option<String>,
+    pub imgDominantColor: Option<Option<String>>,
     /// Query parameter: imgSize
-    pub imgSize: Option<String>,
+    pub imgSize: Option<Option<String>>,
     /// Query parameter: imgType
-    pub imgType: Option<String>,
+    pub imgType: Option<Option<String>>,
     /// Query parameter: linkSite
-    pub linkSite: Option<String>,
+    pub linkSite: Option<Option<String>>,
     /// Query parameter: lowRange
-    pub lowRange: Option<String>,
+    pub lowRange: Option<Option<String>>,
     /// Query parameter: lr
-    pub lr: Option<String>,
+    pub lr: Option<Option<String>>,
     /// Query parameter: num
-    pub num: Option<i32>,
+    pub num: Option<Option<String>>,
     /// Query parameter: orTerms
-    pub orTerms: Option<String>,
+    pub orTerms: Option<Option<String>>,
     /// Query parameter: q
-    pub q: Option<String>,
+    pub q: Option<Option<String>>,
     /// Query parameter: relatedSite
-    pub relatedSite: Option<String>,
+    pub relatedSite: Option<Option<String>>,
     /// Query parameter: rights
-    pub rights: Option<String>,
+    pub rights: Option<Option<String>>,
     /// Query parameter: safe
-    pub safe: Option<String>,
+    pub safe: Option<Option<String>>,
     /// Query parameter: searchType
-    pub searchType: Option<String>,
+    pub searchType: Option<Option<String>>,
     /// Query parameter: siteSearch
-    pub siteSearch: Option<String>,
+    pub siteSearch: Option<Option<String>>,
     /// Query parameter: siteSearchFilter
-    pub siteSearchFilter: Option<String>,
+    pub siteSearchFilter: Option<Option<String>>,
     /// Query parameter: snippetLength
-    pub snippetLength: Option<i32>,
+    pub snippetLength: Option<Option<String>>,
     /// Query parameter: sort
-    pub sort: Option<String>,
+    pub sort: Option<Option<String>>,
     /// Query parameter: start
-    pub start: Option<i32>,
+    pub start: Option<Option<String>>,
 }
 
 /// GET customsearch/v1/siterestrict
@@ -802,4 +802,50 @@ pub fn search_cse_siterestrict_list(
         &args.start,
     )?;
     search_cse_siterestrict_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Search
+// =============================================================================
+
+/// ResourceIdentifier implementation for Search with SearchCseListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SearchCseListArgs> for Search {
+    fn generate_resource_id(&self, input: &SearchCseListArgs) -> String {
+        "gcp::customsearch::Search".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::customsearch::Search"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Search
+// =============================================================================
+
+/// ResourceIdentifier implementation for Search with SearchCseSiterestrictListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SearchCseSiterestrictListArgs> for Search {
+    fn generate_resource_id(&self, input: &SearchCseSiterestrictListArgs) -> String {
+        "gcp::customsearch::Search".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::customsearch::Search"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

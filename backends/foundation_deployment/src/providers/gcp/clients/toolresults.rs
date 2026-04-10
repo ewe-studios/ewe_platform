@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -181,7 +181,7 @@ pub fn toolresults_projects_get_settings(
     toolresults_projects_get_settings_execute(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}:initializeSettings
+/// POST toolresults/v1beta3/projects/{projectId}:initializeSettings
 /// Creates resources for settings which have not yet been set. Currently, this creates a single resource: a Google Cloud Storage bucket, to be used as the default bucket for this project. The bucket is created in an FTL-own storage project. Except for in rare cases, calling this method in parallel from multiple clients will only create a single bucket. In order to avoid unnecessary storage charges, the bucket is configured to automatically delete objects older than 60 days. The bucket is created with the following permissions: - Owner access for owners of central storage project (FTL-owned) - Writer access for `owners/editors` of customer project - Reader access for viewers of customer project The default ACL on objects created in the bucket is: - Owner access for owners of central storage project - Reader access for `owners/editors/viewers` of customer project See Google Cloud Storage documentation for more details. If there is already a default bucket set and the project can access the bucket, this call does nothing. However, if the project doesn't have the permission to access the bucket or the bucket is deleted, a new bucket will be created. May return any canonical error codes, including the following: - PERMISSION_DENIED - if the user is not authorized to write to project - Any error code raised by Google Cloud Storage
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -199,13 +199,13 @@ pub fn toolresults_projects_initialize_settings_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}:initializeSettings
+/// POST toolresults/v1beta3/projects/{projectId}:initializeSettings
 /// Creates resources for settings which have not yet been set. Currently, this creates a single resource: a Google Cloud Storage bucket, to be used as the default bucket for this project. The bucket is created in an FTL-own storage project. Except for in rare cases, calling this method in parallel from multiple clients will only create a single bucket. In order to avoid unnecessary storage charges, the bucket is configured to automatically delete objects older than 60 days. The bucket is created with the following permissions: - Owner access for owners of central storage project (FTL-owned) - Writer access for `owners/editors` of customer project - Reader access for viewers of customer project The default ACL on objects created in the bucket is: - Owner access for owners of central storage project - Reader access for `owners/editors/viewers` of customer project See Google Cloud Storage documentation for more details. If there is already a default bucket set and the project can access the bucket, this call does nothing. However, if the project doesn't have the permission to access the bucket or the bucket is deleted, a new bucket will be created. May return any canonical error codes, including the following: - PERMISSION_DENIED - if the user is not authorized to write to project - Any error code raised by Google Cloud Storage
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -279,7 +279,7 @@ pub fn toolresults_projects_initialize_settings_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}:initializeSettings
+/// POST toolresults/v1beta3/projects/{projectId}:initializeSettings
 /// Creates resources for settings which have not yet been set. Currently, this creates a single resource: a Google Cloud Storage bucket, to be used as the default bucket for this project. The bucket is created in an FTL-own storage project. Except for in rare cases, calling this method in parallel from multiple clients will only create a single bucket. In order to avoid unnecessary storage charges, the bucket is configured to automatically delete objects older than 60 days. The bucket is created with the following permissions: - Owner access for owners of central storage project (FTL-owned) - Writer access for `owners/editors` of customer project - Reader access for viewers of customer project The default ACL on objects created in the bucket is: - Owner access for owners of central storage project - Reader access for `owners/editors/viewers` of customer project See Google Cloud Storage documentation for more details. If there is already a default bucket set and the project can access the bucket, this call does nothing. However, if the project doesn't have the permission to access the bucket or the bucket is deleted, a new bucket will be created. May return any canonical error codes, including the following: - PERMISSION_DENIED - if the user is not authorized to write to project - Any error code raised by Google Cloud Storage
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -318,7 +318,7 @@ pub struct ToolresultsProjectsInitializeSettingsArgs {
     pub projectId: String,
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}:initializeSettings
+/// POST toolresults/v1beta3/projects/{projectId}:initializeSettings
 /// Creates resources for settings which have not yet been set. Currently, this creates a single resource: a Google Cloud Storage bucket, to be used as the default bucket for this project. The bucket is created in an FTL-own storage project. Except for in rare cases, calling this method in parallel from multiple clients will only create a single bucket. In order to avoid unnecessary storage charges, the bucket is configured to automatically delete objects older than 60 days. The bucket is created with the following permissions: - Owner access for owners of central storage project (FTL-owned) - Writer access for `owners/editors` of customer project - Reader access for viewers of customer project The default ACL on objects created in the bucket is: - Owner access for owners of central storage project - Reader access for `owners/editors/viewers` of customer project See Google Cloud Storage documentation for more details. If there is already a default bucket set and the project can access the bucket, this call does nothing. However, if the project doesn't have the permission to access the bucket or the bucket is deleted, a new bucket will be created. May return any canonical error codes, including the following: - PERMISSION_DENIED - if the user is not authorized to write to project - Any error code raised by Google Cloud Storage
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -342,7 +342,7 @@ pub fn toolresults_projects_initialize_settings(
     toolresults_projects_initialize_settings_execute(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories
+/// POST toolresults/v1beta3/projects/{projectId}/histories
 /// Creates a History. The returned History will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing project does not exist
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -351,8 +351,7 @@ pub fn toolresults_projects_initialize_settings(
 pub fn toolresults_projects_histories_create_builder(
     client: &SimpleHttpClient,
     projectId: &String,
-    requestId: &Option<String>,
-    body: &History,
+    requestId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -373,15 +372,13 @@ pub fn toolresults_projects_histories_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories
+/// POST toolresults/v1beta3/projects/{projectId}/histories
 /// Creates a History. The returned History will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing project does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -455,7 +452,7 @@ pub fn toolresults_projects_histories_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories
+/// POST toolresults/v1beta3/projects/{projectId}/histories
 /// Creates a History. The returned History will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing project does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -491,12 +488,10 @@ pub struct ToolresultsProjectsHistoriesCreateArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Query parameter: requestId
-    pub requestId: Option<String>,
-    /// Request body.
-    pub body: History,
+    pub requestId: Option<Option<String>>,
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories
+/// POST toolresults/v1beta3/projects/{projectId}/histories
 /// Creates a History. The returned History will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing project does not exist
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -514,12 +509,8 @@ pub fn toolresults_projects_histories_create(
     impl StreamIterator<D = Result<ApiResponse<History>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_histories_create_builder(
-        client,
-        &args.projectId,
-        &args.requestId,
-        &args.body,
-    )?;
+    let builder =
+        toolresults_projects_histories_create_builder(client, &args.projectId, &args.requestId)?;
     toolresults_projects_histories_create_execute(builder)
 }
 
@@ -684,7 +675,200 @@ pub fn toolresults_projects_histories_get(
     toolresults_projects_histories_get_execute(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
+/// GET toolresults/v1beta3/projects/{projectId}/histories
+/// Lists Histories for a given Project. The histories are sorted by modification time in descending order. The history_id key will be used to order the history with the same modification time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the History does not exist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `toolresults_projects_histories_list_execute()` to send, or `toolresults_projects_histories_list` for simplest API.
+
+pub fn toolresults_projects_histories_list_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    filterByName: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories",
+        projectId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filterByName.as_ref() {
+        query_parts.push(format!("filterByName={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories
+/// Lists Histories for a given Project. The histories are sorted by modification time in descending order. The history_id key will be used to order the history with the same modification time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the History does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `toolresults_projects_histories_list_execute()` or `toolresults_projects_histories_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListHistoriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListHistoriesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories
+/// Lists Histories for a given Project. The histories are sorted by modification time in descending order. The history_id key will be used to order the history with the same modification time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the History does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `toolresults_projects_histories_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `toolresults_projects_histories_list_task()`.
+/// For the simplest API, use `toolresults_projects_histories_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn toolresults_projects_histories_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHistoriesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = toolresults_projects_histories_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`toolresults_projects_histories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: filterByName
+    pub filterByName: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories
+/// Lists Histories for a given Project. The histories are sorted by modification time in descending order. The history_id key will be used to order the history with the same modification time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the History does not exist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `toolresults_projects_histories_list_builder()` + `toolresults_projects_histories_list_execute()`.
+/// For task-level control, use `toolresults_projects_histories_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_list(
+    client: &SimpleHttpClient,
+    args: &ToolresultsProjectsHistoriesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListHistoriesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = toolresults_projects_histories_list_builder(
+        client,
+        &args.projectId,
+        &args.filterByName,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    toolresults_projects_histories_list_execute(builder)
+}
+
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
 /// Creates an Execution. The returned Execution will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -694,8 +878,7 @@ pub fn toolresults_projects_histories_executions_create_builder(
     client: &SimpleHttpClient,
     projectId: &String,
     historyId: &String,
-    requestId: &Option<String>,
-    body: &Execution,
+    requestId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -717,15 +900,13 @@ pub fn toolresults_projects_histories_executions_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
 /// Creates an Execution. The returned Execution will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -799,7 +980,7 @@ pub fn toolresults_projects_histories_executions_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
 /// Creates an Execution. The returned Execution will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -837,12 +1018,10 @@ pub struct ToolresultsProjectsHistoriesExecutionsCreateArgs {
     /// Path parameter: historyId
     pub historyId: String,
     /// Query parameter: requestId
-    pub requestId: Option<String>,
-    /// Request body.
-    pub body: Execution,
+    pub requestId: Option<Option<String>>,
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
 /// Creates an Execution. The returned Execution will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -865,7 +1044,6 @@ pub fn toolresults_projects_histories_executions_create(
         &args.projectId,
         &args.historyId,
         &args.requestId,
-        &args.body,
     )?;
     toolresults_projects_histories_executions_create_execute(builder)
 }
@@ -1038,6 +1216,382 @@ pub fn toolresults_projects_histories_executions_get(
         &args.executionId,
     )?;
     toolresults_projects_histories_executions_get_execute(builder)
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
+/// Lists Executions for a given History. The executions are sorted by creation_time in descending order. The execution_id key will be used to order the executions with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `toolresults_projects_histories_executions_list_execute()` to send, or `toolresults_projects_histories_executions_list` for simplest API.
+
+pub fn toolresults_projects_histories_executions_list_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    historyId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions",
+        projectId,
+        historyId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
+/// Lists Executions for a given History. The executions are sorted by creation_time in descending order. The execution_id key will be used to order the executions with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `toolresults_projects_histories_executions_list_execute()` or `toolresults_projects_histories_executions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListExecutionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListExecutionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
+/// Lists Executions for a given History. The executions are sorted by creation_time in descending order. The execution_id key will be used to order the executions with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `toolresults_projects_histories_executions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `toolresults_projects_histories_executions_list_task()`.
+/// For the simplest API, use `toolresults_projects_histories_executions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn toolresults_projects_histories_executions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListExecutionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = toolresults_projects_histories_executions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`toolresults_projects_histories_executions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
+/// Lists Executions for a given History. The executions are sorted by creation_time in descending order. The execution_id key will be used to order the executions with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `toolresults_projects_histories_executions_list_builder()` + `toolresults_projects_histories_executions_list_execute()`.
+/// For task-level control, use `toolresults_projects_histories_executions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_list(
+    client: &SimpleHttpClient,
+    args: &ToolresultsProjectsHistoriesExecutionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListExecutionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = toolresults_projects_histories_executions_list_builder(
+        client,
+        &args.projectId,
+        &args.historyId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    toolresults_projects_histories_executions_list_execute(builder)
+}
+
+/// PATCH toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
+/// Updates an existing Execution with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal - NOT_FOUND - if the containing History does not exist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `toolresults_projects_histories_executions_patch_execute()` to send, or `toolresults_projects_histories_executions_patch` for simplest API.
+
+pub fn toolresults_projects_histories_executions_patch_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}",
+        projectId,
+        historyId,
+        executionId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
+/// Updates an existing Execution with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal - NOT_FOUND - if the containing History does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `toolresults_projects_histories_executions_patch_execute()` or `toolresults_projects_histories_executions_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Execution>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Execution = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
+/// Updates an existing Execution with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal - NOT_FOUND - if the containing History does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `toolresults_projects_histories_executions_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `toolresults_projects_histories_executions_patch_task()`.
+/// For the simplest API, use `toolresults_projects_histories_executions_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn toolresults_projects_histories_executions_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = toolresults_projects_histories_executions_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`toolresults_projects_histories_executions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsPatchArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// PATCH toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
+/// Updates an existing Execution with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal - NOT_FOUND - if the containing History does not exist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `toolresults_projects_histories_executions_patch_builder()` + `toolresults_projects_histories_executions_patch_execute()`.
+/// For task-level control, use `toolresults_projects_histories_executions_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_patch(
+    client: &SimpleHttpClient,
+    args: &ToolresultsProjectsHistoriesExecutionsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = toolresults_projects_histories_executions_patch_builder(
+        client,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.requestId,
+    )?;
+    toolresults_projects_histories_executions_patch_execute(builder)
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/clusters/{clusterId}
@@ -1583,8 +2137,8 @@ pub fn toolresults_projects_histories_executions_environments_list_builder(
     projectId: &String,
     historyId: &String,
     executionId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1732,9 +2286,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsEnvironmentsListArgs {
     /// Path parameter: executionId
     pub executionId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/environments
@@ -1768,7 +2322,191 @@ pub fn toolresults_projects_histories_executions_environments_list(
     toolresults_projects_histories_executions_environments_list_execute(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
+/// GET toolresults/v1beta3/projects/{projectsId}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters
+/// Lists accessibility clusters for a given Step May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if the locale format is incorrect - NOT_FOUND - if the containing Step does not exist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `toolresults_projects_histories_executions_steps_accessibility_clusters_execute()` to send, or `toolresults_projects_histories_executions_steps_accessibility_clusters` for simplest API.
+
+pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    locale: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = locale.as_ref() {
+        query_parts.push(format!("locale={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET toolresults/v1beta3/projects/{projectsId}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters
+/// Lists accessibility clusters for a given Step May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if the locale format is incorrect - NOT_FOUND - if the containing Step does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `toolresults_projects_histories_executions_steps_accessibility_clusters_execute()` or `toolresults_projects_histories_executions_steps_accessibility_clusters`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_accessibility_clusters_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListStepAccessibilityClustersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListStepAccessibilityClustersResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET toolresults/v1beta3/projects/{projectsId}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters
+/// Lists accessibility clusters for a given Step May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if the locale format is incorrect - NOT_FOUND - if the containing Step does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `toolresults_projects_histories_executions_steps_accessibility_clusters_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `toolresults_projects_histories_executions_steps_accessibility_clusters_task()`.
+/// For the simplest API, use `toolresults_projects_histories_executions_steps_accessibility_clusters()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_accessibility_clusters_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListStepAccessibilityClustersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        toolresults_projects_histories_executions_steps_accessibility_clusters_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`toolresults_projects_histories_executions_steps_accessibility_clusters`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsAccessibilityClustersArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: locale
+    pub locale: Option<Option<String>>,
+}
+
+/// GET toolresults/v1beta3/projects/{projectsId}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters
+/// Lists accessibility clusters for a given Step May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if the locale format is incorrect - NOT_FOUND - if the containing Step does not exist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `toolresults_projects_histories_executions_steps_accessibility_clusters_builder()` + `toolresults_projects_histories_executions_steps_accessibility_clusters_execute()`.
+/// For task-level control, use `toolresults_projects_histories_executions_steps_accessibility_clusters_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_steps_accessibility_clusters(
+    client: &SimpleHttpClient,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsAccessibilityClustersArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListStepAccessibilityClustersResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = toolresults_projects_histories_executions_steps_accessibility_clusters_builder(
+        client,
+        &args.name,
+        &args.locale,
+    )?;
+    toolresults_projects_histories_executions_steps_accessibility_clusters_execute(builder)
+}
+
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
 /// Creates a Step. The returned Step will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1779,8 +2517,7 @@ pub fn toolresults_projects_histories_executions_steps_create_builder(
     projectId: &String,
     historyId: &String,
     executionId: &String,
-    requestId: &Option<String>,
-    body: &Step,
+    requestId: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -1803,15 +2540,13 @@ pub fn toolresults_projects_histories_executions_steps_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
 /// Creates a Step. The returned Step will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1885,7 +2620,7 @@ pub fn toolresults_projects_histories_executions_steps_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
 /// Creates a Step. The returned Step will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1925,12 +2660,10 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsCreateArgs {
     /// Path parameter: executionId
     pub executionId: String,
     /// Query parameter: requestId
-    pub requestId: Option<String>,
-    /// Request body.
-    pub body: Step,
+    pub requestId: Option<Option<String>>,
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
 /// Creates a Step. The returned Step will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1954,7 +2687,6 @@ pub fn toolresults_projects_histories_executions_steps_create(
         &args.historyId,
         &args.executionId,
         &args.requestId,
-        &args.body,
     )?;
     toolresults_projects_histories_executions_steps_create_execute(builder)
 }
@@ -2314,7 +3046,393 @@ pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary(
     toolresults_projects_histories_executions_steps_get_perf_metrics_summary_execute(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}:publishXunitXmlFiles
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
+/// Lists Steps for a given Execution. The steps are sorted by creation_time in descending order. The step_id key will be used to order the steps with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if an attempt is made to list the children of a nonexistent Step - NOT_FOUND - if the containing Execution does not exist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `toolresults_projects_histories_executions_steps_list_execute()` to send, or `toolresults_projects_histories_executions_steps_list` for simplest API.
+
+pub fn toolresults_projects_histories_executions_steps_list_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps",
+        projectId,
+        historyId,
+        executionId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
+/// Lists Steps for a given Execution. The steps are sorted by creation_time in descending order. The step_id key will be used to order the steps with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if an attempt is made to list the children of a nonexistent Step - NOT_FOUND - if the containing Execution does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `toolresults_projects_histories_executions_steps_list_execute()` or `toolresults_projects_histories_executions_steps_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_steps_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListStepsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListStepsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
+/// Lists Steps for a given Execution. The steps are sorted by creation_time in descending order. The step_id key will be used to order the steps with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if an attempt is made to list the children of a nonexistent Step - NOT_FOUND - if the containing Execution does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `toolresults_projects_histories_executions_steps_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `toolresults_projects_histories_executions_steps_list_task()`.
+/// For the simplest API, use `toolresults_projects_histories_executions_steps_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn toolresults_projects_histories_executions_steps_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListStepsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = toolresults_projects_histories_executions_steps_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`toolresults_projects_histories_executions_steps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
+/// Lists Steps for a given Execution. The steps are sorted by creation_time in descending order. The step_id key will be used to order the steps with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if an attempt is made to list the children of a nonexistent Step - NOT_FOUND - if the containing Execution does not exist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `toolresults_projects_histories_executions_steps_list_builder()` + `toolresults_projects_histories_executions_steps_list_execute()`.
+/// For task-level control, use `toolresults_projects_histories_executions_steps_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_steps_list(
+    client: &SimpleHttpClient,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListStepsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = toolresults_projects_histories_executions_steps_list_builder(
+        client,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    toolresults_projects_histories_executions_steps_list_execute(builder)
+}
+
+/// PATCH toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
+/// Updates an existing Step with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal (e.g try to upload a duplicate xml file), if the updated step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `toolresults_projects_histories_executions_steps_patch_execute()` to send, or `toolresults_projects_histories_executions_steps_patch` for simplest API.
+
+pub fn toolresults_projects_histories_executions_steps_patch_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}",
+        projectId,
+        historyId,
+        executionId,
+        stepId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
+/// Updates an existing Step with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal (e.g try to upload a duplicate xml file), if the updated step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `toolresults_projects_histories_executions_steps_patch_execute()` or `toolresults_projects_histories_executions_steps_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_steps_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Step>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Step = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
+/// Updates an existing Step with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal (e.g try to upload a duplicate xml file), if the updated step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `toolresults_projects_histories_executions_steps_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `toolresults_projects_histories_executions_steps_patch_task()`.
+/// For the simplest API, use `toolresults_projects_histories_executions_steps_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn toolresults_projects_histories_executions_steps_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = toolresults_projects_histories_executions_steps_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`toolresults_projects_histories_executions_steps_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPatchArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// PATCH toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
+/// Updates an existing Step with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal (e.g try to upload a duplicate xml file), if the updated step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `toolresults_projects_histories_executions_steps_patch_builder()` + `toolresults_projects_histories_executions_steps_patch_execute()`.
+/// For task-level control, use `toolresults_projects_histories_executions_steps_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_steps_patch(
+    client: &SimpleHttpClient,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = toolresults_projects_histories_executions_steps_patch_builder(
+        client,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        &args.requestId,
+    )?;
+    toolresults_projects_histories_executions_steps_patch_execute(builder)
+}
+
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}:publishXunitXmlFiles
 /// Publish xml files to an existing Step. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal, e.g. try to upload a duplicate xml file or a file too large. - NOT_FOUND - if the containing Execution does not exist
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2326,7 +3444,6 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_b
     historyId: &String,
     executionId: &String,
     stepId: &String,
-    body: &PublishXunitXmlFilesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2339,15 +3456,13 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_b
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}:publishXunitXmlFiles
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}:publishXunitXmlFiles
 /// Publish xml files to an existing Step. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal, e.g. try to upload a duplicate xml file or a file too large. - NOT_FOUND - if the containing Execution does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2421,7 +3536,7 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_t
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}:publishXunitXmlFiles
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}:publishXunitXmlFiles
 /// Publish xml files to an existing Step. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal, e.g. try to upload a duplicate xml file or a file too large. - NOT_FOUND - if the containing Execution does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2463,11 +3578,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsPublishXunitXmlFilesArgs {
     pub executionId: String,
     /// Path parameter: stepId
     pub stepId: String,
-    /// Request body.
-    pub body: PublishXunitXmlFilesRequest,
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}:publishXunitXmlFiles
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}:publishXunitXmlFiles
 /// Publish xml files to an existing Step. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal, e.g. try to upload a duplicate xml file or a file too large. - NOT_FOUND - if the containing Execution does not exist
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2491,12 +3604,192 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files(
         &args.historyId,
         &args.executionId,
         &args.stepId,
-        &args.body,
     )?;
     toolresults_projects_histories_executions_steps_publish_xunit_xml_files_execute(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfMetricsSummary
+/// Creates a PerfMetricsSummary resource. Returns the existing one if it has already been created. May return any of the following error code(s): - NOT_FOUND - The containing Step does not exist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute()` to send, or `toolresults_projects_histories_executions_steps_perf_metrics_summary_create` for simplest API.
+
+pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfMetricsSummary",
+        projectId,
+        historyId,
+        executionId,
+        stepId,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfMetricsSummary
+/// Creates a PerfMetricsSummary resource. Returns the existing one if it has already been created. May return any of the following error code(s): - NOT_FOUND - The containing Step does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute()` or `toolresults_projects_histories_executions_steps_perf_metrics_summary_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PerfMetricsSummary>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: PerfMetricsSummary = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfMetricsSummary
+/// Creates a PerfMetricsSummary resource. Returns the existing one if it has already been created. May return any of the following error code(s): - NOT_FOUND - The containing Step does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_task()`.
+/// For the simplest API, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PerfMetricsSummary>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        toolresults_projects_histories_executions_steps_perf_metrics_summary_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`toolresults_projects_histories_executions_steps_perf_metrics_summary_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfMetricsSummaryCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+}
+
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfMetricsSummary
+/// Creates a PerfMetricsSummary resource. Returns the existing one if it has already been created. May return any of the following error code(s): - NOT_FOUND - The containing Step does not exist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder()` + `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute()`.
+/// For task-level control, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create(
+    client: &SimpleHttpClient,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPerfMetricsSummaryCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<PerfMetricsSummary>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder(
+            client,
+            &args.projectId,
+            &args.historyId,
+            &args.executionId,
+            &args.stepId,
+        )?;
+    toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute(builder)
+}
+
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
 /// Creates a PerfSampleSeries. May return any of the following error code(s): - ALREADY_EXISTS - PerfMetricSummary already exists for the given Step - NOT_FOUND - The containing Step does not exist
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2508,7 +3801,6 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
     historyId: &String,
     executionId: &String,
     stepId: &String,
-    body: &PerfSampleSeries,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2521,15 +3813,13 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
 /// Creates a PerfSampleSeries. May return any of the following error code(s): - ALREADY_EXISTS - PerfMetricSummary already exists for the given Step - NOT_FOUND - The containing Step does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2603,7 +3893,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
 /// Creates a PerfSampleSeries. May return any of the following error code(s): - ALREADY_EXISTS - PerfMetricSummary already exists for the given Step - NOT_FOUND - The containing Step does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2647,11 +3937,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesCreateArgs
     pub executionId: String,
     /// Path parameter: stepId
     pub stepId: String,
-    /// Request body.
-    pub body: PerfSampleSeries,
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
 /// Creates a PerfSampleSeries. May return any of the following error code(s): - ALREADY_EXISTS - PerfMetricSummary already exists for the given Step - NOT_FOUND - The containing Step does not exist
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2678,7 +3966,6 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
             &args.historyId,
             &args.executionId,
             &args.stepId,
-            &args.body,
         )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_create_execute(builder)
 }
@@ -2868,7 +4155,206 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get(
     toolresults_projects_histories_executions_steps_perf_sample_series_get_execute(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples:batchCreate
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
+/// Lists PerfSampleSeries for a given Step. The request provides an optional filter which specifies one or more PerfMetricsType to include in the result; if none returns all. The resulting PerfSampleSeries are sorted by ids. May return any of the following canonical error codes: - NOT_FOUND - The containing Step does not exist
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `toolresults_projects_histories_executions_steps_perf_sample_series_list_execute()` to send, or `toolresults_projects_histories_executions_steps_perf_sample_series_list` for simplest API.
+
+pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_builder(
+    client: &SimpleHttpClient,
+    projectId: &String,
+    historyId: &String,
+    executionId: &String,
+    stepId: &String,
+    filter: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries",
+        projectId,
+        historyId,
+        executionId,
+        stepId,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
+/// Lists PerfSampleSeries for a given Step. The request provides an optional filter which specifies one or more PerfMetricsType to include in the result; if none returns all. The resulting PerfSampleSeries are sorted by ids. May return any of the following canonical error codes: - NOT_FOUND - The containing Step does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `toolresults_projects_histories_executions_steps_perf_sample_series_list_execute()` or `toolresults_projects_histories_executions_steps_perf_sample_series_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_perf_sample_series_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPerfSampleSeriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListPerfSampleSeriesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
+/// Lists PerfSampleSeries for a given Step. The request provides an optional filter which specifies one or more PerfMetricsType to include in the result; if none returns all. The resulting PerfSampleSeries are sorted by ids. May return any of the following canonical error codes: - NOT_FOUND - The containing Step does not exist
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `toolresults_projects_histories_executions_steps_perf_sample_series_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `toolresults_projects_histories_executions_steps_perf_sample_series_list_task()`.
+/// For the simplest API, use `toolresults_projects_histories_executions_steps_perf_sample_series_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_perf_sample_series_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPerfSampleSeriesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        toolresults_projects_histories_executions_steps_perf_sample_series_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`toolresults_projects_histories_executions_steps_perf_sample_series_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+}
+
+/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
+/// Lists PerfSampleSeries for a given Step. The request provides an optional filter which specifies one or more PerfMetricsType to include in the result; if none returns all. The resulting PerfSampleSeries are sorted by ids. May return any of the following canonical error codes: - NOT_FOUND - The containing Step does not exist
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `toolresults_projects_histories_executions_steps_perf_sample_series_list_builder()` + `toolresults_projects_histories_executions_steps_perf_sample_series_list_execute()`.
+/// For task-level control, use `toolresults_projects_histories_executions_steps_perf_sample_series_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list(
+    client: &SimpleHttpClient,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListPerfSampleSeriesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = toolresults_projects_histories_executions_steps_perf_sample_series_list_builder(
+        client,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        &args.filter,
+    )?;
+    toolresults_projects_histories_executions_steps_perf_sample_series_list_execute(builder)
+}
+
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples:batchCreate
 /// Creates a batch of PerfSamples - a client can submit multiple batches of Perf Samples through repeated calls to this method in order to split up a large request payload - duplicates and existing timestamp entries will be ignored. - the batch operation may partially succeed - the set of elements successfully inserted is returned in the response (omits items which already existed in the database). May return any of the following canonical error codes: - NOT_FOUND - The containing PerfSampleSeries does not exist
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2881,7 +4367,6 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     executionId: &String,
     stepId: &String,
     sampleSeriesId: &String,
-    body: &BatchCreatePerfSamplesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -2895,15 +4380,13 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples:batchCreate
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples:batchCreate
 /// Creates a batch of PerfSamples - a client can submit multiple batches of Perf Samples through repeated calls to this method in order to split up a large request payload - duplicates and existing timestamp entries will be ignored. - the batch operation may partially succeed - the set of elements successfully inserted is returned in the response (omits items which already existed in the database). May return any of the following canonical error codes: - NOT_FOUND - The containing PerfSampleSeries does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2977,7 +4460,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples:batchCreate
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples:batchCreate
 /// Creates a batch of PerfSamples - a client can submit multiple batches of Perf Samples through repeated calls to this method in order to split up a large request payload - duplicates and existing timestamp entries will be ignored. - the batch operation may partially succeed - the set of elements successfully inserted is returned in the response (omits items which already existed in the database). May return any of the following canonical error codes: - NOT_FOUND - The containing PerfSampleSeries does not exist
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3024,11 +4507,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesBat
     pub stepId: String,
     /// Path parameter: sampleSeriesId
     pub sampleSeriesId: String,
-    /// Request body.
-    pub body: BatchCreatePerfSamplesRequest,
 }
 
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples:batchCreate
+/// POST toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples:batchCreate
 /// Creates a batch of PerfSamples - a client can submit multiple batches of Perf Samples through repeated calls to this method in order to split up a large request payload - duplicates and existing timestamp entries will be ignored. - the batch operation may partially succeed - the set of elements successfully inserted is returned in the response (omits items which already existed in the database). May return any of the following canonical error codes: - NOT_FOUND - The containing PerfSampleSeries does not exist
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3050,7 +4531,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
         + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(client, &args.projectId, &args.historyId, &args.executionId, &args.stepId, &args.sampleSeriesId, &args.body)?;
+    let builder = toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(client, &args.projectId, &args.historyId, &args.executionId, &args.stepId, &args.sampleSeriesId)?;
     toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_execute(
         builder,
     )
@@ -3069,8 +4550,8 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     executionId: &String,
     stepId: &String,
     sampleSeriesId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3227,9 +4708,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesLis
     /// Path parameter: sampleSeriesId
     pub sampleSeriesId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples
@@ -3458,8 +4939,8 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list_builder(
     historyId: &String,
     executionId: &String,
     stepId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3610,9 +5091,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsTestCasesListArgs {
     /// Path parameter: stepId
     pub stepId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/testCases
@@ -3659,8 +5140,8 @@ pub fn toolresults_projects_histories_executions_steps_thumbnails_list_builder(
     historyId: &String,
     executionId: &String,
     stepId: &String,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
@@ -3813,9 +5294,9 @@ pub struct ToolresultsProjectsHistoriesExecutionsStepsThumbnailsListArgs {
     /// Path parameter: stepId
     pub stepId: String,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/thumbnails
@@ -3850,4 +5331,851 @@ pub fn toolresults_projects_histories_executions_steps_thumbnails_list(
         &args.pageToken,
     )?;
     toolresults_projects_histories_executions_steps_thumbnails_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectSettings with ToolresultsProjectsGetSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsGetSettingsArgs> for ProjectSettings {
+    fn generate_resource_id(&self, input: &ToolresultsProjectsGetSettingsArgs) -> String {
+        format!("gcp::toolresults::ProjectSettings/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ProjectSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ProjectSettings
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectSettings with ToolresultsProjectsInitializeSettingsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsInitializeSettingsArgs> for ProjectSettings {
+    fn generate_resource_id(&self, input: &ToolresultsProjectsInitializeSettingsArgs) -> String {
+        format!("gcp::toolresults::ProjectSettings/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ProjectSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for History
+// =============================================================================
+
+/// ResourceIdentifier implementation for History with ToolresultsProjectsHistoriesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesCreateArgs> for History {
+    fn generate_resource_id(&self, input: &ToolresultsProjectsHistoriesCreateArgs) -> String {
+        format!("gcp::toolresults::History/{}", input.projectId)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::History"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for History
+// =============================================================================
+
+/// ResourceIdentifier implementation for History with ToolresultsProjectsHistoriesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesGetArgs> for History {
+    fn generate_resource_id(&self, input: &ToolresultsProjectsHistoriesGetArgs) -> String {
+        format!(
+            "gcp::toolresults::History/{}/{}",
+            input.projectId, input.historyId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::History"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListHistoriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListHistoriesResponse with ToolresultsProjectsHistoriesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesListArgs> for ListHistoriesResponse {
+    fn generate_resource_id(&self, input: &ToolresultsProjectsHistoriesListArgs) -> String {
+        format!(
+            "gcp::toolresults::ListHistoriesResponse/{}",
+            input.projectId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ListHistoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Execution
+// =============================================================================
+
+/// ResourceIdentifier implementation for Execution with ToolresultsProjectsHistoriesExecutionsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsCreateArgs> for Execution {
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::Execution/{}/{}",
+            input.projectId, input.historyId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::Execution"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Execution
+// =============================================================================
+
+/// ResourceIdentifier implementation for Execution with ToolresultsProjectsHistoriesExecutionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsGetArgs> for Execution {
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::Execution/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::Execution"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListExecutionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListExecutionsResponse with ToolresultsProjectsHistoriesExecutionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsListArgs> for ListExecutionsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::ListExecutionsResponse/{}/{}",
+            input.projectId, input.historyId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ListExecutionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Execution
+// =============================================================================
+
+/// ResourceIdentifier implementation for Execution with ToolresultsProjectsHistoriesExecutionsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsPatchArgs> for Execution {
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::Execution/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::Execution"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ScreenshotCluster
+// =============================================================================
+
+/// ResourceIdentifier implementation for ScreenshotCluster with ToolresultsProjectsHistoriesExecutionsClustersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsClustersGetArgs>
+    for ScreenshotCluster
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsClustersGetArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::ScreenshotCluster/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.clusterId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ScreenshotCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListScreenshotClustersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListScreenshotClustersResponse with ToolresultsProjectsHistoriesExecutionsClustersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsClustersListArgs>
+    for ListScreenshotClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsClustersListArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::ListScreenshotClustersResponse/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ListScreenshotClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Environment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Environment with ToolresultsProjectsHistoriesExecutionsEnvironmentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsEnvironmentsGetArgs> for Environment {
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsEnvironmentsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::Environment/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.environmentId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::Environment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListEnvironmentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEnvironmentsResponse with ToolresultsProjectsHistoriesExecutionsEnvironmentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsEnvironmentsListArgs>
+    for ListEnvironmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsEnvironmentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::ListEnvironmentsResponse/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ListEnvironmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListStepAccessibilityClustersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListStepAccessibilityClustersResponse with ToolresultsProjectsHistoriesExecutionsStepsAccessibilityClustersArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsAccessibilityClustersArgs>
+    for ListStepAccessibilityClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsAccessibilityClustersArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::ListStepAccessibilityClustersResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ListStepAccessibilityClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Step
+// =============================================================================
+
+/// ResourceIdentifier implementation for Step with ToolresultsProjectsHistoriesExecutionsStepsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsCreateArgs> for Step {
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::Step/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::Step"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Step
+// =============================================================================
+
+/// ResourceIdentifier implementation for Step with ToolresultsProjectsHistoriesExecutionsStepsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsGetArgs> for Step {
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::Step/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::Step"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PerfMetricsSummary
+// =============================================================================
+
+/// ResourceIdentifier implementation for PerfMetricsSummary with ToolresultsProjectsHistoriesExecutionsStepsGetPerfMetricsSummaryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsGetPerfMetricsSummaryArgs>
+    for PerfMetricsSummary
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsGetPerfMetricsSummaryArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::PerfMetricsSummary/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::PerfMetricsSummary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListStepsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListStepsResponse with ToolresultsProjectsHistoriesExecutionsStepsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsListArgs> for ListStepsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsListArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::ListStepsResponse/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ListStepsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Step
+// =============================================================================
+
+/// ResourceIdentifier implementation for Step with ToolresultsProjectsHistoriesExecutionsStepsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsPatchArgs> for Step {
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::Step/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::Step"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Step
+// =============================================================================
+
+/// ResourceIdentifier implementation for Step with ToolresultsProjectsHistoriesExecutionsStepsPublishXunitXmlFilesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsPublishXunitXmlFilesArgs>
+    for Step
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsPublishXunitXmlFilesArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::Step/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::Step"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PerfMetricsSummary
+// =============================================================================
+
+/// ResourceIdentifier implementation for PerfMetricsSummary with ToolresultsProjectsHistoriesExecutionsStepsPerfMetricsSummaryCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsPerfMetricsSummaryCreateArgs>
+    for PerfMetricsSummary
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsPerfMetricsSummaryCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::PerfMetricsSummary/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::PerfMetricsSummary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PerfSampleSeries
+// =============================================================================
+
+/// ResourceIdentifier implementation for PerfSampleSeries with ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesCreateArgs>
+    for PerfSampleSeries
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::PerfSampleSeries/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::PerfSampleSeries"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PerfSampleSeries
+// =============================================================================
+
+/// ResourceIdentifier implementation for PerfSampleSeries with ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesGetArgs>
+    for PerfSampleSeries
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::PerfSampleSeries/{}/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId, input.sampleSeriesId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::PerfSampleSeries"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPerfSampleSeriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPerfSampleSeriesResponse with ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesListArgs>
+    for ListPerfSampleSeriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::ListPerfSampleSeriesResponse/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ListPerfSampleSeriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchCreatePerfSamplesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchCreatePerfSamplesResponse with ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesBatchCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesBatchCreateArgs,
+    > for BatchCreatePerfSamplesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesBatchCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::BatchCreatePerfSamplesResponse/{}/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId, input.sampleSeriesId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::BatchCreatePerfSamplesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListPerfSamplesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListPerfSamplesResponse with ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesListArgs>
+    for ListPerfSamplesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesListArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::ListPerfSamplesResponse/{}/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId, input.sampleSeriesId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ListPerfSamplesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestCase
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestCase with ToolresultsProjectsHistoriesExecutionsStepsTestCasesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsTestCasesGetArgs> for TestCase {
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsTestCasesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::TestCase/{}/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId, input.testCaseId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::TestCase"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListTestCasesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTestCasesResponse with ToolresultsProjectsHistoriesExecutionsStepsTestCasesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsTestCasesListArgs>
+    for ListTestCasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsTestCasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::ListTestCasesResponse/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ListTestCasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListStepThumbnailsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListStepThumbnailsResponse with ToolresultsProjectsHistoriesExecutionsStepsThumbnailsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ToolresultsProjectsHistoriesExecutionsStepsThumbnailsListArgs>
+    for ListStepThumbnailsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ToolresultsProjectsHistoriesExecutionsStepsThumbnailsListArgs,
+    ) -> String {
+        format!(
+            "gcp::toolresults::ListStepThumbnailsResponse/{}/{}/{}/{}",
+            input.projectId, input.historyId, input.executionId, input.stepId
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::toolresults::ListStepThumbnailsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

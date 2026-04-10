@@ -13,12 +13,21 @@
 
 use crate::providers::gcp::clients::documentai::{
     documentai_operations_delete_builder, documentai_operations_delete_task,
+    documentai_projects_locations_fetch_processor_types_builder, documentai_projects_locations_fetch_processor_types_task,
+    documentai_projects_locations_get_builder, documentai_projects_locations_get_task,
+    documentai_projects_locations_list_builder, documentai_projects_locations_list_task,
     documentai_projects_locations_operations_cancel_builder, documentai_projects_locations_operations_cancel_task,
+    documentai_projects_locations_operations_get_builder, documentai_projects_locations_operations_get_task,
+    documentai_projects_locations_operations_list_builder, documentai_projects_locations_operations_list_task,
+    documentai_projects_locations_processor_types_get_builder, documentai_projects_locations_processor_types_get_task,
+    documentai_projects_locations_processor_types_list_builder, documentai_projects_locations_processor_types_list_task,
     documentai_projects_locations_processors_batch_process_builder, documentai_projects_locations_processors_batch_process_task,
     documentai_projects_locations_processors_create_builder, documentai_projects_locations_processors_create_task,
     documentai_projects_locations_processors_delete_builder, documentai_projects_locations_processors_delete_task,
     documentai_projects_locations_processors_disable_builder, documentai_projects_locations_processors_disable_task,
     documentai_projects_locations_processors_enable_builder, documentai_projects_locations_processors_enable_task,
+    documentai_projects_locations_processors_get_builder, documentai_projects_locations_processors_get_task,
+    documentai_projects_locations_processors_list_builder, documentai_projects_locations_processors_list_task,
     documentai_projects_locations_processors_process_builder, documentai_projects_locations_processors_process_task,
     documentai_projects_locations_processors_set_default_processor_version_builder, documentai_projects_locations_processors_set_default_processor_version_task,
     documentai_projects_locations_processors_human_review_config_review_document_builder, documentai_projects_locations_processors_human_review_config_review_document_task,
@@ -26,49 +35,89 @@ use crate::providers::gcp::clients::documentai::{
     documentai_projects_locations_processors_processor_versions_delete_builder, documentai_projects_locations_processors_processor_versions_delete_task,
     documentai_projects_locations_processors_processor_versions_deploy_builder, documentai_projects_locations_processors_processor_versions_deploy_task,
     documentai_projects_locations_processors_processor_versions_evaluate_processor_version_builder, documentai_projects_locations_processors_processor_versions_evaluate_processor_version_task,
+    documentai_projects_locations_processors_processor_versions_get_builder, documentai_projects_locations_processors_processor_versions_get_task,
+    documentai_projects_locations_processors_processor_versions_list_builder, documentai_projects_locations_processors_processor_versions_list_task,
     documentai_projects_locations_processors_processor_versions_process_builder, documentai_projects_locations_processors_processor_versions_process_task,
     documentai_projects_locations_processors_processor_versions_train_builder, documentai_projects_locations_processors_processor_versions_train_task,
     documentai_projects_locations_processors_processor_versions_undeploy_builder, documentai_projects_locations_processors_processor_versions_undeploy_task,
+    documentai_projects_locations_processors_processor_versions_evaluations_get_builder, documentai_projects_locations_processors_processor_versions_evaluations_get_task,
+    documentai_projects_locations_processors_processor_versions_evaluations_list_builder, documentai_projects_locations_processors_processor_versions_evaluations_list_task,
     documentai_projects_locations_schemas_create_builder, documentai_projects_locations_schemas_create_task,
     documentai_projects_locations_schemas_delete_builder, documentai_projects_locations_schemas_delete_task,
+    documentai_projects_locations_schemas_get_builder, documentai_projects_locations_schemas_get_task,
+    documentai_projects_locations_schemas_list_builder, documentai_projects_locations_schemas_list_task,
     documentai_projects_locations_schemas_patch_builder, documentai_projects_locations_schemas_patch_task,
     documentai_projects_locations_schemas_schema_versions_create_builder, documentai_projects_locations_schemas_schema_versions_create_task,
     documentai_projects_locations_schemas_schema_versions_delete_builder, documentai_projects_locations_schemas_schema_versions_delete_task,
     documentai_projects_locations_schemas_schema_versions_generate_builder, documentai_projects_locations_schemas_schema_versions_generate_task,
+    documentai_projects_locations_schemas_schema_versions_get_builder, documentai_projects_locations_schemas_schema_versions_get_task,
+    documentai_projects_locations_schemas_schema_versions_list_builder, documentai_projects_locations_schemas_schema_versions_list_task,
     documentai_projects_locations_schemas_schema_versions_patch_builder, documentai_projects_locations_schemas_schema_versions_patch_task,
+    documentai_projects_operations_get_builder, documentai_projects_operations_get_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1Evaluation;
+use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1FetchProcessorTypesResponse;
 use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1GenerateSchemaVersionResponse;
+use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1ListEvaluationsResponse;
+use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1ListProcessorTypesResponse;
+use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1ListProcessorVersionsResponse;
+use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1ListProcessorsResponse;
+use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1ListSchemaVersionsResponse;
+use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1ListSchemasResponse;
 use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1NextSchema;
 use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1ProcessResponse;
 use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1Processor;
+use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1ProcessorType;
+use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1ProcessorVersion;
 use crate::providers::gcp::clients::documentai::GoogleCloudDocumentaiV1SchemaVersion;
+use crate::providers::gcp::clients::documentai::GoogleCloudLocationListLocationsResponse;
+use crate::providers::gcp::clients::documentai::GoogleCloudLocationLocation;
+use crate::providers::gcp::clients::documentai::GoogleLongrunningListOperationsResponse;
 use crate::providers::gcp::clients::documentai::GoogleLongrunningOperation;
 use crate::providers::gcp::clients::documentai::GoogleProtobufEmpty;
 use crate::providers::gcp::clients::documentai::DocumentaiOperationsDeleteArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsFetchProcessorTypesArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsListArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsOperationsCancelArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsOperationsGetArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsOperationsListArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorTypesGetArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorTypesListArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsBatchProcessArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsCreateArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsDeleteArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsDisableArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsEnableArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsGetArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsHumanReviewConfigReviewDocumentArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsListArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsBatchProcessArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsDeleteArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsDeployArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluateProcessorVersionArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsGetArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsListArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsGetArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsListArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsProcessArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsTrainArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsProcessorVersionsUndeployArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsProcessorsSetDefaultProcessorVersionArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasCreateArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasDeleteArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasGetArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasListArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasPatchArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasSchemaVersionsCreateArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasSchemaVersionsDeleteArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasSchemaVersionsGenerateArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasSchemaVersionsGetArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasSchemaVersionsListArgs;
 use crate::providers::gcp::clients::documentai::DocumentaiProjectsLocationsSchemasSchemaVersionsPatchArgs;
+use crate::providers::gcp::clients::documentai::DocumentaiProjectsOperationsGetArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -153,6 +202,124 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Documentai projects locations fetch processor types.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1FetchProcessorTypesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_fetch_processor_types(
+        &self,
+        args: &DocumentaiProjectsLocationsFetchProcessorTypesArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1FetchProcessorTypesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_fetch_processor_types_builder(
+            &self.http_client,
+            &args.parent,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_fetch_processor_types_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudLocationLocation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_get(
+        &self,
+        args: &DocumentaiProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudLocationLocation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudLocationListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_list(
+        &self,
+        args: &DocumentaiProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudLocationListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Documentai projects locations operations cancel.
     ///
     /// Automatically stores the result in the state store on success.
@@ -194,6 +361,164 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_operations_get(
+        &self,
+        args: &DocumentaiProjectsLocationsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations operations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningListOperationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_operations_list(
+        &self,
+        args: &DocumentaiProjectsLocationsOperationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningListOperationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_operations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+            &args.returnPartialSuccess,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_operations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations processor types get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1ProcessorType result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_processor_types_get(
+        &self,
+        args: &DocumentaiProjectsLocationsProcessorTypesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1ProcessorType, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_processor_types_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_processor_types_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations processor types list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1ListProcessorTypesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_processor_types_list(
+        &self,
+        args: &DocumentaiProjectsLocationsProcessorTypesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1ListProcessorTypesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_processor_types_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_processor_types_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Documentai projects locations processors batch process.
@@ -409,6 +734,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations processors get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1Processor result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_processors_get(
+        &self,
+        args: &DocumentaiProjectsLocationsProcessorsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1Processor, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_processors_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_processors_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations processors list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1ListProcessorsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_processors_list(
+        &self,
+        args: &DocumentaiProjectsLocationsProcessorsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1ListProcessorsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_processors_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_processors_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Documentai projects locations processors process.
@@ -712,6 +1115,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Documentai projects locations processors processor versions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1ProcessorVersion result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_processors_processor_versions_get(
+        &self,
+        args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1ProcessorVersion, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_processors_processor_versions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_processors_processor_versions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations processors processor versions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1ListProcessorVersionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_processors_processor_versions_list(
+        &self,
+        args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1ListProcessorVersionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_processors_processor_versions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_processors_processor_versions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Documentai projects locations processors processor versions process.
     ///
     /// Automatically stores the result in the state store on success.
@@ -841,6 +1322,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Documentai projects locations processors processor versions evaluations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1Evaluation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_processors_processor_versions_evaluations_get(
+        &self,
+        args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1Evaluation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_processors_processor_versions_evaluations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_processors_processor_versions_evaluations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations processors processor versions evaluations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1ListEvaluationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_processors_processor_versions_evaluations_list(
+        &self,
+        args: &DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1ListEvaluationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_processors_processor_versions_evaluations_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_processors_processor_versions_evaluations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Documentai projects locations schemas create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -926,6 +1485,84 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations schemas get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1NextSchema result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_schemas_get(
+        &self,
+        args: &DocumentaiProjectsLocationsSchemasGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1NextSchema, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_schemas_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_schemas_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations schemas list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1ListSchemasResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_schemas_list(
+        &self,
+        args: &DocumentaiProjectsLocationsSchemasListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1ListSchemasResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_schemas_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_schemas_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Documentai projects locations schemas patch.
@@ -1101,6 +1738,84 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Documentai projects locations schemas schema versions get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1SchemaVersion result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_schemas_schema_versions_get(
+        &self,
+        args: &DocumentaiProjectsLocationsSchemasSchemaVersionsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1SchemaVersion, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_schemas_schema_versions_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_schemas_schema_versions_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects locations schemas schema versions list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleCloudDocumentaiV1ListSchemaVersionsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_locations_schemas_schema_versions_list(
+        &self,
+        args: &DocumentaiProjectsLocationsSchemasSchemaVersionsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleCloudDocumentaiV1ListSchemaVersionsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_locations_schemas_schema_versions_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_locations_schemas_schema_versions_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Documentai projects locations schemas schema versions patch.
     ///
     /// Automatically stores the result in the state store on success.
@@ -1143,6 +1858,44 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Documentai projects operations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the GoogleLongrunningOperation result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn documentai_projects_operations_get(
+        &self,
+        args: &DocumentaiProjectsOperationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<GoogleLongrunningOperation, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = documentai_projects_operations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = documentai_projects_operations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

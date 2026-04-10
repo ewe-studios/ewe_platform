@@ -14,45 +14,95 @@
 use crate::providers::gcp::clients::bigquerydatatransfer::{
     bigquerydatatransfer_projects_enroll_data_sources_builder, bigquerydatatransfer_projects_enroll_data_sources_task,
     bigquerydatatransfer_projects_data_sources_check_valid_creds_builder, bigquerydatatransfer_projects_data_sources_check_valid_creds_task,
+    bigquerydatatransfer_projects_data_sources_get_builder, bigquerydatatransfer_projects_data_sources_get_task,
+    bigquerydatatransfer_projects_data_sources_list_builder, bigquerydatatransfer_projects_data_sources_list_task,
     bigquerydatatransfer_projects_locations_enroll_data_sources_builder, bigquerydatatransfer_projects_locations_enroll_data_sources_task,
+    bigquerydatatransfer_projects_locations_get_builder, bigquerydatatransfer_projects_locations_get_task,
+    bigquerydatatransfer_projects_locations_list_builder, bigquerydatatransfer_projects_locations_list_task,
     bigquerydatatransfer_projects_locations_unenroll_data_sources_builder, bigquerydatatransfer_projects_locations_unenroll_data_sources_task,
     bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_builder, bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_task,
+    bigquerydatatransfer_projects_locations_data_sources_get_builder, bigquerydatatransfer_projects_locations_data_sources_get_task,
+    bigquerydatatransfer_projects_locations_data_sources_list_builder, bigquerydatatransfer_projects_locations_data_sources_list_task,
     bigquerydatatransfer_projects_locations_transfer_configs_create_builder, bigquerydatatransfer_projects_locations_transfer_configs_create_task,
     bigquerydatatransfer_projects_locations_transfer_configs_delete_builder, bigquerydatatransfer_projects_locations_transfer_configs_delete_task,
+    bigquerydatatransfer_projects_locations_transfer_configs_get_builder, bigquerydatatransfer_projects_locations_transfer_configs_get_task,
+    bigquerydatatransfer_projects_locations_transfer_configs_list_builder, bigquerydatatransfer_projects_locations_transfer_configs_list_task,
     bigquerydatatransfer_projects_locations_transfer_configs_patch_builder, bigquerydatatransfer_projects_locations_transfer_configs_patch_task,
     bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_builder, bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_task,
     bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder, bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_task,
     bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder, bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_task,
+    bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder, bigquerydatatransfer_projects_locations_transfer_configs_runs_get_task,
+    bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder, bigquerydatatransfer_projects_locations_transfer_configs_runs_list_task,
+    bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder, bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_task,
+    bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder, bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_task,
+    bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder, bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_task,
     bigquerydatatransfer_projects_transfer_configs_create_builder, bigquerydatatransfer_projects_transfer_configs_create_task,
     bigquerydatatransfer_projects_transfer_configs_delete_builder, bigquerydatatransfer_projects_transfer_configs_delete_task,
+    bigquerydatatransfer_projects_transfer_configs_get_builder, bigquerydatatransfer_projects_transfer_configs_get_task,
+    bigquerydatatransfer_projects_transfer_configs_list_builder, bigquerydatatransfer_projects_transfer_configs_list_task,
     bigquerydatatransfer_projects_transfer_configs_patch_builder, bigquerydatatransfer_projects_transfer_configs_patch_task,
     bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder, bigquerydatatransfer_projects_transfer_configs_schedule_runs_task,
     bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder, bigquerydatatransfer_projects_transfer_configs_start_manual_runs_task,
     bigquerydatatransfer_projects_transfer_configs_runs_delete_builder, bigquerydatatransfer_projects_transfer_configs_runs_delete_task,
+    bigquerydatatransfer_projects_transfer_configs_runs_get_builder, bigquerydatatransfer_projects_transfer_configs_runs_get_task,
+    bigquerydatatransfer_projects_transfer_configs_runs_list_builder, bigquerydatatransfer_projects_transfer_configs_runs_list_task,
+    bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder, bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_task,
+    bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder, bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_task,
+    bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder, bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::bigquerydatatransfer::CheckValidCredsResponse;
+use crate::providers::gcp::clients::bigquerydatatransfer::DataSource;
 use crate::providers::gcp::clients::bigquerydatatransfer::Empty;
+use crate::providers::gcp::clients::bigquerydatatransfer::ListDataSourcesResponse;
+use crate::providers::gcp::clients::bigquerydatatransfer::ListLocationsResponse;
+use crate::providers::gcp::clients::bigquerydatatransfer::ListTransferConfigsResponse;
+use crate::providers::gcp::clients::bigquerydatatransfer::ListTransferLogsResponse;
+use crate::providers::gcp::clients::bigquerydatatransfer::ListTransferResourcesResponse;
+use crate::providers::gcp::clients::bigquerydatatransfer::ListTransferRunsResponse;
+use crate::providers::gcp::clients::bigquerydatatransfer::Location;
 use crate::providers::gcp::clients::bigquerydatatransfer::ScheduleTransferRunsResponse;
 use crate::providers::gcp::clients::bigquerydatatransfer::StartManualTransferRunsResponse;
 use crate::providers::gcp::clients::bigquerydatatransfer::TransferConfig;
+use crate::providers::gcp::clients::bigquerydatatransfer::TransferResource;
+use crate::providers::gcp::clients::bigquerydatatransfer::TransferRun;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsDataSourcesGetArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsDataSourcesListArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsEnrollDataSourcesArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsDataSourcesCheckValidCredsArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsDataSourcesGetArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsDataSourcesListArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsEnrollDataSourcesArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsGetArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsListArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsDeleteArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsGetArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsListArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsPatchArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsRunsDeleteArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsLocationsUnenrollDataSourcesArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsCreateArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsDeleteArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsGetArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsListArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsPatchArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsRunsDeleteArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsRunsGetArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsRunsListArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsRunsTransferLogsListArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsScheduleRunsArgs;
 use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsStartManualRunsArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsTransferResourcesGetArgs;
+use crate::providers::gcp::clients::bigquerydatatransfer::BigquerydatatransferProjectsTransferConfigsTransferResourcesListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -96,7 +146,7 @@ where
 
     /// Bigquerydatatransfer projects enroll data sources.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -108,7 +158,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_enroll_data_sources(
         &self,
         args: &BigquerydatatransferProjectsEnrollDataSourcesArgs,
@@ -129,17 +179,12 @@ where
         let task = bigquerydatatransfer_projects_enroll_data_sources_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects data sources check valid creds.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -151,7 +196,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds(
         &self,
         args: &BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs,
@@ -172,17 +217,90 @@ where
         let task = bigquerydatatransfer_projects_data_sources_check_valid_creds_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Bigquerydatatransfer projects data sources get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DataSource result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_data_sources_get(
+        &self,
+        args: &BigquerydatatransferProjectsDataSourcesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DataSource, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_data_sources_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = bigquerydatatransfer_projects_data_sources_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects data sources list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDataSourcesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_data_sources_list(
+        &self,
+        args: &BigquerydatatransferProjectsDataSourcesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDataSourcesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_data_sources_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_data_sources_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects locations enroll data sources.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -194,7 +312,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_locations_enroll_data_sources(
         &self,
         args: &BigquerydatatransferProjectsLocationsEnrollDataSourcesArgs,
@@ -215,17 +333,92 @@ where
         let task = bigquerydatatransfer_projects_locations_enroll_data_sources_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Bigquerydatatransfer projects locations get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Location result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_get(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Location, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = bigquerydatatransfer_projects_locations_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects locations list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListLocationsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_list(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListLocationsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_list_builder(
+            &self.http_client,
+            &args.name,
+            &args.extraLocationTypes,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_locations_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects locations unenroll data sources.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -237,7 +430,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources(
         &self,
         args: &BigquerydatatransferProjectsLocationsUnenrollDataSourcesArgs,
@@ -258,17 +451,12 @@ where
         let task = bigquerydatatransfer_projects_locations_unenroll_data_sources_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects locations data sources check valid creds.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -280,7 +468,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds(
         &self,
         args: &BigquerydatatransferProjectsLocationsDataSourcesCheckValidCredsArgs,
@@ -301,12 +489,85 @@ where
         let task = bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Bigquerydatatransfer projects locations data sources get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the DataSource result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_data_sources_get(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsDataSourcesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<DataSource, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_data_sources_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = bigquerydatatransfer_projects_locations_data_sources_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects locations data sources list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListDataSourcesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_data_sources_list(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsDataSourcesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListDataSourcesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_data_sources_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_locations_data_sources_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects locations transfer configs create.
@@ -357,7 +618,7 @@ where
 
     /// Bigquerydatatransfer projects locations transfer configs delete.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -369,7 +630,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete(
         &self,
         args: &BigquerydatatransferProjectsLocationsTransferConfigsDeleteArgs,
@@ -390,17 +651,12 @@ where
         let task = bigquerydatatransfer_projects_locations_transfer_configs_delete_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Bigquerydatatransfer projects locations transfer configs patch.
+    /// Bigquerydatatransfer projects locations transfer configs get.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -412,7 +668,86 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_transfer_configs_get(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsTransferConfigsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TransferConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_transfer_configs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_locations_transfer_configs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects locations transfer configs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTransferConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_transfer_configs_list(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsTransferConfigsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTransferConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_transfer_configs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.dataSourceIds,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_locations_transfer_configs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects locations transfer configs patch.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TransferConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch(
         &self,
         args: &BigquerydatatransferProjectsLocationsTransferConfigsPatchArgs,
@@ -437,17 +772,12 @@ where
         let task = bigquerydatatransfer_projects_locations_transfer_configs_patch_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects locations transfer configs schedule runs.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -459,7 +789,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs(
         &self,
         args: &BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs,
@@ -480,17 +810,12 @@ where
         let task = bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects locations transfer configs start manual runs.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -502,7 +827,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs(
         &self,
         args: &BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs,
@@ -523,17 +848,12 @@ where
         let task = bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects locations transfer configs runs delete.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -545,7 +865,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete(
         &self,
         args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsDeleteArgs,
@@ -566,12 +886,207 @@ where
         let task = bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Bigquerydatatransfer projects locations transfer configs runs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TransferRun result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TransferRun, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = bigquerydatatransfer_projects_locations_transfer_configs_runs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects locations transfer configs runs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTransferRunsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTransferRunsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+            &args.runAttempt,
+            &args.states,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_locations_transfer_configs_runs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects locations transfer configs runs transfer logs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTransferLogsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTransferLogsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.messageTypes,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects locations transfer configs transfer resources get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TransferResource result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TransferResource, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects locations transfer configs transfer resources list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTransferResourcesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list(
+        &self,
+        args: &BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTransferResourcesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects transfer configs create.
@@ -622,7 +1137,7 @@ where
 
     /// Bigquerydatatransfer projects transfer configs delete.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -634,7 +1149,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_transfer_configs_delete(
         &self,
         args: &BigquerydatatransferProjectsTransferConfigsDeleteArgs,
@@ -655,17 +1170,12 @@ where
         let task = bigquerydatatransfer_projects_transfer_configs_delete_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
-    /// Bigquerydatatransfer projects transfer configs patch.
+    /// Bigquerydatatransfer projects transfer configs get.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -677,7 +1187,86 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_transfer_configs_get(
+        &self,
+        args: &BigquerydatatransferProjectsTransferConfigsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TransferConfig, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_transfer_configs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_transfer_configs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects transfer configs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTransferConfigsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_transfer_configs_list(
+        &self,
+        args: &BigquerydatatransferProjectsTransferConfigsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTransferConfigsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_transfer_configs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.dataSourceIds,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_transfer_configs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects transfer configs patch.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TransferConfig result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_transfer_configs_patch(
         &self,
         args: &BigquerydatatransferProjectsTransferConfigsPatchArgs,
@@ -702,17 +1291,12 @@ where
         let task = bigquerydatatransfer_projects_transfer_configs_patch_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects transfer configs schedule runs.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -724,7 +1308,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs(
         &self,
         args: &BigquerydatatransferProjectsTransferConfigsScheduleRunsArgs,
@@ -745,17 +1329,12 @@ where
         let task = bigquerydatatransfer_projects_transfer_configs_schedule_runs_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects transfer configs start manual runs.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -767,7 +1346,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs(
         &self,
         args: &BigquerydatatransferProjectsTransferConfigsStartManualRunsArgs,
@@ -788,17 +1367,12 @@ where
         let task = bigquerydatatransfer_projects_transfer_configs_start_manual_runs_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
-
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
-
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
     /// Bigquerydatatransfer projects transfer configs runs delete.
     ///
-    /// Automatically stores the result in the state store on success.
+    /// Read-only operation - no state tracking.
     ///
     /// # Arguments
     ///
@@ -810,7 +1384,7 @@ where
     ///
     /// # Errors
     ///
-    /// Returns ProviderError if the API request or state storage fails.
+    /// Returns ProviderError if the API request fails.
     pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete(
         &self,
         args: &BigquerydatatransferProjectsTransferConfigsRunsDeleteArgs,
@@ -831,12 +1405,207 @@ where
         let task = bigquerydatatransfer_projects_transfer_configs_runs_delete_task(builder)
             .map_err(ProviderError::Api)?;
 
-        let state_store = self.client.state_store.clone();
-        let stage = Some(self.client.stage.clone());
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
 
-        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+    /// Bigquerydatatransfer projects transfer configs runs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TransferRun result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_transfer_configs_runs_get(
+        &self,
+        args: &BigquerydatatransferProjectsTransferConfigsRunsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TransferRun, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_transfer_configs_runs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
 
-        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+        let task = bigquerydatatransfer_projects_transfer_configs_runs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects transfer configs runs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTransferRunsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_transfer_configs_runs_list(
+        &self,
+        args: &BigquerydatatransferProjectsTransferConfigsRunsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTransferRunsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_transfer_configs_runs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.pageSize,
+            &args.pageToken,
+            &args.runAttempt,
+            &args.states,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_transfer_configs_runs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects transfer configs runs transfer logs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTransferLogsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list(
+        &self,
+        args: &BigquerydatatransferProjectsTransferConfigsRunsTransferLogsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTransferLogsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.messageTypes,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects transfer configs transfer resources get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the TransferResource result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get(
+        &self,
+        args: &BigquerydatatransferProjectsTransferConfigsTransferResourcesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<TransferResource, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Bigquerydatatransfer projects transfer configs transfer resources list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListTransferResourcesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list(
+        &self,
+        args: &BigquerydatatransferProjectsTransferConfigsTransferResourcesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListTransferResourcesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

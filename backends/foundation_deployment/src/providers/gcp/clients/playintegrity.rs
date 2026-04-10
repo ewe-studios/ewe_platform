@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/{v1Id}/deviceRecall:write
+/// POST v1/{v1Id}/deviceRecall:write
 /// Writes recall bits for the device where Play Integrity API token is obtained. The endpoint is available to select Play partners in an early access program (EAP).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,22 +29,22 @@ use serde::Serialize;
 pub fn playintegrity_device_recall_write_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &WriteDeviceRecallRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://playintegrity.googleapis.com/v1/{}/deviceRecall:write",);
+    let endpoint_url = format!(
+        "https://playintegrity.googleapis.com/v1/{}/deviceRecall:write",
+        packageName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/{v1Id}/deviceRecall:write
+/// POST v1/{v1Id}/deviceRecall:write
 /// Writes recall bits for the device where Play Integrity API token is obtained. The endpoint is available to select Play partners in an early access program (EAP).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -118,7 +118,7 @@ pub fn playintegrity_device_recall_write_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/{v1Id}/deviceRecall:write
+/// POST v1/{v1Id}/deviceRecall:write
 /// Writes recall bits for the device where Play Integrity API token is obtained. The endpoint is available to select Play partners in an early access program (EAP).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -155,11 +155,9 @@ pub fn playintegrity_device_recall_write_execute(
 pub struct PlayintegrityDeviceRecallWriteArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: WriteDeviceRecallRequest,
 }
 
-/// GET v1/{v1Id}/deviceRecall:write
+/// POST v1/{v1Id}/deviceRecall:write
 /// Writes recall bits for the device where Play Integrity API token is obtained. The endpoint is available to select Play partners in an early access program (EAP).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -179,11 +177,11 @@ pub fn playintegrity_device_recall_write(
         + 'static,
     ApiError,
 > {
-    let builder = playintegrity_device_recall_write_builder(client, &args.packageName, &args.body)?;
+    let builder = playintegrity_device_recall_write_builder(client, &args.packageName)?;
     playintegrity_device_recall_write_execute(builder)
 }
 
-/// GET v1/{v1Id}:decodeIntegrityToken
+/// POST v1/{v1Id}:decodeIntegrityToken
 /// Decodes the integrity token and returns the token payload.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -192,22 +190,22 @@ pub fn playintegrity_device_recall_write(
 pub fn playintegrity_decode_integrity_token_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &DecodeIntegrityTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://playintegrity.googleapis.com/v1/{}:decodeIntegrityToken",);
+    let endpoint_url = format!(
+        "https://playintegrity.googleapis.com/v1/{}:decodeIntegrityToken",
+        packageName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/{v1Id}:decodeIntegrityToken
+/// POST v1/{v1Id}:decodeIntegrityToken
 /// Decodes the integrity token and returns the token payload.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -281,7 +279,7 @@ pub fn playintegrity_decode_integrity_token_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/{v1Id}:decodeIntegrityToken
+/// POST v1/{v1Id}:decodeIntegrityToken
 /// Decodes the integrity token and returns the token payload.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -320,11 +318,9 @@ pub fn playintegrity_decode_integrity_token_execute(
 pub struct PlayintegrityDecodeIntegrityTokenArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: DecodeIntegrityTokenRequest,
 }
 
-/// GET v1/{v1Id}:decodeIntegrityToken
+/// POST v1/{v1Id}:decodeIntegrityToken
 /// Decodes the integrity token and returns the token payload.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -346,12 +342,11 @@ pub fn playintegrity_decode_integrity_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playintegrity_decode_integrity_token_builder(client, &args.packageName, &args.body)?;
+    let builder = playintegrity_decode_integrity_token_builder(client, &args.packageName)?;
     playintegrity_decode_integrity_token_execute(builder)
 }
 
-/// GET v1/{v1Id}:decodePcIntegrityToken
+/// POST v1/{v1Id}:decodePcIntegrityToken
 /// Decodes the PC integrity token and returns the PC token payload.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -360,23 +355,22 @@ pub fn playintegrity_decode_integrity_token(
 pub fn playintegrity_decode_pc_integrity_token_builder(
     client: &SimpleHttpClient,
     packageName: &String,
-    body: &DecodePcIntegrityTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://playintegrity.googleapis.com/v1/{}:decodePcIntegrityToken",);
+    let endpoint_url = format!(
+        "https://playintegrity.googleapis.com/v1/{}:decodePcIntegrityToken",
+        packageName,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/{v1Id}:decodePcIntegrityToken
+/// POST v1/{v1Id}:decodePcIntegrityToken
 /// Decodes the PC integrity token and returns the PC token payload.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -450,7 +444,7 @@ pub fn playintegrity_decode_pc_integrity_token_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/{v1Id}:decodePcIntegrityToken
+/// POST v1/{v1Id}:decodePcIntegrityToken
 /// Decodes the PC integrity token and returns the PC token payload.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -489,11 +483,9 @@ pub fn playintegrity_decode_pc_integrity_token_execute(
 pub struct PlayintegrityDecodePcIntegrityTokenArgs {
     /// Path parameter: packageName
     pub packageName: String,
-    /// Request body.
-    pub body: DecodePcIntegrityTokenRequest,
 }
 
-/// GET v1/{v1Id}:decodePcIntegrityToken
+/// POST v1/{v1Id}:decodePcIntegrityToken
 /// Decodes the PC integrity token and returns the PC token payload.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -515,7 +507,86 @@ pub fn playintegrity_decode_pc_integrity_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playintegrity_decode_pc_integrity_token_builder(client, &args.packageName, &args.body)?;
+    let builder = playintegrity_decode_pc_integrity_token_builder(client, &args.packageName)?;
     playintegrity_decode_pc_integrity_token_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WriteDeviceRecallResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for WriteDeviceRecallResponse with PlayintegrityDeviceRecallWriteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlayintegrityDeviceRecallWriteArgs> for WriteDeviceRecallResponse {
+    fn generate_resource_id(&self, input: &PlayintegrityDeviceRecallWriteArgs) -> String {
+        format!(
+            "gcp::playintegrity::WriteDeviceRecallResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playintegrity::WriteDeviceRecallResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DecodeIntegrityTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DecodeIntegrityTokenResponse with PlayintegrityDecodeIntegrityTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlayintegrityDecodeIntegrityTokenArgs> for DecodeIntegrityTokenResponse {
+    fn generate_resource_id(&self, input: &PlayintegrityDecodeIntegrityTokenArgs) -> String {
+        format!(
+            "gcp::playintegrity::DecodeIntegrityTokenResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playintegrity::DecodeIntegrityTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for DecodePcIntegrityTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for DecodePcIntegrityTokenResponse with PlayintegrityDecodePcIntegrityTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlayintegrityDecodePcIntegrityTokenArgs>
+    for DecodePcIntegrityTokenResponse
+{
+    fn generate_resource_id(&self, input: &PlayintegrityDecodePcIntegrityTokenArgs) -> String {
+        format!(
+            "gcp::playintegrity::DecodePcIntegrityTokenResponse/{}",
+            input.packageName
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::playintegrity::DecodePcIntegrityTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

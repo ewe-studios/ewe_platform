@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/accounts/{accountsId}/locations
+/// POST v1/accounts/{accountsId}/locations
 /// Creates a new Location that will be owned by the logged in user.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -29,13 +29,14 @@ use serde::Serialize;
 pub fn mybusinessbusinessinformation_accounts_locations_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    requestId: &Option<String>,
-    validateOnly: &Option<bool>,
-    body: &Location,
+    requestId: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessbusinessinformation.googleapis.com/v1/accounts/{}/locations",);
+    let endpoint_url = format!(
+        "https://mybusinessbusinessinformation.googleapis.com/v1/accounts/{}/locations",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -53,15 +54,13 @@ pub fn mybusinessbusinessinformation_accounts_locations_create_builder(
     };
 
     let builder = client
-        .get(&url_with_query)
+        .post(&url_with_query)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accounts/{accountsId}/locations
+/// POST v1/accounts/{accountsId}/locations
 /// Creates a new Location that will be owned by the logged in user.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -135,7 +134,7 @@ pub fn mybusinessbusinessinformation_accounts_locations_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accounts/{accountsId}/locations
+/// POST v1/accounts/{accountsId}/locations
 /// Creates a new Location that will be owned by the logged in user.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -171,14 +170,12 @@ pub struct MybusinessbusinessinformationAccountsLocationsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: requestId
-    pub requestId: Option<String>,
+    pub requestId: Option<Option<String>>,
     /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
-    /// Request body.
-    pub body: Location,
+    pub validateOnly: Option<Option<String>>,
 }
 
-/// GET v1/accounts/{accountsId}/locations
+/// POST v1/accounts/{accountsId}/locations
 /// Creates a new Location that will be owned by the logged in user.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -201,9 +198,215 @@ pub fn mybusinessbusinessinformation_accounts_locations_create(
         &args.parent,
         &args.requestId,
         &args.validateOnly,
-        &args.body,
     )?;
     mybusinessbusinessinformation_accounts_locations_create_execute(builder)
+}
+
+/// GET v1/accounts/{accountsId}/locations
+/// Lists the locations for the specified account.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessbusinessinformation_accounts_locations_list_execute()` to send, or `mybusinessbusinessinformation_accounts_locations_list` for simplest API.
+
+pub fn mybusinessbusinessinformation_accounts_locations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    readMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessbusinessinformation.googleapis.com/v1/accounts/{}/locations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = readMask.as_ref() {
+        query_parts.push(format!("readMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/accounts/{accountsId}/locations
+/// Lists the locations for the specified account.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessbusinessinformation_accounts_locations_list_execute()` or `mybusinessbusinessinformation_accounts_locations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessbusinessinformation_accounts_locations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessbusinessinformation_accounts_locations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLocationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListLocationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/accounts/{accountsId}/locations
+/// Lists the locations for the specified account.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessbusinessinformation_accounts_locations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessbusinessinformation_accounts_locations_list_task()`.
+/// For the simplest API, use `mybusinessbusinessinformation_accounts_locations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessbusinessinformation_accounts_locations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessbusinessinformation_accounts_locations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = mybusinessbusinessinformation_accounts_locations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessbusinessinformation_accounts_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationAccountsLocationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: readMask
+    pub readMask: Option<Option<String>>,
+}
+
+/// GET v1/accounts/{accountsId}/locations
+/// Lists the locations for the specified account.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessbusinessinformation_accounts_locations_list_builder()` + `mybusinessbusinessinformation_accounts_locations_list_execute()`.
+/// For task-level control, use `mybusinessbusinessinformation_accounts_locations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessbusinessinformation_accounts_locations_list(
+    client: &SimpleHttpClient,
+    args: &MybusinessbusinessinformationAccountsLocationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = mybusinessbusinessinformation_accounts_locations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+        &args.readMask,
+    )?;
+    mybusinessbusinessinformation_accounts_locations_list_execute(builder)
 }
 
 /// GET v1/attributes
@@ -214,13 +417,13 @@ pub fn mybusinessbusinessinformation_accounts_locations_create(
 
 pub fn mybusinessbusinessinformation_attributes_list_builder(
     client: &SimpleHttpClient,
-    categoryName: &Option<String>,
-    languageCode: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    parent: &Option<String>,
-    regionCode: &Option<String>,
-    showAll: &Option<bool>,
+    categoryName: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    parent: &Option<Option<String>>,
+    regionCode: &Option<Option<String>>,
+    showAll: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -375,19 +578,19 @@ pub fn mybusinessbusinessinformation_attributes_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessbusinessinformationAttributesListArgs {
     /// Query parameter: categoryName
-    pub categoryName: Option<String>,
+    pub categoryName: Option<Option<String>>,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: parent
-    pub parent: Option<String>,
+    pub parent: Option<Option<String>>,
     /// Query parameter: regionCode
-    pub regionCode: Option<String>,
+    pub regionCode: Option<Option<String>>,
     /// Query parameter: showAll
-    pub showAll: Option<bool>,
+    pub showAll: Option<Option<String>>,
 }
 
 /// GET v1/attributes
@@ -433,10 +636,10 @@ pub fn mybusinessbusinessinformation_attributes_list(
 
 pub fn mybusinessbusinessinformation_categories_batch_get_builder(
     client: &SimpleHttpClient,
-    languageCode: &Option<String>,
-    names: &Option<String>,
-    regionCode: &Option<String>,
-    view: &Option<String>,
+    languageCode: &Option<Option<String>>,
+    names: &Option<Option<String>>,
+    regionCode: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -582,13 +785,13 @@ pub fn mybusinessbusinessinformation_categories_batch_get_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessbusinessinformationCategoriesBatchGetArgs {
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: names
-    pub names: Option<String>,
+    pub names: Option<Option<String>>,
     /// Query parameter: regionCode
-    pub regionCode: Option<String>,
+    pub regionCode: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1/categories:batchGet
@@ -631,12 +834,12 @@ pub fn mybusinessbusinessinformation_categories_batch_get(
 
 pub fn mybusinessbusinessinformation_categories_list_builder(
     client: &SimpleHttpClient,
-    filter: &Option<String>,
-    languageCode: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
-    regionCode: &Option<String>,
-    view: &Option<String>,
+    filter: &Option<Option<String>>,
+    languageCode: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    regionCode: &Option<Option<String>>,
+    view: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -786,17 +989,17 @@ pub fn mybusinessbusinessinformation_categories_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessbusinessinformationCategoriesListArgs {
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: languageCode
-    pub languageCode: Option<String>,
+    pub languageCode: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
     /// Query parameter: regionCode
-    pub regionCode: Option<String>,
+    pub regionCode: Option<Option<String>>,
     /// Query parameter: view
-    pub view: Option<String>,
+    pub view: Option<Option<String>>,
 }
 
 /// GET v1/categories
@@ -842,8 +1045,10 @@ pub fn mybusinessbusinessinformation_chains_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessbusinessinformation.googleapis.com/v1/chains/{}",);
+    let endpoint_url = format!(
+        "https://mybusinessbusinessinformation.googleapis.com/v1/chains/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -994,8 +1199,8 @@ pub fn mybusinessbusinessinformation_chains_get(
 
 pub fn mybusinessbusinessinformation_chains_search_builder(
     client: &SimpleHttpClient,
-    chainName: &Option<String>,
-    pageSize: &Option<i32>,
+    chainName: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1133,9 +1338,9 @@ pub fn mybusinessbusinessinformation_chains_search_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct MybusinessbusinessinformationChainsSearchArgs {
     /// Query parameter: chainName
-    pub chainName: Option<String>,
+    pub chainName: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
 }
 
 /// GET v1/chains:search
@@ -1166,7 +1371,7 @@ pub fn mybusinessbusinessinformation_chains_search(
     mybusinessbusinessinformation_chains_search_execute(builder)
 }
 
-/// GET v1/googleLocations:search
+/// POST v1/googleLocations:search
 /// Search all of the possible locations that are a match to the specified request.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1174,7 +1379,6 @@ pub fn mybusinessbusinessinformation_chains_search(
 
 pub fn mybusinessbusinessinformation_google_locations_search_builder(
     client: &SimpleHttpClient,
-    body: &SearchGoogleLocationsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1182,15 +1386,13 @@ pub fn mybusinessbusinessinformation_google_locations_search_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/googleLocations:search
+/// POST v1/googleLocations:search
 /// Search all of the possible locations that are a match to the specified request.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1264,7 +1466,7 @@ pub fn mybusinessbusinessinformation_google_locations_search_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/googleLocations:search
+/// POST v1/googleLocations:search
 /// Search all of the possible locations that are a match to the specified request.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1298,14 +1500,7 @@ pub fn mybusinessbusinessinformation_google_locations_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`mybusinessbusinessinformation_google_locations_search`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MybusinessbusinessinformationGoogleLocationsSearchArgs {
-    /// Request body.
-    pub body: SearchGoogleLocationsRequest,
-}
-
-/// GET v1/googleLocations:search
+/// POST v1/googleLocations:search
 /// Search all of the possible locations that are a match to the specified request.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1318,7 +1513,6 @@ pub struct MybusinessbusinessinformationGoogleLocationsSearchArgs {
 
 pub fn mybusinessbusinessinformation_google_locations_search(
     client: &SimpleHttpClient,
-    args: &MybusinessbusinessinformationGoogleLocationsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchGoogleLocationsResponse>, ApiError>,
@@ -1327,12 +1521,11 @@ pub fn mybusinessbusinessinformation_google_locations_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessbusinessinformation_google_locations_search_builder(client, &args.body)?;
+    let builder = mybusinessbusinessinformation_google_locations_search_builder(client)?;
     mybusinessbusinessinformation_google_locations_search_execute(builder)
 }
 
-/// GET v1/locations/{locationsId}
+/// DELETE v1/locations/{locationsId}
 /// Deletes a location. If this location cannot be deleted using the API and it is marked so in the google.mybusiness.businessinformation.v1.LocationState, use the [Google Business Profile](<https://business.google.`com/manage/`>) website.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1343,18 +1536,20 @@ pub fn mybusinessbusinessinformation_locations_delete_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}",);
+    let endpoint_url = format!(
+        "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
 }
 
-/// GET v1/locations/{locationsId}
+/// DELETE v1/locations/{locationsId}
 /// Deletes a location. If this location cannot be deleted using the API and it is marked so in the google.mybusiness.businessinformation.v1.LocationState, use the [Google Business Profile](<https://business.google.`com/manage/`>) website.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1428,7 +1623,7 @@ pub fn mybusinessbusinessinformation_locations_delete_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/locations/{locationsId}
+/// DELETE v1/locations/{locationsId}
 /// Deletes a location. If this location cannot be deleted using the API and it is marked so in the google.mybusiness.businessinformation.v1.LocationState, use the [Google Business Profile](<https://business.google.`com/manage/`>) website.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1465,7 +1660,7 @@ pub struct MybusinessbusinessinformationLocationsDeleteArgs {
     pub name: String,
 }
 
-/// GET v1/locations/{locationsId}
+/// DELETE v1/locations/{locationsId}
 /// Deletes a location. If this location cannot be deleted using the API and it is marked so in the google.mybusiness.businessinformation.v1.LocationState, use the [Google Business Profile](<https://business.google.`com/manage/`>) website.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1487,6 +1682,178 @@ pub fn mybusinessbusinessinformation_locations_delete(
     mybusinessbusinessinformation_locations_delete_execute(builder)
 }
 
+/// GET v1/locations/{locationsId}
+/// Returns the specified location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessbusinessinformation_locations_get_execute()` to send, or `mybusinessbusinessinformation_locations_get` for simplest API.
+
+pub fn mybusinessbusinessinformation_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    readMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = readMask.as_ref() {
+        query_parts.push(format!("readMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/locations/{locationsId}
+/// Returns the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessbusinessinformation_locations_get_execute()` or `mybusinessbusinessinformation_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessbusinessinformation_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessbusinessinformation_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/locations/{locationsId}
+/// Returns the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessbusinessinformation_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessbusinessinformation_locations_get_task()`.
+/// For the simplest API, use `mybusinessbusinessinformation_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessbusinessinformation_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessbusinessinformation_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessbusinessinformation_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessbusinessinformation_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<Option<String>>,
+}
+
+/// GET v1/locations/{locationsId}
+/// Returns the specified location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessbusinessinformation_locations_get_builder()` + `mybusinessbusinessinformation_locations_get_execute()`.
+/// For task-level control, use `mybusinessbusinessinformation_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessbusinessinformation_locations_get(
+    client: &SimpleHttpClient,
+    args: &MybusinessbusinessinformationLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        mybusinessbusinessinformation_locations_get_builder(client, &args.name, &args.readMask)?;
+    mybusinessbusinessinformation_locations_get_execute(builder)
+}
+
 /// GET v1/locations/{locationsId}/attributes
 /// Looks up all the attributes set for a given location.
 ///
@@ -1498,8 +1865,10 @@ pub fn mybusinessbusinessinformation_locations_get_attributes_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}/attributes",);
+    let endpoint_url = format!(
+        "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}/attributes",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -1652,11 +2021,12 @@ pub fn mybusinessbusinessinformation_locations_get_attributes(
 pub fn mybusinessbusinessinformation_locations_get_google_updated_builder(
     client: &SimpleHttpClient,
     name: &String,
-    readMask: &Option<String>,
+    readMask: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}:getGoogleUpdated",
+        name,
     );
 
     // Build request
@@ -1790,7 +2160,7 @@ pub struct MybusinessbusinessinformationLocationsGetGoogleUpdatedArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: readMask
-    pub readMask: Option<String>,
+    pub readMask: Option<Option<String>>,
 }
 
 /// GET v1/locations/{locationsId}:getGoogleUpdated
@@ -1821,6 +2191,363 @@ pub fn mybusinessbusinessinformation_locations_get_google_updated(
     mybusinessbusinessinformation_locations_get_google_updated_execute(builder)
 }
 
+/// PATCH v1/locations/{locationsId}
+/// Updates the specified location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessbusinessinformation_locations_patch_execute()` to send, or `mybusinessbusinessinformation_locations_patch` for simplest API.
+
+pub fn mybusinessbusinessinformation_locations_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+    validateOnly: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+    if let Some(val) = validateOnly.as_ref() {
+        query_parts.push(format!("validateOnly={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/locations/{locationsId}
+/// Updates the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessbusinessinformation_locations_patch_execute()` or `mybusinessbusinessinformation_locations_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessbusinessinformation_locations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessbusinessinformation_locations_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/locations/{locationsId}
+/// Updates the specified location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessbusinessinformation_locations_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessbusinessinformation_locations_patch_task()`.
+/// For the simplest API, use `mybusinessbusinessinformation_locations_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessbusinessinformation_locations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessbusinessinformation_locations_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessbusinessinformation_locations_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessbusinessinformation_locations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationLocationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<Option<String>>,
+}
+
+/// PATCH v1/locations/{locationsId}
+/// Updates the specified location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessbusinessinformation_locations_patch_builder()` + `mybusinessbusinessinformation_locations_patch_execute()`.
+/// For task-level control, use `mybusinessbusinessinformation_locations_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessbusinessinformation_locations_patch(
+    client: &SimpleHttpClient,
+    args: &MybusinessbusinessinformationLocationsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = mybusinessbusinessinformation_locations_patch_builder(
+        client,
+        &args.name,
+        &args.updateMask,
+        &args.validateOnly,
+    )?;
+    mybusinessbusinessinformation_locations_patch_execute(builder)
+}
+
+/// PATCH v1/locations/{locationsId}/attributes
+/// Update attributes for a given location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `mybusinessbusinessinformation_locations_update_attributes_execute()` to send, or `mybusinessbusinessinformation_locations_update_attributes` for simplest API.
+
+pub fn mybusinessbusinessinformation_locations_update_attributes_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    attributeMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}/attributes",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = attributeMask.as_ref() {
+        query_parts.push(format!("attributeMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/locations/{locationsId}/attributes
+/// Update attributes for a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `mybusinessbusinessinformation_locations_update_attributes_execute()` or `mybusinessbusinessinformation_locations_update_attributes`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessbusinessinformation_locations_update_attributes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessbusinessinformation_locations_update_attributes_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Attributes>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Attributes = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/locations/{locationsId}/attributes
+/// Update attributes for a given location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `mybusinessbusinessinformation_locations_update_attributes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `mybusinessbusinessinformation_locations_update_attributes_task()`.
+/// For the simplest API, use `mybusinessbusinessinformation_locations_update_attributes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessbusinessinformation_locations_update_attributes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn mybusinessbusinessinformation_locations_update_attributes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Attributes>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = mybusinessbusinessinformation_locations_update_attributes_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`mybusinessbusinessinformation_locations_update_attributes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationLocationsUpdateAttributesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: attributeMask
+    pub attributeMask: Option<Option<String>>,
+}
+
+/// PATCH v1/locations/{locationsId}/attributes
+/// Update attributes for a given location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `mybusinessbusinessinformation_locations_update_attributes_builder()` + `mybusinessbusinessinformation_locations_update_attributes_execute()`.
+/// For task-level control, use `mybusinessbusinessinformation_locations_update_attributes_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn mybusinessbusinessinformation_locations_update_attributes(
+    client: &SimpleHttpClient,
+    args: &MybusinessbusinessinformationLocationsUpdateAttributesArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Attributes>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = mybusinessbusinessinformation_locations_update_attributes_builder(
+        client,
+        &args.name,
+        &args.attributeMask,
+    )?;
+    mybusinessbusinessinformation_locations_update_attributes_execute(builder)
+}
+
 /// GET v1/locations/{locationsId}/attributes:getGoogleUpdated
 /// Gets the Google-updated version of the specified location.
 ///
@@ -1834,6 +2561,7 @@ pub fn mybusinessbusinessinformation_locations_attributes_get_google_updated_bui
     // Build URL
     let endpoint_url = format!(
         "https://mybusinessbusinessinformation.googleapis.com/v1/locations/{}/attributes:getGoogleUpdated",
+        name,
     );
 
     // Build request
@@ -1977,4 +2705,429 @@ pub fn mybusinessbusinessinformation_locations_attributes_get_google_updated(
         client, &args.name,
     )?;
     mybusinessbusinessinformation_locations_attributes_get_google_updated_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with MybusinessbusinessinformationAccountsLocationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationAccountsLocationsCreateArgs> for Location {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationAccountsLocationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessbusinessinformation::Location/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with MybusinessbusinessinformationAccountsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationAccountsLocationsListArgs>
+    for ListLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationAccountsLocationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessbusinessinformation::ListLocationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListAttributeMetadataResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAttributeMetadataResponse with MybusinessbusinessinformationAttributesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationAttributesListArgs>
+    for ListAttributeMetadataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationAttributesListArgs,
+    ) -> String {
+        "gcp::mybusinessbusinessinformation::ListAttributeMetadataResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::ListAttributeMetadataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for BatchGetCategoriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetCategoriesResponse with MybusinessbusinessinformationCategoriesBatchGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationCategoriesBatchGetArgs>
+    for BatchGetCategoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationCategoriesBatchGetArgs,
+    ) -> String {
+        "gcp::mybusinessbusinessinformation::BatchGetCategoriesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::BatchGetCategoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListCategoriesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListCategoriesResponse with MybusinessbusinessinformationCategoriesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationCategoriesListArgs>
+    for ListCategoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationCategoriesListArgs,
+    ) -> String {
+        "gcp::mybusinessbusinessinformation::ListCategoriesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::ListCategoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Chain
+// =============================================================================
+
+/// ResourceIdentifier implementation for Chain with MybusinessbusinessinformationChainsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationChainsGetArgs> for Chain {
+    fn generate_resource_id(&self, input: &MybusinessbusinessinformationChainsGetArgs) -> String {
+        format!("gcp::mybusinessbusinessinformation::Chain/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::Chain"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchChainsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchChainsResponse with MybusinessbusinessinformationChainsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationChainsSearchArgs> for SearchChainsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationChainsSearchArgs,
+    ) -> String {
+        "gcp::mybusinessbusinessinformation::SearchChainsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::SearchChainsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SearchGoogleLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SearchGoogleLocationsResponse with MybusinessbusinessinformationGoogleLocationsSearchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationGoogleLocationsSearchArgs>
+    for SearchGoogleLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationGoogleLocationsSearchArgs,
+    ) -> String {
+        "gcp::mybusinessbusinessinformation::SearchGoogleLocationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::SearchGoogleLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with MybusinessbusinessinformationLocationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationLocationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationLocationsDeleteArgs,
+    ) -> String {
+        format!("gcp::mybusinessbusinessinformation::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with MybusinessbusinessinformationLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationLocationsGetArgs> for Location {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationLocationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessbusinessinformation::Location/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Attributes
+// =============================================================================
+
+/// ResourceIdentifier implementation for Attributes with MybusinessbusinessinformationLocationsGetAttributesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationLocationsGetAttributesArgs> for Attributes {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationLocationsGetAttributesArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessbusinessinformation::Attributes/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::Attributes"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GoogleUpdatedLocation
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleUpdatedLocation with MybusinessbusinessinformationLocationsGetGoogleUpdatedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationLocationsGetGoogleUpdatedArgs>
+    for GoogleUpdatedLocation
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationLocationsGetGoogleUpdatedArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessbusinessinformation::GoogleUpdatedLocation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::GoogleUpdatedLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with MybusinessbusinessinformationLocationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationLocationsPatchArgs> for Location {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationLocationsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessbusinessinformation::Location/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Attributes
+// =============================================================================
+
+/// ResourceIdentifier implementation for Attributes with MybusinessbusinessinformationLocationsUpdateAttributesArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationLocationsUpdateAttributesArgs> for Attributes {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationLocationsUpdateAttributesArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessbusinessinformation::Attributes/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::Attributes"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Attributes
+// =============================================================================
+
+/// ResourceIdentifier implementation for Attributes with MybusinessbusinessinformationLocationsAttributesGetGoogleUpdatedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationLocationsAttributesGetGoogleUpdatedArgs>
+    for Attributes
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationLocationsAttributesGetGoogleUpdatedArgs,
+    ) -> String {
+        format!(
+            "gcp::mybusinessbusinessinformation::Attributes/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::mybusinessbusinessinformation::Attributes"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

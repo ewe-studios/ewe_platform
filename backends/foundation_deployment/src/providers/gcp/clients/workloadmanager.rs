@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_get_execute()` to send, or `workloadmanager_projects_locations_get` for simplest API.
+
+pub fn workloadmanager_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_get_execute()` or `workloadmanager_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_get_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_get_builder()` + `workloadmanager_projects_locations_get_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_get_builder(client, &args.name)?;
+    workloadmanager_projects_locations_get_execute(builder)
+}
 
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
@@ -29,13 +186,16 @@ use serde::Serialize;
 pub fn workloadmanager_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://workloadmanager.googleapis.com/v1/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +337,13 @@ pub struct WorkloadmanagerProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1/projects/{projectsId}/locations
@@ -215,4 +375,6019 @@ pub fn workloadmanager_projects_locations_list(
         &args.pageToken,
     )?;
     workloadmanager_projects_locations_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Creates a new Deployment in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_deployments_create_execute()` to send, or `workloadmanager_projects_locations_deployments_create` for simplest API.
+
+pub fn workloadmanager_projects_locations_deployments_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    deploymentId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = deploymentId.as_ref() {
+        query_parts.push(format!("deploymentId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Creates a new Deployment in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_deployments_create_execute()` or `workloadmanager_projects_locations_deployments_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Creates a new Deployment in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_deployments_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_create_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_deployments_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_deployments_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_deployments_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deploymentId
+    pub deploymentId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Creates a new Deployment in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_deployments_create_builder()` + `workloadmanager_projects_locations_deployments_create_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_create(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_deployments_create_builder(
+        client,
+        &args.parent,
+        &args.deploymentId,
+        &args.requestId,
+    )?;
+    workloadmanager_projects_locations_deployments_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Deletes a single Deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_deployments_delete_execute()` to send, or `workloadmanager_projects_locations_deployments_delete` for simplest API.
+
+pub fn workloadmanager_projects_locations_deployments_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Deletes a single Deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_deployments_delete_execute()` or `workloadmanager_projects_locations_deployments_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Deletes a single Deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_deployments_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_delete_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_deployments_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_deployments_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_deployments_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Deletes a single Deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_deployments_delete_builder()` + `workloadmanager_projects_locations_deployments_delete_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_delete(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_deployments_delete_builder(
+        client,
+        &args.name,
+        &args.force,
+    )?;
+    workloadmanager_projects_locations_deployments_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Gets details of a single Deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_deployments_get_execute()` to send, or `workloadmanager_projects_locations_deployments_get` for simplest API.
+
+pub fn workloadmanager_projects_locations_deployments_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Gets details of a single Deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_deployments_get_execute()` or `workloadmanager_projects_locations_deployments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Deployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Deployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Gets details of a single Deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_deployments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_get_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_deployments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_deployments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_deployments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
+/// Gets details of a single Deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_deployments_get_builder()` + `workloadmanager_projects_locations_deployments_get_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_get(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_deployments_get_builder(client, &args.name)?;
+    workloadmanager_projects_locations_deployments_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Lists Deployments in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_deployments_list_execute()` to send, or `workloadmanager_projects_locations_deployments_list` for simplest API.
+
+pub fn workloadmanager_projects_locations_deployments_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Lists Deployments in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_deployments_list_execute()` or `workloadmanager_projects_locations_deployments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDeploymentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDeploymentsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Lists Deployments in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_deployments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_list_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_deployments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_deployments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_deployments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
+/// Lists Deployments in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_deployments_list_builder()` + `workloadmanager_projects_locations_deployments_list_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_list(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_deployments_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    workloadmanager_projects_locations_deployments_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations
+/// Creates a new actuation for an existing Deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_deployments_actuations_create_execute()` to send, or `workloadmanager_projects_locations_deployments_actuations_create` for simplest API.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/actuations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations
+/// Creates a new actuation for an existing Deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_deployments_actuations_create_execute()` or `workloadmanager_projects_locations_deployments_actuations_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_actuations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations
+/// Creates a new actuation for an existing Deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_deployments_actuations_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_actuations_create_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_deployments_actuations_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_actuations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_deployments_actuations_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_deployments_actuations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsActuationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations
+/// Creates a new actuation for an existing Deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_deployments_actuations_create_builder()` + `workloadmanager_projects_locations_deployments_actuations_create_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_actuations_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_create(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsActuationsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_deployments_actuations_create_builder(
+        client,
+        &args.parent,
+        &args.requestId,
+    )?;
+    workloadmanager_projects_locations_deployments_actuations_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}
+/// Deletes a single Actuation
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_deployments_actuations_delete_execute()` to send, or `workloadmanager_projects_locations_deployments_actuations_delete` for simplest API.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}
+/// Deletes a single Actuation
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_deployments_actuations_delete_execute()` or `workloadmanager_projects_locations_deployments_actuations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_actuations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}
+/// Deletes a single Actuation
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_deployments_actuations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_actuations_delete_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_deployments_actuations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_actuations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_deployments_actuations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_deployments_actuations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsActuationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}
+/// Deletes a single Actuation
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_deployments_actuations_delete_builder()` + `workloadmanager_projects_locations_deployments_actuations_delete_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_actuations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_delete(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsActuationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_deployments_actuations_delete_builder(
+        client, &args.name,
+    )?;
+    workloadmanager_projects_locations_deployments_actuations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}
+/// Gets details of a single Actuation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_deployments_actuations_get_execute()` to send, or `workloadmanager_projects_locations_deployments_actuations_get` for simplest API.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}
+/// Gets details of a single Actuation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_deployments_actuations_get_execute()` or `workloadmanager_projects_locations_deployments_actuations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_actuations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Actuation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Actuation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}
+/// Gets details of a single Actuation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_deployments_actuations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_actuations_get_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_deployments_actuations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_actuations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Actuation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_deployments_actuations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_deployments_actuations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsActuationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}
+/// Gets details of a single Actuation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_deployments_actuations_get_builder()` + `workloadmanager_projects_locations_deployments_actuations_get_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_actuations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_get(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsActuationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Actuation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        workloadmanager_projects_locations_deployments_actuations_get_builder(client, &args.name)?;
+    workloadmanager_projects_locations_deployments_actuations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations
+/// Lists Actuations in a given project, location and deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_deployments_actuations_list_execute()` to send, or `workloadmanager_projects_locations_deployments_actuations_list` for simplest API.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/deployments/{deploymentsId}/actuations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations
+/// Lists Actuations in a given project, location and deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_deployments_actuations_list_execute()` or `workloadmanager_projects_locations_deployments_actuations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_actuations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListActuationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListActuationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations
+/// Lists Actuations in a given project, location and deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_deployments_actuations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_actuations_list_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_deployments_actuations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_deployments_actuations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListActuationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_deployments_actuations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_deployments_actuations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsActuationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations
+/// Lists Actuations in a given project, location and deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_deployments_actuations_list_builder()` + `workloadmanager_projects_locations_deployments_actuations_list_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_deployments_actuations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_deployments_actuations_list(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsActuationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListActuationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_deployments_actuations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    workloadmanager_projects_locations_deployments_actuations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}
+/// Gets details of a discovered workload profile.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_discoveredprofiles_get_execute()` to send, or `workloadmanager_projects_locations_discoveredprofiles_get` for simplest API.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}
+/// Gets details of a discovered workload profile.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_discoveredprofiles_get_execute()` or `workloadmanager_projects_locations_discoveredprofiles_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_discoveredprofiles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WorkloadProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: WorkloadProfile = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}
+/// Gets details of a discovered workload profile.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_discoveredprofiles_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_discoveredprofiles_get_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_discoveredprofiles_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_discoveredprofiles_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WorkloadProfile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_discoveredprofiles_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_discoveredprofiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDiscoveredprofilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}
+/// Gets details of a discovered workload profile.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_discoveredprofiles_get_builder()` + `workloadmanager_projects_locations_discoveredprofiles_get_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_discoveredprofiles_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_get(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDiscoveredprofilesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WorkloadProfile>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        workloadmanager_projects_locations_discoveredprofiles_get_builder(client, &args.name)?;
+    workloadmanager_projects_locations_discoveredprofiles_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles
+/// List discovered workload profiles
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_discoveredprofiles_list_execute()` to send, or `workloadmanager_projects_locations_discoveredprofiles_list` for simplest API.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredprofiles",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles
+/// List discovered workload profiles
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_discoveredprofiles_list_execute()` or `workloadmanager_projects_locations_discoveredprofiles_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_discoveredprofiles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDiscoveredProfilesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListDiscoveredProfilesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles
+/// List discovered workload profiles
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_discoveredprofiles_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_discoveredprofiles_list_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_discoveredprofiles_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_discoveredprofiles_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDiscoveredProfilesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_discoveredprofiles_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_discoveredprofiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDiscoveredprofilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles
+/// List discovered workload profiles
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_discoveredprofiles_list_builder()` + `workloadmanager_projects_locations_discoveredprofiles_list_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_discoveredprofiles_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_list(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDiscoveredprofilesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListDiscoveredProfilesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_discoveredprofiles_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    workloadmanager_projects_locations_discoveredprofiles_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}/health/{healthId}
+/// Get the health of a discovered workload profile.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_discoveredprofiles_health_get_execute()` to send, or `workloadmanager_projects_locations_discoveredprofiles_health_get` for simplest API.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_health_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}/health/{healthId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}/health/{healthId}
+/// Get the health of a discovered workload profile.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_discoveredprofiles_health_get_execute()` or `workloadmanager_projects_locations_discoveredprofiles_health_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_discoveredprofiles_health_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_health_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WorkloadProfileHealth>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: WorkloadProfileHealth = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}/health/{healthId}
+/// Get the health of a discovered workload profile.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_discoveredprofiles_health_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_discoveredprofiles_health_get_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_discoveredprofiles_health_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_discoveredprofiles_health_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_health_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WorkloadProfileHealth>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_discoveredprofiles_health_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_discoveredprofiles_health_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDiscoveredprofilesHealthGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}/health/{healthId}
+/// Get the health of a discovered workload profile.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_discoveredprofiles_health_get_builder()` + `workloadmanager_projects_locations_discoveredprofiles_health_get_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_discoveredprofiles_health_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_discoveredprofiles_health_get(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsDiscoveredprofilesHealthGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WorkloadProfileHealth>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_discoveredprofiles_health_get_builder(
+        client, &args.name,
+    )?;
+    workloadmanager_projects_locations_discoveredprofiles_health_get_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/evaluations
+/// Creates a new Evaluation in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_create_execute()` to send, or `workloadmanager_projects_locations_evaluations_create` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    evaluationId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = evaluationId.as_ref() {
+        query_parts.push(format!("evaluationId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/evaluations
+/// Creates a new Evaluation in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_create_execute()` or `workloadmanager_projects_locations_evaluations_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/evaluations
+/// Creates a new Evaluation in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_create_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_evaluations_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: evaluationId
+    pub evaluationId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/evaluations
+/// Creates a new Evaluation in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_create_builder()` + `workloadmanager_projects_locations_evaluations_create_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_create(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_evaluations_create_builder(
+        client,
+        &args.parent,
+        &args.evaluationId,
+        &args.requestId,
+    )?;
+    workloadmanager_projects_locations_evaluations_create_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Deletes a single Evaluation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_delete_execute()` to send, or `workloadmanager_projects_locations_evaluations_delete` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    force: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = force.as_ref() {
+        query_parts.push(format!("force={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Deletes a single Evaluation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_delete_execute()` or `workloadmanager_projects_locations_evaluations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Deletes a single Evaluation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_delete_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_evaluations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Deletes a single Evaluation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_delete_builder()` + `workloadmanager_projects_locations_evaluations_delete_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_delete(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_evaluations_delete_builder(
+        client,
+        &args.name,
+        &args.force,
+        &args.requestId,
+    )?;
+    workloadmanager_projects_locations_evaluations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Gets details of a single Evaluation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_get_execute()` to send, or `workloadmanager_projects_locations_evaluations_get` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Gets details of a single Evaluation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_get_execute()` or `workloadmanager_projects_locations_evaluations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Evaluation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Evaluation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Gets details of a single Evaluation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_get_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Evaluation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_evaluations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Gets details of a single Evaluation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_get_builder()` + `workloadmanager_projects_locations_evaluations_get_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_get(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Evaluation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_evaluations_get_builder(client, &args.name)?;
+    workloadmanager_projects_locations_evaluations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations
+/// Lists Evaluations in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_list_execute()` to send, or `workloadmanager_projects_locations_evaluations_list` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations
+/// Lists Evaluations in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_list_execute()` or `workloadmanager_projects_locations_evaluations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListEvaluationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListEvaluationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations
+/// Lists Evaluations in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_list_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEvaluationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_evaluations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations
+/// Lists Evaluations in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_list_builder()` + `workloadmanager_projects_locations_evaluations_list_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_list(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListEvaluationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_evaluations_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    workloadmanager_projects_locations_evaluations_list_execute(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Updates the parameters of a single Evaluation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_patch_execute()` to send, or `workloadmanager_projects_locations_evaluations_patch` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Updates the parameters of a single Evaluation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_patch_execute()` or `workloadmanager_projects_locations_evaluations_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Updates the parameters of a single Evaluation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_patch_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_evaluations_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
+/// Updates the parameters of a single Evaluation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_patch_builder()` + `workloadmanager_projects_locations_evaluations_patch_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_patch(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_evaluations_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    workloadmanager_projects_locations_evaluations_patch_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}
+/// Deletes a single Execution.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_executions_delete_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_delete` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}
+/// Deletes a single Execution.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_executions_delete_execute()` or `workloadmanager_projects_locations_evaluations_executions_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}
+/// Deletes a single Execution.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_executions_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_delete_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_executions_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_evaluations_executions_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}
+/// Deletes a single Execution.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_executions_delete_builder()` + `workloadmanager_projects_locations_evaluations_executions_delete_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_delete(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_evaluations_executions_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    workloadmanager_projects_locations_evaluations_executions_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}
+/// Gets details of a single Execution.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_executions_get_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_get` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}
+/// Gets details of a single Execution.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_executions_get_execute()` or `workloadmanager_projects_locations_evaluations_executions_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Execution>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Execution = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}
+/// Gets details of a single Execution.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_executions_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_get_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_executions_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_evaluations_executions_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}
+/// Gets details of a single Execution.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_executions_get_builder()` + `workloadmanager_projects_locations_evaluations_executions_get_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_get(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        workloadmanager_projects_locations_evaluations_executions_get_builder(client, &args.name)?;
+    workloadmanager_projects_locations_evaluations_executions_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions
+/// Lists Executions in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_executions_list_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_list` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions
+/// Lists Executions in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_executions_list_execute()` or `workloadmanager_projects_locations_evaluations_executions_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListExecutionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListExecutionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions
+/// Lists Executions in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_executions_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_list_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_executions_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListExecutionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_evaluations_executions_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions
+/// Lists Executions in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_executions_list_builder()` + `workloadmanager_projects_locations_evaluations_executions_list_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_list(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListExecutionsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_evaluations_executions_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    workloadmanager_projects_locations_evaluations_executions_list_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions:run
+/// Creates a new Execution in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_executions_run_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_run` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_run_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions:run",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions:run
+/// Creates a new Execution in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_executions_run_execute()` or `workloadmanager_projects_locations_evaluations_executions_run`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_run_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_run_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions:run
+/// Creates a new Execution in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_executions_run_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_run_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_executions_run()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_run_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_run_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_evaluations_executions_run_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsRunArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions:run
+/// Creates a new Execution in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_executions_run_builder()` + `workloadmanager_projects_locations_evaluations_executions_run_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_run_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_run(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsRunArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        workloadmanager_projects_locations_evaluations_executions_run_builder(client, &args.name)?;
+    workloadmanager_projects_locations_evaluations_executions_run_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/results
+/// Lists the result of a single evaluation.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_executions_results_list_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_results_list` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_results_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/results",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/results
+/// Lists the result of a single evaluation.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_executions_results_list_execute()` or `workloadmanager_projects_locations_evaluations_executions_results_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_results_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_results_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListExecutionResultsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListExecutionResultsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/results
+/// Lists the result of a single evaluation.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_executions_results_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_results_list_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_executions_results_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_results_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_results_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListExecutionResultsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        workloadmanager_projects_locations_evaluations_executions_results_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_results_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsResultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/results
+/// Lists the result of a single evaluation.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_executions_results_list_builder()` + `workloadmanager_projects_locations_evaluations_executions_results_list_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_results_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_results_list(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsResultsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListExecutionResultsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_evaluations_executions_results_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    workloadmanager_projects_locations_evaluations_executions_results_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/scannedResources
+/// List all scanned resources for a single Execution.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_execute()` to send, or `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list` for simplest API.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    rule: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/scannedResources",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = rule.as_ref() {
+        query_parts.push(format!("rule={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/scannedResources
+/// List all scanned resources for a single Execution.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_execute()` or `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListScannedResourcesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListScannedResourcesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/scannedResources
+/// List all scanned resources for a single Execution.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListScannedResourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task =
+        workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_task(
+            builder,
+        )?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_scanned_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsScannedResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: rule
+    pub rule: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/scannedResources
+/// List all scanned resources for a single Execution.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_builder()` + `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resources_list(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsScannedResourcesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ListScannedResourcesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_builder(
+            client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+            &args.rule,
+        )?;
+    workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_execute(
+        builder,
+    )
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/insights/{insightsId}
+/// Delete the data insights from workload manager data warehouse.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_insights_delete_execute()` to send, or `workloadmanager_projects_locations_insights_delete` for simplest API.
+
+pub fn workloadmanager_projects_locations_insights_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/insights/{insightsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/insights/{insightsId}
+/// Delete the data insights from workload manager data warehouse.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_insights_delete_execute()` or `workloadmanager_projects_locations_insights_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_insights_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_insights_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/insights/{insightsId}
+/// Delete the data insights from workload manager data warehouse.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_insights_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_insights_delete_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_insights_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_insights_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_insights_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_insights_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_insights_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsInsightsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/insights/{insightsId}
+/// Delete the data insights from workload manager data warehouse.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_insights_delete_builder()` + `workloadmanager_projects_locations_insights_delete_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_insights_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_insights_delete(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsInsightsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_insights_delete_builder(
+        client,
+        &args.name,
+        &args.requestId,
+    )?;
+    workloadmanager_projects_locations_insights_delete_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/insights:writeInsight
+/// Write the data insights to workload manager data warehouse.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_insights_write_insight_execute()` to send, or `workloadmanager_projects_locations_insights_write_insight` for simplest API.
+
+pub fn workloadmanager_projects_locations_insights_write_insight_builder(
+    client: &SimpleHttpClient,
+    location: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/insights:writeInsight",
+        location,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/insights:writeInsight
+/// Write the data insights to workload manager data warehouse.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_insights_write_insight_execute()` or `workloadmanager_projects_locations_insights_write_insight`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_insights_write_insight_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_insights_write_insight_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WriteInsightResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: WriteInsightResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/insights:writeInsight
+/// Write the data insights to workload manager data warehouse.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_insights_write_insight_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_insights_write_insight_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_insights_write_insight()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_insights_write_insight_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_insights_write_insight_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WriteInsightResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_insights_write_insight_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_insights_write_insight`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsInsightsWriteInsightArgs {
+    /// Path parameter: location
+    pub location: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/insights:writeInsight
+/// Write the data insights to workload manager data warehouse.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_insights_write_insight_builder()` + `workloadmanager_projects_locations_insights_write_insight_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_insights_write_insight_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_insights_write_insight(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsInsightsWriteInsightArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WriteInsightResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        workloadmanager_projects_locations_insights_write_insight_builder(client, &args.location)?;
+    workloadmanager_projects_locations_insights_write_insight_execute(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_operations_cancel_execute()` to send, or `workloadmanager_projects_locations_operations_cancel` for simplest API.
+
+pub fn workloadmanager_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_operations_cancel_execute()` or `workloadmanager_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_operations_cancel_builder()` + `workloadmanager_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_operations_cancel_builder(client, &args.name)?;
+    workloadmanager_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_operations_delete_execute()` to send, or `workloadmanager_projects_locations_operations_delete` for simplest API.
+
+pub fn workloadmanager_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_operations_delete_execute()` or `workloadmanager_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_operations_delete_builder()` + `workloadmanager_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_operations_delete_builder(client, &args.name)?;
+    workloadmanager_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_operations_get_execute()` to send, or `workloadmanager_projects_locations_operations_get` for simplest API.
+
+pub fn workloadmanager_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_operations_get_execute()` or `workloadmanager_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_operations_get_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_operations_get_builder()` + `workloadmanager_projects_locations_operations_get_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_operations_get_builder(client, &args.name)?;
+    workloadmanager_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_operations_list_execute()` to send, or `workloadmanager_projects_locations_operations_list` for simplest API.
+
+pub fn workloadmanager_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_operations_list_execute()` or `workloadmanager_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_operations_list_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_operations_list_builder()` + `workloadmanager_projects_locations_operations_list_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    workloadmanager_projects_locations_operations_list_execute(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rules
+/// Lists rules in a given project.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `workloadmanager_projects_locations_rules_list_execute()` to send, or `workloadmanager_projects_locations_rules_list` for simplest API.
+
+pub fn workloadmanager_projects_locations_rules_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    customRulesBucket: &Option<Option<String>>,
+    evaluationType: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://workloadmanager.googleapis.com/v1/projects/{}/locations/{locationsId}/rules",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = customRulesBucket.as_ref() {
+        query_parts.push(format!("customRulesBucket={}", val));
+    }
+    if let Some(val) = evaluationType.as_ref() {
+        query_parts.push(format!("evaluationType={}", val));
+    }
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rules
+/// Lists rules in a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `workloadmanager_projects_locations_rules_list_execute()` or `workloadmanager_projects_locations_rules_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_rules_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRulesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListRulesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rules
+/// Lists rules in a given project.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `workloadmanager_projects_locations_rules_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `workloadmanager_projects_locations_rules_list_task()`.
+/// For the simplest API, use `workloadmanager_projects_locations_rules_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `workloadmanager_projects_locations_rules_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn workloadmanager_projects_locations_rules_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRulesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = workloadmanager_projects_locations_rules_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`workloadmanager_projects_locations_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customRulesBucket
+    pub customRulesBucket: Option<Option<String>>,
+    /// Query parameter: evaluationType
+    pub evaluationType: Option<Option<String>>,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1/projects/{projectsId}/locations/{locationsId}/rules
+/// Lists rules in a given project.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `workloadmanager_projects_locations_rules_list_builder()` + `workloadmanager_projects_locations_rules_list_execute()`.
+/// For task-level control, use `workloadmanager_projects_locations_rules_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn workloadmanager_projects_locations_rules_list(
+    client: &SimpleHttpClient,
+    args: &WorkloadmanagerProjectsLocationsRulesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListRulesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = workloadmanager_projects_locations_rules_list_builder(
+        client,
+        &args.parent,
+        &args.customRulesBucket,
+        &args.evaluationType,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    workloadmanager_projects_locations_rules_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with WorkloadmanagerProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &WorkloadmanagerProjectsLocationsGetArgs) -> String {
+        format!("gcp::workloadmanager::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with WorkloadmanagerProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &WorkloadmanagerProjectsLocationsListArgs) -> String {
+        format!("gcp::workloadmanager::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkloadmanagerProjectsLocationsDeploymentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDeploymentsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDeploymentsCreateArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkloadmanagerProjectsLocationsDeploymentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDeploymentsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDeploymentsDeleteArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Deployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for Deployment with WorkloadmanagerProjectsLocationsDeploymentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDeploymentsGetArgs> for Deployment {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDeploymentsGetArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Deployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDeploymentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDeploymentsResponse with WorkloadmanagerProjectsLocationsDeploymentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDeploymentsListArgs>
+    for ListDeploymentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDeploymentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::workloadmanager::ListDeploymentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::ListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkloadmanagerProjectsLocationsDeploymentsActuationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDeploymentsActuationsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDeploymentsActuationsCreateArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkloadmanagerProjectsLocationsDeploymentsActuationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDeploymentsActuationsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDeploymentsActuationsDeleteArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Actuation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Actuation with WorkloadmanagerProjectsLocationsDeploymentsActuationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDeploymentsActuationsGetArgs>
+    for Actuation
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDeploymentsActuationsGetArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Actuation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Actuation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListActuationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListActuationsResponse with WorkloadmanagerProjectsLocationsDeploymentsActuationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDeploymentsActuationsListArgs>
+    for ListActuationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDeploymentsActuationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::workloadmanager::ListActuationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::ListActuationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WorkloadProfile
+// =============================================================================
+
+/// ResourceIdentifier implementation for WorkloadProfile with WorkloadmanagerProjectsLocationsDiscoveredprofilesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDiscoveredprofilesGetArgs>
+    for WorkloadProfile
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDiscoveredprofilesGetArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::WorkloadProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::WorkloadProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListDiscoveredProfilesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListDiscoveredProfilesResponse with WorkloadmanagerProjectsLocationsDiscoveredprofilesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDiscoveredprofilesListArgs>
+    for ListDiscoveredProfilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDiscoveredprofilesListArgs,
+    ) -> String {
+        format!(
+            "gcp::workloadmanager::ListDiscoveredProfilesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::ListDiscoveredProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WorkloadProfileHealth
+// =============================================================================
+
+/// ResourceIdentifier implementation for WorkloadProfileHealth with WorkloadmanagerProjectsLocationsDiscoveredprofilesHealthGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsDiscoveredprofilesHealthGetArgs>
+    for WorkloadProfileHealth
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsDiscoveredprofilesHealthGetArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::WorkloadProfileHealth/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::WorkloadProfileHealth"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkloadmanagerProjectsLocationsEvaluationsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsEvaluationsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsCreateArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkloadmanagerProjectsLocationsEvaluationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsEvaluationsDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsDeleteArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Evaluation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Evaluation with WorkloadmanagerProjectsLocationsEvaluationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsEvaluationsGetArgs> for Evaluation {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsGetArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Evaluation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Evaluation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListEvaluationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListEvaluationsResponse with WorkloadmanagerProjectsLocationsEvaluationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsEvaluationsListArgs>
+    for ListEvaluationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::workloadmanager::ListEvaluationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::ListEvaluationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkloadmanagerProjectsLocationsEvaluationsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsEvaluationsPatchArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsPatchArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkloadmanagerProjectsLocationsEvaluationsExecutionsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsEvaluationsExecutionsDeleteArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsDeleteArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Execution
+// =============================================================================
+
+/// ResourceIdentifier implementation for Execution with WorkloadmanagerProjectsLocationsEvaluationsExecutionsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsEvaluationsExecutionsGetArgs>
+    for Execution
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsGetArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Execution/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Execution"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListExecutionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListExecutionsResponse with WorkloadmanagerProjectsLocationsEvaluationsExecutionsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsEvaluationsExecutionsListArgs>
+    for ListExecutionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::workloadmanager::ListExecutionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::ListExecutionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkloadmanagerProjectsLocationsEvaluationsExecutionsRunArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsEvaluationsExecutionsRunArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsRunArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListExecutionResultsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListExecutionResultsResponse with WorkloadmanagerProjectsLocationsEvaluationsExecutionsResultsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsEvaluationsExecutionsResultsListArgs>
+    for ListExecutionResultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsResultsListArgs,
+    ) -> String {
+        format!(
+            "gcp::workloadmanager::ListExecutionResultsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::ListExecutionResultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListScannedResourcesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListScannedResourcesResponse with WorkloadmanagerProjectsLocationsEvaluationsExecutionsScannedResourcesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        WorkloadmanagerProjectsLocationsEvaluationsExecutionsScannedResourcesListArgs,
+    > for ListScannedResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsScannedResourcesListArgs,
+    ) -> String {
+        format!(
+            "gcp::workloadmanager::ListScannedResourcesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::ListScannedResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with WorkloadmanagerProjectsLocationsInsightsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsInsightsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsInsightsDeleteArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for WriteInsightResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for WriteInsightResponse with WorkloadmanagerProjectsLocationsInsightsWriteInsightArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsInsightsWriteInsightArgs>
+    for WriteInsightResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsInsightsWriteInsightArgs,
+    ) -> String {
+        format!(
+            "gcp::workloadmanager::WriteInsightResponse/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::WriteInsightResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with WorkloadmanagerProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with WorkloadmanagerProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with WorkloadmanagerProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with WorkloadmanagerProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::workloadmanager::ListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListRulesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListRulesResponse with WorkloadmanagerProjectsLocationsRulesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkloadmanagerProjectsLocationsRulesListArgs> for ListRulesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &WorkloadmanagerProjectsLocationsRulesListArgs,
+    ) -> String {
+        format!("gcp::workloadmanager::ListRulesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::workloadmanager::ListRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

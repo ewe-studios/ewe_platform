@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,10 +16,11 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
-/// GET v1/accessType:check
+/// POST v1/accessType:check
 /// Gets the access type of the token.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -28,22 +28,19 @@ use serde::Serialize;
 
 pub fn dataportability_access_type_check_builder(
     client: &SimpleHttpClient,
-    body: &CheckAccessTypeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://dataportability.googleapis.com/v1/accessType:check",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/accessType:check
+/// POST v1/accessType:check
 /// Gets the access type of the token.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -117,7 +114,7 @@ pub fn dataportability_access_type_check_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/accessType:check
+/// POST v1/accessType:check
 /// Gets the access type of the token.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -149,14 +146,7 @@ pub fn dataportability_access_type_check_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`dataportability_access_type_check`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DataportabilityAccessTypeCheckArgs {
-    /// Request body.
-    pub body: CheckAccessTypeRequest,
-}
-
-/// GET v1/accessType:check
+/// POST v1/accessType:check
 /// Gets the access type of the token.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -169,18 +159,17 @@ pub struct DataportabilityAccessTypeCheckArgs {
 
 pub fn dataportability_access_type_check(
     client: &SimpleHttpClient,
-    args: &DataportabilityAccessTypeCheckArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckAccessTypeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_access_type_check_builder(client, &args.body)?;
+    let builder = dataportability_access_type_check_builder(client)?;
     dataportability_access_type_check_execute(builder)
 }
 
-/// GET v1/archiveJobs/{archiveJobsId}:cancel
+/// POST v1/archiveJobs/{archiveJobsId}:cancel
 /// Cancels a Portability Archive job.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -189,22 +178,22 @@ pub fn dataportability_access_type_check(
 pub fn dataportability_archive_jobs_cancel_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &CancelPortabilityArchiveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://dataportability.googleapis.com/v1/archiveJobs/{}:cancel",);
+    let endpoint_url = format!(
+        "https://dataportability.googleapis.com/v1/archiveJobs/{}:cancel",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/archiveJobs/{archiveJobsId}:cancel
+/// POST v1/archiveJobs/{archiveJobsId}:cancel
 /// Cancels a Portability Archive job.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -278,7 +267,7 @@ pub fn dataportability_archive_jobs_cancel_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/archiveJobs/{archiveJobsId}:cancel
+/// POST v1/archiveJobs/{archiveJobsId}:cancel
 /// Cancels a Portability Archive job.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -317,11 +306,9 @@ pub fn dataportability_archive_jobs_cancel_execute(
 pub struct DataportabilityArchiveJobsCancelArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: CancelPortabilityArchiveRequest,
 }
 
-/// GET v1/archiveJobs/{archiveJobsId}:cancel
+/// POST v1/archiveJobs/{archiveJobsId}:cancel
 /// Cancels a Portability Archive job.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -343,7 +330,7 @@ pub fn dataportability_archive_jobs_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_archive_jobs_cancel_builder(client, &args.name, &args.body)?;
+    let builder = dataportability_archive_jobs_cancel_builder(client, &args.name)?;
     dataportability_archive_jobs_cancel_execute(builder)
 }
 
@@ -360,6 +347,7 @@ pub fn dataportability_archive_jobs_get_portability_archive_state_builder(
     // Build URL
     let endpoint_url = format!(
         "https://dataportability.googleapis.com/v1/archiveJobs/{}/portabilityArchiveState",
+        name,
     );
 
     // Build request
@@ -508,7 +496,7 @@ pub fn dataportability_archive_jobs_get_portability_archive_state(
     dataportability_archive_jobs_get_portability_archive_state_execute(builder)
 }
 
-/// GET v1/archiveJobs/{archiveJobsId}:retry
+/// POST v1/archiveJobs/{archiveJobsId}:retry
 /// Retries a failed Portability Archive job.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -517,22 +505,22 @@ pub fn dataportability_archive_jobs_get_portability_archive_state(
 pub fn dataportability_archive_jobs_retry_builder(
     client: &SimpleHttpClient,
     name: &String,
-    body: &RetryPortabilityArchiveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://dataportability.googleapis.com/v1/archiveJobs/{}:retry",);
+    let endpoint_url = format!(
+        "https://dataportability.googleapis.com/v1/archiveJobs/{}:retry",
+        name,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/archiveJobs/{archiveJobsId}:retry
+/// POST v1/archiveJobs/{archiveJobsId}:retry
 /// Retries a failed Portability Archive job.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -606,7 +594,7 @@ pub fn dataportability_archive_jobs_retry_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/archiveJobs/{archiveJobsId}:retry
+/// POST v1/archiveJobs/{archiveJobsId}:retry
 /// Retries a failed Portability Archive job.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -645,11 +633,9 @@ pub fn dataportability_archive_jobs_retry_execute(
 pub struct DataportabilityArchiveJobsRetryArgs {
     /// Path parameter: name
     pub name: String,
-    /// Request body.
-    pub body: RetryPortabilityArchiveRequest,
 }
 
-/// GET v1/archiveJobs/{archiveJobsId}:retry
+/// POST v1/archiveJobs/{archiveJobsId}:retry
 /// Retries a failed Portability Archive job.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -671,11 +657,11 @@ pub fn dataportability_archive_jobs_retry(
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_archive_jobs_retry_builder(client, &args.name, &args.body)?;
+    let builder = dataportability_archive_jobs_retry_builder(client, &args.name)?;
     dataportability_archive_jobs_retry_execute(builder)
 }
 
-/// GET v1/authorization:reset
+/// POST v1/authorization:reset
 /// Revokes OAuth tokens and resets exhausted scopes for a `user/project` pair. This method allows you to initiate a request after a new consent is granted. This method also indicates that previous archives can be garbage collected. You should call this method when all jobs are complete and all archives are downloaded. Do not call it only when you start a new job.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -683,22 +669,19 @@ pub fn dataportability_archive_jobs_retry(
 
 pub fn dataportability_authorization_reset_builder(
     client: &SimpleHttpClient,
-    body: &ResetAuthorizationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://dataportability.googleapis.com/v1/authorization:reset",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/authorization:reset
+/// POST v1/authorization:reset
 /// Revokes OAuth tokens and resets exhausted scopes for a `user/project` pair. This method allows you to initiate a request after a new consent is granted. This method also indicates that previous archives can be garbage collected. You should call this method when all jobs are complete and all archives are downloaded. Do not call it only when you start a new job.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -772,7 +755,7 @@ pub fn dataportability_authorization_reset_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/authorization:reset
+/// POST v1/authorization:reset
 /// Revokes OAuth tokens and resets exhausted scopes for a `user/project` pair. This method allows you to initiate a request after a new consent is granted. This method also indicates that previous archives can be garbage collected. You should call this method when all jobs are complete and all archives are downloaded. Do not call it only when you start a new job.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -802,14 +785,7 @@ pub fn dataportability_authorization_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`dataportability_authorization_reset`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DataportabilityAuthorizationResetArgs {
-    /// Request body.
-    pub body: ResetAuthorizationRequest,
-}
-
-/// GET v1/authorization:reset
+/// POST v1/authorization:reset
 /// Revokes OAuth tokens and resets exhausted scopes for a `user/project` pair. This method allows you to initiate a request after a new consent is granted. This method also indicates that previous archives can be garbage collected. You should call this method when all jobs are complete and all archives are downloaded. Do not call it only when you start a new job.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -822,16 +798,15 @@ pub struct DataportabilityAuthorizationResetArgs {
 
 pub fn dataportability_authorization_reset(
     client: &SimpleHttpClient,
-    args: &DataportabilityAuthorizationResetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataportability_authorization_reset_builder(client, &args.body)?;
+    let builder = dataportability_authorization_reset_builder(client)?;
     dataportability_authorization_reset_execute(builder)
 }
 
-/// GET v1/portabilityArchive:initiate
+/// POST v1/portabilityArchive:initiate
 /// Initiates a new Archive job for the Portability API.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -839,7 +814,6 @@ pub fn dataportability_authorization_reset(
 
 pub fn dataportability_portability_archive_initiate_builder(
     client: &SimpleHttpClient,
-    body: &InitiatePortabilityArchiveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -847,15 +821,13 @@ pub fn dataportability_portability_archive_initiate_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1/portabilityArchive:initiate
+/// POST v1/portabilityArchive:initiate
 /// Initiates a new Archive job for the Portability API.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -929,7 +901,7 @@ pub fn dataportability_portability_archive_initiate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1/portabilityArchive:initiate
+/// POST v1/portabilityArchive:initiate
 /// Initiates a new Archive job for the Portability API.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -963,14 +935,7 @@ pub fn dataportability_portability_archive_initiate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`dataportability_portability_archive_initiate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DataportabilityPortabilityArchiveInitiateArgs {
-    /// Request body.
-    pub body: InitiatePortabilityArchiveRequest,
-}
-
-/// GET v1/portabilityArchive:initiate
+/// POST v1/portabilityArchive:initiate
 /// Initiates a new Archive job for the Portability API.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -983,7 +948,6 @@ pub struct DataportabilityPortabilityArchiveInitiateArgs {
 
 pub fn dataportability_portability_archive_initiate(
     client: &SimpleHttpClient,
-    args: &DataportabilityPortabilityArchiveInitiateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InitiatePortabilityArchiveResponse>, ApiError>,
@@ -992,6 +956,163 @@ pub fn dataportability_portability_archive_initiate(
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_portability_archive_initiate_builder(client, &args.body)?;
+    let builder = dataportability_portability_archive_initiate_builder(client)?;
     dataportability_portability_archive_initiate_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckAccessTypeResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckAccessTypeResponse with DataportabilityAccessTypeCheckArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityAccessTypeCheckArgs> for CheckAccessTypeResponse {
+    fn generate_resource_id(&self, input: &DataportabilityAccessTypeCheckArgs) -> String {
+        "gcp::dataportability::CheckAccessTypeResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataportability::CheckAccessTypeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CancelPortabilityArchiveResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CancelPortabilityArchiveResponse with DataportabilityArchiveJobsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityArchiveJobsCancelArgs> for CancelPortabilityArchiveResponse {
+    fn generate_resource_id(&self, input: &DataportabilityArchiveJobsCancelArgs) -> String {
+        format!(
+            "gcp::dataportability::CancelPortabilityArchiveResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataportability::CancelPortabilityArchiveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for PortabilityArchiveState
+// =============================================================================
+
+/// ResourceIdentifier implementation for PortabilityArchiveState with DataportabilityArchiveJobsGetPortabilityArchiveStateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityArchiveJobsGetPortabilityArchiveStateArgs>
+    for PortabilityArchiveState
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataportabilityArchiveJobsGetPortabilityArchiveStateArgs,
+    ) -> String {
+        format!(
+            "gcp::dataportability::PortabilityArchiveState/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataportability::PortabilityArchiveState"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for RetryPortabilityArchiveResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetryPortabilityArchiveResponse with DataportabilityArchiveJobsRetryArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityArchiveJobsRetryArgs> for RetryPortabilityArchiveResponse {
+    fn generate_resource_id(&self, input: &DataportabilityArchiveJobsRetryArgs) -> String {
+        format!(
+            "gcp::dataportability::RetryPortabilityArchiveResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataportability::RetryPortabilityArchiveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with DataportabilityAuthorizationResetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityAuthorizationResetArgs> for Empty {
+    fn generate_resource_id(&self, input: &DataportabilityAuthorizationResetArgs) -> String {
+        "gcp::dataportability::Empty".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataportability::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for InitiatePortabilityArchiveResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for InitiatePortabilityArchiveResponse with DataportabilityPortabilityArchiveInitiateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataportabilityPortabilityArchiveInitiateArgs>
+    for InitiatePortabilityArchiveResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataportabilityPortabilityArchiveInitiateArgs,
+    ) -> String {
+        "gcp::dataportability::InitiatePortabilityArchiveResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::dataportability::InitiatePortabilityArchiveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

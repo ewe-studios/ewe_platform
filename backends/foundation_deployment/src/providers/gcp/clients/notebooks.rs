@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,8 +16,166 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_get_execute()` to send, or `notebooks_projects_locations_get` for simplest API.
+
+pub fn notebooks_projects_locations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_get_execute()` or `notebooks_projects_locations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Location = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_get_task()`.
+/// For the simplest API, use `notebooks_projects_locations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}
+/// Gets information about a location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_get_builder()` + `notebooks_projects_locations_get_execute()`.
+/// For task-level control, use `notebooks_projects_locations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_get(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_get_builder(client, &args.name)?;
+    notebooks_projects_locations_get_execute(builder)
+}
 
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
@@ -29,13 +186,16 @@ use serde::Serialize;
 pub fn notebooks_projects_locations_list_builder(
     client: &SimpleHttpClient,
     name: &String,
-    extraLocationTypes: &Option<String>,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    extraLocationTypes: &Option<Option<String>>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://notebooks.googleapis.com/v2/projects/{}/locations",);
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations",
+        name,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -177,13 +337,13 @@ pub struct NotebooksProjectsLocationsListArgs {
     /// Path parameter: name
     pub name: String,
     /// Query parameter: extraLocationTypes
-    pub extraLocationTypes: Option<String>,
+    pub extraLocationTypes: Option<Option<String>>,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v2/projects/{projectsId}/locations
@@ -215,4 +375,5011 @@ pub fn notebooks_projects_locations_list(
         &args.pageToken,
     )?;
     notebooks_projects_locations_list_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:checkAuthorization
+/// Initiated by Cloud Console for Oauth consent flow for Workbench Instances. Do not use this method directly. Design doc: `go/wbi-euc`:auth-dd
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_check_authorization_execute()` to send, or `notebooks_projects_locations_instances_check_authorization` for simplest API.
+
+pub fn notebooks_projects_locations_instances_check_authorization_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:checkAuthorization",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:checkAuthorization
+/// Initiated by Cloud Console for Oauth consent flow for Workbench Instances. Do not use this method directly. Design doc: `go/wbi-euc`:auth-dd
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_check_authorization_execute()` or `notebooks_projects_locations_instances_check_authorization`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_check_authorization_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_check_authorization_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckAuthorizationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CheckAuthorizationResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:checkAuthorization
+/// Initiated by Cloud Console for Oauth consent flow for Workbench Instances. Do not use this method directly. Design doc: `go/wbi-euc`:auth-dd
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_check_authorization_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_check_authorization_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_check_authorization()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_check_authorization_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_check_authorization_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CheckAuthorizationResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_check_authorization_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_check_authorization`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesCheckAuthorizationArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:checkAuthorization
+/// Initiated by Cloud Console for Oauth consent flow for Workbench Instances. Do not use this method directly. Design doc: `go/wbi-euc`:auth-dd
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_check_authorization_builder()` + `notebooks_projects_locations_instances_check_authorization_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_check_authorization_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_check_authorization(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesCheckAuthorizationArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CheckAuthorizationResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        notebooks_projects_locations_instances_check_authorization_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_check_authorization_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:checkUpgradability
+/// Checks whether a notebook instance is upgradable.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_check_upgradability_execute()` to send, or `notebooks_projects_locations_instances_check_upgradability` for simplest API.
+
+pub fn notebooks_projects_locations_instances_check_upgradability_builder(
+    client: &SimpleHttpClient,
+    notebookInstance: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:checkUpgradability",
+        notebookInstance,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:checkUpgradability
+/// Checks whether a notebook instance is upgradable.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_check_upgradability_execute()` or `notebooks_projects_locations_instances_check_upgradability`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_check_upgradability_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_check_upgradability_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckInstanceUpgradabilityResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: CheckInstanceUpgradabilityResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:checkUpgradability
+/// Checks whether a notebook instance is upgradable.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_check_upgradability_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_check_upgradability_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_check_upgradability()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_check_upgradability_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_check_upgradability_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CheckInstanceUpgradabilityResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_check_upgradability_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_check_upgradability`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs {
+    /// Path parameter: notebookInstance
+    pub notebookInstance: String,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:checkUpgradability
+/// Checks whether a notebook instance is upgradable.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_check_upgradability_builder()` + `notebooks_projects_locations_instances_check_upgradability_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_check_upgradability_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_check_upgradability(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<CheckInstanceUpgradabilityResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_check_upgradability_builder(
+        client,
+        &args.notebookInstance,
+    )?;
+    notebooks_projects_locations_instances_check_upgradability_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances
+/// Creates a new Instance in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_create_execute()` to send, or `notebooks_projects_locations_instances_create` for simplest API.
+
+pub fn notebooks_projects_locations_instances_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    instanceId: &Option<Option<String>>,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = instanceId.as_ref() {
+        query_parts.push(format!("instanceId={}", val));
+    }
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .post(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances
+/// Creates a new Instance in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_create_execute()` or `notebooks_projects_locations_instances_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances
+/// Creates a new Instance in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_create_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<Option<String>>,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances
+/// Creates a new Instance in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_create_builder()` + `notebooks_projects_locations_instances_create_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_create(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_create_builder(
+        client,
+        &args.parent,
+        &args.instanceId,
+        &args.requestId,
+    )?;
+    notebooks_projects_locations_instances_create_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// Deletes a single Instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_delete_execute()` to send, or `notebooks_projects_locations_instances_delete` for simplest API.
+
+pub fn notebooks_projects_locations_instances_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .delete(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// Deletes a single Instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_delete_execute()` or `notebooks_projects_locations_instances_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// Deletes a single Instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_delete_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// Deletes a single Instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_delete_builder()` + `notebooks_projects_locations_instances_delete_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_delete(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        notebooks_projects_locations_instances_delete_builder(client, &args.name, &args.requestId)?;
+    notebooks_projects_locations_instances_delete_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:diagnose
+/// Creates a Diagnostic File and runs Diagnostic Tool given an Instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_diagnose_execute()` to send, or `notebooks_projects_locations_instances_diagnose` for simplest API.
+
+pub fn notebooks_projects_locations_instances_diagnose_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:diagnose",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:diagnose
+/// Creates a Diagnostic File and runs Diagnostic Tool given an Instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_diagnose_execute()` or `notebooks_projects_locations_instances_diagnose`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_diagnose_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_diagnose_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:diagnose
+/// Creates a Diagnostic File and runs Diagnostic Tool given an Instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_diagnose_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_diagnose_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_diagnose()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_diagnose_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_diagnose_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_diagnose_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_diagnose`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesDiagnoseArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:diagnose
+/// Creates a Diagnostic File and runs Diagnostic Tool given an Instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_diagnose_builder()` + `notebooks_projects_locations_instances_diagnose_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_diagnose_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_diagnose(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesDiagnoseArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_diagnose_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_diagnose_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:generateAccessToken
+/// Called by VM to return an EUC for the instance owner. Do not use this method directly. Design doc: `go/wbi-euc`:dd
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_generate_access_token_execute()` to send, or `notebooks_projects_locations_instances_generate_access_token` for simplest API.
+
+pub fn notebooks_projects_locations_instances_generate_access_token_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:generateAccessToken",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:generateAccessToken
+/// Called by VM to return an EUC for the instance owner. Do not use this method directly. Design doc: `go/wbi-euc`:dd
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_generate_access_token_execute()` or `notebooks_projects_locations_instances_generate_access_token`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_generate_access_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_generate_access_token_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenerateAccessTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: GenerateAccessTokenResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:generateAccessToken
+/// Called by VM to return an EUC for the instance owner. Do not use this method directly. Design doc: `go/wbi-euc`:dd
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_generate_access_token_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_generate_access_token_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_generate_access_token()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_generate_access_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_generate_access_token_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GenerateAccessTokenResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_generate_access_token_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_generate_access_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesGenerateAccessTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:generateAccessToken
+/// Called by VM to return an EUC for the instance owner. Do not use this method directly. Design doc: `go/wbi-euc`:dd
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_generate_access_token_builder()` + `notebooks_projects_locations_instances_generate_access_token_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_generate_access_token_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_generate_access_token(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesGenerateAccessTokenArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<GenerateAccessTokenResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        notebooks_projects_locations_instances_generate_access_token_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_generate_access_token_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// Gets details of a single Instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_get_execute()` to send, or `notebooks_projects_locations_instances_get` for simplest API.
+
+pub fn notebooks_projects_locations_instances_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// Gets details of a single Instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_get_execute()` or `notebooks_projects_locations_instances_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Instance>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Instance = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// Gets details of a single Instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_get_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// Gets details of a single Instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_get_builder()` + `notebooks_projects_locations_instances_get_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_get(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_get_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_get_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances:getConfig
+/// Returns various configuration parameters.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_get_config_execute()` to send, or `notebooks_projects_locations_instances_get_config` for simplest API.
+
+pub fn notebooks_projects_locations_instances_get_config_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances:getConfig",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances:getConfig
+/// Returns various configuration parameters.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_get_config_execute()` or `notebooks_projects_locations_instances_get_config`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_get_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_get_config_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Config>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Config = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances:getConfig
+/// Returns various configuration parameters.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_get_config_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_get_config_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_get_config()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_get_config_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_get_config_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Config>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_get_config_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances:getConfig
+/// Returns various configuration parameters.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_get_config_builder()` + `notebooks_projects_locations_instances_get_config_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_get_config_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_get_config(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesGetConfigArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Config>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_get_config_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_get_config_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_get_iam_policy_execute()` to send, or `notebooks_projects_locations_instances_get_iam_policy` for simplest API.
+
+pub fn notebooks_projects_locations_instances_get_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+    options_requestedPolicyVersion: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:getIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = options_requestedPolicyVersion.as_ref() {
+        query_parts.push(format!("options.requestedPolicyVersion={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_get_iam_policy_execute()` or `notebooks_projects_locations_instances_get_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_get_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_get_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_get_iam_policy_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_get_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_get_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_get_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_get_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getIamPolicy
+/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_get_iam_policy_builder()` + `notebooks_projects_locations_instances_get_iam_policy_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_get_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_get_iam_policy(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesGetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.options_requestedPolicyVersion,
+    )?;
+    notebooks_projects_locations_instances_get_iam_policy_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances
+/// Lists instances in a given project and location.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_list_execute()` to send, or `notebooks_projects_locations_instances_list` for simplest API.
+
+pub fn notebooks_projects_locations_instances_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    orderBy: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = orderBy.as_ref() {
+        query_parts.push(format!("orderBy={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances
+/// Lists instances in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_list_execute()` or `notebooks_projects_locations_instances_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInstancesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListInstancesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances
+/// Lists instances in a given project and location.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_list_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/instances
+/// Lists instances in a given project and location.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_list_builder()` + `notebooks_projects_locations_instances_list_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_list(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.orderBy,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    notebooks_projects_locations_instances_list_execute(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// UpdateInstance updates an Instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_patch_execute()` to send, or `notebooks_projects_locations_instances_patch` for simplest API.
+
+pub fn notebooks_projects_locations_instances_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    requestId: &Option<Option<String>>,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = requestId.as_ref() {
+        query_parts.push(format!("requestId={}", val));
+    }
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// UpdateInstance updates an Instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_patch_execute()` or `notebooks_projects_locations_instances_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// UpdateInstance updates an Instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_patch_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<Option<String>>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
+/// UpdateInstance updates an Instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_patch_builder()` + `notebooks_projects_locations_instances_patch_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_patch(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_patch_builder(
+        client,
+        &args.name,
+        &args.requestId,
+        &args.updateMask,
+    )?;
+    notebooks_projects_locations_instances_patch_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reportInfoSystem
+/// Allows notebook instances to report their latest instance information to the Notebooks API server. The server will merge the reported information to the instance metadata store. Do not use this method directly.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_report_info_system_execute()` to send, or `notebooks_projects_locations_instances_report_info_system` for simplest API.
+
+pub fn notebooks_projects_locations_instances_report_info_system_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:reportInfoSystem",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reportInfoSystem
+/// Allows notebook instances to report their latest instance information to the Notebooks API server. The server will merge the reported information to the instance metadata store. Do not use this method directly.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_report_info_system_execute()` or `notebooks_projects_locations_instances_report_info_system`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_report_info_system_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_report_info_system_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reportInfoSystem
+/// Allows notebook instances to report their latest instance information to the Notebooks API server. The server will merge the reported information to the instance metadata store. Do not use this method directly.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_report_info_system_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_report_info_system_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_report_info_system()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_report_info_system_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_report_info_system_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_report_info_system_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_report_info_system`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesReportInfoSystemArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reportInfoSystem
+/// Allows notebook instances to report their latest instance information to the Notebooks API server. The server will merge the reported information to the instance metadata store. Do not use this method directly.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_report_info_system_builder()` + `notebooks_projects_locations_instances_report_info_system_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_report_info_system_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_report_info_system(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesReportInfoSystemArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        notebooks_projects_locations_instances_report_info_system_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_report_info_system_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reset
+/// Resets a notebook instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_reset_execute()` to send, or `notebooks_projects_locations_instances_reset` for simplest API.
+
+pub fn notebooks_projects_locations_instances_reset_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:reset",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reset
+/// Resets a notebook instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_reset_execute()` or `notebooks_projects_locations_instances_reset`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_reset_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_reset_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reset
+/// Resets a notebook instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_reset_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_reset_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_reset()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_reset_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_reset_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_reset_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesResetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reset
+/// Resets a notebook instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_reset_builder()` + `notebooks_projects_locations_instances_reset_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_reset_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_reset(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesResetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_reset_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_reset_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:resizeDisk
+/// Resize a notebook instance disk to a higher capacity.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_resize_disk_execute()` to send, or `notebooks_projects_locations_instances_resize_disk` for simplest API.
+
+pub fn notebooks_projects_locations_instances_resize_disk_builder(
+    client: &SimpleHttpClient,
+    notebookInstance: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:resizeDisk",
+        notebookInstance,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:resizeDisk
+/// Resize a notebook instance disk to a higher capacity.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_resize_disk_execute()` or `notebooks_projects_locations_instances_resize_disk`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_resize_disk_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_resize_disk_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:resizeDisk
+/// Resize a notebook instance disk to a higher capacity.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_resize_disk_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_resize_disk_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_resize_disk()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_resize_disk_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_resize_disk_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_resize_disk_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_resize_disk`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesResizeDiskArgs {
+    /// Path parameter: notebookInstance
+    pub notebookInstance: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:resizeDisk
+/// Resize a notebook instance disk to a higher capacity.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_resize_disk_builder()` + `notebooks_projects_locations_instances_resize_disk_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_resize_disk_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_resize_disk(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesResizeDiskArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        notebooks_projects_locations_instances_resize_disk_builder(client, &args.notebookInstance)?;
+    notebooks_projects_locations_instances_resize_disk_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:restore
+/// RestoreInstance restores an Instance from a BackupSource.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_restore_execute()` to send, or `notebooks_projects_locations_instances_restore` for simplest API.
+
+pub fn notebooks_projects_locations_instances_restore_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:restore",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:restore
+/// RestoreInstance restores an Instance from a BackupSource.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_restore_execute()` or `notebooks_projects_locations_instances_restore`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_restore_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:restore
+/// RestoreInstance restores an Instance from a BackupSource.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_restore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_restore_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_restore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_restore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_restore_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:restore
+/// RestoreInstance restores an Instance from a BackupSource.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_restore_builder()` + `notebooks_projects_locations_instances_restore_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_restore_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_restore(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesRestoreArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_restore_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_restore_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:rollback
+/// Rollbacks a notebook instance to the previous version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_rollback_execute()` to send, or `notebooks_projects_locations_instances_rollback` for simplest API.
+
+pub fn notebooks_projects_locations_instances_rollback_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:rollback",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:rollback
+/// Rollbacks a notebook instance to the previous version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_rollback_execute()` or `notebooks_projects_locations_instances_rollback`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_rollback_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_rollback_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:rollback
+/// Rollbacks a notebook instance to the previous version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_rollback_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_rollback_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_rollback()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_rollback_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_rollback_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_rollback_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesRollbackArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:rollback
+/// Rollbacks a notebook instance to the previous version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_rollback_builder()` + `notebooks_projects_locations_instances_rollback_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_rollback_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_rollback(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesRollbackArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_rollback_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_rollback_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_set_iam_policy_execute()` to send, or `notebooks_projects_locations_instances_set_iam_policy` for simplest API.
+
+pub fn notebooks_projects_locations_instances_set_iam_policy_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:setIamPolicy",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_set_iam_policy_execute()` or `notebooks_projects_locations_instances_set_iam_policy`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_set_iam_policy_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Policy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Policy = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_set_iam_policy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_set_iam_policy_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_set_iam_policy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_set_iam_policy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_set_iam_policy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_set_iam_policy_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:setIamPolicy
+/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_set_iam_policy_builder()` + `notebooks_projects_locations_instances_set_iam_policy_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_set_iam_policy_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_set_iam_policy(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesSetIamPolicyArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        notebooks_projects_locations_instances_set_iam_policy_builder(client, &args.resource)?;
+    notebooks_projects_locations_instances_set_iam_policy_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:start
+/// Starts a notebook instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_start_execute()` to send, or `notebooks_projects_locations_instances_start` for simplest API.
+
+pub fn notebooks_projects_locations_instances_start_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:start",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:start
+/// Starts a notebook instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_start_execute()` or `notebooks_projects_locations_instances_start`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_start_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_start_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:start
+/// Starts a notebook instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_start_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_start_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_start()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_start_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_start_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_start_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesStartArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:start
+/// Starts a notebook instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_start_builder()` + `notebooks_projects_locations_instances_start_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_start_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_start(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesStartArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_start_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_start_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:stop
+/// Stops a notebook instance.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_stop_execute()` to send, or `notebooks_projects_locations_instances_stop` for simplest API.
+
+pub fn notebooks_projects_locations_instances_stop_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:stop",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:stop
+/// Stops a notebook instance.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_stop_execute()` or `notebooks_projects_locations_instances_stop`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_stop_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:stop
+/// Stops a notebook instance.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_stop_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_stop_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_stop()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_stop_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_stop_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesStopArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:stop
+/// Stops a notebook instance.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_stop_builder()` + `notebooks_projects_locations_instances_stop_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_stop_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_stop(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesStopArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_stop_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_stop_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_test_iam_permissions_execute()` to send, or `notebooks_projects_locations_instances_test_iam_permissions` for simplest API.
+
+pub fn notebooks_projects_locations_instances_test_iam_permissions_builder(
+    client: &SimpleHttpClient,
+    resource: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:testIamPermissions",
+        resource,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_test_iam_permissions_execute()` or `notebooks_projects_locations_instances_test_iam_permissions`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_test_iam_permissions_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_test_iam_permissions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_test_iam_permissions_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_test_iam_permissions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_test_iam_permissions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_test_iam_permissions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_test_iam_permissions_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:testIamPermissions
+/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_test_iam_permissions_builder()` + `notebooks_projects_locations_instances_test_iam_permissions_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_test_iam_permissions_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_test_iam_permissions(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesTestIamPermissionsArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_test_iam_permissions_builder(
+        client,
+        &args.resource,
+    )?;
+    notebooks_projects_locations_instances_test_iam_permissions_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgrade
+/// Upgrades a notebook instance to the latest version.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_upgrade_execute()` to send, or `notebooks_projects_locations_instances_upgrade` for simplest API.
+
+pub fn notebooks_projects_locations_instances_upgrade_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:upgrade",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgrade
+/// Upgrades a notebook instance to the latest version.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_upgrade_execute()` or `notebooks_projects_locations_instances_upgrade`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_upgrade_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_upgrade_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgrade
+/// Upgrades a notebook instance to the latest version.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_upgrade_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_upgrade_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_upgrade()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_upgrade_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_upgrade_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_upgrade_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_upgrade`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesUpgradeArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgrade
+/// Upgrades a notebook instance to the latest version.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_upgrade_builder()` + `notebooks_projects_locations_instances_upgrade_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_upgrade_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_upgrade(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesUpgradeArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_instances_upgrade_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_upgrade_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgradeSystem
+/// Allows notebook instances to upgrade themselves. Do not use this method directly.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_instances_upgrade_system_execute()` to send, or `notebooks_projects_locations_instances_upgrade_system` for simplest API.
+
+pub fn notebooks_projects_locations_instances_upgrade_system_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/instances/{instancesId}:upgradeSystem",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgradeSystem
+/// Allows notebook instances to upgrade themselves. Do not use this method directly.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_instances_upgrade_system_execute()` or `notebooks_projects_locations_instances_upgrade_system`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_upgrade_system_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_upgrade_system_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgradeSystem
+/// Allows notebook instances to upgrade themselves. Do not use this method directly.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_instances_upgrade_system_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_instances_upgrade_system_task()`.
+/// For the simplest API, use `notebooks_projects_locations_instances_upgrade_system()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_instances_upgrade_system_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_instances_upgrade_system_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_instances_upgrade_system_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_instances_upgrade_system`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesUpgradeSystemArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgradeSystem
+/// Allows notebook instances to upgrade themselves. Do not use this method directly.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_instances_upgrade_system_builder()` + `notebooks_projects_locations_instances_upgrade_system_execute()`.
+/// For task-level control, use `notebooks_projects_locations_instances_upgrade_system_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_instances_upgrade_system(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsInstancesUpgradeSystemArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder =
+        notebooks_projects_locations_instances_upgrade_system_builder(client, &args.name)?;
+    notebooks_projects_locations_instances_upgrade_system_execute(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_operations_cancel_execute()` to send, or `notebooks_projects_locations_operations_cancel` for simplest API.
+
+pub fn notebooks_projects_locations_operations_cancel_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}:cancel",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_operations_cancel_execute()` or `notebooks_projects_locations_operations_cancel`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_operations_cancel_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_operations_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_operations_cancel_task()`.
+/// For the simplest API, use `notebooks_projects_locations_operations_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_operations_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_operations_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_operations_cancel_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
+/// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_operations_cancel_builder()` + `notebooks_projects_locations_operations_cancel_execute()`.
+/// For task-level control, use `notebooks_projects_locations_operations_cancel_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_operations_cancel(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsOperationsCancelArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_operations_cancel_builder(client, &args.name)?;
+    notebooks_projects_locations_operations_cancel_execute(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_operations_delete_execute()` to send, or `notebooks_projects_locations_operations_delete` for simplest API.
+
+pub fn notebooks_projects_locations_operations_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_operations_delete_execute()` or `notebooks_projects_locations_operations_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_operations_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Empty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_operations_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_operations_delete_task()`.
+/// For the simplest API, use `notebooks_projects_locations_operations_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_operations_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_operations_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_operations_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_operations_delete_builder()` + `notebooks_projects_locations_operations_delete_execute()`.
+/// For task-level control, use `notebooks_projects_locations_operations_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_operations_delete(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsOperationsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_operations_delete_builder(client, &args.name)?;
+    notebooks_projects_locations_operations_delete_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_operations_get_execute()` to send, or `notebooks_projects_locations_operations_get` for simplest API.
+
+pub fn notebooks_projects_locations_operations_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/operations/{operationsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_operations_get_execute()` or `notebooks_projects_locations_operations_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_operations_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: Operation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_operations_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_operations_get_task()`.
+/// For the simplest API, use `notebooks_projects_locations_operations_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_operations_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_operations_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_operations_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
+/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_operations_get_builder()` + `notebooks_projects_locations_operations_get_execute()`.
+/// For task-level control, use `notebooks_projects_locations_operations_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_operations_get(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsOperationsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_operations_get_builder(client, &args.name)?;
+    notebooks_projects_locations_operations_get_execute(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `notebooks_projects_locations_operations_list_execute()` to send, or `notebooks_projects_locations_operations_list` for simplest API.
+
+pub fn notebooks_projects_locations_operations_list_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+    returnPartialSuccess: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://notebooks.googleapis.com/v2/projects/{}/locations/{locationsId}/operations",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+    if let Some(val) = returnPartialSuccess.as_ref() {
+        query_parts.push(format!("returnPartialSuccess={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `notebooks_projects_locations_operations_list_execute()` or `notebooks_projects_locations_operations_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_operations_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: ListOperationsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `notebooks_projects_locations_operations_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `notebooks_projects_locations_operations_list_task()`.
+/// For the simplest API, use `notebooks_projects_locations_operations_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `notebooks_projects_locations_operations_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn notebooks_projects_locations_operations_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = notebooks_projects_locations_operations_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`notebooks_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<Option<String>>,
+}
+
+/// GET v2/projects/{projectsId}/locations/{locationsId}/operations
+/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `notebooks_projects_locations_operations_list_builder()` + `notebooks_projects_locations_operations_list_execute()`.
+/// For task-level control, use `notebooks_projects_locations_operations_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn notebooks_projects_locations_operations_list(
+    client: &SimpleHttpClient,
+    args: &NotebooksProjectsLocationsOperationsListArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = notebooks_projects_locations_operations_list_builder(
+        client,
+        &args.name,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+        &args.returnPartialSuccess,
+    )?;
+    notebooks_projects_locations_operations_list_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Location
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location with NotebooksProjectsLocationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsGetArgs) -> String {
+        format!("gcp::notebooks::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListLocationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListLocationsResponse with NotebooksProjectsLocationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsListArgs) -> String {
+        format!("gcp::notebooks::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckAuthorizationResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckAuthorizationResponse with NotebooksProjectsLocationsInstancesCheckAuthorizationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesCheckAuthorizationArgs>
+    for CheckAuthorizationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesCheckAuthorizationArgs,
+    ) -> String {
+        format!("gcp::notebooks::CheckAuthorizationResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::CheckAuthorizationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for CheckInstanceUpgradabilityResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckInstanceUpgradabilityResponse with NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs>
+    for CheckInstanceUpgradabilityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs,
+    ) -> String {
+        format!(
+            "gcp::notebooks::CheckInstanceUpgradabilityResponse/{}",
+            input.notebookInstance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::CheckInstanceUpgradabilityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesCreateArgs,
+    ) -> String {
+        format!("gcp::notebooks::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesDeleteArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesDeleteArgs,
+    ) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesDiagnoseArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesDiagnoseArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesDiagnoseArgs,
+    ) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for GenerateAccessTokenResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for GenerateAccessTokenResponse with NotebooksProjectsLocationsInstancesGenerateAccessTokenArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesGenerateAccessTokenArgs>
+    for GenerateAccessTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesGenerateAccessTokenArgs,
+    ) -> String {
+        format!("gcp::notebooks::GenerateAccessTokenResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::GenerateAccessTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Instance
+// =============================================================================
+
+/// ResourceIdentifier implementation for Instance with NotebooksProjectsLocationsInstancesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesGetArgs> for Instance {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsInstancesGetArgs) -> String {
+        format!("gcp::notebooks::Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Config
+// =============================================================================
+
+/// ResourceIdentifier implementation for Config with NotebooksProjectsLocationsInstancesGetConfigArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesGetConfigArgs> for Config {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesGetConfigArgs,
+    ) -> String {
+        format!("gcp::notebooks::Config/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Config"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with NotebooksProjectsLocationsInstancesGetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::notebooks::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListInstancesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListInstancesResponse with NotebooksProjectsLocationsInstancesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesListArgs> for ListInstancesResponse {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsInstancesListArgs) -> String {
+        format!("gcp::notebooks::ListInstancesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::ListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesPatchArgs> for Operation {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsInstancesPatchArgs) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesReportInfoSystemArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesReportInfoSystemArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesReportInfoSystemArgs,
+    ) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesResetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesResetArgs> for Operation {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsInstancesResetArgs) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesResizeDiskArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesResizeDiskArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesResizeDiskArgs,
+    ) -> String {
+        format!("gcp::notebooks::Operation/{}", input.notebookInstance)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesRestoreArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesRestoreArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesRestoreArgs,
+    ) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesRollbackArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesRollbackArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesRollbackArgs,
+    ) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Policy
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy with NotebooksProjectsLocationsInstancesSetIamPolicyArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesSetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesSetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::notebooks::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesStartArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesStartArgs> for Operation {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsInstancesStartArgs) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesStopArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesStopArgs> for Operation {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsInstancesStopArgs) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for TestIamPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse with NotebooksProjectsLocationsInstancesTestIamPermissionsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::notebooks::TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesUpgradeArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesUpgradeArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesUpgradeArgs,
+    ) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsInstancesUpgradeSystemArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsInstancesUpgradeSystemArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsInstancesUpgradeSystemArgs,
+    ) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with NotebooksProjectsLocationsOperationsCancelArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::notebooks::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Empty
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty with NotebooksProjectsLocationsOperationsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsOperationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &NotebooksProjectsLocationsOperationsDeleteArgs,
+    ) -> String {
+        format!("gcp::notebooks::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for Operation
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation with NotebooksProjectsLocationsOperationsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::notebooks::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for ListOperationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListOperationsResponse with NotebooksProjectsLocationsOperationsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotebooksProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &NotebooksProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::notebooks::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::notebooks::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -14,17 +14,27 @@
 use crate::providers::gcp::clients::transcoder::{
     transcoder_projects_locations_job_templates_create_builder, transcoder_projects_locations_job_templates_create_task,
     transcoder_projects_locations_job_templates_delete_builder, transcoder_projects_locations_job_templates_delete_task,
+    transcoder_projects_locations_job_templates_get_builder, transcoder_projects_locations_job_templates_get_task,
+    transcoder_projects_locations_job_templates_list_builder, transcoder_projects_locations_job_templates_list_task,
     transcoder_projects_locations_jobs_create_builder, transcoder_projects_locations_jobs_create_task,
     transcoder_projects_locations_jobs_delete_builder, transcoder_projects_locations_jobs_delete_task,
+    transcoder_projects_locations_jobs_get_builder, transcoder_projects_locations_jobs_get_task,
+    transcoder_projects_locations_jobs_list_builder, transcoder_projects_locations_jobs_list_task,
 };
 use crate::providers::gcp::clients::types::{ApiError, ApiPending};
 use crate::providers::gcp::clients::transcoder::Empty;
 use crate::providers::gcp::clients::transcoder::Job;
 use crate::providers::gcp::clients::transcoder::JobTemplate;
+use crate::providers::gcp::clients::transcoder::ListJobTemplatesResponse;
+use crate::providers::gcp::clients::transcoder::ListJobsResponse;
 use crate::providers::gcp::clients::transcoder::TranscoderProjectsLocationsJobTemplatesCreateArgs;
 use crate::providers::gcp::clients::transcoder::TranscoderProjectsLocationsJobTemplatesDeleteArgs;
+use crate::providers::gcp::clients::transcoder::TranscoderProjectsLocationsJobTemplatesGetArgs;
+use crate::providers::gcp::clients::transcoder::TranscoderProjectsLocationsJobTemplatesListArgs;
 use crate::providers::gcp::clients::transcoder::TranscoderProjectsLocationsJobsCreateArgs;
 use crate::providers::gcp::clients::transcoder::TranscoderProjectsLocationsJobsDeleteArgs;
+use crate::providers::gcp::clients::transcoder::TranscoderProjectsLocationsJobsGetArgs;
+use crate::providers::gcp::clients::transcoder::TranscoderProjectsLocationsJobsListArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
@@ -154,6 +164,86 @@ where
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
+    /// Transcoder projects locations job templates get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the JobTemplate result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn transcoder_projects_locations_job_templates_get(
+        &self,
+        args: &TranscoderProjectsLocationsJobTemplatesGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<JobTemplate, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = transcoder_projects_locations_job_templates_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = transcoder_projects_locations_job_templates_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Transcoder projects locations job templates list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListJobTemplatesResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn transcoder_projects_locations_job_templates_list(
+        &self,
+        args: &TranscoderProjectsLocationsJobTemplatesListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListJobTemplatesResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = transcoder_projects_locations_job_templates_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = transcoder_projects_locations_job_templates_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
     /// Transcoder projects locations jobs create.
     ///
     /// Automatically stores the result in the state store on success.
@@ -239,6 +329,86 @@ where
         let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
 
         execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Transcoder projects locations jobs get.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Job result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn transcoder_projects_locations_jobs_get(
+        &self,
+        args: &TranscoderProjectsLocationsJobsGetArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Job, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = transcoder_projects_locations_jobs_get_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = transcoder_projects_locations_jobs_get_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Transcoder projects locations jobs list.
+    ///
+    /// Read-only operation - no state tracking.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ListJobsResponse result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request fails.
+    pub fn transcoder_projects_locations_jobs_list(
+        &self,
+        args: &TranscoderProjectsLocationsJobsListArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ListJobsResponse, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = transcoder_projects_locations_jobs_list_builder(
+            &self.http_client,
+            &args.parent,
+            &args.filter,
+            &args.orderBy,
+            &args.pageSize,
+            &args.pageToken,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = transcoder_projects_locations_jobs_list_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        execute(task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
     }
 
 }

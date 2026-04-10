@@ -7,7 +7,6 @@
 
 #![cfg(feature = "gcp")]
 
-
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
@@ -17,6 +16,7 @@ use foundation_core::valtron::{
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_db::state::resource_identifier::ResourceIdentifier;
 use foundation_macros::JsonHash;
 use serde::Serialize;
 
@@ -31,7 +31,10 @@ pub fn sasportal_customers_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/customers/{}",);
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -186,8 +189,8 @@ pub fn sasportal_customers_get(
 
 pub fn sasportal_customers_list_builder(
     client: &SimpleHttpClient,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/customers",);
@@ -326,9 +329,9 @@ pub fn sasportal_customers_list_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct SasportalCustomersListArgs {
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1alpha1/customers
@@ -666,7 +669,7 @@ pub fn sasportal_customers_list_legacy_organizations(
     sasportal_customers_list_legacy_organizations_execute(builder)
 }
 
-/// GET v1alpha1/customers:migrateOrganization
+/// POST v1alpha1/customers:migrateOrganization
 /// Migrates a SAS organization to the cloud. This will create GCP projects for each deployment and associate them. The SAS Organization is linked to the gcp project that called the command. `go/sas-legacy-customer-migration`
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -674,7 +677,6 @@ pub fn sasportal_customers_list_legacy_organizations(
 
 pub fn sasportal_customers_migrate_organization_builder(
     client: &SimpleHttpClient,
-    body: &SasPortalMigrateOrganizationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -682,15 +684,13 @@ pub fn sasportal_customers_migrate_organization_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/customers:migrateOrganization
+/// POST v1alpha1/customers:migrateOrganization
 /// Migrates a SAS organization to the cloud. This will create GCP projects for each deployment and associate them. The SAS Organization is linked to the gcp project that called the command. `go/sas-legacy-customer-migration`
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -764,7 +764,7 @@ pub fn sasportal_customers_migrate_organization_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/customers:migrateOrganization
+/// POST v1alpha1/customers:migrateOrganization
 /// Migrates a SAS organization to the cloud. This will create GCP projects for each deployment and associate them. The SAS Organization is linked to the gcp project that called the command. `go/sas-legacy-customer-migration`
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -796,14 +796,7 @@ pub fn sasportal_customers_migrate_organization_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sasportal_customers_migrate_organization`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SasportalCustomersMigrateOrganizationArgs {
-    /// Request body.
-    pub body: SasPortalMigrateOrganizationRequest,
-}
-
-/// GET v1alpha1/customers:migrateOrganization
+/// POST v1alpha1/customers:migrateOrganization
 /// Migrates a SAS organization to the cloud. This will create GCP projects for each deployment and associate them. The SAS Organization is linked to the gcp project that called the command. `go/sas-legacy-customer-migration`
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -816,18 +809,192 @@ pub struct SasportalCustomersMigrateOrganizationArgs {
 
 pub fn sasportal_customers_migrate_organization(
     client: &SimpleHttpClient,
-    args: &SasportalCustomersMigrateOrganizationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_customers_migrate_organization_builder(client, &args.body)?;
+    let builder = sasportal_customers_migrate_organization_builder(client)?;
     sasportal_customers_migrate_organization_execute(builder)
 }
 
-/// GET v1alpha1/customers:provisionDeployment
+/// PATCH v1alpha1/customers/{customersId}
+/// Updates an existing customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_patch_execute()` to send, or `sasportal_customers_patch` for simplest API.
+
+pub fn sasportal_customers_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/customers/{customersId}
+/// Updates an existing customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_patch_execute()` or `sasportal_customers_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalCustomer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalCustomer = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/customers/{customersId}
+/// Updates an existing customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_patch_task()`.
+/// For the simplest API, use `sasportal_customers_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalCustomer>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1alpha1/customers/{customersId}
+/// Updates an existing customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_patch_builder()` + `sasportal_customers_patch_execute()`.
+/// For task-level control, use `sasportal_customers_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_patch(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalCustomer>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_patch_builder(client, &args.name, &args.updateMask)?;
+    sasportal_customers_patch_execute(builder)
+}
+
+/// POST v1alpha1/customers:provisionDeployment
 /// Creates a new SAS deployment through the GCP workflow. Creates a SAS organization if an organization match is not found.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -835,7 +1002,6 @@ pub fn sasportal_customers_migrate_organization(
 
 pub fn sasportal_customers_provision_deployment_builder(
     client: &SimpleHttpClient,
-    body: &SasPortalProvisionDeploymentRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -843,15 +1009,13 @@ pub fn sasportal_customers_provision_deployment_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/customers:provisionDeployment
+/// POST v1alpha1/customers:provisionDeployment
 /// Creates a new SAS deployment through the GCP workflow. Creates a SAS organization if an organization match is not found.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -925,7 +1089,7 @@ pub fn sasportal_customers_provision_deployment_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/customers:provisionDeployment
+/// POST v1alpha1/customers:provisionDeployment
 /// Creates a new SAS deployment through the GCP workflow. Creates a SAS organization if an organization match is not found.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -959,14 +1123,7 @@ pub fn sasportal_customers_provision_deployment_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sasportal_customers_provision_deployment`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SasportalCustomersProvisionDeploymentArgs {
-    /// Request body.
-    pub body: SasPortalProvisionDeploymentRequest,
-}
-
-/// GET v1alpha1/customers:provisionDeployment
+/// POST v1alpha1/customers:provisionDeployment
 /// Creates a new SAS deployment through the GCP workflow. Creates a SAS organization if an organization match is not found.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -979,7 +1136,6 @@ pub struct SasportalCustomersProvisionDeploymentArgs {
 
 pub fn sasportal_customers_provision_deployment(
     client: &SimpleHttpClient,
-    args: &SasportalCustomersProvisionDeploymentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalProvisionDeploymentResponse>, ApiError>,
@@ -988,11 +1144,11 @@ pub fn sasportal_customers_provision_deployment(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_customers_provision_deployment_builder(client, &args.body)?;
+    let builder = sasportal_customers_provision_deployment_builder(client)?;
     sasportal_customers_provision_deployment_execute(builder)
 }
 
-/// GET v1alpha1/customers:setupSasAnalytics
+/// POST v1alpha1/customers:setupSasAnalytics
 /// Setups the a GCP Project to receive SAS Analytics messages via GCP P`ub/Sub` with a subscription to BigQuery. All the P`ub/Sub` topics and BigQuery tables are created automatically as part of this service.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1000,7 +1156,6 @@ pub fn sasportal_customers_provision_deployment(
 
 pub fn sasportal_customers_setup_sas_analytics_builder(
     client: &SimpleHttpClient,
-    body: &SasPortalSetupSasAnalyticsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1008,15 +1163,13 @@ pub fn sasportal_customers_setup_sas_analytics_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/customers:setupSasAnalytics
+/// POST v1alpha1/customers:setupSasAnalytics
 /// Setups the a GCP Project to receive SAS Analytics messages via GCP P`ub/Sub` with a subscription to BigQuery. All the P`ub/Sub` topics and BigQuery tables are created automatically as part of this service.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1090,7 +1243,7 @@ pub fn sasportal_customers_setup_sas_analytics_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/customers:setupSasAnalytics
+/// POST v1alpha1/customers:setupSasAnalytics
 /// Setups the a GCP Project to receive SAS Analytics messages via GCP P`ub/Sub` with a subscription to BigQuery. All the P`ub/Sub` topics and BigQuery tables are created automatically as part of this service.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1122,14 +1275,7 @@ pub fn sasportal_customers_setup_sas_analytics_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sasportal_customers_setup_sas_analytics`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SasportalCustomersSetupSasAnalyticsArgs {
-    /// Request body.
-    pub body: SasPortalSetupSasAnalyticsRequest,
-}
-
-/// GET v1alpha1/customers:setupSasAnalytics
+/// POST v1alpha1/customers:setupSasAnalytics
 /// Setups the a GCP Project to receive SAS Analytics messages via GCP P`ub/Sub` with a subscription to BigQuery. All the P`ub/Sub` topics and BigQuery tables are created automatically as part of this service.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1142,18 +1288,17 @@ pub struct SasportalCustomersSetupSasAnalyticsArgs {
 
 pub fn sasportal_customers_setup_sas_analytics(
     client: &SimpleHttpClient,
-    args: &SasportalCustomersSetupSasAnalyticsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_customers_setup_sas_analytics_builder(client, &args.body)?;
+    let builder = sasportal_customers_setup_sas_analytics_builder(client)?;
     sasportal_customers_setup_sas_analytics_execute(builder)
 }
 
-/// GET v1alpha1/customers/{customersId}/deployments
+/// POST v1alpha1/customers/{customersId}/deployments
 /// Creates a new deployment.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1162,23 +1307,22 @@ pub fn sasportal_customers_setup_sas_analytics(
 pub fn sasportal_customers_deployments_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &SasPortalDeployment,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://sasportal.googleapis.com/v1alpha1/customers/{}/deployments",);
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/deployments",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/customers/{customersId}/deployments
+/// POST v1alpha1/customers/{customersId}/deployments
 /// Creates a new deployment.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1252,7 +1396,7 @@ pub fn sasportal_customers_deployments_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/customers/{customersId}/deployments
+/// POST v1alpha1/customers/{customersId}/deployments
 /// Creates a new deployment.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1289,11 +1433,9 @@ pub fn sasportal_customers_deployments_create_execute(
 pub struct SasportalCustomersDeploymentsCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: SasPortalDeployment,
 }
 
-/// GET v1alpha1/customers/{customersId}/deployments
+/// POST v1alpha1/customers/{customersId}/deployments
 /// Creates a new deployment.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1313,11 +1455,1387 @@ pub fn sasportal_customers_deployments_create(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_customers_deployments_create_builder(client, &args.parent, &args.body)?;
+    let builder = sasportal_customers_deployments_create_builder(client, &args.parent)?;
     sasportal_customers_deployments_create_execute(builder)
 }
 
-/// GET v1alpha1/customers/{customersId}/devices
+/// DELETE v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Deletes a deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_deployments_delete_execute()` to send, or `sasportal_customers_deployments_delete` for simplest API.
+
+pub fn sasportal_customers_deployments_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Deletes a deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_deployments_delete_execute()` or `sasportal_customers_deployments_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Deletes a deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_deployments_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_deployments_delete_task()`.
+/// For the simplest API, use `sasportal_customers_deployments_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_deployments_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_deployments_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Deletes a deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_deployments_delete_builder()` + `sasportal_customers_deployments_delete_execute()`.
+/// For task-level control, use `sasportal_customers_deployments_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_delete(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDeploymentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_deployments_delete_builder(client, &args.name)?;
+    sasportal_customers_deployments_delete_execute(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Returns a requested deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_deployments_get_execute()` to send, or `sasportal_customers_deployments_get` for simplest API.
+
+pub fn sasportal_customers_deployments_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Returns a requested deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_deployments_get_execute()` or `sasportal_customers_deployments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDeployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDeployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Returns a requested deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_deployments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_deployments_get_task()`.
+/// For the simplest API, use `sasportal_customers_deployments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_deployments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_deployments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Returns a requested deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_deployments_get_builder()` + `sasportal_customers_deployments_get_execute()`.
+/// For task-level control, use `sasportal_customers_deployments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_get(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDeploymentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_deployments_get_builder(client, &args.name)?;
+    sasportal_customers_deployments_get_execute(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments
+/// Lists deployments.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_deployments_list_execute()` to send, or `sasportal_customers_deployments_list` for simplest API.
+
+pub fn sasportal_customers_deployments_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/deployments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments
+/// Lists deployments.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_deployments_list_execute()` or `sasportal_customers_deployments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListDeploymentsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments
+/// Lists deployments.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_deployments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_deployments_list_task()`.
+/// For the simplest API, use `sasportal_customers_deployments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_deployments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_deployments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments
+/// Lists deployments.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_deployments_list_builder()` + `sasportal_customers_deployments_list_execute()`.
+/// For task-level control, use `sasportal_customers_deployments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_list(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDeploymentsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_deployments_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_customers_deployments_list_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}:move
+/// Moves a deployment under another node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_deployments_move_execute()` to send, or `sasportal_customers_deployments_move` for simplest API.
+
+pub fn sasportal_customers_deployments_move_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}:move",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}:move
+/// Moves a deployment under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_deployments_move_execute()` or `sasportal_customers_deployments_move`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_move_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}:move
+/// Moves a deployment under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_deployments_move_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_deployments_move_task()`.
+/// For the simplest API, use `sasportal_customers_deployments_move()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_deployments_move_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_deployments_move_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_deployments_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDeploymentsMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}:move
+/// Moves a deployment under another node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_deployments_move_builder()` + `sasportal_customers_deployments_move_execute()`.
+/// For task-level control, use `sasportal_customers_deployments_move_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_move(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDeploymentsMoveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_deployments_move_builder(client, &args.name)?;
+    sasportal_customers_deployments_move_execute(builder)
+}
+
+/// PATCH v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Updates an existing deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_deployments_patch_execute()` to send, or `sasportal_customers_deployments_patch` for simplest API.
+
+pub fn sasportal_customers_deployments_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Updates an existing deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_deployments_patch_execute()` or `sasportal_customers_deployments_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDeployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDeployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Updates an existing deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_deployments_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_deployments_patch_task()`.
+/// For the simplest API, use `sasportal_customers_deployments_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_deployments_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_deployments_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1alpha1/customers/{customersId}/deployments/{deploymentsId}
+/// Updates an existing deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_deployments_patch_builder()` + `sasportal_customers_deployments_patch_execute()`.
+/// For task-level control, use `sasportal_customers_deployments_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_patch(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDeploymentsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        sasportal_customers_deployments_patch_builder(client, &args.name, &args.updateMask)?;
+    sasportal_customers_deployments_patch_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
+/// Creates a device under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_deployments_devices_create_execute()` to send, or `sasportal_customers_deployments_devices_create` for simplest API.
+
+pub fn sasportal_customers_deployments_devices_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}/devices",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
+/// Creates a device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_deployments_devices_create_execute()` or `sasportal_customers_deployments_devices_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_devices_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_devices_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
+/// Creates a device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_deployments_devices_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_deployments_devices_create_task()`.
+/// For the simplest API, use `sasportal_customers_deployments_devices_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_devices_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_deployments_devices_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_deployments_devices_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_deployments_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDeploymentsDevicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
+/// Creates a device under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_deployments_devices_create_builder()` + `sasportal_customers_deployments_devices_create_execute()`.
+/// For task-level control, use `sasportal_customers_deployments_devices_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_devices_create(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDeploymentsDevicesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_deployments_devices_create_builder(client, &args.parent)?;
+    sasportal_customers_deployments_devices_create_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_deployments_devices_create_signed_execute()` to send, or `sasportal_customers_deployments_devices_create_signed` for simplest API.
+
+pub fn sasportal_customers_deployments_devices_create_signed_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}/devices:createSigned",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_deployments_devices_create_signed_execute()` or `sasportal_customers_deployments_devices_create_signed`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_devices_create_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_devices_create_signed_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_deployments_devices_create_signed_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_deployments_devices_create_signed_task()`.
+/// For the simplest API, use `sasportal_customers_deployments_devices_create_signed()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_devices_create_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_deployments_devices_create_signed_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_deployments_devices_create_signed_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_deployments_devices_create_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDeploymentsDevicesCreateSignedArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_deployments_devices_create_signed_builder()` + `sasportal_customers_deployments_devices_create_signed_execute()`.
+/// For task-level control, use `sasportal_customers_deployments_devices_create_signed_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_devices_create_signed(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDeploymentsDevicesCreateSignedArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        sasportal_customers_deployments_devices_create_signed_builder(client, &args.parent)?;
+    sasportal_customers_deployments_devices_create_signed_execute(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
+/// Lists devices under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_deployments_devices_list_execute()` to send, or `sasportal_customers_deployments_devices_list` for simplest API.
+
+pub fn sasportal_customers_deployments_devices_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/deployments/{deploymentsId}/devices",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_deployments_devices_list_execute()` or `sasportal_customers_deployments_devices_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_devices_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListDevicesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_deployments_devices_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_deployments_devices_list_task()`.
+/// For the simplest API, use `sasportal_customers_deployments_devices_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_deployments_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_deployments_devices_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_deployments_devices_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_deployments_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDeploymentsDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
+/// Lists devices under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_deployments_devices_list_builder()` + `sasportal_customers_deployments_devices_list_execute()`.
+/// For task-level control, use `sasportal_customers_deployments_devices_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_deployments_devices_list(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDeploymentsDevicesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_deployments_devices_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_customers_deployments_devices_list_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/devices
 /// Creates a device under a node or customer.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1326,22 +2844,22 @@ pub fn sasportal_customers_deployments_create(
 pub fn sasportal_customers_devices_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &SasPortalDevice,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/customers/{}/devices",);
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/devices",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/customers/{customersId}/devices
+/// POST v1alpha1/customers/{customersId}/devices
 /// Creates a device under a node or customer.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1415,7 +2933,7 @@ pub fn sasportal_customers_devices_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/customers/{customersId}/devices
+/// POST v1alpha1/customers/{customersId}/devices
 /// Creates a device under a node or customer.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1452,11 +2970,9 @@ pub fn sasportal_customers_devices_create_execute(
 pub struct SasportalCustomersDevicesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: SasPortalDevice,
 }
 
-/// GET v1alpha1/customers/{customersId}/devices
+/// POST v1alpha1/customers/{customersId}/devices
 /// Creates a device under a node or customer.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1476,11 +2992,11 @@ pub fn sasportal_customers_devices_create(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_customers_devices_create_builder(client, &args.parent, &args.body)?;
+    let builder = sasportal_customers_devices_create_builder(client, &args.parent)?;
     sasportal_customers_devices_create_execute(builder)
 }
 
-/// GET v1alpha1/customers/{customersId}/devices:createSigned
+/// POST v1alpha1/customers/{customersId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1489,23 +3005,22 @@ pub fn sasportal_customers_devices_create(
 pub fn sasportal_customers_devices_create_signed_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &SasPortalCreateSignedDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://sasportal.googleapis.com/v1alpha1/customers/{}/devices:createSigned",);
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/devices:createSigned",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/customers/{customersId}/devices:createSigned
+/// POST v1alpha1/customers/{customersId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1579,7 +3094,7 @@ pub fn sasportal_customers_devices_create_signed_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/customers/{customersId}/devices:createSigned
+/// POST v1alpha1/customers/{customersId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1616,11 +3131,9 @@ pub fn sasportal_customers_devices_create_signed_execute(
 pub struct SasportalCustomersDevicesCreateSignedArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: SasPortalCreateSignedDeviceRequest,
 }
 
-/// GET v1alpha1/customers/{customersId}/devices:createSigned
+/// POST v1alpha1/customers/{customersId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1640,12 +3153,1188 @@ pub fn sasportal_customers_devices_create_signed(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sasportal_customers_devices_create_signed_builder(client, &args.parent, &args.body)?;
+    let builder = sasportal_customers_devices_create_signed_builder(client, &args.parent)?;
     sasportal_customers_devices_create_signed_execute(builder)
 }
 
-/// GET v1alpha1/customers/{customersId}/nodes
+/// DELETE v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_devices_delete_execute()` to send, or `sasportal_customers_devices_delete` for simplest API.
+
+pub fn sasportal_customers_devices_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_devices_delete_execute()` or `sasportal_customers_devices_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_devices_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_devices_delete_task()`.
+/// For the simplest API, use `sasportal_customers_devices_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_devices_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_devices_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_devices_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDevicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_devices_delete_builder()` + `sasportal_customers_devices_delete_execute()`.
+/// For task-level control, use `sasportal_customers_devices_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_delete(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDevicesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_devices_delete_builder(client, &args.name)?;
+    sasportal_customers_devices_delete_execute(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_devices_get_execute()` to send, or `sasportal_customers_devices_get` for simplest API.
+
+pub fn sasportal_customers_devices_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_devices_get_execute()` or `sasportal_customers_devices_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_devices_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_devices_get_task()`.
+/// For the simplest API, use `sasportal_customers_devices_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_devices_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_devices_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_devices_get_builder()` + `sasportal_customers_devices_get_execute()`.
+/// For task-level control, use `sasportal_customers_devices_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_get(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDevicesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_devices_get_builder(client, &args.name)?;
+    sasportal_customers_devices_get_execute(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/devices
+/// Lists devices under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_devices_list_execute()` to send, or `sasportal_customers_devices_list` for simplest API.
+
+pub fn sasportal_customers_devices_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/devices",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_devices_list_execute()` or `sasportal_customers_devices_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListDevicesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/customers/{customersId}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_devices_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_devices_list_task()`.
+/// For the simplest API, use `sasportal_customers_devices_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_devices_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_devices_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/customers/{customersId}/devices
+/// Lists devices under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_devices_list_builder()` + `sasportal_customers_devices_list_execute()`.
+/// For task-level control, use `sasportal_customers_devices_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_list(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDevicesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_devices_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_customers_devices_list_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_devices_move_execute()` to send, or `sasportal_customers_devices_move` for simplest API.
+
+pub fn sasportal_customers_devices_move_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}:move",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_devices_move_execute()` or `sasportal_customers_devices_move`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_move_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/customers/{customersId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_devices_move_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_devices_move_task()`.
+/// For the simplest API, use `sasportal_customers_devices_move()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_devices_move_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_devices_move_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_devices_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDevicesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1alpha1/customers/{customersId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_devices_move_builder()` + `sasportal_customers_devices_move_execute()`.
+/// For task-level control, use `sasportal_customers_devices_move_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_move(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDevicesMoveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_devices_move_builder(client, &args.name)?;
+    sasportal_customers_devices_move_execute(builder)
+}
+
+/// PATCH v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_devices_patch_execute()` to send, or `sasportal_customers_devices_patch` for simplest API.
+
+pub fn sasportal_customers_devices_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_devices_patch_execute()` or `sasportal_customers_devices_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_devices_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_devices_patch_task()`.
+/// For the simplest API, use `sasportal_customers_devices_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_devices_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_devices_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_devices_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDevicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1alpha1/customers/{customersId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_devices_patch_builder()` + `sasportal_customers_devices_patch_execute()`.
+/// For task-level control, use `sasportal_customers_devices_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_patch(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDevicesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_devices_patch_builder(client, &args.name, &args.updateMask)?;
+    sasportal_customers_devices_patch_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_devices_sign_device_execute()` to send, or `sasportal_customers_devices_sign_device` for simplest API.
+
+pub fn sasportal_customers_devices_sign_device_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}:signDevice",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_devices_sign_device_execute()` or `sasportal_customers_devices_sign_device`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_sign_device_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_sign_device_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/customers/{customersId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_devices_sign_device_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_devices_sign_device_task()`.
+/// For the simplest API, use `sasportal_customers_devices_sign_device()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_sign_device_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_devices_sign_device_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_devices_sign_device_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_devices_sign_device`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDevicesSignDeviceArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1alpha1/customers/{customersId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_devices_sign_device_builder()` + `sasportal_customers_devices_sign_device_execute()`.
+/// For task-level control, use `sasportal_customers_devices_sign_device_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_sign_device(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDevicesSignDeviceArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_devices_sign_device_builder(client, &args.name)?;
+    sasportal_customers_devices_sign_device_execute(builder)
+}
+
+/// PATCH v1alpha1/customers/{customersId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_devices_update_signed_execute()` to send, or `sasportal_customers_devices_update_signed` for simplest API.
+
+pub fn sasportal_customers_devices_update_signed_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/devices/{devicesId}:updateSigned",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/customers/{customersId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_devices_update_signed_execute()` or `sasportal_customers_devices_update_signed`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_update_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_update_signed_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/customers/{customersId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_devices_update_signed_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_devices_update_signed_task()`.
+/// For the simplest API, use `sasportal_customers_devices_update_signed()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_devices_update_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_devices_update_signed_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_devices_update_signed_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_devices_update_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersDevicesUpdateSignedArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1alpha1/customers/{customersId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_devices_update_signed_builder()` + `sasportal_customers_devices_update_signed_execute()`.
+/// For task-level control, use `sasportal_customers_devices_update_signed_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_devices_update_signed(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersDevicesUpdateSignedArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_devices_update_signed_builder(client, &args.name)?;
+    sasportal_customers_devices_update_signed_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes
 /// Creates a new node.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1654,22 +4343,22 @@ pub fn sasportal_customers_devices_create_signed(
 pub fn sasportal_customers_nodes_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &SasPortalNode,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes",);
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/customers/{customersId}/nodes
+/// POST v1alpha1/customers/{customersId}/nodes
 /// Creates a new node.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -1743,7 +4432,7 @@ pub fn sasportal_customers_nodes_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/customers/{customersId}/nodes
+/// POST v1alpha1/customers/{customersId}/nodes
 /// Creates a new node.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -1780,11 +4469,9 @@ pub fn sasportal_customers_nodes_create_execute(
 pub struct SasportalCustomersNodesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: SasPortalNode,
 }
 
-/// GET v1alpha1/customers/{customersId}/nodes
+/// POST v1alpha1/customers/{customersId}/nodes
 /// Creates a new node.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -1804,8 +4491,2098 @@ pub fn sasportal_customers_nodes_create(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_customers_nodes_create_builder(client, &args.parent, &args.body)?;
+    let builder = sasportal_customers_nodes_create_builder(client, &args.parent)?;
     sasportal_customers_nodes_create_execute(builder)
+}
+
+/// DELETE v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Deletes a node.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_delete_execute()` to send, or `sasportal_customers_nodes_delete` for simplest API.
+
+pub fn sasportal_customers_nodes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Deletes a node.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_delete_execute()` or `sasportal_customers_nodes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Deletes a node.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_delete_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Deletes a node.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_delete_builder()` + `sasportal_customers_nodes_delete_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_delete(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_delete_builder(client, &args.name)?;
+    sasportal_customers_nodes_delete_execute(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Returns a requested node.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_get_execute()` to send, or `sasportal_customers_nodes_get` for simplest API.
+
+pub fn sasportal_customers_nodes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Returns a requested node.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_get_execute()` or `sasportal_customers_nodes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalNode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalNode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Returns a requested node.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_get_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Returns a requested node.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_get_builder()` + `sasportal_customers_nodes_get_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_get(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_get_builder(client, &args.name)?;
+    sasportal_customers_nodes_get_execute(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes
+/// Lists nodes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_list_execute()` to send, or `sasportal_customers_nodes_list` for simplest API.
+
+pub fn sasportal_customers_nodes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes
+/// Lists nodes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_list_execute()` or `sasportal_customers_nodes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListNodesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes
+/// Lists nodes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_list_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes
+/// Lists nodes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_list_builder()` + `sasportal_customers_nodes_list_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_list(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_customers_nodes_list_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}:move
+/// Moves a node under another node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_move_execute()` to send, or `sasportal_customers_nodes_move` for simplest API.
+
+pub fn sasportal_customers_nodes_move_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}:move",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}:move
+/// Moves a node under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_move_execute()` or `sasportal_customers_nodes_move`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_move_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}:move
+/// Moves a node under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_move_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_move_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_move()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_move_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_move_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}:move
+/// Moves a node under another node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_move_builder()` + `sasportal_customers_nodes_move_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_move_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_move(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesMoveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_move_builder(client, &args.name)?;
+    sasportal_customers_nodes_move_execute(builder)
+}
+
+/// PATCH v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Updates an existing node.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_patch_execute()` to send, or `sasportal_customers_nodes_patch` for simplest API.
+
+pub fn sasportal_customers_nodes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Updates an existing node.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_patch_execute()` or `sasportal_customers_nodes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalNode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalNode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Updates an existing node.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_patch_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1alpha1/customers/{customersId}/nodes/{nodesId}
+/// Updates an existing node.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_patch_builder()` + `sasportal_customers_nodes_patch_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_patch(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_patch_builder(client, &args.name, &args.updateMask)?;
+    sasportal_customers_nodes_patch_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
+/// Creates a new deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_deployments_create_execute()` to send, or `sasportal_customers_nodes_deployments_create` for simplest API.
+
+pub fn sasportal_customers_nodes_deployments_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/deployments",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
+/// Creates a new deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_deployments_create_execute()` or `sasportal_customers_nodes_deployments_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_deployments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_deployments_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDeployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDeployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
+/// Creates a new deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_deployments_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_deployments_create_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_deployments_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_deployments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_deployments_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_deployments_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
+/// Creates a new deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_deployments_create_builder()` + `sasportal_customers_nodes_deployments_create_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_deployments_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_deployments_create(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesDeploymentsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_deployments_create_builder(client, &args.parent)?;
+    sasportal_customers_nodes_deployments_create_execute(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
+/// Lists deployments.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_deployments_list_execute()` to send, or `sasportal_customers_nodes_deployments_list` for simplest API.
+
+pub fn sasportal_customers_nodes_deployments_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/deployments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
+/// Lists deployments.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_deployments_list_execute()` or `sasportal_customers_nodes_deployments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_deployments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListDeploymentsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
+/// Lists deployments.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_deployments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_deployments_list_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_deployments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_deployments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_deployments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
+/// Lists deployments.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_deployments_list_builder()` + `sasportal_customers_nodes_deployments_list_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_deployments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_deployments_list(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesDeploymentsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_deployments_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_customers_nodes_deployments_list_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
+/// Creates a device under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_devices_create_execute()` to send, or `sasportal_customers_nodes_devices_create` for simplest API.
+
+pub fn sasportal_customers_nodes_devices_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/devices",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
+/// Creates a device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_devices_create_execute()` or `sasportal_customers_nodes_devices_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_devices_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_devices_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
+/// Creates a device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_devices_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_devices_create_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_devices_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_devices_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_devices_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_devices_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesDevicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
+/// Creates a device under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_devices_create_builder()` + `sasportal_customers_nodes_devices_create_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_devices_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_devices_create(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesDevicesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_devices_create_builder(client, &args.parent)?;
+    sasportal_customers_nodes_devices_create_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_devices_create_signed_execute()` to send, or `sasportal_customers_nodes_devices_create_signed` for simplest API.
+
+pub fn sasportal_customers_nodes_devices_create_signed_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/devices:createSigned",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_devices_create_signed_execute()` or `sasportal_customers_nodes_devices_create_signed`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_devices_create_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_devices_create_signed_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_devices_create_signed_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_devices_create_signed_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_devices_create_signed()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_devices_create_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_devices_create_signed_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_devices_create_signed_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_devices_create_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesDevicesCreateSignedArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_devices_create_signed_builder()` + `sasportal_customers_nodes_devices_create_signed_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_devices_create_signed_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_devices_create_signed(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesDevicesCreateSignedArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_devices_create_signed_builder(client, &args.parent)?;
+    sasportal_customers_nodes_devices_create_signed_execute(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
+/// Lists devices under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_devices_list_execute()` to send, or `sasportal_customers_nodes_devices_list` for simplest API.
+
+pub fn sasportal_customers_nodes_devices_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/devices",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_devices_list_execute()` or `sasportal_customers_nodes_devices_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_devices_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListDevicesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_devices_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_devices_list_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_devices_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_devices_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_devices_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
+/// Lists devices under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_devices_list_builder()` + `sasportal_customers_nodes_devices_list_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_devices_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_devices_list(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesDevicesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_devices_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_customers_nodes_devices_list_execute(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
+/// Creates a new node.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_nodes_create_execute()` to send, or `sasportal_customers_nodes_nodes_create` for simplest API.
+
+pub fn sasportal_customers_nodes_nodes_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/nodes",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
+/// Creates a new node.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_nodes_create_execute()` or `sasportal_customers_nodes_nodes_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_nodes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_nodes_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalNode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalNode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
+/// Creates a new node.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_nodes_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_nodes_create_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_nodes_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_nodes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_nodes_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_nodes_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_nodes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesNodesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
+/// Creates a new node.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_nodes_create_builder()` + `sasportal_customers_nodes_nodes_create_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_nodes_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_nodes_create(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesNodesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_nodes_create_builder(client, &args.parent)?;
+    sasportal_customers_nodes_nodes_create_execute(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
+/// Lists nodes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_customers_nodes_nodes_list_execute()` to send, or `sasportal_customers_nodes_nodes_list` for simplest API.
+
+pub fn sasportal_customers_nodes_nodes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/customers/{}/nodes/{nodesId}/nodes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
+/// Lists nodes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_customers_nodes_nodes_list_execute()` or `sasportal_customers_nodes_nodes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_nodes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListNodesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
+/// Lists nodes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_customers_nodes_nodes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_customers_nodes_nodes_list_task()`.
+/// For the simplest API, use `sasportal_customers_nodes_nodes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_customers_nodes_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_customers_nodes_nodes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_customers_nodes_nodes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_customers_nodes_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalCustomersNodesNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
+/// Lists nodes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_customers_nodes_nodes_list_builder()` + `sasportal_customers_nodes_nodes_list_execute()`.
+/// For task-level control, use `sasportal_customers_nodes_nodes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_customers_nodes_nodes_list(
+    client: &SimpleHttpClient,
+    args: &SasportalCustomersNodesNodesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_customers_nodes_nodes_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_customers_nodes_nodes_list_execute(builder)
 }
 
 /// GET v1alpha1/deployments/{deploymentsId}
@@ -1819,7 +6596,10 @@ pub fn sasportal_deployments_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/deployments/{}",);
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/deployments/{}",
+        name,
+    );
 
     // Build request
     let builder = client
@@ -1966,7 +6746,988 @@ pub fn sasportal_deployments_get(
     sasportal_deployments_get_execute(builder)
 }
 
-/// GET v1alpha1/installer:generateSecret
+/// DELETE v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_deployments_devices_delete_execute()` to send, or `sasportal_deployments_devices_delete` for simplest API.
+
+pub fn sasportal_deployments_devices_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_deployments_devices_delete_execute()` or `sasportal_deployments_devices_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_deployments_devices_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_deployments_devices_delete_task()`.
+/// For the simplest API, use `sasportal_deployments_devices_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_deployments_devices_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_deployments_devices_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_deployments_devices_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalDeploymentsDevicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_deployments_devices_delete_builder()` + `sasportal_deployments_devices_delete_execute()`.
+/// For task-level control, use `sasportal_deployments_devices_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_delete(
+    client: &SimpleHttpClient,
+    args: &SasportalDeploymentsDevicesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_deployments_devices_delete_builder(client, &args.name)?;
+    sasportal_deployments_devices_delete_execute(builder)
+}
+
+/// GET v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_deployments_devices_get_execute()` to send, or `sasportal_deployments_devices_get` for simplest API.
+
+pub fn sasportal_deployments_devices_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_deployments_devices_get_execute()` or `sasportal_deployments_devices_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_deployments_devices_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_deployments_devices_get_task()`.
+/// For the simplest API, use `sasportal_deployments_devices_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_deployments_devices_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_deployments_devices_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_deployments_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalDeploymentsDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_deployments_devices_get_builder()` + `sasportal_deployments_devices_get_execute()`.
+/// For task-level control, use `sasportal_deployments_devices_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_get(
+    client: &SimpleHttpClient,
+    args: &SasportalDeploymentsDevicesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_deployments_devices_get_builder(client, &args.name)?;
+    sasportal_deployments_devices_get_execute(builder)
+}
+
+/// POST v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_deployments_devices_move_execute()` to send, or `sasportal_deployments_devices_move` for simplest API.
+
+pub fn sasportal_deployments_devices_move_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}:move",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_deployments_devices_move_execute()` or `sasportal_deployments_devices_move`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_move_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_deployments_devices_move_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_deployments_devices_move_task()`.
+/// For the simplest API, use `sasportal_deployments_devices_move()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_deployments_devices_move_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_deployments_devices_move_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_deployments_devices_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalDeploymentsDevicesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_deployments_devices_move_builder()` + `sasportal_deployments_devices_move_execute()`.
+/// For task-level control, use `sasportal_deployments_devices_move_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_move(
+    client: &SimpleHttpClient,
+    args: &SasportalDeploymentsDevicesMoveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_deployments_devices_move_builder(client, &args.name)?;
+    sasportal_deployments_devices_move_execute(builder)
+}
+
+/// PATCH v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_deployments_devices_patch_execute()` to send, or `sasportal_deployments_devices_patch` for simplest API.
+
+pub fn sasportal_deployments_devices_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_deployments_devices_patch_execute()` or `sasportal_deployments_devices_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_deployments_devices_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_deployments_devices_patch_task()`.
+/// For the simplest API, use `sasportal_deployments_devices_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_deployments_devices_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_deployments_devices_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_deployments_devices_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalDeploymentsDevicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_deployments_devices_patch_builder()` + `sasportal_deployments_devices_patch_execute()`.
+/// For task-level control, use `sasportal_deployments_devices_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_patch(
+    client: &SimpleHttpClient,
+    args: &SasportalDeploymentsDevicesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder =
+        sasportal_deployments_devices_patch_builder(client, &args.name, &args.updateMask)?;
+    sasportal_deployments_devices_patch_execute(builder)
+}
+
+/// POST v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_deployments_devices_sign_device_execute()` to send, or `sasportal_deployments_devices_sign_device` for simplest API.
+
+pub fn sasportal_deployments_devices_sign_device_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}:signDevice",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_deployments_devices_sign_device_execute()` or `sasportal_deployments_devices_sign_device`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_sign_device_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_sign_device_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_deployments_devices_sign_device_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_deployments_devices_sign_device_task()`.
+/// For the simplest API, use `sasportal_deployments_devices_sign_device()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_sign_device_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_deployments_devices_sign_device_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_deployments_devices_sign_device_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_deployments_devices_sign_device`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalDeploymentsDevicesSignDeviceArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_deployments_devices_sign_device_builder()` + `sasportal_deployments_devices_sign_device_execute()`.
+/// For task-level control, use `sasportal_deployments_devices_sign_device_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_sign_device(
+    client: &SimpleHttpClient,
+    args: &SasportalDeploymentsDevicesSignDeviceArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_deployments_devices_sign_device_builder(client, &args.name)?;
+    sasportal_deployments_devices_sign_device_execute(builder)
+}
+
+/// PATCH v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_deployments_devices_update_signed_execute()` to send, or `sasportal_deployments_devices_update_signed` for simplest API.
+
+pub fn sasportal_deployments_devices_update_signed_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/deployments/{}/devices/{devicesId}:updateSigned",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_deployments_devices_update_signed_execute()` or `sasportal_deployments_devices_update_signed`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_update_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_update_signed_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_deployments_devices_update_signed_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_deployments_devices_update_signed_task()`.
+/// For the simplest API, use `sasportal_deployments_devices_update_signed()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_deployments_devices_update_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_deployments_devices_update_signed_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_deployments_devices_update_signed_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_deployments_devices_update_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalDeploymentsDevicesUpdateSignedArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_deployments_devices_update_signed_builder()` + `sasportal_deployments_devices_update_signed_execute()`.
+/// For task-level control, use `sasportal_deployments_devices_update_signed_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_deployments_devices_update_signed(
+    client: &SimpleHttpClient,
+    args: &SasportalDeploymentsDevicesUpdateSignedArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_deployments_devices_update_signed_builder(client, &args.name)?;
+    sasportal_deployments_devices_update_signed_execute(builder)
+}
+
+/// POST v1alpha1/installer:generateSecret
 /// Generates a secret to be used with the ValidateInstaller.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -1974,7 +7735,6 @@ pub fn sasportal_deployments_get(
 
 pub fn sasportal_installer_generate_secret_builder(
     client: &SimpleHttpClient,
-    body: &SasPortalGenerateSecretRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url =
@@ -1982,15 +7742,13 @@ pub fn sasportal_installer_generate_secret_builder(
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/installer:generateSecret
+/// POST v1alpha1/installer:generateSecret
 /// Generates a secret to be used with the ValidateInstaller.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2064,7 +7822,7 @@ pub fn sasportal_installer_generate_secret_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/installer:generateSecret
+/// POST v1alpha1/installer:generateSecret
 /// Generates a secret to be used with the ValidateInstaller.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2098,14 +7856,7 @@ pub fn sasportal_installer_generate_secret_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sasportal_installer_generate_secret`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SasportalInstallerGenerateSecretArgs {
-    /// Request body.
-    pub body: SasPortalGenerateSecretRequest,
-}
-
-/// GET v1alpha1/installer:generateSecret
+/// POST v1alpha1/installer:generateSecret
 /// Generates a secret to be used with the ValidateInstaller.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2118,7 +7869,6 @@ pub struct SasportalInstallerGenerateSecretArgs {
 
 pub fn sasportal_installer_generate_secret(
     client: &SimpleHttpClient,
-    args: &SasportalInstallerGenerateSecretArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalGenerateSecretResponse>, ApiError>,
@@ -2127,11 +7877,11 @@ pub fn sasportal_installer_generate_secret(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_installer_generate_secret_builder(client, &args.body)?;
+    let builder = sasportal_installer_generate_secret_builder(client)?;
     sasportal_installer_generate_secret_execute(builder)
 }
 
-/// GET v1alpha1/installer:validate
+/// POST v1alpha1/installer:validate
 /// Validates the identity of a Certified Professional Installer (CPI).
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2139,22 +7889,19 @@ pub fn sasportal_installer_generate_secret(
 
 pub fn sasportal_installer_validate_builder(
     client: &SimpleHttpClient,
-    body: &SasPortalValidateInstallerRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/installer:validate",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/installer:validate
+/// POST v1alpha1/installer:validate
 /// Validates the identity of a Certified Professional Installer (CPI).
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2228,7 +7975,7 @@ pub fn sasportal_installer_validate_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/installer:validate
+/// POST v1alpha1/installer:validate
 /// Validates the identity of a Certified Professional Installer (CPI).
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2262,14 +8009,7 @@ pub fn sasportal_installer_validate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sasportal_installer_validate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SasportalInstallerValidateArgs {
-    /// Request body.
-    pub body: SasPortalValidateInstallerRequest,
-}
-
-/// GET v1alpha1/installer:validate
+/// POST v1alpha1/installer:validate
 /// Validates the identity of a Certified Professional Installer (CPI).
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2282,7 +8022,6 @@ pub struct SasportalInstallerValidateArgs {
 
 pub fn sasportal_installer_validate(
     client: &SimpleHttpClient,
-    args: &SasportalInstallerValidateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalValidateInstallerResponse>, ApiError>,
@@ -2291,7 +8030,7 @@ pub fn sasportal_installer_validate(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_installer_validate_builder(client, &args.body)?;
+    let builder = sasportal_installer_validate_builder(client)?;
     sasportal_installer_validate_execute(builder)
 }
 
@@ -2306,7 +8045,7 @@ pub fn sasportal_nodes_get_builder(
     name: &String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/nodes/{}",);
+    let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/nodes/{}", name,);
 
     // Build request
     let builder = client
@@ -2453,6 +8192,328 @@ pub fn sasportal_nodes_get(
     sasportal_nodes_get_execute(builder)
 }
 
+/// DELETE v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Deletes a deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_deployments_delete_execute()` to send, or `sasportal_nodes_deployments_delete` for simplest API.
+
+pub fn sasportal_nodes_deployments_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Deletes a deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_deployments_delete_execute()` or `sasportal_nodes_deployments_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Deletes a deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_deployments_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_deployments_delete_task()`.
+/// For the simplest API, use `sasportal_nodes_deployments_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_deployments_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_deployments_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Deletes a deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_deployments_delete_builder()` + `sasportal_nodes_deployments_delete_execute()`.
+/// For task-level control, use `sasportal_nodes_deployments_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_delete(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDeploymentsDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_deployments_delete_builder(client, &args.name)?;
+    sasportal_nodes_deployments_delete_execute(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Returns a requested deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_deployments_get_execute()` to send, or `sasportal_nodes_deployments_get` for simplest API.
+
+pub fn sasportal_nodes_deployments_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Returns a requested deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_deployments_get_execute()` or `sasportal_nodes_deployments_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDeployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDeployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Returns a requested deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_deployments_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_deployments_get_task()`.
+/// For the simplest API, use `sasportal_nodes_deployments_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_deployments_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_deployments_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Returns a requested deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_deployments_get_builder()` + `sasportal_nodes_deployments_get_execute()`.
+/// For task-level control, use `sasportal_nodes_deployments_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_get(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDeploymentsGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_deployments_get_builder(client, &args.name)?;
+    sasportal_nodes_deployments_get_execute(builder)
+}
+
 /// GET v1alpha1/nodes/{nodesId}/deployments
 /// Lists deployments.
 ///
@@ -2462,12 +8523,15 @@ pub fn sasportal_nodes_get(
 pub fn sasportal_nodes_deployments_list_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    filter: &Option<String>,
-    pageSize: &Option<i32>,
-    pageToken: &Option<String>,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/nodes/{}/deployments",);
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/deployments",
+        parent,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2608,11 +8672,11 @@ pub struct SasportalNodesDeploymentsListArgs {
     /// Path parameter: parent
     pub parent: String,
     /// Query parameter: filter
-    pub filter: Option<String>,
+    pub filter: Option<Option<String>>,
     /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
+    pub pageSize: Option<Option<String>>,
     /// Query parameter: pageToken
-    pub pageToken: Option<String>,
+    pub pageToken: Option<Option<String>>,
 }
 
 /// GET v1alpha1/nodes/{nodesId}/deployments
@@ -2647,7 +8711,862 @@ pub fn sasportal_nodes_deployments_list(
     sasportal_nodes_deployments_list_execute(builder)
 }
 
-/// GET v1alpha1/nodes/{nodesId}/devices
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}:move
+/// Moves a deployment under another node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_deployments_move_execute()` to send, or `sasportal_nodes_deployments_move` for simplest API.
+
+pub fn sasportal_nodes_deployments_move_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}:move",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}:move
+/// Moves a deployment under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_deployments_move_execute()` or `sasportal_nodes_deployments_move`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_move_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}:move
+/// Moves a deployment under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_deployments_move_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_deployments_move_task()`.
+/// For the simplest API, use `sasportal_nodes_deployments_move()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_deployments_move_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_deployments_move_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_deployments_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDeploymentsMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}:move
+/// Moves a deployment under another node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_deployments_move_builder()` + `sasportal_nodes_deployments_move_execute()`.
+/// For task-level control, use `sasportal_nodes_deployments_move_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_move(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDeploymentsMoveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_deployments_move_builder(client, &args.name)?;
+    sasportal_nodes_deployments_move_execute(builder)
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Updates an existing deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_deployments_patch_execute()` to send, or `sasportal_nodes_deployments_patch` for simplest API.
+
+pub fn sasportal_nodes_deployments_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Updates an existing deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_deployments_patch_execute()` or `sasportal_nodes_deployments_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDeployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDeployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Updates an existing deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_deployments_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_deployments_patch_task()`.
+/// For the simplest API, use `sasportal_nodes_deployments_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_deployments_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_deployments_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
+/// Updates an existing deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_deployments_patch_builder()` + `sasportal_nodes_deployments_patch_execute()`.
+/// For task-level control, use `sasportal_nodes_deployments_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_patch(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDeploymentsPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_deployments_patch_builder(client, &args.name, &args.updateMask)?;
+    sasportal_nodes_deployments_patch_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
+/// Creates a device under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_deployments_devices_create_execute()` to send, or `sasportal_nodes_deployments_devices_create` for simplest API.
+
+pub fn sasportal_nodes_deployments_devices_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}/devices",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
+/// Creates a device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_deployments_devices_create_execute()` or `sasportal_nodes_deployments_devices_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_devices_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_devices_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
+/// Creates a device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_deployments_devices_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_deployments_devices_create_task()`.
+/// For the simplest API, use `sasportal_nodes_deployments_devices_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_devices_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_deployments_devices_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_deployments_devices_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_deployments_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDeploymentsDevicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
+/// Creates a device under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_deployments_devices_create_builder()` + `sasportal_nodes_deployments_devices_create_execute()`.
+/// For task-level control, use `sasportal_nodes_deployments_devices_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_devices_create(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDeploymentsDevicesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_deployments_devices_create_builder(client, &args.parent)?;
+    sasportal_nodes_deployments_devices_create_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_deployments_devices_create_signed_execute()` to send, or `sasportal_nodes_deployments_devices_create_signed` for simplest API.
+
+pub fn sasportal_nodes_deployments_devices_create_signed_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}/devices:createSigned",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_deployments_devices_create_signed_execute()` or `sasportal_nodes_deployments_devices_create_signed`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_devices_create_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_devices_create_signed_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_deployments_devices_create_signed_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_deployments_devices_create_signed_task()`.
+/// For the simplest API, use `sasportal_nodes_deployments_devices_create_signed()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_devices_create_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_deployments_devices_create_signed_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_deployments_devices_create_signed_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_deployments_devices_create_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDeploymentsDevicesCreateSignedArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_deployments_devices_create_signed_builder()` + `sasportal_nodes_deployments_devices_create_signed_execute()`.
+/// For task-level control, use `sasportal_nodes_deployments_devices_create_signed_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_devices_create_signed(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDeploymentsDevicesCreateSignedArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_deployments_devices_create_signed_builder(client, &args.parent)?;
+    sasportal_nodes_deployments_devices_create_signed_execute(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
+/// Lists devices under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_deployments_devices_list_execute()` to send, or `sasportal_nodes_deployments_devices_list` for simplest API.
+
+pub fn sasportal_nodes_deployments_devices_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/deployments/{deploymentsId}/devices",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_deployments_devices_list_execute()` or `sasportal_nodes_deployments_devices_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_devices_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListDevicesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_deployments_devices_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_deployments_devices_list_task()`.
+/// For the simplest API, use `sasportal_nodes_deployments_devices_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_deployments_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_deployments_devices_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_deployments_devices_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_deployments_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDeploymentsDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
+/// Lists devices under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_deployments_devices_list_builder()` + `sasportal_nodes_deployments_devices_list_execute()`.
+/// For task-level control, use `sasportal_nodes_deployments_devices_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_deployments_devices_list(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDeploymentsDevicesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_deployments_devices_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_nodes_deployments_devices_list_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/devices
 /// Creates a device under a node or customer.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2656,22 +9575,22 @@ pub fn sasportal_nodes_deployments_list(
 pub fn sasportal_nodes_devices_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &SasPortalDevice,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices",);
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/nodes/{nodesId}/devices
+/// POST v1alpha1/nodes/{nodesId}/devices
 /// Creates a device under a node or customer.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2745,7 +9664,7 @@ pub fn sasportal_nodes_devices_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/nodes/{nodesId}/devices
+/// POST v1alpha1/nodes/{nodesId}/devices
 /// Creates a device under a node or customer.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2782,11 +9701,9 @@ pub fn sasportal_nodes_devices_create_execute(
 pub struct SasportalNodesDevicesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: SasPortalDevice,
 }
 
-/// GET v1alpha1/nodes/{nodesId}/devices
+/// POST v1alpha1/nodes/{nodesId}/devices
 /// Creates a device under a node or customer.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2806,11 +9723,11 @@ pub fn sasportal_nodes_devices_create(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_nodes_devices_create_builder(client, &args.parent, &args.body)?;
+    let builder = sasportal_nodes_devices_create_builder(client, &args.parent)?;
     sasportal_nodes_devices_create_execute(builder)
 }
 
-/// GET v1alpha1/nodes/{nodesId}/devices:createSigned
+/// POST v1alpha1/nodes/{nodesId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2819,23 +9736,22 @@ pub fn sasportal_nodes_devices_create(
 pub fn sasportal_nodes_devices_create_signed_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &SasPortalCreateSignedDeviceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url =
-        format!("https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices:createSigned",);
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices:createSigned",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/nodes/{nodesId}/devices:createSigned
+/// POST v1alpha1/nodes/{nodesId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -2909,7 +9825,7 @@ pub fn sasportal_nodes_devices_create_signed_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/nodes/{nodesId}/devices:createSigned
+/// POST v1alpha1/nodes/{nodesId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -2946,11 +9862,9 @@ pub fn sasportal_nodes_devices_create_signed_execute(
 pub struct SasportalNodesDevicesCreateSignedArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: SasPortalCreateSignedDeviceRequest,
 }
 
-/// GET v1alpha1/nodes/{nodesId}/devices:createSigned
+/// POST v1alpha1/nodes/{nodesId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -2970,11 +9884,1188 @@ pub fn sasportal_nodes_devices_create_signed(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_nodes_devices_create_signed_builder(client, &args.parent, &args.body)?;
+    let builder = sasportal_nodes_devices_create_signed_builder(client, &args.parent)?;
     sasportal_nodes_devices_create_signed_execute(builder)
 }
 
-/// GET v1alpha1/nodes/{nodesId}/nodes
+/// DELETE v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_devices_delete_execute()` to send, or `sasportal_nodes_devices_delete` for simplest API.
+
+pub fn sasportal_nodes_devices_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_devices_delete_execute()` or `sasportal_nodes_devices_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_devices_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_devices_delete_task()`.
+/// For the simplest API, use `sasportal_nodes_devices_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_devices_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_devices_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_devices_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDevicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Deletes a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_devices_delete_builder()` + `sasportal_nodes_devices_delete_execute()`.
+/// For task-level control, use `sasportal_nodes_devices_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_delete(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDevicesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_devices_delete_builder(client, &args.name)?;
+    sasportal_nodes_devices_delete_execute(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_devices_get_execute()` to send, or `sasportal_nodes_devices_get` for simplest API.
+
+pub fn sasportal_nodes_devices_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_devices_get_execute()` or `sasportal_nodes_devices_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_devices_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_devices_get_task()`.
+/// For the simplest API, use `sasportal_nodes_devices_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_devices_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_devices_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Gets details about a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_devices_get_builder()` + `sasportal_nodes_devices_get_execute()`.
+/// For task-level control, use `sasportal_nodes_devices_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_get(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDevicesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_devices_get_builder(client, &args.name)?;
+    sasportal_nodes_devices_get_execute(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/devices
+/// Lists devices under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_devices_list_execute()` to send, or `sasportal_nodes_devices_list` for simplest API.
+
+pub fn sasportal_nodes_devices_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_devices_list_execute()` or `sasportal_nodes_devices_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListDevicesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/nodes/{nodesId}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_devices_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_devices_list_task()`.
+/// For the simplest API, use `sasportal_nodes_devices_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_devices_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_devices_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/nodes/{nodesId}/devices
+/// Lists devices under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_devices_list_builder()` + `sasportal_nodes_devices_list_execute()`.
+/// For task-level control, use `sasportal_nodes_devices_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_list(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDevicesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_devices_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_nodes_devices_list_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_devices_move_execute()` to send, or `sasportal_nodes_devices_move` for simplest API.
+
+pub fn sasportal_nodes_devices_move_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}:move",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_devices_move_execute()` or `sasportal_nodes_devices_move`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_move_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/nodes/{nodesId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_devices_move_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_devices_move_task()`.
+/// For the simplest API, use `sasportal_nodes_devices_move()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_devices_move_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_devices_move_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_devices_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDevicesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1alpha1/nodes/{nodesId}/devices/{devicesId}:move
+/// Moves a device under another node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_devices_move_builder()` + `sasportal_nodes_devices_move_execute()`.
+/// For task-level control, use `sasportal_nodes_devices_move_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_move(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDevicesMoveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_devices_move_builder(client, &args.name)?;
+    sasportal_nodes_devices_move_execute(builder)
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_devices_patch_execute()` to send, or `sasportal_nodes_devices_patch` for simplest API.
+
+pub fn sasportal_nodes_devices_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_devices_patch_execute()` or `sasportal_nodes_devices_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_devices_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_devices_patch_task()`.
+/// For the simplest API, use `sasportal_nodes_devices_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_devices_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_devices_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_devices_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDevicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/devices/{devicesId}
+/// Updates a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_devices_patch_builder()` + `sasportal_nodes_devices_patch_execute()`.
+/// For task-level control, use `sasportal_nodes_devices_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_patch(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDevicesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_devices_patch_builder(client, &args.name, &args.updateMask)?;
+    sasportal_nodes_devices_patch_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_devices_sign_device_execute()` to send, or `sasportal_nodes_devices_sign_device` for simplest API.
+
+pub fn sasportal_nodes_devices_sign_device_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}:signDevice",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_devices_sign_device_execute()` or `sasportal_nodes_devices_sign_device`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_sign_device_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_sign_device_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/nodes/{nodesId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_devices_sign_device_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_devices_sign_device_task()`.
+/// For the simplest API, use `sasportal_nodes_devices_sign_device()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_sign_device_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_devices_sign_device_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_devices_sign_device_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_devices_sign_device`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDevicesSignDeviceArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1alpha1/nodes/{nodesId}/devices/{devicesId}:signDevice
+/// Signs a device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_devices_sign_device_builder()` + `sasportal_nodes_devices_sign_device_execute()`.
+/// For task-level control, use `sasportal_nodes_devices_sign_device_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_sign_device(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDevicesSignDeviceArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_devices_sign_device_builder(client, &args.name)?;
+    sasportal_nodes_devices_sign_device_execute(builder)
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_devices_update_signed_execute()` to send, or `sasportal_nodes_devices_update_signed` for simplest API.
+
+pub fn sasportal_nodes_devices_update_signed_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/devices/{devicesId}:updateSigned",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .patch(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_devices_update_signed_execute()` or `sasportal_nodes_devices_update_signed`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_update_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_update_signed_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_devices_update_signed_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_devices_update_signed_task()`.
+/// For the simplest API, use `sasportal_nodes_devices_update_signed()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_devices_update_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_devices_update_signed_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_devices_update_signed_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_devices_update_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesDevicesUpdateSignedArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/devices/{devicesId}:updateSigned
+/// Updates a signed device.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_devices_update_signed_builder()` + `sasportal_nodes_devices_update_signed_execute()`.
+/// For task-level control, use `sasportal_nodes_devices_update_signed_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_devices_update_signed(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesDevicesUpdateSignedArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_devices_update_signed_builder(client, &args.name)?;
+    sasportal_nodes_devices_update_signed_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes
 /// Creates a new node.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -2983,22 +11074,22 @@ pub fn sasportal_nodes_devices_create_signed(
 pub fn sasportal_nodes_nodes_create_builder(
     client: &SimpleHttpClient,
     parent: &String,
-    body: &SasPortalNode,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes",);
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes",
+        parent,
+    );
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/nodes/{nodesId}/nodes
+/// POST v1alpha1/nodes/{nodesId}/nodes
 /// Creates a new node.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3072,7 +11163,7 @@ pub fn sasportal_nodes_nodes_create_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/nodes/{nodesId}/nodes
+/// POST v1alpha1/nodes/{nodesId}/nodes
 /// Creates a new node.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3109,11 +11200,9 @@ pub fn sasportal_nodes_nodes_create_execute(
 pub struct SasportalNodesNodesCreateArgs {
     /// Path parameter: parent
     pub parent: String,
-    /// Request body.
-    pub body: SasPortalNode,
 }
 
-/// GET v1alpha1/nodes/{nodesId}/nodes
+/// POST v1alpha1/nodes/{nodesId}/nodes
 /// Creates a new node.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3133,11 +11222,2101 @@ pub fn sasportal_nodes_nodes_create(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_nodes_nodes_create_builder(client, &args.parent, &args.body)?;
+    let builder = sasportal_nodes_nodes_create_builder(client, &args.parent)?;
     sasportal_nodes_nodes_create_execute(builder)
 }
 
-/// GET v1alpha1/policies:get
+/// DELETE v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Deletes a node.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_delete_execute()` to send, or `sasportal_nodes_nodes_delete` for simplest API.
+
+pub fn sasportal_nodes_nodes_delete_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .delete(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// DELETE v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Deletes a node.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_delete_execute()` or `sasportal_nodes_nodes_delete`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_delete_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalEmpty = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// DELETE v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Deletes a node.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_delete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_delete_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_delete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_delete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_delete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_delete_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// DELETE v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Deletes a node.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_delete_builder()` + `sasportal_nodes_nodes_delete_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_delete_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_delete(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesDeleteArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_delete_builder(client, &args.name)?;
+    sasportal_nodes_nodes_delete_execute(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Returns a requested node.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_get_execute()` to send, or `sasportal_nodes_nodes_get` for simplest API.
+
+pub fn sasportal_nodes_nodes_get_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .get(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Returns a requested node.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_get_execute()` or `sasportal_nodes_nodes_get`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_get_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalNode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalNode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Returns a requested node.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_get_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_get_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_get()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_get_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_get_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_get_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Returns a requested node.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_get_builder()` + `sasportal_nodes_nodes_get_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_get_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_get(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesGetArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_get_builder(client, &args.name)?;
+    sasportal_nodes_nodes_get_execute(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes
+/// Lists nodes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_list_execute()` to send, or `sasportal_nodes_nodes_list` for simplest API.
+
+pub fn sasportal_nodes_nodes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes
+/// Lists nodes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_list_execute()` or `sasportal_nodes_nodes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListNodesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes
+/// Lists nodes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_list_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes
+/// Lists nodes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_list_builder()` + `sasportal_nodes_nodes_list_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_list(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_nodes_nodes_list_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}:move
+/// Moves a node under another node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_move_execute()` to send, or `sasportal_nodes_nodes_move` for simplest API.
+
+pub fn sasportal_nodes_nodes_move_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}:move",
+        name,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}:move
+/// Moves a node under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_move_execute()` or `sasportal_nodes_nodes_move`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_move_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalOperation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalOperation = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}:move
+/// Moves a node under another node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_move_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_move_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_move()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_move_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_move_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_move_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}:move
+/// Moves a node under another node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_move_builder()` + `sasportal_nodes_nodes_move_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_move_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_move(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesMoveArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_move_builder(client, &args.name)?;
+    sasportal_nodes_nodes_move_execute(builder)
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Updates an existing node.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_patch_execute()` to send, or `sasportal_nodes_nodes_patch` for simplest API.
+
+pub fn sasportal_nodes_nodes_patch_builder(
+    client: &SimpleHttpClient,
+    name: &String,
+    updateMask: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}",
+        name,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = updateMask.as_ref() {
+        query_parts.push(format!("updateMask={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .patch(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Updates an existing node.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_patch_execute()` or `sasportal_nodes_nodes_patch`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_patch_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalNode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalNode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Updates an existing node.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_patch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_patch_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_patch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_patch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_patch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_patch_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<Option<String>>,
+}
+
+/// PATCH v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
+/// Updates an existing node.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_patch_builder()` + `sasportal_nodes_nodes_patch_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_patch_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_patch(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesPatchArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_patch_builder(client, &args.name, &args.updateMask)?;
+    sasportal_nodes_nodes_patch_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
+/// Creates a new deployment.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_deployments_create_execute()` to send, or `sasportal_nodes_nodes_deployments_create` for simplest API.
+
+pub fn sasportal_nodes_nodes_deployments_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/deployments",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
+/// Creates a new deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_deployments_create_execute()` or `sasportal_nodes_nodes_deployments_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_deployments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_deployments_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDeployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDeployment = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
+/// Creates a new deployment.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_deployments_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_deployments_create_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_deployments_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_deployments_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_deployments_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_deployments_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
+/// Creates a new deployment.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_deployments_create_builder()` + `sasportal_nodes_nodes_deployments_create_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_deployments_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_deployments_create(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesDeploymentsCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_deployments_create_builder(client, &args.parent)?;
+    sasportal_nodes_nodes_deployments_create_execute(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
+/// Lists deployments.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_deployments_list_execute()` to send, or `sasportal_nodes_nodes_deployments_list` for simplest API.
+
+pub fn sasportal_nodes_nodes_deployments_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/deployments",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
+/// Lists deployments.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_deployments_list_execute()` or `sasportal_nodes_nodes_deployments_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_deployments_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListDeploymentsResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
+/// Lists deployments.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_deployments_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_deployments_list_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_deployments_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_deployments_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_deployments_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_deployments_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
+/// Lists deployments.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_deployments_list_builder()` + `sasportal_nodes_nodes_deployments_list_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_deployments_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_deployments_list(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesDeploymentsListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_deployments_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_nodes_nodes_deployments_list_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
+/// Creates a device under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_devices_create_execute()` to send, or `sasportal_nodes_nodes_devices_create` for simplest API.
+
+pub fn sasportal_nodes_nodes_devices_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/devices",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
+/// Creates a device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_devices_create_execute()` or `sasportal_nodes_nodes_devices_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_devices_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_devices_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
+/// Creates a device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_devices_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_devices_create_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_devices_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_devices_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_devices_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_devices_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesDevicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
+/// Creates a device under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_devices_create_builder()` + `sasportal_nodes_nodes_devices_create_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_devices_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_devices_create(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesDevicesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_devices_create_builder(client, &args.parent)?;
+    sasportal_nodes_nodes_devices_create_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_devices_create_signed_execute()` to send, or `sasportal_nodes_nodes_devices_create_signed` for simplest API.
+
+pub fn sasportal_nodes_nodes_devices_create_signed_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/devices:createSigned",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_devices_create_signed_execute()` or `sasportal_nodes_nodes_devices_create_signed`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_devices_create_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_devices_create_signed_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalDevice>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalDevice = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_devices_create_signed_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_devices_create_signed_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_devices_create_signed()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_devices_create_signed_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_devices_create_signed_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_devices_create_signed_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_devices_create_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesDevicesCreateSignedArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices:createSigned
+/// Creates a signed device under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_devices_create_signed_builder()` + `sasportal_nodes_nodes_devices_create_signed_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_devices_create_signed_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_devices_create_signed(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesDevicesCreateSignedArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_devices_create_signed_builder(client, &args.parent)?;
+    sasportal_nodes_nodes_devices_create_signed_execute(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
+/// Lists devices under a node or customer.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_devices_list_execute()` to send, or `sasportal_nodes_nodes_devices_list` for simplest API.
+
+pub fn sasportal_nodes_nodes_devices_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/devices",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_devices_list_execute()` or `sasportal_nodes_nodes_devices_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_devices_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListDevicesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
+/// Lists devices under a node or customer.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_devices_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_devices_list_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_devices_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_devices_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_devices_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_devices_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
+/// Lists devices under a node or customer.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_devices_list_builder()` + `sasportal_nodes_nodes_devices_list_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_devices_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_devices_list(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesDevicesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_devices_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_nodes_nodes_devices_list_execute(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
+/// Creates a new node.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_nodes_create_execute()` to send, or `sasportal_nodes_nodes_nodes_create` for simplest API.
+
+pub fn sasportal_nodes_nodes_nodes_create_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/nodes",
+        parent,
+    );
+
+    // Build request
+    let builder = client
+        .post(&endpoint_url)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
+/// Creates a new node.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_nodes_create_execute()` or `sasportal_nodes_nodes_nodes_create`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_nodes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_nodes_create_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalNode>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalNode = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
+/// Creates a new node.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_nodes_create_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_nodes_create_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_nodes_create()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_nodes_create_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_nodes_create_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_nodes_create_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_nodes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesNodesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
+/// POST v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
+/// Creates a new node.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_nodes_create_builder()` + `sasportal_nodes_nodes_nodes_create_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_nodes_create_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_nodes_create(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesNodesCreateArgs,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_nodes_create_builder(client, &args.parent)?;
+    sasportal_nodes_nodes_nodes_create_execute(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
+/// Lists nodes.
+///
+/// Returns `ClientRequestBuilder` for customization.
+/// Use `sasportal_nodes_nodes_nodes_list_execute()` to send, or `sasportal_nodes_nodes_nodes_list` for simplest API.
+
+pub fn sasportal_nodes_nodes_nodes_list_builder(
+    client: &SimpleHttpClient,
+    parent: &String,
+    filter: &Option<Option<String>>,
+    pageSize: &Option<Option<String>>,
+    pageToken: &Option<Option<String>>,
+) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
+    // Build URL
+    let endpoint_url = format!(
+        "https://sasportal.googleapis.com/v1alpha1/nodes/{}/nodes/{nodesId1}/nodes",
+        parent,
+    );
+
+    // Build request
+    let mut query_parts = Vec::new();
+    if let Some(val) = filter.as_ref() {
+        query_parts.push(format!("filter={}", val));
+    }
+    if let Some(val) = pageSize.as_ref() {
+        query_parts.push(format!("pageSize={}", val));
+    }
+    if let Some(val) = pageToken.as_ref() {
+        query_parts.push(format!("pageToken={}", val));
+    }
+
+    let url_with_query = if query_parts.is_empty() {
+        endpoint_url
+    } else {
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
+    };
+
+    let builder = client
+        .get(&url_with_query)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
+
+    Ok(builder)
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
+/// Lists nodes.
+///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `sasportal_nodes_nodes_nodes_list_execute()` or `sasportal_nodes_nodes_nodes_list`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_nodes_list_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success {
+                stream,
+                intro,
+                headers,
+                ..
+            } => {
+                let status_code: usize = intro.0.into();
+
+                if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
+                    return Err(ApiError::HttpStatus {
+                        code: status_code as u16,
+                        headers: headers.clone(),
+                        body: Some(body),
+                    });
+                }
+
+                let body = body_reader::collect_string(stream);
+                let parsed: SasPortalListNodesResponse = serde_json::from_str(&body)
+                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+                Ok(ApiResponse {
+                    status: status_code as u16,
+                    headers: headers.clone(),
+                    body: parsed,
+                })
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
+/// Lists nodes.
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `sasportal_nodes_nodes_nodes_list_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `sasportal_nodes_nodes_nodes_list_task()`.
+/// For the simplest API, use `sasportal_nodes_nodes_nodes_list()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `sasportal_nodes_nodes_nodes_list_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn sasportal_nodes_nodes_nodes_list_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = sasportal_nodes_nodes_nodes_list_task(builder)?;
+    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+
+/// Arguments for [`sasportal_nodes_nodes_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SasportalNodesNodesNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<Option<String>>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<Option<String>>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<Option<String>>,
+}
+
+/// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
+/// Lists nodes.
+///
+/// Simplest API - builds and executes the request in one call.
+/// For customization, use `sasportal_nodes_nodes_nodes_list_builder()` + `sasportal_nodes_nodes_nodes_list_execute()`.
+/// For task-level control, use `sasportal_nodes_nodes_nodes_list_task()`.
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+
+pub fn sasportal_nodes_nodes_nodes_list(
+    client: &SimpleHttpClient,
+    args: &SasportalNodesNodesNodesListArgs,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let builder = sasportal_nodes_nodes_nodes_list_builder(
+        client,
+        &args.parent,
+        &args.filter,
+        &args.pageSize,
+        &args.pageToken,
+    )?;
+    sasportal_nodes_nodes_nodes_list_execute(builder)
+}
+
+/// POST v1alpha1/policies:get
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3145,22 +13324,19 @@ pub fn sasportal_nodes_nodes_create(
 
 pub fn sasportal_policies_get_builder(
     client: &SimpleHttpClient,
-    body: &SasPortalGetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/policies:get",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/policies:get
+/// POST v1alpha1/policies:get
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3234,7 +13410,7 @@ pub fn sasportal_policies_get_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/policies:get
+/// POST v1alpha1/policies:get
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3266,14 +13442,7 @@ pub fn sasportal_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sasportal_policies_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SasportalPoliciesGetArgs {
-    /// Request body.
-    pub body: SasPortalGetPolicyRequest,
-}
-
-/// GET v1alpha1/policies:get
+/// POST v1alpha1/policies:get
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3286,18 +13455,17 @@ pub struct SasportalPoliciesGetArgs {
 
 pub fn sasportal_policies_get(
     client: &SimpleHttpClient,
-    args: &SasportalPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_policies_get_builder(client, &args.body)?;
+    let builder = sasportal_policies_get_builder(client)?;
     sasportal_policies_get_execute(builder)
 }
 
-/// GET v1alpha1/policies:set
+/// POST v1alpha1/policies:set
 /// Sets the access control policy on the specified resource. Replaces any existing policy.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3305,22 +13473,19 @@ pub fn sasportal_policies_get(
 
 pub fn sasportal_policies_set_builder(
     client: &SimpleHttpClient,
-    body: &SasPortalSetPolicyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/policies:set",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/policies:set
+/// POST v1alpha1/policies:set
 /// Sets the access control policy on the specified resource. Replaces any existing policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3394,7 +13559,7 @@ pub fn sasportal_policies_set_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/policies:set
+/// POST v1alpha1/policies:set
 /// Sets the access control policy on the specified resource. Replaces any existing policy.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3426,14 +13591,7 @@ pub fn sasportal_policies_set_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sasportal_policies_set`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SasportalPoliciesSetArgs {
-    /// Request body.
-    pub body: SasPortalSetPolicyRequest,
-}
-
-/// GET v1alpha1/policies:set
+/// POST v1alpha1/policies:set
 /// Sets the access control policy on the specified resource. Replaces any existing policy.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3446,18 +13604,17 @@ pub struct SasportalPoliciesSetArgs {
 
 pub fn sasportal_policies_set(
     client: &SimpleHttpClient,
-    args: &SasportalPoliciesSetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_policies_set_builder(client, &args.body)?;
+    let builder = sasportal_policies_set_builder(client)?;
     sasportal_policies_set_execute(builder)
 }
 
-/// GET v1alpha1/policies:test
+/// POST v1alpha1/policies:test
 /// Returns permissions that a caller has on the specified resource.
 ///
 /// Returns `ClientRequestBuilder` for customization.
@@ -3465,22 +13622,19 @@ pub fn sasportal_policies_set(
 
 pub fn sasportal_policies_test_builder(
     client: &SimpleHttpClient,
-    body: &SasPortalTestPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let endpoint_url = format!("https://sasportal.googleapis.com/v1alpha1/policies:test",);
 
     // Build request
     let builder = client
-        .get(&endpoint_url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+    Ok(builder)
 }
 
-/// GET v1alpha1/policies:test
+/// POST v1alpha1/policies:test
 /// Returns permissions that a caller has on the specified resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
@@ -3554,7 +13708,7 @@ pub fn sasportal_policies_test_task(
         .map_pending(|_| ApiPending::Sending))
 }
 
-/// GET v1alpha1/policies:test
+/// POST v1alpha1/policies:test
 /// Returns permissions that a caller has on the specified resource.
 ///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
@@ -3588,14 +13742,7 @@ pub fn sasportal_policies_test_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
-/// Arguments for [`sasportal_policies_test`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SasportalPoliciesTestArgs {
-    /// Request body.
-    pub body: SasPortalTestPermissionsRequest,
-}
-
-/// GET v1alpha1/policies:test
+/// POST v1alpha1/policies:test
 /// Returns permissions that a caller has on the specified resource.
 ///
 /// Simplest API - builds and executes the request in one call.
@@ -3608,7 +13755,6 @@ pub struct SasportalPoliciesTestArgs {
 
 pub fn sasportal_policies_test(
     client: &SimpleHttpClient,
-    args: &SasportalPoliciesTestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalTestPermissionsResponse>, ApiError>,
@@ -3617,6 +13763,1966 @@ pub fn sasportal_policies_test(
         + 'static,
     ApiError,
 > {
-    let builder = sasportal_policies_test_builder(client, &args.body)?;
+    let builder = sasportal_policies_test_builder(client)?;
     sasportal_policies_test_execute(builder)
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalCustomer
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalCustomer with SasportalCustomersGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersGetArgs> for SasPortalCustomer {
+    fn generate_resource_id(&self, input: &SasportalCustomersGetArgs) -> String {
+        format!("gcp::sasportal::SasPortalCustomer/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalCustomer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListCustomersResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListCustomersResponse with SasportalCustomersListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersListArgs> for SasPortalListCustomersResponse {
+    fn generate_resource_id(&self, input: &SasportalCustomersListArgs) -> String {
+        "gcp::sasportal::SasPortalListCustomersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListGcpProjectDeploymentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListGcpProjectDeploymentsResponse with SasportalCustomersListGcpProjectDeploymentsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersListGcpProjectDeploymentsArgs>
+    for SasPortalListGcpProjectDeploymentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SasportalCustomersListGcpProjectDeploymentsArgs,
+    ) -> String {
+        "gcp::sasportal::SasPortalListGcpProjectDeploymentsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListGcpProjectDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListLegacyOrganizationsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListLegacyOrganizationsResponse with SasportalCustomersListLegacyOrganizationsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersListLegacyOrganizationsArgs>
+    for SasPortalListLegacyOrganizationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SasportalCustomersListLegacyOrganizationsArgs,
+    ) -> String {
+        "gcp::sasportal::SasPortalListLegacyOrganizationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListLegacyOrganizationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalOperation with SasportalCustomersMigrateOrganizationArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersMigrateOrganizationArgs> for SasPortalOperation {
+    fn generate_resource_id(&self, input: &SasportalCustomersMigrateOrganizationArgs) -> String {
+        "gcp::sasportal::SasPortalOperation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalCustomer
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalCustomer with SasportalCustomersPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersPatchArgs> for SasPortalCustomer {
+    fn generate_resource_id(&self, input: &SasportalCustomersPatchArgs) -> String {
+        format!("gcp::sasportal::SasPortalCustomer/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalCustomer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalProvisionDeploymentResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalProvisionDeploymentResponse with SasportalCustomersProvisionDeploymentArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersProvisionDeploymentArgs>
+    for SasPortalProvisionDeploymentResponse
+{
+    fn generate_resource_id(&self, input: &SasportalCustomersProvisionDeploymentArgs) -> String {
+        "gcp::sasportal::SasPortalProvisionDeploymentResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalProvisionDeploymentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalOperation with SasportalCustomersSetupSasAnalyticsArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersSetupSasAnalyticsArgs> for SasPortalOperation {
+    fn generate_resource_id(&self, input: &SasportalCustomersSetupSasAnalyticsArgs) -> String {
+        "gcp::sasportal::SasPortalOperation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDeployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDeployment with SasportalCustomersDeploymentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDeploymentsCreateArgs> for SasPortalDeployment {
+    fn generate_resource_id(&self, input: &SasportalCustomersDeploymentsCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalDeployment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalEmpty with SasportalCustomersDeploymentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDeploymentsDeleteArgs> for SasPortalEmpty {
+    fn generate_resource_id(&self, input: &SasportalCustomersDeploymentsDeleteArgs) -> String {
+        format!("gcp::sasportal::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDeployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDeployment with SasportalCustomersDeploymentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDeploymentsGetArgs> for SasPortalDeployment {
+    fn generate_resource_id(&self, input: &SasportalCustomersDeploymentsGetArgs) -> String {
+        format!("gcp::sasportal::SasPortalDeployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListDeploymentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListDeploymentsResponse with SasportalCustomersDeploymentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDeploymentsListArgs>
+    for SasPortalListDeploymentsResponse
+{
+    fn generate_resource_id(&self, input: &SasportalCustomersDeploymentsListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListDeploymentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalOperation with SasportalCustomersDeploymentsMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDeploymentsMoveArgs> for SasPortalOperation {
+    fn generate_resource_id(&self, input: &SasportalCustomersDeploymentsMoveArgs) -> String {
+        format!("gcp::sasportal::SasPortalOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDeployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDeployment with SasportalCustomersDeploymentsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDeploymentsPatchArgs> for SasPortalDeployment {
+    fn generate_resource_id(&self, input: &SasportalCustomersDeploymentsPatchArgs) -> String {
+        format!("gcp::sasportal::SasPortalDeployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalCustomersDeploymentsDevicesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDeploymentsDevicesCreateArgs> for SasPortalDevice {
+    fn generate_resource_id(
+        &self,
+        input: &SasportalCustomersDeploymentsDevicesCreateArgs,
+    ) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalCustomersDeploymentsDevicesCreateSignedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDeploymentsDevicesCreateSignedArgs> for SasPortalDevice {
+    fn generate_resource_id(
+        &self,
+        input: &SasportalCustomersDeploymentsDevicesCreateSignedArgs,
+    ) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListDevicesResponse with SasportalCustomersDeploymentsDevicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDeploymentsDevicesListArgs>
+    for SasPortalListDevicesResponse
+{
+    fn generate_resource_id(&self, input: &SasportalCustomersDeploymentsDevicesListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListDevicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalCustomersDevicesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDevicesCreateArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalCustomersDevicesCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalCustomersDevicesCreateSignedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDevicesCreateSignedArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalCustomersDevicesCreateSignedArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalEmpty with SasportalCustomersDevicesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDevicesDeleteArgs> for SasPortalEmpty {
+    fn generate_resource_id(&self, input: &SasportalCustomersDevicesDeleteArgs) -> String {
+        format!("gcp::sasportal::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalCustomersDevicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDevicesGetArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalCustomersDevicesGetArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListDevicesResponse with SasportalCustomersDevicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDevicesListArgs> for SasPortalListDevicesResponse {
+    fn generate_resource_id(&self, input: &SasportalCustomersDevicesListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListDevicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalOperation with SasportalCustomersDevicesMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDevicesMoveArgs> for SasPortalOperation {
+    fn generate_resource_id(&self, input: &SasportalCustomersDevicesMoveArgs) -> String {
+        format!("gcp::sasportal::SasPortalOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalCustomersDevicesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDevicesPatchArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalCustomersDevicesPatchArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalEmpty with SasportalCustomersDevicesSignDeviceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDevicesSignDeviceArgs> for SasPortalEmpty {
+    fn generate_resource_id(&self, input: &SasportalCustomersDevicesSignDeviceArgs) -> String {
+        format!("gcp::sasportal::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalCustomersDevicesUpdateSignedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersDevicesUpdateSignedArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalCustomersDevicesUpdateSignedArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalNode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalNode with SasportalCustomersNodesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesCreateArgs> for SasPortalNode {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalNode/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalNode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalEmpty with SasportalCustomersNodesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesDeleteArgs> for SasPortalEmpty {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesDeleteArgs) -> String {
+        format!("gcp::sasportal::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalNode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalNode with SasportalCustomersNodesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesGetArgs> for SasPortalNode {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesGetArgs) -> String {
+        format!("gcp::sasportal::SasPortalNode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalNode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListNodesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListNodesResponse with SasportalCustomersNodesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesListArgs> for SasPortalListNodesResponse {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListNodesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListNodesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalOperation with SasportalCustomersNodesMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesMoveArgs> for SasPortalOperation {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesMoveArgs) -> String {
+        format!("gcp::sasportal::SasPortalOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalNode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalNode with SasportalCustomersNodesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesPatchArgs> for SasPortalNode {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesPatchArgs) -> String {
+        format!("gcp::sasportal::SasPortalNode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalNode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDeployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDeployment with SasportalCustomersNodesDeploymentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesDeploymentsCreateArgs> for SasPortalDeployment {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesDeploymentsCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalDeployment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListDeploymentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListDeploymentsResponse with SasportalCustomersNodesDeploymentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesDeploymentsListArgs>
+    for SasPortalListDeploymentsResponse
+{
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesDeploymentsListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListDeploymentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalCustomersNodesDevicesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesDevicesCreateArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesDevicesCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalCustomersNodesDevicesCreateSignedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesDevicesCreateSignedArgs> for SasPortalDevice {
+    fn generate_resource_id(
+        &self,
+        input: &SasportalCustomersNodesDevicesCreateSignedArgs,
+    ) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListDevicesResponse with SasportalCustomersNodesDevicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesDevicesListArgs> for SasPortalListDevicesResponse {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesDevicesListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListDevicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalNode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalNode with SasportalCustomersNodesNodesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesNodesCreateArgs> for SasPortalNode {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesNodesCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalNode/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalNode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListNodesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListNodesResponse with SasportalCustomersNodesNodesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalCustomersNodesNodesListArgs> for SasPortalListNodesResponse {
+    fn generate_resource_id(&self, input: &SasportalCustomersNodesNodesListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListNodesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListNodesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDeployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDeployment with SasportalDeploymentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalDeploymentsGetArgs> for SasPortalDeployment {
+    fn generate_resource_id(&self, input: &SasportalDeploymentsGetArgs) -> String {
+        format!("gcp::sasportal::SasPortalDeployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalEmpty with SasportalDeploymentsDevicesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalDeploymentsDevicesDeleteArgs> for SasPortalEmpty {
+    fn generate_resource_id(&self, input: &SasportalDeploymentsDevicesDeleteArgs) -> String {
+        format!("gcp::sasportal::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalDeploymentsDevicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalDeploymentsDevicesGetArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalDeploymentsDevicesGetArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalOperation with SasportalDeploymentsDevicesMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalDeploymentsDevicesMoveArgs> for SasPortalOperation {
+    fn generate_resource_id(&self, input: &SasportalDeploymentsDevicesMoveArgs) -> String {
+        format!("gcp::sasportal::SasPortalOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalDeploymentsDevicesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalDeploymentsDevicesPatchArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalDeploymentsDevicesPatchArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalEmpty with SasportalDeploymentsDevicesSignDeviceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalDeploymentsDevicesSignDeviceArgs> for SasPortalEmpty {
+    fn generate_resource_id(&self, input: &SasportalDeploymentsDevicesSignDeviceArgs) -> String {
+        format!("gcp::sasportal::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalDeploymentsDevicesUpdateSignedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalDeploymentsDevicesUpdateSignedArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalDeploymentsDevicesUpdateSignedArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalGenerateSecretResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalGenerateSecretResponse with SasportalInstallerGenerateSecretArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalInstallerGenerateSecretArgs> for SasPortalGenerateSecretResponse {
+    fn generate_resource_id(&self, input: &SasportalInstallerGenerateSecretArgs) -> String {
+        "gcp::sasportal::SasPortalGenerateSecretResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalGenerateSecretResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalValidateInstallerResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalValidateInstallerResponse with SasportalInstallerValidateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalInstallerValidateArgs> for SasPortalValidateInstallerResponse {
+    fn generate_resource_id(&self, input: &SasportalInstallerValidateArgs) -> String {
+        "gcp::sasportal::SasPortalValidateInstallerResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalValidateInstallerResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalNode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalNode with SasportalNodesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesGetArgs> for SasPortalNode {
+    fn generate_resource_id(&self, input: &SasportalNodesGetArgs) -> String {
+        format!("gcp::sasportal::SasPortalNode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalNode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalEmpty with SasportalNodesDeploymentsDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDeploymentsDeleteArgs> for SasPortalEmpty {
+    fn generate_resource_id(&self, input: &SasportalNodesDeploymentsDeleteArgs) -> String {
+        format!("gcp::sasportal::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDeployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDeployment with SasportalNodesDeploymentsGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDeploymentsGetArgs> for SasPortalDeployment {
+    fn generate_resource_id(&self, input: &SasportalNodesDeploymentsGetArgs) -> String {
+        format!("gcp::sasportal::SasPortalDeployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListDeploymentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListDeploymentsResponse with SasportalNodesDeploymentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDeploymentsListArgs> for SasPortalListDeploymentsResponse {
+    fn generate_resource_id(&self, input: &SasportalNodesDeploymentsListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListDeploymentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalOperation with SasportalNodesDeploymentsMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDeploymentsMoveArgs> for SasPortalOperation {
+    fn generate_resource_id(&self, input: &SasportalNodesDeploymentsMoveArgs) -> String {
+        format!("gcp::sasportal::SasPortalOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDeployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDeployment with SasportalNodesDeploymentsPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDeploymentsPatchArgs> for SasPortalDeployment {
+    fn generate_resource_id(&self, input: &SasportalNodesDeploymentsPatchArgs) -> String {
+        format!("gcp::sasportal::SasPortalDeployment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalNodesDeploymentsDevicesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDeploymentsDevicesCreateArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalNodesDeploymentsDevicesCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalNodesDeploymentsDevicesCreateSignedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDeploymentsDevicesCreateSignedArgs> for SasPortalDevice {
+    fn generate_resource_id(
+        &self,
+        input: &SasportalNodesDeploymentsDevicesCreateSignedArgs,
+    ) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListDevicesResponse with SasportalNodesDeploymentsDevicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDeploymentsDevicesListArgs> for SasPortalListDevicesResponse {
+    fn generate_resource_id(&self, input: &SasportalNodesDeploymentsDevicesListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListDevicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalNodesDevicesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDevicesCreateArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalNodesDevicesCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalNodesDevicesCreateSignedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDevicesCreateSignedArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalNodesDevicesCreateSignedArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalEmpty with SasportalNodesDevicesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDevicesDeleteArgs> for SasPortalEmpty {
+    fn generate_resource_id(&self, input: &SasportalNodesDevicesDeleteArgs) -> String {
+        format!("gcp::sasportal::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalNodesDevicesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDevicesGetArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalNodesDevicesGetArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListDevicesResponse with SasportalNodesDevicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDevicesListArgs> for SasPortalListDevicesResponse {
+    fn generate_resource_id(&self, input: &SasportalNodesDevicesListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListDevicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalOperation with SasportalNodesDevicesMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDevicesMoveArgs> for SasPortalOperation {
+    fn generate_resource_id(&self, input: &SasportalNodesDevicesMoveArgs) -> String {
+        format!("gcp::sasportal::SasPortalOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalNodesDevicesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDevicesPatchArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalNodesDevicesPatchArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalEmpty with SasportalNodesDevicesSignDeviceArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDevicesSignDeviceArgs> for SasPortalEmpty {
+    fn generate_resource_id(&self, input: &SasportalNodesDevicesSignDeviceArgs) -> String {
+        format!("gcp::sasportal::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalNodesDevicesUpdateSignedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesDevicesUpdateSignedArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalNodesDevicesUpdateSignedArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalNode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalNode with SasportalNodesNodesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesCreateArgs> for SasPortalNode {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalNode/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalNode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalEmpty
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalEmpty with SasportalNodesNodesDeleteArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesDeleteArgs> for SasPortalEmpty {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesDeleteArgs) -> String {
+        format!("gcp::sasportal::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalNode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalNode with SasportalNodesNodesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesGetArgs> for SasPortalNode {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesGetArgs) -> String {
+        format!("gcp::sasportal::SasPortalNode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalNode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListNodesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListNodesResponse with SasportalNodesNodesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesListArgs> for SasPortalListNodesResponse {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListNodesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListNodesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalOperation
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalOperation with SasportalNodesNodesMoveArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesMoveArgs> for SasPortalOperation {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesMoveArgs) -> String {
+        format!("gcp::sasportal::SasPortalOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalNode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalNode with SasportalNodesNodesPatchArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesPatchArgs> for SasPortalNode {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesPatchArgs) -> String {
+        format!("gcp::sasportal::SasPortalNode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalNode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDeployment
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDeployment with SasportalNodesNodesDeploymentsCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesDeploymentsCreateArgs> for SasPortalDeployment {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesDeploymentsCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalDeployment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListDeploymentsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListDeploymentsResponse with SasportalNodesNodesDeploymentsListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesDeploymentsListArgs>
+    for SasPortalListDeploymentsResponse
+{
+    fn generate_resource_id(&self, input: &SasportalNodesNodesDeploymentsListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListDeploymentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalNodesNodesDevicesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesDevicesCreateArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesDevicesCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalDevice
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalDevice with SasportalNodesNodesDevicesCreateSignedArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesDevicesCreateSignedArgs> for SasPortalDevice {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesDevicesCreateSignedArgs) -> String {
+        format!("gcp::sasportal::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListDevicesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListDevicesResponse with SasportalNodesNodesDevicesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesDevicesListArgs> for SasPortalListDevicesResponse {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesDevicesListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListDevicesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalNode
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalNode with SasportalNodesNodesNodesCreateArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesNodesCreateArgs> for SasPortalNode {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesNodesCreateArgs) -> String {
+        format!("gcp::sasportal::SasPortalNode/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalNode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalListNodesResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalListNodesResponse with SasportalNodesNodesNodesListArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalNodesNodesNodesListArgs> for SasPortalListNodesResponse {
+    fn generate_resource_id(&self, input: &SasportalNodesNodesNodesListArgs) -> String {
+        format!(
+            "gcp::sasportal::SasPortalListNodesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalListNodesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalPolicy with SasportalPoliciesGetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalPoliciesGetArgs> for SasPortalPolicy {
+    fn generate_resource_id(&self, input: &SasportalPoliciesGetArgs) -> String {
+        "gcp::sasportal::SasPortalPolicy".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalPolicy
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalPolicy with SasportalPoliciesSetArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalPoliciesSetArgs> for SasPortalPolicy {
+    fn generate_resource_id(&self, input: &SasportalPoliciesSetArgs) -> String {
+        "gcp::sasportal::SasPortalPolicy".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+// =============================================================================
+// ResourceIdentifier implementation for SasPortalTestPermissionsResponse
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalTestPermissionsResponse with SasportalPoliciesTestArgs input.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SasportalPoliciesTestArgs> for SasPortalTestPermissionsResponse {
+    fn generate_resource_id(&self, input: &SasportalPoliciesTestArgs) -> String {
+        "gcp::sasportal::SasPortalTestPermissionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::sasportal::SasPortalTestPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }
